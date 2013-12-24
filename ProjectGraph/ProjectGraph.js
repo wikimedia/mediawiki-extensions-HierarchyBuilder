@@ -50,8 +50,9 @@ window.ProjectGraph = {
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
 		personNames = eval("("+personNames+")");
-		//console.log("personNames: "+personNames);
-
+		employeeNumbers = eval("("+employeeNumbers+")");
+		console.log("personNames: "+personNames);
+		console.log("employeeNumbers: "+employeeNumbers);
 		ProjectGraph.FiscalYear = fiscalYear;
 		ProjectGraph.GraphDiv = graphDiv;
 		ProjectGraph.DetailsDiv = detailsDiv;
@@ -77,7 +78,7 @@ window.ProjectGraph = {
 
 		var employeeNumberArray;
 		if (employeeNumbers != null && employeeNumbers.length > 0) {
-			employeeNumberArray = employeeNumbers.split(",");
+			employeeNumberArray = employeeNumbers;
 		} else {
 			employeeNumberArray = new Array();
 		}
@@ -508,7 +509,7 @@ window.ProjectGraph = {
 				"' target='_blank'><img src='" + ProjectGraph.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
-				buttons += " <a " +
+				buttons += " <a class='icon'" +
 					"onclick='ProjectGraph.getTaskDelivery(" + node.index +
 					"); ProjectGraph.redraw(true);'><img src = '" +
 					ProjectGraph.ImagePath + "plus.png' /></a>";
@@ -520,7 +521,7 @@ window.ProjectGraph = {
 				"' target='_blank'><img src='" + ProjectGraph.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
-				buttons += " <a " +
+				buttons += " <a class='icon'" +
 					"onclick='ProjectGraph.getStaffTasks(" + node.index +
 					"); ProjectGraph.redraw(true);'><img src = '" +
 					ProjectGraph.ImagePath + "plus.png' /></a>";

@@ -39,7 +39,6 @@ window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 '		</GetMyProjectCharges>' +
 '	</soap12:Body>' +
 '</soap12:Envelope>';
-	console.log("calling queryStaffTasks");
 	jQuery.ajax({
 		url: '/IWWebService/ProjectCharges.asmx?op=GetMyProjectCharges',
 		type: 'POST',
@@ -48,8 +47,6 @@ window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 		async: false,
 		data: request,
 		success: function (data, textStatus, jqXHR) {
-			console.log("response text for soap request:");
-			console.log(jqXHR.responseText);
 			tasks = [];
 			var xml = jqXHR.responseText;
 			jQuery(xml).find('MyProjectCharges').each(function() {
@@ -70,7 +67,6 @@ window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 };
 
 window.queryTaskDelivery = function(chargeNumber, fiscalYear) {
-	console.log("calling queryTaskDelivery");
 	var taskName = null;
 	var staff = null;
 	var request =
@@ -92,8 +88,6 @@ window.queryTaskDelivery = function(chargeNumber, fiscalYear) {
 		success: function (data, textStatus, jqXHR) {
 			staff = [];
 			var xml = jqXHR.responseText;
-			console.log("response text for soap request:");
-			console.log(jqXHR.responseText);
 			taskName = jQuery(xml).find('ProjectName').text();
 			jQuery(xml).find('TotalStaffList StaffTI').each(function() {
 				var departmentNumber = jQuery(this).find('DepartmentNumber').text();

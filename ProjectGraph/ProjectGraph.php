@@ -119,6 +119,7 @@ class ProjectGraph {
 EOT;
 
 		if($people) {
+			$people_json = addslashes(json_encode(array_map('trim', explode(',', $people))));
 			$names = $this->getNamesFromLDAP($people);
 			$names_json = addslashes(json_encode($names));
 		}
@@ -130,7 +131,7 @@ EOT;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/ProjectGraph/';
 		$script =<<<END
 mw.loader.using(['ext.ProjectGraph'], function () {
-	ProjectGraph.drawGraph("$projects", "$people", "$years", "$graphdiv",
+	ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
 		"$detailsdiv", "$imagePath", "$names_json", 1200, 600);
 });
 END;
@@ -152,7 +153,7 @@ END;
 			@ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
 			@ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
 
-			$employee_array = explode(",",$people);
+			$employee_array = array_map('trim', explode(",",$people));
 			
 			wfErrorLog("array count: ", "/var/www/html/DEBUG_ProjectGraph.out");
 			wfErrorLog(count($employee_array), "/var/www/html/DEBUG_ProjectGraph.out");
