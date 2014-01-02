@@ -23,8 +23,8 @@ h4 {
 
 .detail-panel {
   background-color: white;
-  position: absolute;
-  right:5px;
+  //display: inline;
+  left:5px;
   top:5px;
   z-index:1;
   border:1px solid blue;

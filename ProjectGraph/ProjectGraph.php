@@ -112,9 +112,9 @@ class ProjectGraph {
 		$detailsdiv = $div . "_details";
 
 		$output = <<<EOT
-<div class="graph-container" id="$graphdiv">
-</div>
 <div class="detail-panel" id="$detailsdiv">
+</div>
+<div class="graph-container" id="$graphdiv">
 </div>
 EOT;
 
