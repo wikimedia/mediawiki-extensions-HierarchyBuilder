@@ -112,10 +112,12 @@ class ProjectGraph {
 		$detailsdiv = $div . "_details";
 
 		$output = <<<EOT
-<div class="detail-panel" id="$detailsdiv">
-</div>
-<div class="graph-container" id="$graphdiv">
-</div>
+<table>
+<tr><td><div class="detail-panel" id="$detailsdiv">
+</div></td></tr>
+<tr><td><div class="graph-container" id="$graphdiv">
+</div></td></tr>
+</table>
 EOT;
 
 		if($people) {

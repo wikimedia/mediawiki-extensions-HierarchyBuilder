@@ -11,24 +11,29 @@ h4 {
   color: #23A4FF;
   font-size: 16px;
   margin-bottom: 0.5em;
+  display: inline-block;
+  height:25px;
 }
 
 .graph-container {
   float: left;
+  top:55px;
   padding:5px 5px 5px 5px;
   border: 1px solid blue;
-  border-radius: 10px;
+  border-radius: 7px;
   overflow: hidden;
 }
 
 .detail-panel {
   background-color: white;
-  //display: inline;
-  left:5px;
+  display: block;
+  float: left;
+  clear: right;
+  left:7px;
   top:5px;
   z-index:1;
   border:1px solid blue;
-  border-radius: 5px;
+  border-radius: 8px;
   padding-left:10px;
   padding-right:10px;
 }
