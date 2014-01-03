@@ -147,6 +147,7 @@ window.ProjectGraph = {
 			ProjectGraph.Force.gravity(.4)
 			ProjectGraph.Force.distance(200)
 			ProjectGraph.Force.charge(-3000)
+			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
 
