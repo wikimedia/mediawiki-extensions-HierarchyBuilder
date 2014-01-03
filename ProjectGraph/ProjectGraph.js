@@ -51,8 +51,7 @@ window.ProjectGraph = {
 
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
-		//console.log("personNames: "+personNames);
-		//console.log("employeeNumbers: "+employeeNumbers);
+
 		ProjectGraph.FiscalYear = fiscalYear;
 		ProjectGraph.GraphDiv = graphDiv;
 		ProjectGraph.DetailsDiv = detailsDiv;
@@ -179,11 +178,8 @@ window.ProjectGraph = {
 	},
 
 	redrawZoom: function() {
-//		console.log("translate (x,y)=("+d3.event.translate[0]+","+d3.event.translate[1]+")+ scale("+d3.event.scale+"), 1.0/scale = "+(1.0/d3.event.scale));
-
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
-
 	},
 
 	redraw: function(layout) {
@@ -225,6 +221,11 @@ window.ProjectGraph = {
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
+		});
+		newNodes.on("contextmenu", function(d) {
+			//console.log("right click");
+			//var position = d3.mouse(this);
+			//console.log("x,y = "+position[0]+", "+position[1]);
 		});
 
 		var drag = ProjectGraph.Force.drag()

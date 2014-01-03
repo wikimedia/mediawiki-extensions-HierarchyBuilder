@@ -125,8 +125,10 @@ EOT;
 			$names = $this->getNamesFromLDAP($people);
 			$names_json = addslashes(json_encode($names));
 		}
-		else
+		else {
 			$names_json = "[]";
+			$people_json = "[]";
+		}
 
 		global $wgServer;
 		global $wgScriptPath;
