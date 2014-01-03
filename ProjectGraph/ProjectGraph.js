@@ -51,8 +51,8 @@ window.ProjectGraph = {
 
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
-		console.log("personNames: "+personNames);
-		console.log("employeeNumbers: "+employeeNumbers);
+		//console.log("personNames: "+personNames);
+		//console.log("employeeNumbers: "+employeeNumbers);
 		ProjectGraph.FiscalYear = fiscalYear;
 		ProjectGraph.GraphDiv = graphDiv;
 		ProjectGraph.DetailsDiv = detailsDiv;
