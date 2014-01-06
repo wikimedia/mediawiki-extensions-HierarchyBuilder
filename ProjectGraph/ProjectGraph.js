@@ -270,7 +270,8 @@ window.ProjectGraph = {
 		});
 		newImages.attr("onerror", "window.ProjectGraph.setDefaultImage(this);");
 
-		var allImages = d3.selectAll(".icon");
+		//var allImages = d3.selectAll(".icon");
+		var allImages = ProjectGraph.NodeSelection.selectAll(".icon");
 		allImages.attr("x", function(d) {
 			return d.index == ProjectGraph.SelectedNode ? -1*ProjectGraph.SELECTED_IMAGE_DIMENSION/2: -1*ProjectGraph.UNSELECTED_IMAGE_DIMENSION/2;
 		});
@@ -284,6 +285,7 @@ window.ProjectGraph = {
 		allImages.attr("height", function(d) {
 			return d.index == ProjectGraph.SelectedNode ? ProjectGraph.SELECTED_IMAGE_DIMENSION : ProjectGraph.UNSELECTED_IMAGE_DIMENSION;
 		});
+
 		allImages.style("opacity", function(d) {
 			if (d.index == ProjectGraph.SelectedNode) {
 				return 1;
@@ -291,7 +293,7 @@ window.ProjectGraph = {
 				d.index) != null) {
 				return 1;
 			} else {
-				return 0.7;
+				return ProjectGraph.LINK_OPACITY;
 			}
 		});
 
