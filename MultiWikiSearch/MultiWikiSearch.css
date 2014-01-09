@@ -1,0 +1,21 @@
+#firstTd {
+  width: 100px;
+  text-align: left;
+
+}
+
+#wikisTd {
+  vertical-align: text-top;
+}
+
+#searchTerms {
+  width:500px;
+}
+
+#includedWikis {
+  width: 200px;
+}
+
+#nonIncludedWikis {
+  width: 200px;
+}

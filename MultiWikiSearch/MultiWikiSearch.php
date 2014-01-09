@@ -28,7 +28,12 @@ $wgExtensionMessagesFiles['MultiWikiSearch'] = __DIR__ . '/MultiWikiSearch.i18n.
 $wgResourceModules['ext.MultiWikiSearch'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'MultiWikiSearch',
-	'scripts' => 'MultiWikiSearch.js'
+	'styles' => array(
+		'MultiWikiSearch.css'
+	),
+	'scripts' => array(
+		'MultiWikiSearch.js'
+	)
 );
 
 class SpecialMultiWikiSearch extends SpecialPage {
@@ -40,25 +45,39 @@ class SpecialMultiWikiSearch extends SpecialPage {
 		$output = $this->getOutput();
 		$this->setHeaders();
 		$out = <<<EOT
+<div id="myDiv">
 <form>
 	<fieldset>
 		<legend>Multiple Wiki Search</legend>
 		<p>Enter at least one search term and at least one wiki to be included in the search:</p>
-		<table>
-		<tbody>
-		<tr><td>Search terms:</td><td><input type="text" name="searchTerms"></td>
-		<tr><td>Scope:</td><td> 
-			<select name="scope">
-				<option value="title">Title only</option>
-				<option value="text">Text only</option>
-				<option value="both">Title and text</option>
-			</select></td></tr>
-		<tr><td>
-		</tbody>
-		</table>
+		<table><tbody>
+			<tr><td id="firstTd">Search terms:</td><td><input type="text" name="searchTerms" id="searchTerms"></td>
+			<tr><td>Scope:</td><td>
+				<select name="scope" id="scope">
+					<option value="title">Title only</option>
+					<option value="text">Text only</option>
+					<option value="both">Title and text</option>
+				</select></td></tr>
+			<tr><td id="wikisTd">Wikis:</td><td>
+				<table><tbody>
+					<tr><td>
+						<fieldset>
+							<legend>Included Wikis</legend>
+							<select name="wikis" id="includedWikis" multiple="multiple"></select>
+						</fieldset>
+					</td><td>
+						<fieldset>
+							<legend>Excluded Wikis</legend>
+							<select name="wikis" id="nonIncludedWikis" multiple="multiple"></select>
+						</fieldset>
+					</td></tr>
+				</tbody></table>
+			</td></tr>
+		</tbody></table>
 		
 	</fieldset>
 </form>
+</div>
 EOT;
 
 		$output->addHTML($out);

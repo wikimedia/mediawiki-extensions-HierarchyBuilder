@@ -25,5 +25,15 @@ function parseData(data) {
 
 //	access categoryMember title via categoryMembers[i]["title"]
 
-	}
+	console.log("hi2");
+
+	$(window).load(function () {
+		for(var i in categoryMembers) {
+			$("#nonIncludedWikis").append("<option>"+categoryMembers[i]["title"]+"</option>");
+		}
+		$("#includedWikis").attr("size", 10);
+		$("#nonIncludedWikis").attr("size", 10);
+	});
+
+
 }
