@@ -38,7 +38,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.3.2',
+	'version' => '1.3.3',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -76,9 +76,15 @@ function wfExtensionProjectGraph_Magic(& $magicWords, $langCode) {
 	return true;
 }
 
-function projectgraph($parser, $projects, $people, $years) {
+function projectgraph($parser, $projects, $people, $years, $width, $height) {
 	$projectgraph = new ProjectGraph;
-	$output = $projectgraph->display($parser, $projects, $people, $years);
+
+	if(!$width)
+		$width = 1200;
+	if(!$height)
+		$height = 600;
+
+	$output = $projectgraph->display($parser, $projects, $people, $years, $width, $height);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -102,7 +108,7 @@ class ProjectGraph {
 
 	private static $pqnum = 0;
 
-	function display($parser, $projects, $people, $years) {
+	function display($parser, $projects, $people, $years, $width, $height) {
 
 		global $wgOut;
 		$wgOut->addModules('ext.ProjectGraph');
@@ -136,7 +142,7 @@ EOT;
 		$script =<<<END
 mw.loader.using(['ext.ProjectGraph'], function () {
 	ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
-		"$detailsdiv", "$imagePath", "$names_json", 1200, 600);
+		"$detailsdiv", "$imagePath", "$names_json", "$width", "$height");
 });
 END;
 
