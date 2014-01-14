@@ -38,7 +38,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.3.3',
+	'version' => '1.3.4',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -179,7 +179,7 @@ END;
 					wfErrorLog("result: $result\n", "/var/www/html/DEBUG_ProjectGraph.out");
 					$entries = @ldap_get_entries($ldapconn, $result);
 
-					$new_name = $entries[0][cn][0];
+					$new_name = $entries[0]['cn'][0];
 					$new_name = str_replace(",", ", ", $new_name);
 					array_push($names, $new_name);
 					wfErrorLog("name: $new_name\n", "/var/www/html/DEBUG_ProjectGraph.out");
