@@ -38,7 +38,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.3.4',
+	'version' => '1.3.5',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'projectgraph-desc'
 );

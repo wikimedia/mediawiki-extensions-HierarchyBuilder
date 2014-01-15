@@ -130,6 +130,7 @@ window.ProjectGraph = {
 			      .attr("pointer-events", "all")
 			   .append("svg:g")
 			      .call(ProjectGraph.zoom)
+			      .on("dblclick.zoom", null)
 
 			svg.append("svg:rect")
 			   .attr("width", ProjectGraph.width)
