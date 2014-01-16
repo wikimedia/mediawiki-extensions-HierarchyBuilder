@@ -63,7 +63,8 @@ class SkinVectorPlusMenu extends SkinTemplate {
 				"/{$this->stylename}/csshover{$min}.htc\")}</style><![endif]-->"
 		);
 
-		$out->addModules( 'skins.vectorplusmenu.js' );
+		$out->addModules( 'skins_vectorplusmenu_only.vectorplusmenu.js' );
+//		$out->addModules('skins.vectorplusmenu.js');
 	}
 
 	/**
@@ -73,7 +74,8 @@ class SkinVectorPlusMenu extends SkinTemplate {
 	 */
 	function setupSkinUserCss( OutputPage $out ) {
 		parent::setupSkinUserCss( $out );
-		$out->addModuleStyles( 'skins.vectorplusmenu' );
+		$out->addModuleStyles( 'skins_vectorplusmenu_only.vectorplusmenu' );
+//		$out->addModuleStyles('skins.vectorplusmenu');
 	}
 
 	/**
@@ -672,7 +674,7 @@ EOT;
             $menu .= $submenus;
 			return $menu;
 		} else {
-			return "Menu definition page " . $VectorMenu_MenuPage .
+			return "Menu definition page " . self::$VectorPlusMenu_MenuPage .
 				" does not exist";
 		}
 	}
@@ -819,7 +821,7 @@ EOT;
 				if (strlen($label) > 0) {
 					self::parseFields($fields, $fieldvalues);
 					$button = self::createButton($currentpage,
-						$currentaction, $label, $fieldvalues);
+						$currentaction, $label, $fieldvalues, false);
 					if ($button !== null) {
 						$submenu .= $button;
 					}
