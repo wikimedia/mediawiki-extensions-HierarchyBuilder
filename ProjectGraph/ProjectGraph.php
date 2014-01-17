@@ -1,5 +1,4 @@
-<?php
- 
+<?php 
 /*
  * Copyright (c) 2013 The MITRE Corporation
  * 
@@ -122,6 +121,8 @@ class ProjectGraph {
 <tr><td><div class="detail-panel" id="$detailsdiv">
 </div></td></tr>
 <tr><td><div class="graph-container" id="$graphdiv">
+</div></td></tr>
+<tr><td><div id="errors-panel">
 </div></td></tr>
 </table>
 EOT;

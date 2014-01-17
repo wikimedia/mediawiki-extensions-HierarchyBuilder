@@ -544,8 +544,9 @@ window.ProjectGraph = {
 		var delivery = queryTaskDelivery(taskNode.chargeNumber,
 			ProjectGraph.FiscalYear);
 		if (delivery == null) {
-			alert("Error getting data for task " + taskNode.chargeNumber +
-				" for fiscal year " + ProjectGraph.FiscalYear);
+			//alert("Error getting data for task " + taskNode.chargeNumber + " for fiscal year " + ProjectGraph.FiscalYear);
+			$("#errors-panel").css("visibility", "visible");
+			$("#errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
 			return null;
 		} else {
 			parseTaskStaff(taskNode, delivery);

@@ -37,3 +37,12 @@ h4 {
   padding-left:10px;
   padding-right:10px;
 }
+
+div#errors-panel {
+  border:1px solid red;
+  border-radius: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  visibility: hidden;
+  font-size: 2em;
+}
