@@ -65,16 +65,19 @@ class SpecialMultiWikiSearch extends SpecialPage {
 							<legend>Included Wikis</legend>
 							<select name="wikis" id="includedWikis" multiple="multiple"></select>
 						</fieldset>
+					<td>
+						<button type="button" id="moveLeft">Move Left</button>
+						<button type="button" id="moveRight">Move Right</button>
+					</td>
 					</td><td>
 						<fieldset>
 							<legend>Excluded Wikis</legend>
-							<select name="wikis" id="nonIncludedWikis" multiple="multiple"></select>
+							<select name="wikis" id="excludedWikis" multiple="multiple"></select>
 						</fieldset>
 					</td></tr>
 				</tbody></table>
 			</td></tr>
 		</tbody></table>
-		
 	</fieldset>
 </form>
 </div>
@@ -86,7 +89,7 @@ EOT;
 
 		$script=<<<END
 mw.loader.using(['ext.MultiWikiSearch'], function() {
-	multiWikiSearchFunction();
+	MultiWikiSearch.initializeMWS();
 });
 END;
 

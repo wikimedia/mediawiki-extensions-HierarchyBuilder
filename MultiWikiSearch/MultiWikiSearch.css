@@ -8,6 +8,14 @@
   vertical-align: text-top;
 }
 
+#moveLeft {
+  display:block;
+  width:100px;
+}
+#moveRight {
+  width:100px;
+}
+
 #searchTerms {
   width:500px;
 }
