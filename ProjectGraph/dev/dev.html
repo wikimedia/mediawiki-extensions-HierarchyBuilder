@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Project Pages</title>
+<link type="text/css" href="projectpages.css" rel="stylesheet" />
+<!--[if IE]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="../d3.v3.min.js"></script>
+<script language="javascript" type="text/javascript" src="../jquery-1.8.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="../queries.js"></script>
+<script language="javascript" type="text/javascript" src="../ProjectGraph.js"></script>
+<script>
+/*
+  var params = getParameters();
+  var chargeNumbers = params.chargeNumbers;
+  var employeeNumbers = params.employeeNumbers;
+  if ((chargeNumbers == null || chargeNumbers.length == 0) &&
+    (employeeNumbers == null || employeeNumbers.length == 0)) {
+    alert("You must supply at least one charge number or employee number.");
+    return;
+  }
+  FiscalYear = params.year;
+  if (FiscalYear.length == 0) {
+    alert("You must supply a fiscal year.");
+    return;
+  }
+  var yearpattern = /^[0-9]{4}$/;
+  if (!yearpattern.test(FiscalYear)) {
+    alert("Year invalid. Must be of the form YYYY.");
+    return;
+  }
+  var chargeNumberArray;
+  if (chargeNumbers != null && chargeNumbers.length > 0) {
+    chargeNumberArray = chargeNumbers.split(",");
+    for (var i = 0; i < chargeNumberArray.length; i++) {
+//      addRootTask(chargeNumberArray[i], FiscalYear);
+    }
+  }
+  var employeeNumberArray;
+  if (employeeNumbers != null && employeeNumbers.length > 0) {
+    employeeNumberArray = employeeNumbers.split(",");
+    for (var i = 0; i < employeeNumberArray.length; i++) {
+      //addRootStaff(employeeNumberArray[i], FiscalYear);
+    }
+  }
+  //  drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
+*/
+</script>
+</head>
+
+<body>
+
+
+<table>
+<tr><td><div class="detail-panel" id="ProjectGraph_0_details">
+</div></td></tr>
+<tr><td><div class="graph-container" id="ProjectGraph_0_graph">
+</div></td></tr></table>
+<script type="text/javascript">
+ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
+		"ProjectGraph_0_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400");
+
+</script>
+<!--
+<div id="container">
+
+
+    <div id="graph-container">
+        <div id="graph"></div>    
+    </div>
+
+    <div id="details-container">
+        <div id="details"></div>
+    </div>
+
+</div>-->
+</body>
+</html>
