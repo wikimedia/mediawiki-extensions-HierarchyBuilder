@@ -144,7 +144,7 @@ window.ProjectGraph = {
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
 
 			ProjectGraph.Force = d3.layout.force();
-			ProjectGraph.Force.gravity(.4)
+			ProjectGraph.Force.gravity(.04) // original value was 0.4
 			ProjectGraph.Force.distance(200)
 			ProjectGraph.Force.charge(-3000)
 			ProjectGraph.Force.friction(.675)
@@ -181,6 +181,7 @@ window.ProjectGraph = {
 	redrawZoom: function() {
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
+		$("#zoom-slider").slider("value",d3.event.scale);
 	},
 
 	redraw: function(layout) {

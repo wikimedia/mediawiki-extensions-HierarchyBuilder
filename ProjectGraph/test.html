@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script type="application/javascript" src="lib/jquery-2.0.3.min.js"></script>
+  <script type="application/javascript" src="lib/jquery-ui-1.10.4/ui/jquery-ui.js"></script>
+
+ <script type="application/javascript" src="lib/jquery.mousewheel.js"></script>
+ <script type="application/javascript" src="lib/perfect-scrollbar.js"></script>
+
+  <link rel="stylesheet" href="lib/jquery-ui-1.10.4/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="lib/perfect-scrollbar.css">
+
+<style>
+        .demo {
+            width: 100px;
+            height: 200px;
+        }
+        .contentHolder { position:relative; margin:0px auto; padding:0px; width: 600px; height: 400px; overflow: hidden; }
+
+</style>
+</head>
+<body>
+
+  <div id="zoom_slider"></div>
+  <div id="scrollbar" class="contentHolder">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla scelerisque sapien eget tortor molestie rhoncus. Nunc aliquet libero massa, semper vulputate arcu volutpat sed. Nullam mollis, risus id sagittis mollis, est felis molestie lacus, ut faucibus nunc mi sed nisl. Aliquam sagittis odio sed arcu sodales luctus. Maecenas nulla massa, volutpat in mi et, interdum malesuada felis. Sed non laoreet massa. Mauris molestie nisl tortor, at adipiscing sem faucibus at. Aenean euismod sit amet lorem sed malesuada. Vivamus mauris purus, luctus et felis sed, consequat mattis ligula. Proin pretium vehicula sollicitudin. Ut rutrum eleifend quam. Quisque dignissim feugiat turpis, in convallis erat auctor et. Sed id consectetur mauris, quis congue turpis. In accumsan tincidunt nulla tincidunt gravida. Maecenas et semper magna. Nullam at sem eu lectus rutrum pharetra.
+
+Integer justo ligula, lacinia a arcu vitae, pulvinar vulputate enim. Integer consequat magna id tortor accumsan sodales. In blandit dolor eget ultricies porttitor. Morbi mattis augue id sem aliquet dictum et ut nunc. Maecenas sed augue ut est facilisis porta. Aenean porttitor quam et dolor venenatis, eget commodo urna tincidunt. Mauris lacinia dolor id augue consequat, vel blandit nibh facilisis. Ut mi libero, tristique eu velit in, eleifend interdum nisi. Pellentesque accumsan risus orci, tristique pretium est venenatis sed. In quis urna elit.
+
+Integer eget est dolor. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec eget nisi mollis, suscipit mauris sed, mattis enim. Fusce fermentum semper urna, at adipiscing dui luctus quis. Pellentesque in mauris eget sapien tincidunt scelerisque sed at nibh. Cras adipiscing elementum lectus sed tincidunt. Nam tempus felis at velit aliquam, vestibulum elementum nisi vehicula. Sed egestas fringilla velit, ornare scelerisque lectus sagittis non.
+
+Duis nec massa nec erat cursus pharetra eget eget nulla. Pellentesque non velit vitae tortor ornare cursus. Sed consectetur lectus id eros ullamcorper, id tempus dolor dapibus. Maecenas non mauris dolor. Nulla non lacus a magna ultricies adipiscing. Suspendisse et justo gravida, facilisis dolor vel, mattis odio. Vestibulum commodo nec nibh a molestie. Fusce convallis diam ut dolor fringilla, eu suscipit sem semper. Nulla ullamcorper est vel imperdiet laoreet. Aenean condimentum, nulla ut placerat porta, metus lorem aliquam dolor, consequat placerat neque lectus vel lorem. Donec non interdum neque. Morbi luctus velit malesuada sollicitudin luctus. Proin nulla nibh, interdum consequat mi et, rhoncus volutpat lacus.
+
+Praesent vitae semper leo, sit amet interdum enim. In elit ante, facilisis quis diam eu, tempus bibendum mi. Vestibulum velit tortor, lobortis ut libero a, rhoncus suscipit erat. Sed blandit at ipsum at venenatis. Maecenas mauris tellus, malesuada ut ultricies molestie, accumsan sed ante. Donec vestibulum leo ac neque lobortis dictum. Aliquam sagittis ipsum et elit dapibus, sed mattis est vulputate. Interdum et malesuada fames ac ante ipsum primis in faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nullam vitae neque in mi eleifend dignissim sed at odio. Nunc a feugiat libero, ut feugiat ligula. Curabitur malesuada sollicitudin dui, sit amet venenatis diam pellentesque et. Maecenas sit amet tristique metus.</div>
+<button id="test">Test</button>
+<script>
+    $(window).load(function () {
+var pan = $("#scrollbar").perfectScrollbar();
+});
+var zoom_val;
+var zoom_slider = $("#zoom_slider").slider(
+{
+  orientation: "vertical",
+//  range:true, 
+  min: 1 , 
+  max:100, 
+  step: 5,
+  slide: function( event, ui ) {
+    // zoom d3 app here
+    zoom_val = ui.value;
+    console.log(zoom_val);
+  } 
+}
+);
+$("#test").click(function(){
+$("#zoom_slider").slider("value",50);
+zoom_val = $("#zoom_slider").slider("value");
+console.log(zoom_val);
+});
+</script>
+
+</body></html>
