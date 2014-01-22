@@ -43,7 +43,8 @@ var zoom_slider = $("#zoom-slider").slider(
   slide: function( event, ui ) {
     // zoom d3 app here
     zoom_val = ui.value;
-    console.log(zoom_val);
+//	d3.select("#moveable").attr("transform", "translate("+ProjectGraph.translate+")" + " scale("+2+")");
+//    console.log(zoom_val);
   } 
 }
 );

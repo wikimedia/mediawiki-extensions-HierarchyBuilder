@@ -144,9 +144,13 @@ window.ProjectGraph = {
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
 
 			ProjectGraph.Force = d3.layout.force();
-			ProjectGraph.Force.gravity(.04) // original value was 0.4
-			ProjectGraph.Force.distance(200)
-			ProjectGraph.Force.charge(-3000)
+			ProjectGraph.Force.gravity(0.4)
+			// link distance was decreased by 1/4 in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
+			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
+			ProjectGraph.Force.distance(50)
+			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
+			// This will decrease edge crossings for the nodes. 	
+			ProjectGraph.Force.charge(-30000)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -181,10 +185,31 @@ window.ProjectGraph = {
 	redrawZoom: function() {
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
+		 /* translatePos=d3.event.translate;
+		  var value = zoomWidgetObj.value.target[1]*2;
+ 
+		  //detect the mousewheel event, then subtract/add a constant to the zoom level and transform it
+		  if (d3.event.sourceEvent.type=='mousewheel' || d3.event.sourceEvent.type=='DOMMouseScroll'){
+				if (d3.event.sourceEvent.wheelDelta){
+					if (d3.event.sourceEvent.wheelDelta &gt; 0){
+						value = value + 0.1;
+					}else{
+						value = value - 0.1;
+					}
+				}else{
+					if (d3.event.sourceEvent.detail &gt; 0){
+						value = value + 0.1;
+					}else{
+						value = value - 0.1;
+					}
+				}
+		  }
+		transformVis(d3.event.translate,value);*/
 		$("#zoom-slider").slider("value",d3.event.scale);
 	},
 
 	redraw: function(layout) {
+	
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -393,6 +418,7 @@ window.ProjectGraph = {
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
+
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -639,4 +665,21 @@ window.ProjectGraph = {
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
 	}
+}
+function transformVis(pan,zoom){
+ 
+	if (d3.event){
+		if (d3.event.sourceEvent.type == "mousewheel" || d3.event.sourceEvent.type=='DOMMouseScroll'){
+		//they scrolled with the mouse wheel, update the slider postion but do not trigger it's transformVis call
+			zoomWidgetObj.setValue(0,zoom/2,false,false);
+		}else{
+			//they are interacting with the slider
+			zoomWidgetObj.doZoom = true;
+		}
+	}else{
+		zoomWidgetObj.doZoom = true;
+	}
+ 
+	vis.attr("transform", "translate(" +  (pan[0] + ((visWidth - (visWidth * zoomFactor))/2)) + ',' + (pan[1] + ((visHeight - (visHeight * zoomFactor))/2)) + ")scale(" + zoom*zoomFactor + ")"); 	
+ 
 }
