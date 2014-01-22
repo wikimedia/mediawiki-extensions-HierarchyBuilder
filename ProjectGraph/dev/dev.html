@@ -28,25 +28,22 @@
 ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
 		"ProjectGraph_0_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400");
 
-$(window).load(function () {
-  var pan = $(".graph-container").perfectScrollbar();
-});
-
-
-var zoom_val;
+var start = 1;
 var zoom_slider = $("#zoom-slider").slider(
 {
   orientation: "vertical",
   min: 0.3 , 
   max:2, 
-  step: .05,// 0.001828834 // - 
+  step: .05,
+  value: start,
   slide: function( event, ui ) {
+	console.log(ui.value);
 	ProjectGraph.zoom.scale(ui.value);
 	ProjectGraph.zoom.event(ProjectGraph.SVG)
-  } 
-}
-);
-
+  }
+});
+ProjectGraph.zoom.scale(start);
+ProjectGraph.zoom.event(ProjectGraph.SVG)
 </script>
 </body>
 </html>
