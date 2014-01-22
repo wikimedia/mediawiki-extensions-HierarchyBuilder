@@ -41,10 +41,8 @@ var zoom_slider = $("#zoom-slider").slider(
   max:2, 
   step: .05,// 0.001828834 // - 
   slide: function( event, ui ) {
-    // zoom d3 app here
-    zoom_val = ui.value;
-//	d3.select("#moveable").attr("transform", "translate("+ProjectGraph.translate+")" + " scale("+2+")");
-//    console.log(zoom_val);
+	ProjectGraph.zoom.scale(ui.value);
+	ProjectGraph.zoom.event(ProjectGraph.SVG)
   } 
 }
 );

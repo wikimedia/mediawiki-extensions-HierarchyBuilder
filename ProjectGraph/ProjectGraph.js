@@ -45,7 +45,6 @@ window.ProjectGraph = {
 	LinkSelection: null,
 	NodeSelection: null,
 	ImagePath: null,
-
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -131,7 +130,7 @@ window.ProjectGraph = {
 			   .append("svg:g")
 			      .call(ProjectGraph.zoom)
 			      .on("dblclick.zoom", null)
-
+			ProjectGraph.SVG = svg
 			svg.append("svg:rect")
 			   .attr("width", ProjectGraph.width)
 			   .attr("height", ProjectGraph.height)
@@ -181,30 +180,10 @@ window.ProjectGraph = {
 			}
 		}
 	},
-
 	redrawZoom: function() {
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
-		 /* translatePos=d3.event.translate;
-		  var value = zoomWidgetObj.value.target[1]*2;
- 
-		  //detect the mousewheel event, then subtract/add a constant to the zoom level and transform it
-		  if (d3.event.sourceEvent.type=='mousewheel' || d3.event.sourceEvent.type=='DOMMouseScroll'){
-				if (d3.event.sourceEvent.wheelDelta){
-					if (d3.event.sourceEvent.wheelDelta &gt; 0){
-						value = value + 0.1;
-					}else{
-						value = value - 0.1;
-					}
-				}else{
-					if (d3.event.sourceEvent.detail &gt; 0){
-						value = value + 0.1;
-					}else{
-						value = value - 0.1;
-					}
-				}
-		  }
-		transformVis(d3.event.translate,value);*/
+		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 		$("#zoom-slider").slider("value",d3.event.scale);
 	},
 
