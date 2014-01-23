@@ -104,7 +104,6 @@ window.ProjectGraph = {
 		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
 			ProjectGraph.Nodes[i];
 			nodes.push(ProjectGraph.Nodes[i]);
-			console.log(nodes.length);
 		}
 		for (var i = 0; i < nodes.length; i++) {
 			ProjectGraph.elaborateNode(nodes[i]);
@@ -154,7 +153,7 @@ window.ProjectGraph = {
 				//300
 				function(n){
 					var child = (n.source.elaborated && n.target.elaborated);
-					if(!child){return 400;}// if this node is the parent or center of a cluster of nodes
+					if(child){return 450;}// if this node is the parent or center of a cluster of nodes
 					else{return 100;}// if this node is the child or the outer edge to a cluster of nodes
 				}
 			)
