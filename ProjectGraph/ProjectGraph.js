@@ -146,21 +146,19 @@ window.ProjectGraph = {
 
 			ProjectGraph.Force = d3.layout.force();
 			ProjectGraph.Force.gravity(0.4)
-			ProjectGraph.Force.linkStrength(1.5)
+			ProjectGraph.Force.linkStrength(1)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
 			ProjectGraph.Force.linkDistance(
-				//300
 				function(n){
 					var child = (n.source.elaborated && n.target.elaborated);
-					if(child){return 450;}// if this node is the parent or center of a cluster of nodes
-					else{return 100;}// if this node is the child or the outer edge to a cluster of nodes
+					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
+					else{return 100;}// if this node is the child or the outer edge of a cluster of nodes
 				}
 			)
-	//		ProjectGraph.Force.linkDistance(ProjectGraph.Links.length*2)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-3500)
+			ProjectGraph.Force.charge(-5500)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
