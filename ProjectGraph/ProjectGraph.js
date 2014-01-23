@@ -99,10 +99,12 @@ window.ProjectGraph = {
 		for (var i = 0; i < employeeNumberArray.length; i++) {
 			ProjectGraph.addPersonNode(personNames[i], employeeNumberArray[i]);
 		}
-
+		var visited = new Array();
 		var nodes = new Array();
 		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
+			ProjectGraph.Nodes[i];
 			nodes.push(ProjectGraph.Nodes[i]);
+			console.log(nodes.length);
 		}
 		for (var i = 0; i < nodes.length; i++) {
 			ProjectGraph.elaborateNode(nodes[i]);
@@ -120,8 +122,9 @@ window.ProjectGraph = {
 
 			ProjectGraph.zoom = d3.behavior.zoom()
 			   .on("zoom", ProjectGraph.redrawZoom)
+    			   //.center([ProjectGraph.width / 2, ProjectGraph.height / 2])
 			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
-
+			
 			var svg = d3.select("#" + ProjectGraph.GraphDiv)
 			   .append("svg:svg")
 			      .attr("width", ProjectGraph.width)
@@ -144,12 +147,21 @@ window.ProjectGraph = {
 
 			ProjectGraph.Force = d3.layout.force();
 			ProjectGraph.Force.gravity(0.4)
-			// link distance was decreased by 1/4 in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
+			ProjectGraph.Force.linkStrength(1.5)
+			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
-			ProjectGraph.Force.distance(50)
+			ProjectGraph.Force.linkDistance(
+				//300
+				function(n){
+					var child = (n.source.elaborated && n.target.elaborated);
+					if(!child){return 400;}// if this node is the parent or center of a cluster of nodes
+					else{return 100;}// if this node is the child or the outer edge to a cluster of nodes
+				}
+			)
+	//		ProjectGraph.Force.linkDistance(ProjectGraph.Links.length*2)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-30000)
+			ProjectGraph.Force.charge(-3500)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
