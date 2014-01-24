@@ -45,6 +45,7 @@ window.ProjectGraph = {
 	LinkSelection: null,
 	NodeSelection: null,
 	ImagePath: null,
+	Zoom: null,// added to store values for zoom controls (scale/pan)
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -151,6 +152,7 @@ window.ProjectGraph = {
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
 			ProjectGraph.Force.linkDistance(
 				function(n){
+					// if the source and target has been elaborated, set the variable child to true
 					var child = (n.source.elaborated && n.target.elaborated);
 					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
 					else{return 100;}// if this node is the child or the outer edge of a cluster of nodes
@@ -158,7 +160,7 @@ window.ProjectGraph = {
 			)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-5500)
+			ProjectGraph.Force.charge(-9000)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -191,9 +193,26 @@ window.ProjectGraph = {
 	},
 	redrawZoom: function() {
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
-		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
-		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
-		$("#zoom-slider").slider("value",d3.event.scale);
+		if(!slide){
+			//zoompos = d3.event.scale;
+			//pan = d3.event.translate;
+			d3.select("#moveable").attr("transform", "translate("+pan+")" + " scale("+zoompos+")");
+			// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
+			$("#zoom-slider").slider("value",zoompos);
+			console.log("zoompos scroll"+zoompos);
+			console.log("event"+d3.event.translate+" "+d3.event.scale);
+		        zoompos = d3.event.scale;
+                        pan = d3.event.translate;
+
+		}
+		else{
+			var visWidthCenter = (ProjectGraph.width/2)-(ProjectGraph.width*zoompos/2);
+			var visHeightCenter = (ProjectGraph.height/2)-(ProjectGraph.width*zoompos/2);;
+			pan = [d3.event.translate[0]+visWidthCenter,d3.event.translate[1]+visHeightCenter];
+			d3.select("#moveable").attr("transform", "translate("+pan+")" + " scale("+zoompos+")");
+			console.log("zoompos slide"+zoompos);
+			console.log("transform"+pan);
+		}
 	},
 
 	redraw: function(layout) {
