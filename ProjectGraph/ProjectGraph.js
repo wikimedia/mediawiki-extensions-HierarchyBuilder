@@ -45,8 +45,7 @@ window.ProjectGraph = {
 	LinkSelection: null,
 	NodeSelection: null,
 	ImagePath: null,
-	Zoompos: 1,// added to store values for zoom controls (scale/pan)
-	Zoompan: [0,0],
+	Zoompos: 1, // to store values for zoom scale
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -123,7 +122,6 @@ window.ProjectGraph = {
 
 			ProjectGraph.zoom = d3.behavior.zoom()
 			   .on("zoom", ProjectGraph.redrawZoom)
-    			   //.center([ProjectGraph.width / 2, ProjectGraph.height / 2])
 			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
 			
 			var svg = d3.select("#" + ProjectGraph.GraphDiv)
@@ -145,7 +143,6 @@ window.ProjectGraph = {
 
 			d3.select("#moveable").append("svg:g").attr("id", "links");
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
-			//d3.selectAll('#zoom-slider').on('click',
 				
 			ProjectGraph.Force = d3.layout.force();
 			ProjectGraph.Force.gravity(0.4)
@@ -193,63 +190,56 @@ window.ProjectGraph = {
 			}
 		}
 	},
-	slide: function(){
-//				console.log(ProjectGraph.Zoompos);
-//var clicked = d3.event.target,
-        //direction = 1,
-        //factor = 0.2,
+
+	slide: function(){		
         target_zoom = ProjectGraph.Zoompos,
         center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
         extent = ProjectGraph.zoom.scaleExtent(),
         translate = ProjectGraph.zoom.translate(),
-        translate0 = [],
+        translation = [],
         l = [],
         view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
 
-    //d3.event.preventDefault();
-    //direction = (this.id === 'zoom_in') ? 1 : -1;
-    //target_zoom = zoom.scale() * (1 + factor * direction);
+	    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
 
-    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+	    view.k = target_zoom;
+	    l = [translation[0] * view.k + view.x, translation[1] * view.k + view.y];
 
-    translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
-    view.k = target_zoom;
-    l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
+	    view.x += center[0] - l[0];
+	    view.y += center[1] - l[1];
 
-    view.x += center[0] - l[0];
-    view.y += center[1] - l[1];
+	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
 
-    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
+	},
 
-			},
+	interpolateZoom: function(translate, scale) {
+	    var self = this;
+	    return d3.transition().duration(50).tween("zoom", function () {
+	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
+	            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
+	        return function (t) {
+	            ProjectGraph.zoom
+	                .scale(iScale(t))
+	                .translate(iTranslate(t));
+	            ProjectGraph.zoomed();
+	        };
+	    });
+	},
 
-interpolateZoom: function(translate, scale) {
-    var self = this;
-    return d3.transition().duration(50).tween("zoom", function () {
-        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
-            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
-        return function (t) {
-            ProjectGraph.zoom
-                .scale(iScale(t))
-                .translate(iTranslate(t));
-            ProjectGraph.zoomed();
-        };
-    });
-},
-zoomed: function() {
-d3.select("#moveable").attr("transform",
-        "translate(" + ProjectGraph.zoom.translate() + ")" +
-        "scale(" + ProjectGraph.zoom.scale() + ")"
-    );
-},
+	zoomed: function() {
+	// access the element movable and move to the scale and translation vectors
+	d3.select("#moveable").attr("transform",
+	        "translate(" + ProjectGraph.zoom.translate() + ")" +
+	        "scale(" + ProjectGraph.zoom.scale() + ")"
+	    );
+	},
 
 	redrawZoom: function() {		
-//		if(!slide){
-			ProjectGraph.Zoompos = d3.event.scale;
-			ProjectGraph.Zoompan = d3.event.translate;
-			d3.select("#moveable").attr("transform", "translate("+ProjectGraph.Zoompan+")" + " scale("+ProjectGraph.Zoompos+")");
-			// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
-			$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
+		ProjectGraph.Zoompos = d3.event.scale;
+		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+ProjectGraph.Zoompos+")");
+		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
+		$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
 	},
 
 	redraw: function(layout) {
@@ -709,21 +699,4 @@ d3.select("#moveable").attr("transform",
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
 	}
-}
-function transformVis(pan,zoom){
- 
-	if (d3.event){
-		if (d3.event.sourceEvent.type == "mousewheel" || d3.event.sourceEvent.type=='DOMMouseScroll'){
-		//they scrolled with the mouse wheel, update the slider postion but do not trigger it's transformVis call
-			zoomWidgetObj.setValue(0,zoom/2,false,false);
-		}else{
-			//they are interacting with the slider
-			zoomWidgetObj.doZoom = true;
-		}
-	}else{
-		zoomWidgetObj.doZoom = true;
-	}
- 
-	vis.attr("transform", "translate(" +  (pan[0] + ((visWidth - (visWidth * zoomFactor))/2)) + ',' + (pan[1] + ((visHeight - (visHeight * zoomFactor))/2)) + ")scale(" + zoom*zoomFactor + ")"); 	
- 
 }
