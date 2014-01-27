@@ -38,9 +38,10 @@ var zoom_slider = $("#zoom-slider").slider(
   cvalue: 1,//zoompos,
   slide: function( event, ui ) {
 	//console.log("bye");
-	ProjectGraph.slide();
+	//ProjectGraph.slide();
 //	slide = true;
-//	ProjectGraph.Zoompos = ui.value;
+	ProjectGraph.Zoompos = ui.value;
+	ProjectGraph.slide();
 //	ProjectGraph.zoom.event(ProjectGraph.SVG);
 //	slide = false;
   }
