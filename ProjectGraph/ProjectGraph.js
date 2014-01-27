@@ -45,7 +45,8 @@ window.ProjectGraph = {
 	LinkSelection: null,
 	NodeSelection: null,
 	ImagePath: null,
-	Zoom: null,// added to store values for zoom controls (scale/pan)
+	Zoompos: 1,// added to store values for zoom controls (scale/pan)
+	Zoompan: [0,0],
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -61,7 +62,7 @@ window.ProjectGraph = {
 		ProjectGraph.INITIAL_WIDTH = initialWidth;
 		ProjectGraph.height = ProjectGraph.INITIAL_HEIGHT;
 		ProjectGraph.width = ProjectGraph.INITIAL_WIDTH;
-
+		
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
 			alert("No charge number or employee number provided");
@@ -192,26 +193,24 @@ window.ProjectGraph = {
 		}
 	},
 	redrawZoom: function() {
+		
 		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
 		if(!slide){
-			//zoompos = d3.event.scale;
-			//pan = d3.event.translate;
-			d3.select("#moveable").attr("transform", "translate("+pan+")" + " scale("+zoompos+")");
+			ProjectGraph.Zoompos = d3.event.scale;
+			ProjectGraph.Zoompan = d3.event.translate;
+			d3.select("#moveable").attr("transform", "translate("+ProjectGraph.Zoompan+")" + " scale("+ProjectGraph.Zoompos+")");
 			// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
-			$("#zoom-slider").slider("value",zoompos);
-			console.log("zoompos scroll"+zoompos);
-			console.log("event"+d3.event.translate+" "+d3.event.scale);
-		        zoompos = d3.event.scale;
-                        pan = d3.event.translate;
-
+			$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
 		}
 		else{
-			var visWidthCenter = (ProjectGraph.width/2)-(ProjectGraph.width*zoompos/2);
-			var visHeightCenter = (ProjectGraph.height/2)-(ProjectGraph.width*zoompos/2);;
-			pan = [d3.event.translate[0]+visWidthCenter,d3.event.translate[1]+visHeightCenter];
-			d3.select("#moveable").attr("transform", "translate("+pan+")" + " scale("+zoompos+")");
-			console.log("zoompos slide"+zoompos);
-			console.log("transform"+pan);
+			var visWidthCenter = (ProjectGraph.width/2)-(ProjectGraph.width*ProjectGraph.Zoompos/2);
+			var visHeightCenter = (ProjectGraph.height/2)-(ProjectGraph.width*ProjectGraph.Zoompos/2);;
+			//console.log("event"+d3.event.translate);
+			//console.log("zoom"+ProjectGraph.zoom.translate());
+			ProjectGraph.Zoompan = [d3.event.translate[0]+visWidthCenter,d3.event.translate[1]+visHeightCenter];
+			d3.select("#moveable").attr("transform", "translate("+ProjectGraph.Zoompan+")" + " scale("+ProjectGraph.Zoompos+")");
+			ProjectGraph.zoom.scale = ProjectGraph.Zoompos;
+			ProjectGraph.zoom.translate = ProjectGraph.Zoompan;
 		}
 	},
 

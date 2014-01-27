@@ -10,9 +10,7 @@
 <script language="javascript" type="text/javascript" src="../ProjectGraph.js"></script>
 <script type="application/javascript" src="../jquery-ui-1.10.4/ui/jquery-ui.js"></script>
 <script type="application/javascript" src="../jquery.mousewheel.js"></script>
-<script type="application/javascript" src="../perfect-scrollbar.js"></script>
 <link rel="stylesheet" href="../jquery-ui-1.10.4/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="../perfect-scrollbar.css">
 <link type="text/css" href="projectpages.css" rel="stylesheet" />
 </head>
 
@@ -28,8 +26,8 @@
 ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
 		"ProjectGraph_0_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400");
 
-var zoompos = 1;
-var pan;
+//var zoompos = 1;
+//var pan;
 var slide = false;
 var zoom_slider = $("#zoom-slider").slider(
 {
@@ -40,7 +38,7 @@ var zoom_slider = $("#zoom-slider").slider(
   value: 1,//zoompos,
   slide: function( event, ui ) {
 	slide = true;
-	zoompos = ui.value;
+	ProjectGraph.Zoompos = ui.value;
 	ProjectGraph.zoom.event(ProjectGraph.SVG);
 	slide = false;
   }
