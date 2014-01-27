@@ -35,12 +35,14 @@ var zoom_slider = $("#zoom-slider").slider(
   min: 0.3 , 
   max:2, 
   step: .001,
-  value: 1,//zoompos,
+  cvalue: 1,//zoompos,
   slide: function( event, ui ) {
-	slide = true;
-	ProjectGraph.Zoompos = ui.value;
-	ProjectGraph.zoom.event(ProjectGraph.SVG);
-	slide = false;
+	//console.log("bye");
+	ProjectGraph.slide();
+//	slide = true;
+//	ProjectGraph.Zoompos = ui.value;
+//	ProjectGraph.zoom.event(ProjectGraph.SVG);
+//	slide = false;
   }
 });
 

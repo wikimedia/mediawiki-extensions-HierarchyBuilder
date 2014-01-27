@@ -145,7 +145,57 @@ window.ProjectGraph = {
 
 			d3.select("#moveable").append("svg:g").attr("id", "links");
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
+			//d3.selectAll('#zoom-slider').on('click',
+function slide(){
+				console.log(ProjectGraph.Zoompos);
+var clicked = d3.event.target,
+        //direction = 1,
+        //factor = 0.2,
+        target_zoom = ProjectGraph.Zoompos,
+        center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
+        extent = ProjectGraph.zoom.scaleExtent(),
+        translate = ProjectGraph.zoom.translate(),
+        translate0 = [],
+        l = [],
+        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
 
+    d3.event.preventDefault();
+    //direction = (this.id === 'zoom_in') ? 1 : -1;
+    //target_zoom = zoom.scale() * (1 + factor * direction);
+
+    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+
+    translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+    view.k = target_zoom;
+    l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
+
+    view.x += center[0] - l[0];
+    view.y += center[1] - l[1];
+
+    interpolateZoom([view.x, view.y], view.k);
+
+			}
+
+function interpolateZoom (translate, scale) {
+    var self = this;
+    return d3.transition().duration(350).tween("zoom", function () {
+        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
+            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
+        return function (t) {
+            ProjectGraph.zoom
+                .scale(iScale(t))
+                .translate(iTranslate(t));
+            zoomed();
+        };
+    });
+}
+function zoomed() {
+d3.select("#moveable").attr("transform",
+        "translate(" + ProjectGraph.zoom.translate() + ")" +
+        "scale(" + ProjectGraph.zoom.scale() + ")"
+    );
+}
+				
 			ProjectGraph.Force = d3.layout.force();
 			ProjectGraph.Force.gravity(0.4)
 			ProjectGraph.Force.linkStrength(1)
@@ -203,6 +253,7 @@ window.ProjectGraph = {
 			$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
 		}
 		else{
+/*			d3.event.preventDefault;
 			var visWidthCenter = (ProjectGraph.width/2)-(ProjectGraph.width*ProjectGraph.Zoompos/2);
 			var visHeightCenter = (ProjectGraph.height/2)-(ProjectGraph.width*ProjectGraph.Zoompos/2);;
 			//console.log("event"+d3.event.translate);
@@ -211,7 +262,7 @@ window.ProjectGraph = {
 			d3.select("#moveable").attr("transform", "translate("+ProjectGraph.Zoompan+")" + " scale("+ProjectGraph.Zoompos+")");
 			ProjectGraph.zoom.scale = ProjectGraph.Zoompos;
 			ProjectGraph.zoom.translate = ProjectGraph.Zoompan;
-		}
+*/		}
 	},
 
 	redraw: function(layout) {
