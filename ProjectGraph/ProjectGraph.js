@@ -46,6 +46,7 @@ window.ProjectGraph = {
 	NodeSelection: null,
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
+	Elaborated: null,
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -62,6 +63,8 @@ window.ProjectGraph = {
 		ProjectGraph.height = ProjectGraph.INITIAL_HEIGHT;
 		ProjectGraph.width = ProjectGraph.INITIAL_WIDTH;
 		
+//		ProjectGraph.Elaborated = new Array();
+
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
 			alert("No charge number or employee number provided");
@@ -146,7 +149,7 @@ window.ProjectGraph = {
 				
 			ProjectGraph.Force = d3.layout.force();
 			ProjectGraph.Force.gravity(0.4)
-			ProjectGraph.Force.linkStrength(1)
+			ProjectGraph.Force.linkStrength(1.25)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
 			ProjectGraph.Force.linkDistance(
@@ -159,7 +162,7 @@ window.ProjectGraph = {
 			)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-9000)
+			ProjectGraph.Force.charge(-15000)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -169,7 +172,9 @@ window.ProjectGraph = {
 
 			ProjectGraph.NodeSelection =
 				svg.select("#nodes").selectAll(".node");
-				
+
+			
+	
 			function tick() {
 
 				ProjectGraph.NodeSelection.attr("transform", function(d) {
@@ -274,6 +279,7 @@ window.ProjectGraph = {
 			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes);
 
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
+		
 		newNodes.attr("class", "node");
 		newNodes.on("click", function(d) {
 			ProjectGraph.SelectedNode = d.index;
@@ -293,6 +299,7 @@ window.ProjectGraph = {
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
 
 		newNodes.call(ProjectGraph.Force.drag);
+		
 		var newToolTips = newNodes.append("svg:title");
 		newToolTips.attr("class", "tooltip");
 		var allToolTips = d3.selectAll(".tooltip");
