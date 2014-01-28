@@ -24,7 +24,8 @@ h4 {
   overflow: hidden;
 }
 
-.detail-panel {
+.detail-panel { 
+  height:76px;  
   background-color: white;
   display: block;
   float: left;
@@ -45,4 +46,14 @@ div#errors-panel {
   padding-right: 10px;
   visibility: hidden;
   font-size: 2em;
+}
+
+#zoom-slider{
+float:right;
+/*
+ * adjust the slider up 25px
+ * for some reason the slider was automatically positioned
+ * at the bottom of the container. This will adjust accordingly.
+ */
+top:-23px;
 }

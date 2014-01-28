@@ -46,7 +46,9 @@ div#errors-panel {
   visibility: hidden;
   font-size: 2em;
 }
-
+/*#zoom-slider{
+float: right;
+}*/
 /*
 #foo {
     overflow:auto;

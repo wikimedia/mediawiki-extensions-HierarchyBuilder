@@ -8,44 +8,32 @@
 <script language="javascript" type="text/javascript" src="../jquery-2.0.3.min.js"></script>
 <script language="javascript" type="text/javascript" src="../queries.js"></script>
 <script language="javascript" type="text/javascript" src="../ProjectGraph.js"></script>
+<!-- Jquery ui operates on jquery 2.0.3 for the javascript slider -->
 <script type="application/javascript" src="../jquery-ui-1.10.4/ui/jquery-ui.js"></script>
-<script type="application/javascript" src="../jquery.mousewheel.js"></script>
 <link rel="stylesheet" href="../jquery-ui-1.10.4/themes/base/jquery-ui.css">
-<link type="text/css" href="projectpages.css" rel="stylesheet" />
+
+<link type="text/css" href="../ProjectGraph.css" rel="stylesheet" />
 </head>
 
 <body>
 <table>
-<tr><td><div class="detail-panel" id="ProjectGraph_0_details">
-</div></td></tr>
-<tr><td><div class="graph-container" id="ProjectGraph_0_graph">
-</div></td>
-<td><div id="zoom-slider"></div></td></tr>
+  <tr>
+    <td>
+      <div class="graph-container" id="ProjectGraph_0_graph"></div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div class="detail-panel">
+        <div id="ProjectGraph_0_details" class="details"></div>
+        <div id="zoom-slider"></div>
+      </div>
+    </td>
+  </tr>
 </table>
 <script type="text/javascript">
 ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
 		"ProjectGraph_0_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400");
-
-
-var zoom_slider = $("#zoom-slider").slider(
-{
-  orientation: "vertical",
-  min: 0.3 , 
-  max:2, 
-  step: .001,
-  value: 1,
-  slide: function( event, ui ) {
-	ProjectGraph.Zoompos = ui.value;
-	ProjectGraph.slide();
-  }
-});
-
-
-self.log = function(text) {
-        if( (window['console'] !== undefined) )
-                console.log( text );
-}
-
 </script>
 </body>
 </html>

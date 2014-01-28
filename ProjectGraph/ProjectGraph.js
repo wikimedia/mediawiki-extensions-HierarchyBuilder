@@ -63,7 +63,34 @@ window.ProjectGraph = {
 		ProjectGraph.height = ProjectGraph.INITIAL_HEIGHT;
 		ProjectGraph.width = ProjectGraph.INITIAL_WIDTH;
 		
-//		ProjectGraph.Elaborated = new Array();
+		// to set the widths of the details divider and the horizontal zoom slider
+		// the margin is a value used to accumulate all maring, padding and other
+		// space that the .detail-panel class uses.
+		var margin = 10;
+		// the details divider will get 3/5 of the space
+		$("#"+ProjectGraph.DetailsDiv).width((ProjectGraph.width - margin)* 3/5);
+		// the slider will get 2/5 of the space
+		$("#zoom-slider").width((ProjectGraph.width - margin) * 2/5);
+		// set the entire detail-panel to the width of the input minus the size of
+		// the paddings, margins and other values to align with the graph.
+		$(".detail-panel").width(ProjectGraph.width - margin);
+		// create a new zoom slider
+		var zoom_slider = $("#zoom-slider").slider(
+		{
+		  orientation: "horizontal",//make the slider horizontal
+		  min: ProjectGraph.MIN_SCALE , // set the lowest value
+		  max: ProjectGraph.MAX_SCALE, // set the highest value
+		  step: .001, // set the value for each individual increment
+		  value: 1, // set the starting value
+		  slide: function( event, ui ) {
+			// set the zoom scale equal to the current value of the slider
+			// which is the current position
+		        ProjectGraph.Zoompos = ui.value;
+			// call the slide function to zoom/pan using the slider
+		        ProjectGraph.slide();
+		  }
+		});
+
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -157,12 +184,12 @@ window.ProjectGraph = {
 					// if the source and target has been elaborated, set the variable child to true
 					var child = (n.source.elaborated && n.target.elaborated);
 					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
-					else{return 100;}// if this node is the child or the outer edge of a cluster of nodes
+					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
 				}
 			)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-15000)
+			ProjectGraph.Force.charge(-7500)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -197,29 +224,38 @@ window.ProjectGraph = {
 	},
 
 	slide: function(){		
+	// set target_zoom to the logged zoom position
         target_zoom = ProjectGraph.Zoompos,
+	// calculate the center of the graph by dividing the width and height by two
         center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
+	// set the scale extent
         extent = ProjectGraph.zoom.scaleExtent(),
+	// and the translation vectors
         translate = ProjectGraph.zoom.translate(),
         translation = [],
         l = [],
+	// setup a json object with the translation x and y values with the zoom scale
         view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
 
 	    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
 
 	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
 	    view.k = target_zoom;
+	    // generate the translation calculations by multiplying a transition value with the zoom value
+	    // and adding the appropriate view value
 	    l = [translation[0] * view.k + view.x, translation[1] * view.k + view.y];
-
+	    // set the view x and y values ( the pan x and pan y) equal to the center values
+	    // minus the transition calculations
 	    view.x += center[0] - l[0];
 	    view.y += center[1] - l[1];
-
+	    // now that the values have been calculated, call the controls and zoom
 	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
 
 	},
 
 	interpolateZoom: function(translate, scale) {
 	    var self = this;
+	    // zoom with the set scale and translation values
 	    return d3.transition().duration(50).tween("zoom", function () {
 	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
 	            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
