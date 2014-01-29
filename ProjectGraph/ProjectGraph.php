@@ -115,12 +115,14 @@ class ProjectGraph {
 		$div = "ProjectGraph_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
-
+		$detailssubdiv = $detailsdiv . "_data";
 		$output = <<<EOT
 <table>
-<tr><td><div class="detail-panel" id="$detailsdiv">
-</div></td></tr>
 <tr><td><div class="graph-container" id="$graphdiv">
+</div></td></tr>
+<tr><td><div class="detail-panel" id="$detailsdiv">
+<div id="$detailssubdiv"></div>
+<div id="zoom-slider"></div>
 </div></td></tr>
 <tr><td><div id="errors-panel">
 </div></td></tr>
@@ -141,9 +143,12 @@ EOT;
 		global $wgScriptPath;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/ProjectGraph/';
 		$script =<<<END
+mw.loader.load('jquery.ui.slider');
 mw.loader.using(['ext.ProjectGraph'], function () {
-	ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
-		"$detailsdiv", "$imagePath", "$names_json", "$width", "$height");
+	$(document).ready(function() {
+		ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
+		"$detailssubdiv", "$imagePath", "$names_json", "$width", "$height");
+	});
 });
 END;
 

@@ -50,6 +50,8 @@ window.ProjectGraph = {
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
+		mw.loader.load('jquery.ui.slider.js');
+
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
 
