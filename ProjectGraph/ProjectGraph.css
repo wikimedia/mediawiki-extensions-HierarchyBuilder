@@ -25,7 +25,6 @@ h4 {
 }
 
 .detail-panel { 
-  height:76px;  
   background-color: white;
   display: block;
   float: left;
@@ -51,7 +50,7 @@ div#errors-panel {
 #zoom-slider{
 float:right;
 /*
- * adjust the slider up 25px
+ * adjust the slider up 23px
  * for some reason the slider was automatically positioned
  * at the bottom of the container. This will adjust accordingly.
  */

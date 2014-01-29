@@ -46,7 +46,7 @@ window.ProjectGraph = {
 	NodeSelection: null,
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
-	Elaborated: null,
+	
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -130,7 +130,7 @@ window.ProjectGraph = {
 		for (var i = 0; i < employeeNumberArray.length; i++) {
 			ProjectGraph.addPersonNode(personNames[i], employeeNumberArray[i]);
 		}
-		var visited = new Array();
+		
 		var nodes = new Array();
 		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
 			nodes.push(ProjectGraph.Nodes[i]);
