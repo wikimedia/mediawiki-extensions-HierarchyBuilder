@@ -133,7 +133,6 @@ window.ProjectGraph = {
 		var visited = new Array();
 		var nodes = new Array();
 		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
-			ProjectGraph.Nodes[i];
 			nodes.push(ProjectGraph.Nodes[i]);
 		}
 		for (var i = 0; i < nodes.length; i++) {
