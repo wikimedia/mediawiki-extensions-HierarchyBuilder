@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F2F2F2;
+  font-family: "Lucida Grande", Verdana;
+  font-size: 12px;
+}
+
+h4 {
+  color: #23A4FF;
+  font-size: 1.3em;
+  margin-bottom: 0.5em;
+}
+
+#graph-container {
+  width: 70%;
+  float: left;
+  color: #ccc;
+  background-color: #1a1a1a;
+}
+
+#graph {
+  width: 100%;
+  height: 800px;
+}
+
+#details-container {
+  width: 30%;
+  height: 800px;
+  overflow: auto;
+  float: right;
+  color: #686c70;
+  background-color: #fff;
+}
+
+#details {
+  margin: 7px;
+}
+
+.tip {
+  color: #111;
+  background-color: white;
+  border: 1px solid #ccc;
+  -moz-box-shadow: #555 2px 2px 8px;
+  -webkit-box-shadow: #555 2px 2px 8px;
+  -o-box-shadow: #555 2px 2px 8px;
+  box-shadow: #555 2px 2px 8px;
+  opacity: 0.9;
+  filter: alpha(opacity=90);
+  font-size: 10px;
+  padding: 3px;
+  width: auto;
+  max-width: 500px;
+}

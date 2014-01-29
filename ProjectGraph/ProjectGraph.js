@@ -45,7 +45,8 @@ window.ProjectGraph = {
 	LinkSelection: null,
 	NodeSelection: null,
 	ImagePath: null,
-
+	Zoompos: 1, // to store values for zoom scale
+	
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -61,6 +62,35 @@ window.ProjectGraph = {
 		ProjectGraph.INITIAL_WIDTH = initialWidth;
 		ProjectGraph.height = ProjectGraph.INITIAL_HEIGHT;
 		ProjectGraph.width = ProjectGraph.INITIAL_WIDTH;
+		
+		// to set the widths of the details divider and the horizontal zoom slider
+		// the margin is a value used to accumulate all maring, padding and other
+		// space that the .detail-panel class uses.
+		var margin = 10;
+		// the details divider will get 3/5 of the space
+		$("#"+ProjectGraph.DetailsDiv).width((ProjectGraph.width - margin)* 3/5);
+		// the slider will get 2/5 of the space
+		$("#zoom-slider").width((ProjectGraph.width - margin) * 2/5);
+		// set the entire detail-panel to the width of the input minus the size of
+		// the paddings, margins and other values to align with the graph.
+		$(".detail-panel").width(ProjectGraph.width - margin);
+		// create a new zoom slider
+		var zoom_slider = $("#zoom-slider").slider(
+		{
+		  orientation: "horizontal",//make the slider horizontal
+		  min: ProjectGraph.MIN_SCALE , // set the lowest value
+		  max: ProjectGraph.MAX_SCALE, // set the highest value
+		  step: .001, // set the value for each individual increment
+		  value: 1, // set the starting value
+		  slide: function( event, ui ) {
+			// set the zoom scale equal to the current value of the slider
+			// which is the current position
+		        ProjectGraph.Zoompos = ui.value;
+			// call the slide function to zoom/pan using the slider
+		        ProjectGraph.slide();
+		  }
+		});
+
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -100,7 +130,7 @@ window.ProjectGraph = {
 		for (var i = 0; i < employeeNumberArray.length; i++) {
 			ProjectGraph.addPersonNode(personNames[i], employeeNumberArray[i]);
 		}
-
+		
 		var nodes = new Array();
 		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
 			nodes.push(ProjectGraph.Nodes[i]);
@@ -122,7 +152,7 @@ window.ProjectGraph = {
 			ProjectGraph.zoom = d3.behavior.zoom()
 			   .on("zoom", ProjectGraph.redrawZoom)
 			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
-
+			
 			var svg = d3.select("#" + ProjectGraph.GraphDiv)
 			   .append("svg:svg")
 			      .attr("width", ProjectGraph.width)
@@ -131,7 +161,7 @@ window.ProjectGraph = {
 			   .append("svg:g")
 			      .call(ProjectGraph.zoom)
 			      .on("dblclick.zoom", null)
-
+			ProjectGraph.SVG = svg
 			svg.append("svg:rect")
 			   .attr("width", ProjectGraph.width)
 			   .attr("height", ProjectGraph.height)
@@ -142,11 +172,23 @@ window.ProjectGraph = {
 
 			d3.select("#moveable").append("svg:g").attr("id", "links");
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
-
+				
 			ProjectGraph.Force = d3.layout.force();
-			ProjectGraph.Force.gravity(.4)
-			ProjectGraph.Force.distance(200)
-			ProjectGraph.Force.charge(-3000)
+			ProjectGraph.Force.gravity(0.4)
+			ProjectGraph.Force.linkStrength(1.25)
+			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
+			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
+			ProjectGraph.Force.linkDistance(
+				function(n){
+					// if the source and target has been elaborated, set the variable child to true
+					var child = (n.source.elaborated && n.target.elaborated);
+					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
+					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
+				}
+			)
+			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
+			// This will decrease edge crossings for the nodes. 	
+			ProjectGraph.Force.charge(-7500)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -156,7 +198,9 @@ window.ProjectGraph = {
 
 			ProjectGraph.NodeSelection =
 				svg.select("#nodes").selectAll(".node");
-				
+
+			
+	
 			function tick() {
 
 				ProjectGraph.NodeSelection.attr("transform", function(d) {
@@ -178,12 +222,68 @@ window.ProjectGraph = {
 		}
 	},
 
-	redrawZoom: function() {
-		// transform the moveable g appropriately, which automatically transforms all the nodes inside.
-		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+d3.event.scale+")");
+	slide: function(){		
+	// set target_zoom to the logged zoom position
+        target_zoom = ProjectGraph.Zoompos,
+	// calculate the center of the graph by dividing the width and height by two
+        center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
+	// set the scale extent
+        extent = ProjectGraph.zoom.scaleExtent(),
+	// and the translation vectors
+        translate = ProjectGraph.zoom.translate(),
+        translation = [],
+        l = [],
+	// setup a json object with the translation x and y values with the zoom scale
+        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
+
+	    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+
+	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+	    view.k = target_zoom;
+	    // generate the translation calculations by multiplying a transition value with the zoom value
+	    // and adding the appropriate view value
+	    l = [translation[0] * view.k + view.x, translation[1] * view.k + view.y];
+	    // set the view x and y values ( the pan x and pan y) equal to the center values
+	    // minus the transition calculations
+	    view.x += center[0] - l[0];
+	    view.y += center[1] - l[1];
+	    // now that the values have been calculated, call the controls and zoom
+	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
+
+	},
+
+	interpolateZoom: function(translate, scale) {
+	    var self = this;
+	    // zoom with the set scale and translation values
+	    return d3.transition().duration(50).tween("zoom", function () {
+	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
+	            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
+	        return function (t) {
+	            ProjectGraph.zoom
+	                .scale(iScale(t))
+	                .translate(iTranslate(t));
+	            ProjectGraph.zoomed();
+	        };
+	    });
+	},
+
+	zoomed: function() {
+	// access the element movable and move to the scale and translation vectors
+	d3.select("#moveable").attr("transform",
+	        "translate(" + ProjectGraph.zoom.translate() + ")" +
+	        "scale(" + ProjectGraph.zoom.scale() + ")"
+	    );
+	},
+
+	redrawZoom: function() {		
+		ProjectGraph.Zoompos = d3.event.scale;
+		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+ProjectGraph.Zoompos+")");
+		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
+		$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
 	},
 
 	redraw: function(layout) {
+	
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -214,6 +314,7 @@ window.ProjectGraph = {
 			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes);
 
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
+		
 		newNodes.attr("class", "node");
 		newNodes.on("click", function(d) {
 			ProjectGraph.SelectedNode = d.index;
@@ -233,6 +334,7 @@ window.ProjectGraph = {
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
 
 		newNodes.call(ProjectGraph.Force.drag);
+		
 		var newToolTips = newNodes.append("svg:title");
 		newToolTips.attr("class", "tooltip");
 		var allToolTips = d3.selectAll(".tooltip");
@@ -392,6 +494,7 @@ window.ProjectGraph = {
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
+
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {

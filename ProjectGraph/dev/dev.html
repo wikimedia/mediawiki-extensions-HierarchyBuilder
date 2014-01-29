@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Project Pages</title>
+<!--[if IE]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="../d3.v3.min.js"></script>
+<script language="javascript" type="text/javascript" src="../jquery-2.0.3.min.js"></script>
+<script language="javascript" type="text/javascript" src="../queries.js"></script>
+<script language="javascript" type="text/javascript" src="../ProjectGraph.js"></script>
+<!-- Jquery ui operates on jquery 2.0.3 for the javascript slider -->
+<script type="application/javascript" src="../jquery-ui-1.10.4/ui/jquery-ui.js"></script>
+<link rel="stylesheet" href="../jquery-ui-1.10.4/themes/base/jquery-ui.css">
+<!---->
+<link type="text/css" href="../ProjectGraph.css" rel="stylesheet" />
+<!---->
+</head>
+
+<body>
+<table>
+  <tr>
+    <td>
+      <div class="graph-container" id="ProjectGraph_0_graph"></div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div id="ProjectGraph_0_details" class="detail-panel">
+	<div id="ProjectGraph_0_details_data" ></div>
+        <div id="zoom-slider"></div>
+      </div>
+    </td>
+  </tr>
+</table>
+<script type="text/javascript">
+ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
+		"ProjectGraph_0_details_data", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400");
+</script>
+</body>
+</html>
