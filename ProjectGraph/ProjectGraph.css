@@ -8,7 +8,8 @@
 }
 
 h4 {
-  color: #23A4FF;
+//  color: #23A4FF;
+  color: yellow;
   font-size: 16px;
   margin-bottom: 0.5em;
   display: inline-block;
@@ -22,10 +23,15 @@ h4 {
   border: 1px solid blue;
   border-radius: 7px;
   overflow: hidden;
+  background-color: gray;
+}
+
+rect {
+  background-color: gray;
 }
 
 .detail-panel {
-  background-color: white;
+  background-color: green;
   display: block;
   float: left;
   clear: right;
@@ -33,7 +39,8 @@ h4 {
   top:5px;
   z-index:1;
   border:1px solid blue;
-  border-radius: 8px;
+//  border-radius: 8px;
+  border-radius: 100px;
   padding-left:10px;
   padding-right:10px;
 }

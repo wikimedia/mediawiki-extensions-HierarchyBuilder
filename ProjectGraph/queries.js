@@ -61,6 +61,9 @@ window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 					percent: Number(percent)
 				});
 			});
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			alert("Unable to fetch project charges.");
 		}
 	});
 	return tasks;
