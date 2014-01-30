@@ -111,7 +111,7 @@ class ProjectGraph {
 
 		global $wgOut;
 		$wgOut->addModules('ext.ProjectGraph');
- 
+ 		$wgOut->addModules('jquery.ui.slider');
 		$div = "ProjectGraph_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
@@ -143,9 +143,10 @@ EOT;
 		global $wgScriptPath;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/ProjectGraph/';
 		$script =<<<END
-mw.loader.load('jquery.ui.slider');
-mw.loader.using(['ext.ProjectGraph'], function () {
+mw.loader.using(['jquery.ui.slider', 'ext.ProjectGraph'], function () {
+
 	$(document).ready(function() {
+
 		ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
 		"$detailssubdiv", "$imagePath", "$names_json", "$width", "$height");
 	});
