@@ -75,7 +75,7 @@ window.ProjectGraph = {
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(ProjectGraph.width - margin);
 		// create a new zoom slider
-		var zoom_slider = $("#zoom-slider").slider(
+		var zoom_slider = $("#projectgraph-zoom-slider").slider(
 		{
 		  orientation: "horizontal",//make the slider horizontal
 		  min: ProjectGraph.MIN_SCALE , // set the lowest value
