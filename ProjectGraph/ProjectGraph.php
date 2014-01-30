@@ -110,8 +110,9 @@ class ProjectGraph {
 	function display($parser, $projects, $people, $years, $width, $height) {
 
 		global $wgOut;
-		$wgOut->addModules('ext.ProjectGraph');
- 		$wgOut->addModules('jquery.ui.slider');
+
+		$parser->getOutput()->addModules('ext.ProjectGraph');
+		$parser->getOutput()->addModules('jquery.ui.slider');
 		$div = "ProjectGraph_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
@@ -155,7 +156,6 @@ END;
 
 		$script = '<script type="text/javascript">' . $script . "</script>";
 		$wgOut->addScript($script);
- 
 		return $output;
 	}
 
