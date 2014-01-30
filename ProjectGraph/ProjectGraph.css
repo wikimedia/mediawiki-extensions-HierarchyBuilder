@@ -1,13 +1,13 @@
-.node text {
+.projectgraph-node text {
   font: 10px sans-serif;
   cursor: pointer;
 }
 
-.icon {
+.projectgraph-icon {
   cursor: pointer;
 }
 
-h4 {
+h4 projectgraph-header{
 
   color: #23A4FF;
   font-size: 15px;
@@ -16,7 +16,7 @@ h4 {
   height:25px;
 }
 
-.graph-container {
+.projectgraph-graph-container {
   float: left;
   top:55px;
   padding:5px 5px 5px 5px;
@@ -25,7 +25,7 @@ h4 {
   overflow: hidden;
 }
 
-.detail-panel { 
+.projectgraph-detail-panel { 
   background-color: white;
   display: block;
   float: left;
@@ -39,7 +39,7 @@ h4 {
   padding-right:10px;
 }
 
-div#errors-panel {
+div#projectgraph-errors-panel {
   border:1px solid red;
   border-radius: 8px;
   padding-left: 10px;
@@ -48,7 +48,7 @@ div#errors-panel {
   font-size: 2em;
 }
 
-#zoom-slider{
+#projectgraph-zoom-slider{
 float:right;
 /*
  * adjust the slider up 23px

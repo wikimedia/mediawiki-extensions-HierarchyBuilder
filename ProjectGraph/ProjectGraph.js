@@ -70,12 +70,12 @@ window.ProjectGraph = {
 		// the details divider will get 3/5 of the space
 		$("#"+ProjectGraph.DetailsDiv).width((ProjectGraph.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
-		$("#zoom-slider").width((ProjectGraph.width - margin) * 2/5);
+		$("#projectgraph-zoom-slider").width((ProjectGraph.width - margin) * 2/5);
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
-		$(".detail-panel").width(ProjectGraph.width - margin);
+		$(".projectgraph-detail-panel").width(ProjectGraph.width - margin);
 		// create a new zoom slider
-		var zoom_slider = $("#zoom-slider").slider(
+		var zoom_slider = $("#projectgraph-zoom-slider").slider(
 		{
 		  orientation: "horizontal",//make the slider horizontal
 		  min: ProjectGraph.MIN_SCALE , // set the lowest value
@@ -279,7 +279,7 @@ window.ProjectGraph = {
 		ProjectGraph.Zoompos = d3.event.scale;
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+ProjectGraph.Zoompos+")");
 		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
-		$("#zoom-slider").slider("value",ProjectGraph.Zoompos);
+		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 	},
 
 	redraw: function(layout) {
@@ -603,7 +603,7 @@ window.ProjectGraph = {
 	},
 
 	formatNodeInfo: function(name) {
-		var info = "<h4>" + name + "</h4>";
+		var info = "<h4 id='projectgraph-header'>" + name + "</h4>";
 		return info;
 	},
 
@@ -648,8 +648,8 @@ window.ProjectGraph = {
 			ProjectGraph.FiscalYear);
 		if (delivery == null) {
 			//alert("Error getting data for task " + taskNode.chargeNumber + " for fiscal year " + ProjectGraph.FiscalYear);
-			$("#errors-panel").css("visibility", "visible");
-			$("#errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
+			$("#projectgraph-errors-panel").css("visibility", "visible");
+			$("#projectgraph-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
 			return null;
 		} else {
 			parseTaskStaff(taskNode, delivery);
