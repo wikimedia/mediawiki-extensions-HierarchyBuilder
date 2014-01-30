@@ -119,13 +119,13 @@ class ProjectGraph {
 		$detailssubdiv = $detailsdiv . "_data";
 		$output = <<<EOT
 <table>
-<tr><td><div class="graph-container" id="$graphdiv">
+<tr><td><div class="projectgraph-graph-container" id="$graphdiv">
 </div></td></tr>
-<tr><td><div class="detail-panel" id="$detailsdiv">
+<tr><td><div class="projectgraph-detail-panel" id="$detailsdiv">
 <div id="$detailssubdiv"></div>
-<div id="zoom-slider"></div>
+<div id="projectgraph-zoom-slider"></div>
 </div></td></tr>
-<tr><td><div id="errors-panel">
+<tr><td><div id="projectgraph-errors-panel">
 </div></td></tr>
 </table>
 EOT;
