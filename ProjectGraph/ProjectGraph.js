@@ -105,6 +105,28 @@ window.ProjectGraph = {
 		  }
 		});
 
+		$(function(){
+    $.contextMenu({
+        selector: '.context-menu-one', 
+        callback: function(key, options) {
+            var m = "clicked: " + key;
+            window.console && console.log(m) || alert(m); 
+        },
+        items: {
+            "edit": {name: "Edit", icon: "edit"},
+            "cut": {name: "Cut", icon: "cut"},
+            "copy": {name: "Copy", icon: "copy"},
+            "paste": {name: "Paste", icon: "paste"},
+            "delete": {name: "Delete", icon: "delete"},
+            "sep1": "---------",
+            "quit": {name: "Quit", icon: "quit"}
+        }
+    });
+    
+    $('.context-menu-one').on('click', function(e){
+        console.log('clicked', this);
+    })
+});
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -332,7 +354,7 @@ window.ProjectGraph = {
 
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "node");
+		newNodes.attr("class", "node context-menu-one box menu-1");
 		newNodes.on("click", function(d) {
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.displayNodeInfo(d);
@@ -341,7 +363,9 @@ window.ProjectGraph = {
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
 		});
+		// Trigger right clck context menu
 		newNodes.on("contextmenu", function(d) {
+			
 			//console.log("right click");
 			//var position = d3.mouse(this);
 			//console.log("x,y = "+position[0]+", "+position[1]);
