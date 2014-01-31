@@ -97,6 +97,12 @@ class SpecialMultiWikiSearch extends SpecialPage {
 		<button type="button" id="diffButton">Diff</button>
 	</fieldset>
 </div>
+<div id="diffDiv">
+	<fieldset>
+		<legend>Diff Results</legend>
+		<div id="diffResultsSection"></div>
+	</fieldset>
+</div>
 EOT;
 
 		$output->addHTML($out);
@@ -160,8 +166,8 @@ class ApiCompareDifferentWikiPages extends ApiBase {
 		wfErrorLog("URL1: $url1\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
 		wfErrorLog("URL2: $url2\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
 
-		$text1 = file_get_contents($url1);
-		$text2 = file_get_contents($url2);
+		$text1 = file_get_contents(urldecode($url1));
+		$text2 = file_get_contents(urldecode($url2));
 
 		wfErrorLog("URL1's wikitext:\n$text1\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
 		wfErrorLog("URL2's wikitext:\n$text2\n", "/var/www/html/DEBUG_MultiWikiSearch.out");

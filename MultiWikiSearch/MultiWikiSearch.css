@@ -2,6 +2,20 @@
 #searchResultsDiv {
   display: none;
 }
+#diffDiv {
+  display: none;
+}
+
+#diffTable {
+  border-collapse:collapse;
+}
+
+table#diffTable tr td {
+  padding-left: 2em;
+  padding-right: 2em;
+  border-bottom: 1px solid black;
+}
+
 #searchResultsTable {
   border-collapse:collapse;
 }

@@ -7,9 +7,12 @@ window.MultiWikiSearch = {
 	searchTitle:true,
 	searchText:false,
 	searchTerms: "",
+	totalWikiSearchCount: 0,
+	searchedWikiCount: 0,
 	initializeMWS: function(apiurl) {
 
-	self.log("received apiurl: "+apiurl);
+		mw.loader.load('jquery.ui.progressbar');
+		self.log("received apiurl: "+apiurl);
 
 		jQuery.ajax({
 			url: apiurl,
@@ -39,6 +42,7 @@ window.MultiWikiSearch = {
 		$("#moveLeft").attr("onclick", "MultiWikiSearch.moveOptionsLeft()");
 		$("#moveRight").attr("onclick", "MultiWikiSearch.moveOptionsRight()");
 		$("#searchButton").attr("onclick", "MultiWikiSearch.beginSearch()");
+		$("#diffButton").attr("onclick", "MultiWikiSearch.beginDiff()");
 	},
 
 	parseInitialData: function(data) {
@@ -270,6 +274,8 @@ window.MultiWikiSearch = {
 		self.log("begin search!");
 		var includedWikis = $("#includedWikis option");
 
+		MultiWikiSearch.searchTerms = $("#searchTerms").val();
+
 		// dummy check.
 		if(MultiWikiSearch.searchTerms === undefined || MultiWikiSearch.searchTerms === "") {
 			alert("You must enter search terms.");
@@ -284,7 +290,11 @@ window.MultiWikiSearch = {
 
 		// construct a table for the search results.
 		$("#searchResultsDiv").css("display", "block");
-		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th></tr></thead>';
+		MultiWikiSearch.totalWikiSearchCount = (MultiWikiSearch.searchText && MultiWikiSearch.searchTitle ? includedWikis.length*2 : includedWikis.length);
+		self.log("total searches to execute = "+MultiWikiSearch.totalWikiSearchCount);
+		MultiWikiSearch.searchedWikiCount = 0;
+		$("#progressbar").progressbar({ max: MultiWikiSearch.totalWikiSearchCount, value:0});
+		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
 
 		for(var i = 0; i < includedWikis.length; i++) {
 			var title = $(includedWikis[i]).text();
@@ -292,27 +302,28 @@ window.MultiWikiSearch = {
 		}
 		html +='</table>';
 		self.log("html:\n"+html);
-		$("#searchResultsDiv fieldset").append(html);
+		$("#searchResultsSection").append(html);
 
 		// construct search URLs and start searches.
 		for(var i = 0; i < includedWikis.length; i++) {
 			var title = $(includedWikis[i]).text();
+			var contentURL = MultiWikiSearch.includedWikis[title]["printouts"]["Wiki Content URL"];
 			baseApiUrl = MultiWikiSearch.includedWikis[title]["printouts"]["Wiki API URL"];
 			if(MultiWikiSearch.searchTitle) {
 				fullApiURL = MultiWikiSearch.constructSearchURL(title, baseApiUrl, "searchTitle");
 				self.log("DEBUG: will search title on "+fullApiURL);
-				MultiWikiSearch.executeSearch(fullApiURL, title);
+				MultiWikiSearch.executeSearch(fullApiURL, contentURL, title);
 			}
 			if(MultiWikiSearch.searchText) {
 				fullApiURL = MultiWikiSearch.constructSearchURL(title, baseApiUrl, "searchText");
 				self.log("DEBUG: will search text on "+fullApiURL);
 
-				MultiWikiSearch.executeSearch(fullApiURL, title);
+				MultiWikiSearch.executeSearch(fullApiURL, contentURL, title);
 			}
 		}
 	
 	},
-	executeSearch: function(fullApiURL, wikiTitle) {
+	executeSearch: function(fullApiURL, contentURL, wikiTitle) {
 		// note: beyond modularity, this is a separate function to preserve the scope of wikiTitle for the ajax call.
 		jQuery.ajax({
 			url: fullApiURL,
@@ -321,7 +332,7 @@ window.MultiWikiSearch = {
 			cache: true,
 			success: function(data, textStatus, jqXHR) {
 				self.log("success fetching for "+wikiTitle);
-				MultiWikiSearch.searchResultHandler(wikiTitle, data);
+				MultiWikiSearch.searchResultHandler(wikiTitle, contentURL, data);
                         },
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert("failed to search "+wikiTitle+" for "+MultiWikiSearch.searchTerms+": "+textStatus+", "+errorThrown);
@@ -347,20 +358,87 @@ window.MultiWikiSearch = {
 		fullApiURL += "&srlimit=50&format=json&callback=callback";
 		return fullApiURL;
 	},
-	searchResultHandler: function(title, jsonData) {
+	searchResultHandler: function(title, contentURL, jsonData) {
 		self.log("in searchResultHandler("+title+", "+jsonData+")");
+		self.log("the content URL is "+contentURL);
 		results = jsonData["query"]["search"];
+		MultiWikiSearch.searchedWikiCount++;
 
+		$("#progressbar").progressbar("value", MultiWikiSearch.searchedWikiCount);
+		self.log("updating progress bar, value = "+MultiWikiSearch.searchedWikiCount);
 		var row = $(".searchResults#"+title);
 		self.log("row = "+row);
 		for(i = 0; i < results.length; i++) {
 			var pageTitle = results[i]["title"];
+			var pageURL = contentURL + pageTitle.split(' ').join('_');
+			self.log("page title is "+pageTitle);
+			self.log("page URL is "+pageURL);
 			var snippet = results[i]["snippet"];
 			if(snippet === undefined)
 				snippet = "(snippet unavailable)";
-			row.append("<tr><td>"+title+"</td><td>"+pageTitle+"</td><td>"+snippet+"</td></tr>");
+			row.append("<tr><td>"+title+"</td><td><a href=\""+pageURL+"\">"+pageTitle+"</a></td><td>"+snippet+"</td><td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>");
 		}
+	},
+	beginDiff: function() {
+		self.log("begin diff");
 
+		MultiWikiSearch.clearDiffDiv();
+
+		wikiTitle1 = $("input[name='firstPage']:checked").attr("data-wiki");
+		wikiTitle2 = $("input[name='secondPage']:checked").attr("data-wiki");
+		pageTitle1 = $("input[name='firstPage']:checked").attr("data-pageName");
+		pageTitle2 = $("input[name='secondPage']:checked").attr("data-pageName");
+		self.log("wikiTitle1="+wikiTitle1+", pageTitle1="+pageTitle1);
+		self.log("wikiTitle2="+wikiTitle2+", pageTitle2="+pageTitle2);
+
+		var wikiTextURL1 = MultiWikiSearch.getWikitextURL(wikiTitle1, pageTitle1);
+		var wikiTextURL2 = MultiWikiSearch.getWikitextURL(wikiTitle2, pageTitle2);
+		self.log("wikiTextURL1 = "+wikiTextURL1);
+		self.log("wikiTextURL2 = "+wikiTextURL2);
+
+		apiurl = "http://gestalt-dev.mitre.org/robopedia/api.php";
+
+		jQuery.ajax({
+			url: apiurl,
+			dataType: 'json',
+			data: {
+				action: "compareDifferentWikiPages",
+				url1: encodeURIComponent(wikiTextURL1),
+				url2: encodeURIComponent(wikiTextURL2),
+				format: "json"
+			},
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url + "?" + settings.data;
+				self.log("url of ajax call: "+url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success fetching");
+				MultiWikiSearch.diffSuccessHandler(data["compareDifferentWikiPages"]["diff"], pageTitle1, pageTitle2);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Unable to diff these pages.");
+			}
+		});
+	},
+	clearDiffDiv: function() {
+		if($("#diffTable") !== undefined)
+			$("#diffTable").remove();
+	},
+	getWikitextURL: function(wikiTitle, pageTitle) {
+	// example: wikiTitle="DARPApedia", pageTitle="MultiDimensional Mobility Robot (MDMR)"
+	// would return: http://darpapedia.mitre.org/.mediawiki/index.php?action=raw&title=MultiDimensional_Mobility_Robot_(MDMR)
+
+		var contentURL = MultiWikiSearch.includedWikis[wikiTitle]["printouts"]["Wiki Content URL"];
+		var pageURL = contentURL + pageTitle.split(' ').join('_');
+		var wikitextURL = pageURL.replace("wiki/", ".mediawiki/index.php?action=raw&title=");
+		return wikitextURL;
+	},
+	diffSuccessHandler: function(diffHTML, pageTitle1, pageTitle2) {
+		self.log("diff: "+diffHTML);
+		$("#diffDiv").css("display", "block");
+		$("#diffResultsSection").append("<table id='diffTable'><tbody><tr><th>"+pageTitle1+"</th><th></th><th>"+pageTitle2+"</th><th></th></tr></tbody></table>");
+		$("#diffTable tbody").append(diffHTML);
+		self.log("done handling diff");
 	}
 }
 
