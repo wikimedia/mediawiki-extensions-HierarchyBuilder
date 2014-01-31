@@ -109,8 +109,9 @@ window.ProjectGraph = {
     $.contextMenu({
         selector: '.context-menu-one', 
         callback: function(key, options) {
-            var m = "clicked: " + key;
-            window.console && console.log(m) || alert(m); 
+        	ProjectGraph.freeze(ProjectGraph.SelectedNode);
+//            var m = "clicked: " + key;
+//            window.console && console.log(m) || alert(m); 
         },
         items: {
             "edit": {name: "Edit", icon: "edit"},
@@ -124,7 +125,7 @@ window.ProjectGraph = {
     });
     
     $('.context-menu-one').on('click', function(e){
-        console.log('clicked', this);
+//        console.log('clicked', this);
     })
 });
 
@@ -781,5 +782,20 @@ window.ProjectGraph = {
 		var newURL = ProjectGraph.ImagePath + 'nophoto.png';
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
+	}
+	freeze: function(node){
+		node.fixed;
+	}
+	hide: function(node){
+
+	}
+	showAll: function(node){
+
+	}
+	getInfo: function(node){
+
+	}
+	zoomToFit: function(node){
+
 	}
 }
