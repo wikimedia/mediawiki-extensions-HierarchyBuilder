@@ -109,18 +109,24 @@ window.ProjectGraph = {
     $.contextMenu({
         selector: '.context-menu-one', 
         callback: function(key, options) {
-        	ProjectGraph.freeze(ProjectGraph.SelectedNode);
+		switch(key){
+			case "freeze":
+			ProjectGraph.freeze(ProjectGraph.SelectedNode);
+			break;
+		}
+//console.log("clicked");
 //            var m = "clicked: " + key;
 //            window.console && console.log(m) || alert(m); 
         },
         items: {
-            "edit": {name: "Edit", icon: "edit"},
-            "cut": {name: "Cut", icon: "cut"},
+            "freeze": {name: "Freeze"},
+/*            "cut": {name: "Cut", icon: "cut"},
             "copy": {name: "Copy", icon: "copy"},
             "paste": {name: "Paste", icon: "paste"},
             "delete": {name: "Delete", icon: "delete"},
             "sep1": "---------",
             "quit": {name: "Quit", icon: "quit"}
+*/
         }
     });
     
@@ -366,7 +372,8 @@ window.ProjectGraph = {
 		});
 		// Trigger right clck context menu
 		newNodes.on("contextmenu", function(d) {
-			
+			ProjectGraph.SelectedNode = d;
+			console.log("node"+d);			
 			//console.log("right click");
 			//var position = d3.mouse(this);
 			//console.log("x,y = "+position[0]+", "+position[1]);
@@ -784,7 +791,10 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	freeze: function(node){
-		node.fixed;
+		node.fixed =true;
+		node.x = node.x;
+		node.y = node.y;
+		console.log(node);
 	},
 	hide: function(node){
 
