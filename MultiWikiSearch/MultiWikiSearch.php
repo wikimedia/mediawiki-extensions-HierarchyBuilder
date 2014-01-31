@@ -37,6 +37,7 @@ $wgResourceModules['ext.MultiWikiSearch'] = array(
 );
 
 $wgAPIModules['getSearchableWikis'] = 'ApiGetSearchableWikis';
+$wgAPIModules['compareDifferentWikiPages'] = 'ApiCompareDifferentWikiPages';
 
 class SpecialMultiWikiSearch extends SpecialPage {
 	function __construct() {
@@ -91,6 +92,9 @@ class SpecialMultiWikiSearch extends SpecialPage {
 <div id="searchResultsDiv">
 	<fieldset>
 		<legend>Search Results</legend>
+		<div id="progressbar"></div>
+		<div id="searchResultsSection"></div>
+		<button type="button" id="diffButton">Diff</button>
 	</fieldset>
 </div>
 EOT;
@@ -121,7 +125,7 @@ class ApiGetSearchableWikis extends ApiBase {
  
 	public function execute() {
  		wfErrorLog("API called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
-		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]][[Gestalt_Community_Searchable::Yes]]&po=?Wiki_API_URL&p[limit]=500&p[format]=json");
+		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]][[Gestalt_Community_Searchable::Yes]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL&p[limit]=500&p[format]=json");
 		$results = json_decode($json);
 
 		$this->getResult()->addValue(null, $this->getModuleName(), $results);
@@ -142,4 +146,77 @@ class ApiGetSearchableWikis extends ApiBase {
 	public function getHelpUrls() {
 		return '';
 	}
+}
+
+class ApiCompareDifferentWikiPages extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+ 
+	public function execute() {
+ 		wfErrorLog("API compare different wikis called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+		$url1 = $this->getMain()->getVal('url1');
+		$url2 = $this->getMain()->getVal('url2');
+		wfErrorLog("URL1: $url1\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+		wfErrorLog("URL2: $url2\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+
+		$text1 = file_get_contents($url1);
+		$text2 = file_get_contents($url2);
+
+		wfErrorLog("URL1's wikitext:\n$text1\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+		wfErrorLog("URL2's wikitext:\n$text2\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+
+		$engine = new DifferenceEngine;
+		$diff = $engine->generateTextDiffBody($text1, $text2);
+
+		wfErrorLog("Here is the diff:\n$diff\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+
+		
+
+		$this->getResult()->addValue(null, $this->getModuleName(), 
+			array('URL1' => $url1,
+				'URL2' => $url2,
+				'diff' => $diff));
+
+		return true;
+	}
+ 
+	public function getDescription() {
+		return 'Similar to action=compare, but allows you to get the diff between two wiki pages on different wikis.';
+	}
+ 
+	public function getAllowedParams() {
+		return array(
+			'url1' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			),
+			'url2' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+
+	public function getParamDescription() {
+		return array(
+			'url1' => 'encoded URL to the raw wikitext of the first page. Most likely of the form index.php?action=raw&title=<title>',
+			'url2' => 'encoded URL to the raw wikitext of the second page. Most likely of the form index.php?action=raw&title=<title>'
+		);
+	}
+
+	public function getExamples() {
+		return array(
+			'api.php?action=compareDifferentWikiPages&url1=http%3A%2F%2Frobopedia.mitre.org%2F.mediawiki%2Findex.php%3Faction%3Draw%26title%3DHard_Impact_CoT_Prototype&url2=http%3A%2F%2Fdarpapedia.mitre.org%2F.mediawiki%2Findex.php%3Faction%3Draw%26title%3DTemplate%3AFancyBusinessCard'
+		);
+	}
+ 
+	public function getHelpUrls() {
+		return '';
+	}
+
+
+
+
+
 }
