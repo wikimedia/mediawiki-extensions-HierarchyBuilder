@@ -109,28 +109,39 @@ window.ProjectGraph = {
     		$.contextMenu({
 		        selector: '.context-menu-one', 
 		        callback: function(key, options) {
+			
+				var node = ProjectGraph.SelectedNode;
+				console.log(node);
 				switch(key){
 					case "freeze":
-						ProjectGraph.selectedNode.fixed = true;
-						ProjectGraph.selectedNode.x = ProjectGraph.selectedNode.x ;
-						ProjectGraph.selectedNode.y = ProjectGraph.selectedNode.y ;
+						node.fixed = true;
+						node.x = node.x ;
+						node.y = node.y ;
 						break;
 					case "hide":
+						break;
+					case "elaborate":
+						ProjectGraph.elaborateNode(node);
+						ProjectGraph.slide();
 						break;
 					case "showAll":
 						break;
 					case "getinfo":
-						Projectgraph.displayNodeInfo(node);
+						console.log(node);
+						ProjectGraph.displayNodeInfo(node);
+						ProjectGraph.redraw(true);
 						break;
 					case "zoomToFit":
-						ProjectGraph.Zoompos;
-						ProjectGraph.slide();e
+						ProjectGraph.Zoompos = 0.3;
+						ProjectGraph.slide();
 						break;
 				}
 		        },
 		        items: {
 		            "freeze": {name: "Freeze"},
 		            "getinfo": {name: "Get Info"},
+			    "elaborate": {name: "Elaborate"},
+			    "zoomToFit": {name: "Zoom to Fit"},
 		        }
 			});
 		});
@@ -373,7 +384,7 @@ window.ProjectGraph = {
 		// Trigger right clck context menu
 		newNodes.on("contextmenu", function(d) {
 			ProjectGraph.SelectedNode = d;
-			console.log("node"+d);			
+			
 			//console.log("right click");
 			//var position = d3.mouse(this);
 			//console.log("x,y = "+position[0]+", "+position[1]);
