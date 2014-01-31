@@ -106,35 +106,34 @@ window.ProjectGraph = {
 		});
 
 		$(function(){
-    $.contextMenu({
-        selector: '.context-menu-one', 
-        callback: function(key, options) {
-		switch(key){
-			case "freeze":
-			ProjectGraph.freeze(ProjectGraph.SelectedNode);
-			break;
-		}
-//console.log("clicked");
-//            var m = "clicked: " + key;
-//            window.console && console.log(m) || alert(m); 
-        },
-        items: {
-            "freeze": {name: "Freeze"},
-            "getinfo": {name: "Get Info"},
-/*            "cut": {name: "Cut", icon: "cut"},
-            "copy": {name: "Copy", icon: "copy"},
-            "paste": {name: "Paste", icon: "paste"},
-            "delete": {name: "Delete", icon: "delete"},
-            "sep1": "---------",
-            "quit": {name: "Quit", icon: "quit"}
-*/
-        }
-    });
-    
-    $('.context-menu-one').on('click', function(e){
-//        console.log('clicked', this);
-    })
-});
+    		$.contextMenu({
+		        selector: '.context-menu-one', 
+		        callback: function(key, options) {
+				switch(key){
+					case "freeze":
+						ProjectGraph.selectedNode.fixed = true;
+						ProjectGraph.selectedNode.x = ProjectGraph.selectedNode.x ;
+						ProjectGraph.selectedNode.y = ProjectGraph.selectedNode.y ;
+						break;
+					case "hide":
+						break;
+					case "showAll":
+						break;
+					case "getinfo":
+						Projectgraph.displayNodeInfo(node);
+						break;
+					case "zoomToFit":
+						ProjectGraph.Zoompos;
+						ProjectGraph.slide();e
+						break;
+				}
+		        },
+		        items: {
+		            "freeze": {name: "Freeze"},
+		            "getinfo": {name: "Get Info"},
+		        }
+			});
+		});
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -790,23 +789,5 @@ window.ProjectGraph = {
 		var newURL = ProjectGraph.ImagePath + 'nophoto.png';
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
-	},
-	freeze: function(node){
-		node.fixed =true;
-		node.x = node.x;
-		node.y = node.y;
-	},
-	hide: function(node){
-
-	},
-	showAll: function(node){
-
-	},
-	getInfo: function(node){
-		Projectgraph.displayNodeInfo(node);
-	},
-	zoomToFit: function(node){
-		ProjectGraph.Zoompos;
-		ProjectGraph.slide();e
 	},
 }
