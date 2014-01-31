@@ -121,15 +121,21 @@ window.ProjectGraph = {
 					case "hide":
 						break;
 					case "elaborate":
-						ProjectGraph.elaborateNode(node);
-						ProjectGraph.slide();
+						if(node.type==ProjectGraph.PROJECT_TYPE){
+							ProjectGraph.getTaskDelivery(node.index);
+							ProjectGraph.redraw(true);
+						}
+						else if (node.type == ProjectGraph.PERSON_TYPE) {
+							ProjectGraph.getStaffTasks(node.index);
+							ProjectGraph.redraw(true);
+						}
 						break;
 					case "showAll":
 						break;
 					case "getinfo":
-						console.log(node);
+						ProjectGraph.SelectedNode = node.index;
 						ProjectGraph.displayNodeInfo(node);
-						ProjectGraph.redraw(true);
+						ProjectGraph.redraw(false);
 						break;
 					case "zoomToFit":
 						ProjectGraph.Zoompos = 0.3;
@@ -651,9 +657,9 @@ window.ProjectGraph = {
 		var name = ProjectGraph.getTaskDelivery(node.index);
 		if (name != null) {
 			node.displayName = name;
-		}
-
+		}		
 		node.info = ProjectGraph.formatNodeInfo(node.displayName);
+
 		ProjectGraph.displayNodeInfo(node);
 	},
 
