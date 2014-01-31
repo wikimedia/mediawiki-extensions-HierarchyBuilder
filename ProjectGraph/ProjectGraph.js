@@ -120,6 +120,7 @@ window.ProjectGraph = {
         },
         items: {
             "freeze": {name: "Freeze"},
+            "getinfo": {name: "Get Info"},
 /*            "cut": {name: "Cut", icon: "cut"},
             "copy": {name: "Copy", icon: "copy"},
             "paste": {name: "Paste", icon: "paste"},
@@ -794,7 +795,6 @@ window.ProjectGraph = {
 		node.fixed =true;
 		node.x = node.x;
 		node.y = node.y;
-		console.log(node);
 	},
 	hide: function(node){
 
@@ -803,9 +803,10 @@ window.ProjectGraph = {
 
 	},
 	getInfo: function(node){
-
+		Projectgraph.displayNodeInfo(node);
 	},
 	zoomToFit: function(node){
-
+		ProjectGraph.Zoompos;
+		ProjectGraph.slide();e
 	},
 }
