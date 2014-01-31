@@ -49,11 +49,9 @@ div#projectgraph-errors-panel {
 }
 
 #projectgraph-zoom-slider{
-float:right;
-/*
- * adjust the slider up 23px
- * for some reason the slider was automatically positioned
- * at the bottom of the container. This will adjust accordingly.
+/* Changed top:-38px to vertical-align:top to make
+ * 
  */
-top:-23px;
+top:-38px;
+float:right;
 }

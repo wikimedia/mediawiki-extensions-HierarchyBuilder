@@ -74,6 +74,19 @@ window.ProjectGraph = {
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(ProjectGraph.width - margin);
+		
+		// The below if and else statement scaled the initial zoom level. This is calculated by
+		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
+		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
+		// of an equation formed from gathering data from several different view boxes (300px to 700px). 
+		// The input of this equation is also the lowest value of either height or width.
+		if(ProjectGraph.height>ProjectGraph.width){
+			ProjectGraph.Zoompos = ProjectGraph.width*(ProjectGraph.width*-0.0005+1.2)/400;
+		}
+		else{
+			ProjectGraph.Zoompos = ProjectGraph.height*(ProjectGraph.height*-0.0005+1.2)/400;
+		}
+		
 		// create a new zoom slider
 		var zoom_slider = $("#projectgraph-zoom-slider").slider(
 		{
@@ -81,8 +94,9 @@ window.ProjectGraph = {
 		  min: ProjectGraph.MIN_SCALE , // set the lowest value
 		  max: ProjectGraph.MAX_SCALE, // set the highest value
 		  step: .001, // set the value for each individual increment
-		  value: 1, // set the starting value
+		  value: ProjectGraph.Zoompos,
 		  slide: function( event, ui ) {
+			console.log(ProjectGraph.Zoompos);
 			// set the zoom scale equal to the current value of the slider
 			// which is the current position
 		        ProjectGraph.Zoompos = ui.value;
@@ -151,6 +165,7 @@ window.ProjectGraph = {
 
 			ProjectGraph.zoom = d3.behavior.zoom()
 			   .on("zoom", ProjectGraph.redrawZoom)
+			  // .scale(ProjectGraph.Zoompos)
 			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
 			
 			var svg = d3.select("#" + ProjectGraph.GraphDiv)
@@ -219,6 +234,8 @@ window.ProjectGraph = {
 					return d.target.y;
 				});
 			}
+			// Autozoom on startup
+			ProjectGraph.slide();
 		}
 	},
 
