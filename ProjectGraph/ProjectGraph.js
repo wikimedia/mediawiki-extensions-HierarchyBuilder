@@ -782,20 +782,20 @@ window.ProjectGraph = {
 		var newURL = ProjectGraph.ImagePath + 'nophoto.png';
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
-	}
+	},
 	freeze: function(node){
 		node.fixed;
-	}
+	},
 	hide: function(node){
 
-	}
+	},
 	showAll: function(node){
 
-	}
+	},
 	getInfo: function(node){
 
-	}
+	},
 	zoomToFit: function(node){
 
-	}
+	},
 }
