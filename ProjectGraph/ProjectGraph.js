@@ -133,9 +133,12 @@ window.ProjectGraph = {
 					case "showAll":
 						break;
 					case "getinfo":
-						ProjectGraph.SelectedNode = node.index;
-						ProjectGraph.displayNodeInfo(node);
-						ProjectGraph.redraw(false);
+						if(node.type==ProjectGraph.PROJECT_TYPE){
+                                                        window.open(node.projectPagesURL,'_blank'); 
+                                                }
+                                                else if (node.type == ProjectGraph.PERSON_TYPE) {
+                                                        window.open(node.personPagesURL,'_blank');
+                                                }
 						break;
 					case "zoomToFit":
 						ProjectGraph.Zoompos = 0.3;
