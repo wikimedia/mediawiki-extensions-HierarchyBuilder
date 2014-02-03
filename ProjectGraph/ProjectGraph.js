@@ -144,6 +144,7 @@ window.ProjectGraph = {
 						}
 						break;
 					case "showAll":
+						ProjectGraph.showAll();
 						break;
 					case "getinfo":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
@@ -164,6 +165,7 @@ ProjectGraph.zoomToFit();
 		            "freeze": {name: "Freeze"},
 		            "getinfo": {name: "Get Info"},
 			    "hide": {name: "Hide"},
+			    "showAll": {name: "Show All"},
 			    "elaborate": {name: "Elaborate"},
 			    "zoomToFit": {name: "Zoom to Fit"},
 		        }
@@ -826,17 +828,36 @@ ProjectGraph.zoomToFit();
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		ProjectGraph.HiddenNodes.push();
-		var hidden_links = d3.selectAll(".link").filter(function(d,i){
+		var keepnodes = new Array();	
+		var keeplinks = new Array();
+		var nodes = d3.selectAll(".node").filter(function(d,i){
+			if(!((node.displayName == d.displayName))){
+				keepnodes.push(d.index);
+                        	return;
+          		}
+                });
+		var purgenodes = d3.selectAll(".node").data(keepnodes);
+		purgenodes.exit().remove();
+
+		var keeplinks = d3.selectAll(".link").filter(function(d,i){
                       if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName)){       
 			ProjectGraph.HiddenLinks.push([d.source,d.target]);
                         return;
                       }
-                });   
+                });
+		var purgelinks = d3.selectAll(".link")
+		
+		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
 		ProjectGraph.HiddenNodes.forEach(function(node){
-			
+			if(node.type == ProjectGraph.PROJECT_TYPE){
+				ProjectGraph.getTaskDelivery(node.index);
+			}
+			if(node.type == ProjectGraph.PERSON_TYPE){
+				ProjectGraph.getStaffTasks(node.index);			
+			}	
+			Projectgraph.redraw(true);
 		});
 	},
 	zoomToFit: function(){
