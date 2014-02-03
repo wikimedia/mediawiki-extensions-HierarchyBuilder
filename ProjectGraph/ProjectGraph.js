@@ -111,15 +111,25 @@ window.ProjectGraph = {
 		        callback: function(key, options) {
 			
 				var node = ProjectGraph.SelectedNode;
-				console.log(node);
+				
 				switch(key){
 					case "freeze":
 						node.fixed = true;
 						node.x = node.x ;
 						node.y = node.y ;
 						break;
-					case "hide":
-						break;
+					case "hide":		
+						// hide node delete node
+						var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
+						hidden_node.style("opacity",0);
+						// delete link
+						console.log(node);
+						var hidden_links = d3.selectAll(".link").filter(function(d,i){
+							if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName))
+								return d;
+						});
+						hidden_links.style("opacity",0);
+						brea;
 					case "elaborate":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
 							ProjectGraph.getTaskDelivery(node.index);
@@ -149,6 +159,7 @@ window.ProjectGraph = {
 		        items: {
 		            "freeze": {name: "Freeze"},
 		            "getinfo": {name: "Get Info"},
+			    "hide": {name: "Hide"},
 			    "elaborate": {name: "Elaborate"},
 			    "zoomToFit": {name: "Zoom to Fit"},
 		        }
