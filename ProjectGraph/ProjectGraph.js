@@ -116,22 +116,11 @@ window.ProjectGraph = {
 				switch(key){
 					case "freeze":
 						node.fixed = true;
-						inode.x = node.x ;
+						node.x = node.x ;
 						node.y = node.y ;
 						break;
 					case "hide":		
 						ProjectGraph.hide(node);
-						// hide node delete node
-					
-					/*	var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
-						hidden_node.style("opacity",0);
-						// delete link
-						console.log(node);
-						var hidden_links = d3.selectAll(".link").filter(function(d,i){
-							if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName))
-								return d;
-						});
-						hidden_links.style("opacity",0);*/
 						break;
 					case "elaborate":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
@@ -155,9 +144,7 @@ window.ProjectGraph = {
                                                 }
 						break;
 					case "zoomToFit":
-//						ProjectGraph.Zoompos = 0.3;
-//						ProjectGraph.slide();
-ProjectGraph.zoomToFit();
+						ProjectGraph.zoomToFit();
 						break;
 				}
 		        },
