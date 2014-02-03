@@ -46,7 +46,8 @@ window.ProjectGraph = {
 	NodeSelection: null,
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
-	
+	HiddenNodes: new Array(),
+	HiddenLinks: new Array(),	
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -115,11 +116,11 @@ window.ProjectGraph = {
 				switch(key){
 					case "freeze":
 						node.fixed = true;
-						node.x = node.x ;
+						inode.x = node.x ;
 						node.y = node.y ;
 						break;
 					case "hide":		
-						ProjectGraph.hide();
+						ProjectGraph.hide(node);
 						// hide node delete node
 					
 					/*	var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
@@ -153,8 +154,9 @@ window.ProjectGraph = {
                                                 }
 						break;
 					case "zoomToFit":
-						ProjectGraph.Zoompos = 0.3;
-						ProjectGraph.slide();
+//						ProjectGraph.Zoompos = 0.3;
+//						ProjectGraph.slide();
+ProjectGraph.zoomToFit();
 						break;
 				}
 		        },
@@ -823,24 +825,21 @@ window.ProjectGraph = {
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
 	},
-	hide: function(){
-		console.log("Nodes"+ProjectGraph.Nodes);
-/*
-	var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
-                                                hidden_node.style("opacity",0);
-                                                // delete link
-                                                console.log(node);
-                                                var hidden_links = d3.selectAll(".link").filter(function(d,i){
-                                                        if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName))
-                                                                return d;
-                                                });
-                                                hidden_links.style("opacity",0)
-*/
+	hide: function(node){
+		ProjectGraph.HiddenNodes.push();
+		var hidden_links = d3.selectAll(".link").filter(function(d,i){
+                      if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName)){       
+			ProjectGraph.HiddenLinks.push([d.source,d.target]);
+                        return;
+                      }
+                });   
 	},
-	showAll(): function(){
-
+	showAll: function(){
+		ProjectGraph.HiddenNodes.forEach(function(node){
+			
+		});
 	},
 	zoomToFit: function(){
-
+		//
 	},
 }
