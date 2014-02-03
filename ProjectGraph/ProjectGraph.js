@@ -119,8 +119,10 @@ window.ProjectGraph = {
 						node.y = node.y ;
 						break;
 					case "hide":		
+						ProjectGraph.hide();
 						// hide node delete node
-						var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
+					
+					/*	var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
 						hidden_node.style("opacity",0);
 						// delete link
 						console.log(node);
@@ -128,8 +130,8 @@ window.ProjectGraph = {
 							if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName))
 								return d;
 						});
-						hidden_links.style("opacity",0);
-						brea;
+						hidden_links.style("opacity",0);*/
+						break;
 					case "elaborate":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
 							ProjectGraph.getTaskDelivery(node.index);
@@ -820,5 +822,25 @@ window.ProjectGraph = {
 		var newURL = ProjectGraph.ImagePath + 'nophoto.png';
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
+	},
+	hide: function(){
+		console.log("Nodes"+ProjectGraph.Nodes);
+/*
+	var hidden_node = d3.selectAll(".node").filter(function(d,i){return node.index == i});
+                                                hidden_node.style("opacity",0);
+                                                // delete link
+                                                console.log(node);
+                                                var hidden_links = d3.selectAll(".link").filter(function(d,i){
+                                                        if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName))
+                                                                return d;
+                                                });
+                                                hidden_links.style("opacity",0)
+*/
+	},
+	showAll(): function(){
+
+	},
+	zoomToFit: function(){
+
 	},
 }
