@@ -816,8 +816,8 @@ window.ProjectGraph = {
 	},
 	hide: function(node){
 		
-		console.log(node.index)
-		console.log(ProjectGraph.Nodes);
+		//console.log(node.index)
+		//console.log(ProjectGraph.Nodes);
 	/*	var nodes = d3.selectAll(".node").filter(function(d,i){
 			if(!((node.displayName == d.displayName))){
 				keepnodes.push(d.index);
@@ -845,8 +845,8 @@ window.ProjectGraph = {
 			if(node.type == ProjectGraph.PERSON_TYPE){
 				ProjectGraph.getStaffTasks(node.index);			
 			}	
-			Projectgraph.redraw(true);
 		});
+		ProjectGraph.redraw(true);
 	},
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
@@ -865,16 +865,16 @@ window.ProjectGraph = {
 		
 		//zoompos = 1 when range = 400 or domain = 700
 		//zoompos = 0.5 when range = 800 or domain = 1400
-		
+		var scale = 0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
 		// whichever zoom is smaller (to fit it in the viewscreen)
 		if(dzoom<rzoom){
-			ProjectGraph.Zoompos = dzoom - 0.1;
+			ProjectGraph.Zoompos = dzoom - scale;
 		}
 		else{
-			ProjectGraph.Zoompos = rzoom - 0.1;
+			ProjectGraph.Zoompos = rzoom - scale;
 		}	
 		// zoom
 		ProjectGraph.slide();
