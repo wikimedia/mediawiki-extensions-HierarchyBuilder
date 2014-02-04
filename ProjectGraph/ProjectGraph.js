@@ -815,16 +815,17 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		var keepnodes = new Array();	
-		var keeplinks = new Array();
-		var nodes = d3.selectAll(".node").filter(function(d,i){
+		
+		console.log(node.index)
+		console.log(ProjectGraph.Nodes);
+	/*	var nodes = d3.selectAll(".node").filter(function(d,i){
 			if(!((node.displayName == d.displayName))){
 				keepnodes.push(d.index);
                         	return;
           		}
-                });
-		var purgenodes = d3.selectAll(".node").data(keepnodes);
-		purgenodes.exit().remove();
+                });*/
+		var purgenodes = d3.selectAll(".node").data(ProjectGraph.Nodes,node.index);
+		//purgenodes.exit().remove();
 
 		var keeplinks = d3.selectAll(".link").filter(function(d,i){
                       if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName)){       
@@ -832,7 +833,7 @@ window.ProjectGraph = {
                         return;
                       }
                 });
-		var purgelinks = d3.selectAll(".link")
+		//var purgelinks = d3.selectAll(".link")
 		
 		ProjectGraph.redraw(true);
 	},
@@ -848,6 +849,36 @@ window.ProjectGraph = {
 		});
 	},
 	zoomToFit: function(){
-		//
+		// initialize the following variables of minimum x and y, and maximum x and y
+		// with the x and y position of the first node in ProjectGraph.Nodes
+		var minx=ProjectGraph.Nodes[0].x; var maxx=ProjectGraph.Nodes[0].x; 
+		var miny=ProjectGraph.Nodes[0].y; var maxy=ProjectGraph.Nodes[0].y;
+		// go through the array of nodes
+		ProjectGraph.Nodes.forEach(function(node){
+			// check to see if the current nodes x or y position is
+			// greater than or less than any of the four domain/range variables
+			if(node.x>maxx){maxx = node.x;}
+			if(node.x<minx){minx = node.x;}
+			if(node.y>maxy){maxy = node.y;}
+			if(node.y<miny){miny = node.y;}
+		});	
+		
+		//zoompos = 1 when range = 400 or domain = 700
+		//zoompos = 0.5 when range = 800 or domain = 1400
+		
+		//calculate the zoom for the domain and the zoom for the range
+		var dzoom = ProjectGraph.width/(maxx-minx);
+		var rzoom = ProjectGraph.height/(maxy-miny);
+		// whichever zoom is smaller (to fit it in the viewscreen)
+		if(dzoom<rzoom){
+			ProjectGraph.Zoompos = dzoom - 0.1;
+		}
+		else{
+			ProjectGraph.Zoompos = rzoom - 0.1;
+		}	
+		// zoom
+		ProjectGraph.slide();
+		// set the slider
+		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 	},
 }
