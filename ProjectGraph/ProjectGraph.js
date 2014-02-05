@@ -815,13 +815,18 @@ window.ProjectGraph = {
 	},
 	hide: function(node){
 		
-		var livenodes = new Array();
-		var livelinks = new Array();
-		var nodes = d3.selectAll(".node").filter(function(d,i){
+		//var livenodes = new Array();
+		//var livelinks = new Array();
+		d3.selectAll(".node").filter(function(d,i){
 			if((node.displayName == d.displayName)){
-				livenodes.push(d.index);
+				//livenodes.push(d.index);
                         	return d;
           		}
+		}).remove();
+		d3.selectAll(".link").filter(function(d){
+			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+				return d;
+			}
 		}).remove();
 		
 		ProjectGraph.redraw(true);
