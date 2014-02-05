@@ -267,7 +267,9 @@ window.ProjectGraph = {
 			ProjectGraph.NodeSelection =
 				svg.select("#nodes").selectAll(".node");
 
-			
+			// Autozoom on startup
+			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
+
 	
 			function tick() {
 
@@ -287,8 +289,6 @@ window.ProjectGraph = {
 					return d.target.y;
 				});
 			}
-			// Autozoom on startup
-			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
 		}
 	},
 
@@ -849,7 +849,8 @@ window.ProjectGraph = {
 		ProjectGraph.HiddenLinks.forEach(function(link){
 
 		});
-		ProjectGraph.redraw(false);
+
+//		ProjectGraph.redraw(false);
 	},
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
@@ -882,6 +883,6 @@ window.ProjectGraph = {
 		ProjectGraph.slide(dzoom,rzoom);
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
-		ProjectGraph.redraw(false);
+//		ProjectGraph.redraw(false);
 	},
 }
