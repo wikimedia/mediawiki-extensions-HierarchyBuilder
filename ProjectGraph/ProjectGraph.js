@@ -502,7 +502,6 @@ window.ProjectGraph = {
 		}
 		newHourBarBacks.attr("x", x);
 		newHourBarFills.attr("x", x);
-
 		var y = function(d) {
 			return d.type == ProjectGraph.PROJECT_TYPE ? 25 : 3;	// another magic number
 		}
@@ -816,24 +815,14 @@ window.ProjectGraph = {
 	},
 	hide: function(node){
 		
-		//console.log(node.index)
-		//console.log(ProjectGraph.Nodes);
-	/*	var nodes = d3.selectAll(".node").filter(function(d,i){
-			if(!((node.displayName == d.displayName))){
-				keepnodes.push(d.index);
-                        	return;
+		var livenodes = new Array();
+		var livelinks = new Array();
+		var nodes = d3.selectAll(".node").filter(function(d,i){
+			if((node.displayName == d.displayName)){
+				livenodes.push(d.index);
+                        	return d;
           		}
-                });*/
-		var purgenodes = d3.selectAll(".node").data(ProjectGraph.Nodes,node.index);
-		//purgenodes.exit().remove();
-
-		var keeplinks = d3.selectAll(".link").filter(function(d,i){
-                      if((node.displayName == d.target.displayName) || (node.displayName == d.source.displayName)){       
-			ProjectGraph.HiddenLinks.push([d.source,d.target]);
-                        return;
-                      }
-                });
-		//var purgelinks = d3.selectAll(".link")
+		}).remove();
 		
 		ProjectGraph.redraw(true);
 	},
@@ -841,7 +830,7 @@ window.ProjectGraph = {
 		ProjectGraph.HiddenNodes.forEach(function(node){
 			if(node.type == ProjectGraph.PROJECT_TYPE){
 				ProjectGraph.getTaskDelivery(node.index);
-			}
+			} 
 			if(node.type == ProjectGraph.PERSON_TYPE){
 				ProjectGraph.getStaffTasks(node.index);			
 			}	
