@@ -102,7 +102,7 @@ window.ProjectGraph = {
 			// which is the current position
 		        ProjectGraph.Zoompos = ui.value;
 			// call the slide function to zoom/pan using the slider
-		        ProjectGraph.slide();
+		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
 		  }
 		});
 
@@ -288,15 +288,15 @@ window.ProjectGraph = {
 				});
 			}
 			// Autozoom on startup
-			ProjectGraph.slide();
+			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
 		}
 	},
 
-	slide: function(){		
+	slide: function(x,y){		
 	// set target_zoom to the logged zoom position
         target_zoom = ProjectGraph.Zoompos,
 	// calculate the center of the graph by dividing the width and height by two
-        center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
+        center = [x / 2, y / 2],
 	// set the scale extent
         extent = ProjectGraph.zoom.scaleExtent(),
 	// and the translation vectors
@@ -815,11 +815,8 @@ window.ProjectGraph = {
 	},
 	hide: function(node){
 		
-		//var livenodes = new Array();
-		//var livelinks = new Array();
 		d3.selectAll(".node").filter(function(d,i){
 			if((node.displayName == d.displayName)){
-				//livenodes.push(d.index);
                         	return d;
           		}
 		}).remove();
@@ -828,8 +825,17 @@ window.ProjectGraph = {
 				return d;
 			}
 		}).remove();
-		
-		ProjectGraph.redraw(true);
+
+		var pos=0;
+
+		while(pos<ProjectGraph.Nodes.length){
+			ProjectGraph.Nodes;
+		}
+		pos=0;
+		while(pos<ProjectGraph.Links.length){
+			ProjectGraph.Links;
+		}
+		ProjectGraph.redraw(false);
 	},
 	showAll: function(){
 		ProjectGraph.HiddenNodes.forEach(function(node){
@@ -840,7 +846,10 @@ window.ProjectGraph = {
 				ProjectGraph.getStaffTasks(node.index);			
 			}	
 		});
-		ProjectGraph.redraw(true);
+		ProjectGraph.HiddenLinks.forEach(function(link){
+
+		});
+		ProjectGraph.redraw(false);
 	},
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
@@ -857,8 +866,7 @@ window.ProjectGraph = {
 			if(node.y<miny){miny = node.y;}
 		});	
 		
-		//zoompos = 1 when range = 400 or domain = 700
-		//zoompos = 0.5 when range = 800 or domain = 1400
+		// scale is used as a tolerance buffer
 		var scale = 0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
@@ -871,8 +879,9 @@ window.ProjectGraph = {
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
 		// zoom
-		ProjectGraph.slide();
+		ProjectGraph.slide(dzoom,rzoom);
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
+		ProjectGraph.redraw(false);
 	},
 }
