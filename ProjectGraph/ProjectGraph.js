@@ -112,15 +112,17 @@ window.ProjectGraph = {
 		        callback: function(key, options) {
 			
 				var node = ProjectGraph.SelectedNode;
-				
+				var toggle = true;				
 				switch(key){
 					case "freeze":
 						node.fixed = true;
 						node.x = node.x ;
 						node.y = node.y ;
+						return toggle;
 						break;
 					case "hide":		
 						ProjectGraph.hide(node);
+						return toggle;
 						break;
 					case "elaborate":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
@@ -131,9 +133,11 @@ window.ProjectGraph = {
 							ProjectGraph.getStaffTasks(node.index);
 							ProjectGraph.redraw(true);
 						}
+						return toggle;
 						break;
 					case "showAll":
 						ProjectGraph.showAll();
+						return toggle;
 						break;
 					case "getinfo":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
@@ -142,11 +146,16 @@ window.ProjectGraph = {
                                                 else if (node.type == ProjectGraph.PERSON_TYPE) {
                                                         window.open(node.personPagesURL,'_blank');
                                                 }
+						return toggle;
 						break;
 					case "zoomToFit":
 						ProjectGraph.zoomToFit();
+						return toggle;
 						break;
+					//case "exit":
 				}
+				return !toggle;
+				
 		        },
 		        items: {
 		            "freeze": {name: "Freeze"},
@@ -155,8 +164,10 @@ window.ProjectGraph = {
 			    "showAll": {name: "Show All"},
 			    "elaborate": {name: "Elaborate"},
 			    "zoomToFit": {name: "Zoom to Fit"},
+			   // "exit":{name: "Exit Menu"},
 		        }
 			});
+			
 		});
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
@@ -269,7 +280,7 @@ window.ProjectGraph = {
 
 			// Autozoom on startup
 			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
-
+			//redraw(false);
 	
 			function tick() {
 
@@ -814,14 +825,17 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		
+		var alivenode = new Array();
 		d3.selectAll(".node").filter(function(d,i){
 			if((node.displayName == d.displayName)){
+				ProjectGraph.HiddenNodes.push(d);
                         	return d;
           		}
+			else{alivenode.push(d);}
 		}).remove();
 		d3.selectAll(".link").filter(function(d){
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+				ProjectGraph.HiddenLinks.push(d);
 				return d;
 			}
 		}).remove();
@@ -830,14 +844,19 @@ window.ProjectGraph = {
 
 		while(pos<ProjectGraph.Nodes.length){
 			ProjectGraph.Nodes;
+			pos++;
 		}
 		pos=0;
 		while(pos<ProjectGraph.Links.length){
 			ProjectGraph.Links;
+			pos++;
 		}
-		ProjectGraph.redraw(false);
+		
+		//d3.selectAll(".node").data(alivenode).exit();
+		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
+		console.log(ProjectGraph.HiddenNodes);
 		ProjectGraph.HiddenNodes.forEach(function(node){
 			if(node.type == ProjectGraph.PROJECT_TYPE){
 				ProjectGraph.getTaskDelivery(node.index);
@@ -849,8 +868,7 @@ window.ProjectGraph = {
 		ProjectGraph.HiddenLinks.forEach(function(link){
 
 		});
-
-//		ProjectGraph.redraw(false);
+		ProjectGraph.redraw(true);
 	},
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
@@ -883,6 +901,6 @@ window.ProjectGraph = {
 		ProjectGraph.slide(dzoom,rzoom);
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
-//		ProjectGraph.redraw(false);
+		ProjectGraph.redraw(false);
 	},
 }
