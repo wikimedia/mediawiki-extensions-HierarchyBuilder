@@ -898,7 +898,9 @@ window.ProjectGraph = {
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
 		// zoom
-		ProjectGraph.slide(dzoom,rzoom);
+		var center_x = ((dzoom-ProjectGraph.width)/2)+ProjectGraph.width;
+		var center_y = ((rzoom-ProjectGraph.height)/2)+ProjectGraph.height;
+		ProjectGraph.slide(center_x,center_y);
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 		ProjectGraph.redraw(false);
