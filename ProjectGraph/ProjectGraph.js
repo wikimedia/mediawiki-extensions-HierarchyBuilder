@@ -102,7 +102,7 @@ window.ProjectGraph = {
 			// which is the current position
 		        ProjectGraph.Zoompos = ui.value;
 			// call the slide function to zoom/pan using the slider
-		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
+		        ProjectGraph.autoZoom();
 		  }
 		});
 
@@ -229,7 +229,6 @@ window.ProjectGraph = {
 
 			ProjectGraph.zoom = d3.behavior.zoom()
 			   .on("zoom", ProjectGraph.redrawZoom)
-			  // .scale(ProjectGraph.Zoompos)
 			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
 			
 			var svg = d3.select("#" + ProjectGraph.GraphDiv)
@@ -279,7 +278,7 @@ window.ProjectGraph = {
 				svg.select("#nodes").selectAll(".node");
 
 			// Autozoom on startup
-			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
+			ProjectGraph.autoZoom();
 			//redraw(false);
 	
 			function tick() {
@@ -303,32 +302,33 @@ window.ProjectGraph = {
 		}
 	},
 
-	slide: function(x,y){		
-	// set target_zoom to the logged zoom position
-        target_zoom = ProjectGraph.Zoompos,
-	// calculate the center of the graph by dividing the width and height by two
-        center = [x / 2, y / 2],
-	// set the scale extent
-        extent = ProjectGraph.zoom.scaleExtent(),
-	// and the translation vectors
-        translate = ProjectGraph.zoom.translate(),
-        translation = [],
-        l = [],
-	// setup a json object with the translation x and y values with the zoom scale
-        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
+	transformZoom: function(zoom, translate){
+		 // set target_zoom to the logged zoom position
+            target_zoom = zoom,
+            // calculate the center of the graph by dividing the width and height by two
+            center = [ProjectGraph.width / 2, ProjectGraph.width / 2],
+            // set the scale extent
+            extent = ProjectGraph.zoom.scaleExtent(),
+            translation = [],
+            l = [],
+            // setup a json object with the translation x and y values with the zoom scale
+            view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
+            if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+            translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+            view.k = target_zoom;
+            // generate the translation calculations by multiplying a transition value with the zoom value
+            // and adding the appropriate view value
+            l = [translation[0] * view.k + view.x, translation[1] * view.k + view.y];
+            // set the view x and y values ( the pan x and pan y) equal to the center values
+            // minus the transition calculations
+            view.x += center[0] - l[0];
+            view.y += center[1] - l[1];
 
-	    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
-
-	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
-	    view.k = target_zoom;
-	    // generate the translation calculations by multiplying a transition value with the zoom value
-	    // and adding the appropriate view value
-	    l = [translation[0] * view.k + view.x, translation[1] * view.k + view.y];
-	    // set the view x and y values ( the pan x and pan y) equal to the center values
-	    // minus the transition calculations
-	    view.x += center[0] - l[0];
-	    view.y += center[1] - l[1];
-	    // now that the values have been calculated, call the controls and zoom
+		return view;
+	},
+	autoZoom: function(){
+	    // autozoom according to the set zoom position and translation vectors
+	    var view = ProjectGraph.transformZoom(ProjectGraph.Zoompos, ProjectGraph.zoom.translate());
 	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
 
 	},
@@ -884,9 +884,9 @@ window.ProjectGraph = {
 			if(node.y>maxy){maxy = node.y;}
 			if(node.y<miny){miny = node.y;}
 		});	
-		
+		console.log(maxx+" "+minx+" "+maxy+" "+miny);
 		// scale is used as a tolerance buffer
-		var scale = 0.075;
+		var scale = 0.15;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
@@ -897,12 +897,16 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
-		// zoom
-		var center_x = ((dzoom-ProjectGraph.width)/2)+ProjectGraph.width;
-		var center_y = ((rzoom-ProjectGraph.height)/2)+ProjectGraph.height;
-		ProjectGraph.slide(center_x,center_y);
-		// set the slider
-		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
+		// Translate to center
+		var view = ProjectGraph.transformZoom(ProjectGraph.Zoompos, [0,0]);
+		ProjectGraph.zoom.translate([view.x,view.y]);
+		// Zoom
+		ProjectGraph.autoZoom();
+		// Redraw the graph
 		ProjectGraph.redraw(false);
+		// Adjust the slider
+		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
+
+
 	},
 }
