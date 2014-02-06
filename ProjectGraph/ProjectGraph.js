@@ -362,7 +362,6 @@ window.ProjectGraph = {
 		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 	},
-
 	redraw: function(layout) {
 	
 		ProjectGraph.LinkSelection =
@@ -858,12 +857,12 @@ window.ProjectGraph = {
 	showAll: function(){
 		console.log(ProjectGraph.HiddenNodes);
 		ProjectGraph.HiddenNodes.forEach(function(node){
-			if(node.type == ProjectGraph.PROJECT_TYPE){
+/*			if(node.type == ProjectGraph.PROJECT_TYPE){
 				ProjectGraph.getTaskDelivery(node.index);
 			} 
 			if(node.type == ProjectGraph.PERSON_TYPE){
 				ProjectGraph.getStaffTasks(node.index);			
-			}	
+			}	*/
 		});
 		ProjectGraph.HiddenLinks.forEach(function(link){
 
@@ -884,7 +883,6 @@ window.ProjectGraph = {
 			if(node.y>maxy){maxy = node.y;}
 			if(node.y<miny){miny = node.y;}
 		});	
-		console.log(maxx+" "+minx+" "+maxy+" "+miny);
 		// scale is used as a tolerance buffer
 		var scale = 0.15;
 		//calculate the zoom for the domain and the zoom for the range
@@ -897,8 +895,9 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
-		// Translate to center
+		// Calculate center
 		var view = ProjectGraph.transformZoom(ProjectGraph.Zoompos, [0,0]);
+		// Translate to center
 		ProjectGraph.zoom.translate([view.x,view.y]);
 		// Zoom
 		ProjectGraph.autoZoom();
