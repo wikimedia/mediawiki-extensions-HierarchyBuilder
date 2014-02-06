@@ -398,6 +398,14 @@ window.MultiWikiSearch = {
 
 		apiurl = "http://gestalt-dev.mitre.org/robopedia/api.php";
 
+		MultiWikiSearch.executeDiv(apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
+
+	},
+	clearDiffDiv: function() {
+		if($("#diffTable") !== undefined)
+			$("#diffTable").remove();
+	},
+	executeDiv: function(apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2) {
 		jQuery.ajax({
 			url: apiurl,
 			dataType: 'json',
@@ -413,16 +421,13 @@ window.MultiWikiSearch = {
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.log("success fetching");
-				MultiWikiSearch.diffSuccessHandler(data["compareDifferentWikiPages"]["diff"], pageTitle1, pageTitle2);
+				MultiWikiSearch.diffSuccessHandler(data["compareDifferentWikiPages"]["diff"], wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert("Unable to diff these pages.");
 			}
 		});
-	},
-	clearDiffDiv: function() {
-		if($("#diffTable") !== undefined)
-			$("#diffTable").remove();
+
 	},
 	getWikitextURL: function(wikiTitle, pageTitle) {
 	// example: wikiTitle="DARPApedia", pageTitle="MultiDimensional Mobility Robot (MDMR)"
@@ -433,10 +438,11 @@ window.MultiWikiSearch = {
 		var wikitextURL = pageURL.replace("wiki/", ".mediawiki/index.php?action=raw&title=");
 		return wikitextURL;
 	},
-	diffSuccessHandler: function(diffHTML, pageTitle1, pageTitle2) {
-		self.log("diff: "+diffHTML);
+	diffSuccessHandler: function(diffHTML, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2) {
+		var pageURL1 = MultiWikiSearch.includedWikis[wikiTitle1]["printouts"]["Wiki Content URL"] + pageTitle1.split(' ').join('_');
+		var pageURL2 = MultiWikiSearch.includedWikis[wikiTitle2]["printouts"]["Wiki Content URL"] + pageTitle2.split(' ').join('_');
 		$("#diffDiv").css("display", "block");
-		$("#diffResultsSection").append("<table id='diffTable'><tbody><tr><th>"+pageTitle1+"</th><th></th><th>"+pageTitle2+"</th><th></th></tr></tbody></table>");
+		$("#diffResultsSection").append("<table id='diffTable'><tbody><tr><th>"+wikiTitle1+": <a href='"+pageURL1+"'>"+pageTitle1+"</a></th><th></th><th>"+wikiTitle2+": <a href='"+pageURL2+"'>"+pageTitle2+"</a></th><th></th></tr></tbody></table>");
 		$("#diffTable tbody").append(diffHTML);
 		self.log("done handling diff");
 	}
