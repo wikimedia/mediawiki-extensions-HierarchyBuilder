@@ -840,58 +840,47 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		var alivenode = new Array();
+		// select all of the nodes
 		d3.selectAll(".node").filter(function(d,i){
+			// if the node selected is the same as 
+			// the node that will be hidden
 			if((node.displayName == d.displayName)){
+				// store the node in an array to be re-added later
 				ProjectGraph.HiddenNodes.push(d);
-                        	return d;
+				// return the node to build the array
+               	return d;
           		}
-			else{alivenode.push(d);}
+        // remove the node from the graph
 		}).remove();
+		// select all of the links
 		d3.selectAll(".link").filter(function(d){
+			// if the link selected is the same as
+			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+				// store the link in an array to be re-added later
 				ProjectGraph.HiddenLinks.push(d);
+				// return the link to build the array
 				return d;
 			}
+		// remove all links associated with the
+		// hidden node from the graph
 		}).remove();
-
-		var pos=0;
-		//console.log(ProjectGraph.Nodes.length+" "+ProjectGraph.Links.length);
-		//ProjectGraph.removeNode(node);
-		/*
-		while(pos<ProjectGraph.Nodes.length){
-			if(node.displayName == ProjectGraph.Nodes[pos].displayName){
-				ProjectGraph.Nodes.splice(pos,1);
-			}
-			pos++;
-		}
-		pos=0;
-	/*	while(pos<ProjectGraph.Links.length){
-			var target = ProjectGraph.Links[pos].target;
-			var source = ProjectGraph.Links[pos].source;
-			if((node.displayName == target.displayName)||(node.displayName==source.displayName)){
-				ProjectGraph.Links.splice(pos,1);
-			}
-			pos++;
-		}*/
-		//console.log(ProjectGraph.Nodes.length+" "+ProjectGraph.Links.length);
-		//d3.selectAll(".node").data(alivenode).exit();
 		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
-		console.log(ProjectGraph.HiddenNodes);
-		ProjectGraph.HiddenNodes.forEach(function(node){
-/*			if(node.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.getTaskDelivery(node.index);
+		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
+			var node = ProjectGraph.HiddenNodes[npos];
+			if(node.type == ProjectGraph.PROJECT_TYPE){
+				ProjectGraph.addProjectNode(node.displayName, node.employeeNumber);				
 			} 
 			if(node.type == ProjectGraph.PERSON_TYPE){
-				ProjectGraph.getStaffTasks(node.index);			
-			}	*/
-		
-		});
-		ProjectGraph.HiddenLinks.forEach(function(link){
-
-		});
+				ProjectGraph.addPersonNode(node.displayName, node.chargeNumber);			
+			}			
+			ProjectGraph.HiddenNodes.splice(npos,1);
+		}
+		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
+			var link = ProjectGraph.HiddenLinks[lpos];
+		}
 		ProjectGraph.redraw(true);
 	},
 	zoomToFit: function(){
