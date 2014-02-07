@@ -328,8 +328,10 @@ window.MultiWikiSearch = {
 		jQuery.ajax({
 			url: fullApiURL,
 			dataType: 'jsonp',
-			// apparently suppresses unrecognized parameter '_' warning, see: http://stackoverflow.com/questions/19892179/search-a-mediawiki
-			cache: true,
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url;
+				self.log("url of ajax call: "+url);
+			},
 			success: function(data, textStatus, jqXHR) {
 				self.log("success fetching for "+wikiTitle);
 				MultiWikiSearch.searchResultHandler(wikiTitle, contentURL, data);
@@ -359,6 +361,12 @@ window.MultiWikiSearch = {
 		return fullApiURL;
 	},
 	searchResultHandler: function(title, contentURL, jsonData) {
+			// Note: due to how jQuery forces a browser to avoid caching, an extra "_" parameter is sent with the AJAX call,
+			// and the JSON object returned by MediaWiki API complains about this. But we will ignore it. :) See:
+				// http://stackoverflow.com/questions/19892179/search-a-mediawiki,
+				// http://datatables.net/forums/discussiion/5850/strange-variable-sent-with-ajax-request/p1,
+			// and the jQuery documentation regarding cache.
+
 		self.log("in searchResultHandler("+title+", "+jsonData+")");
 		self.log("the content URL is "+contentURL);
 		results = jsonData["query"]["search"];
@@ -408,15 +416,15 @@ window.MultiWikiSearch = {
 	executeDiv: function(apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2) {
 		jQuery.ajax({
 			url: apiurl,
-			dataType: 'json',
+			dataType: 'jsonp',
 			data: {
 				action: "compareDifferentWikiPages",
 				url1: encodeURIComponent(wikiTextURL1),
 				url2: encodeURIComponent(wikiTextURL2),
-				format: "json"
+				format: "json",
 			},
 			beforeSend: function (jqXHR, settings) {
-				url = settings.url + "?" + settings.data;
+				url = settings.url;
 				self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
@@ -424,7 +432,7 @@ window.MultiWikiSearch = {
 				MultiWikiSearch.diffSuccessHandler(data["compareDifferentWikiPages"]["diff"], wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to diff these pages.");
+				alert("Unable to diff these pages. jqXHR="+jqXHR+", textStatus="+textStatus+", errorThrown="+errorThrown);
 			}
 		});
 
@@ -439,6 +447,7 @@ window.MultiWikiSearch = {
 		return wikitextURL;
 	},
 	diffSuccessHandler: function(diffHTML, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2) {
+		//Note: same MediaWiki API warning as in the search div (see searchResultHandler note above).
 		var pageURL1 = MultiWikiSearch.includedWikis[wikiTitle1]["printouts"]["Wiki Content URL"] + pageTitle1.split(' ').join('_');
 		var pageURL2 = MultiWikiSearch.includedWikis[wikiTitle2]["printouts"]["Wiki Content URL"] + pageTitle2.split(' ').join('_');
 		$("#diffDiv").css("display", "block");
