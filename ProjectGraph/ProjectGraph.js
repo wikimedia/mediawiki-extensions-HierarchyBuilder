@@ -107,7 +107,6 @@ window.ProjectGraph = {
 		});
 
 		$(function(){
-		var frozen = {name : "freeze", freeze:true};
 
     		$.contextMenu({
 		        selector: '.context-menu-one', 
@@ -115,19 +114,11 @@ window.ProjectGraph = {
 			
 				var node = ProjectGraph.SelectedNode;
 				var toggle = true;			
-				//var frozen = {name : "freeze", freeze:true};	
+
 				switch(key){
 					case "frozen":
-						if(frozen.freeze){
-							node.fixed = true;
-							node.x = node.x ;
-							node.y = node.y ;
-							frozen.name = "Unfreeze";
-						}
-						else{
-							node.fixed = false;
-							frozen.name = "Freeze";
-						}
+						if(node.fixed===2){node.fixed = 3;}
+						else{node.fixed = 2;}
 						return toggle;
 						break;
 					case "hide":		
@@ -167,7 +158,7 @@ window.ProjectGraph = {
 				
 		        },
 		        items: {
-		            "frozen": {name: function(){return frozen.name;}},
+		            "frozen": {name: "Freeze"},
 		            "getinfo": {name: "Get Info"},
 			    "hide": {name: "Hide"},
 			    "showAll": {name: "Show All"},
@@ -375,6 +366,25 @@ window.ProjectGraph = {
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
+		for(var link_id=0; link_id<ProjectGraph.LinkSelection[0].length; link_id++){
+			var link = ProjectGraph.LinkSelection[0][link_id];
+			if(link!=null){
+			if((link.source!=null)||(link.target!=null)){
+			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
+				var hidden_node = ProjectGraph.HiddenNodes[hnode];
+
+				if(
+					(hidden_node.displayName
+						==link.target.displayName)
+					||(hidden_node.displayName==
+						link.source.displayName)){
+					console.log("found");
+					ProjectGraph.LinkSelection.splice(link_id,1);
+				}				
+			}
+			}
+			}
+		}
 		var newLinks = ProjectGraph.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
 		newLinks.style("stroke", "#23A4FF");
@@ -648,16 +658,7 @@ window.ProjectGraph = {
 			ProjectGraph.SelectedNode = 0;
 		}
 	},
-/*
-	removeNode: function(node){
-		for(var pos=0; pos<ProjectGraph.Nodes.length; pos++){
-			if(node.displayName == ProjectGraph.Nodes[pos].displayName){
-				console.log(ProjectGraph.Nodes[pos]);
-				//ProjectGraph.Nodes.splice(pos,1);
-			}
-		}
-	},
-*/	addLink: function(node1, node2) {
+	addLink: function(node1, node2) {
 		var link = {
 			source: node1,
 			target: node2
@@ -667,7 +668,6 @@ window.ProjectGraph = {
 		ProjectGraph.LinkMap[node2 + "," + node1] = link;
 		return link;
 	},
-
 	findLink: function(from, to) {
 		var link = ProjectGraph.LinkMap[from + "," + to];
 		if (typeof link === 'undefined') {
@@ -880,6 +880,14 @@ window.ProjectGraph = {
 		}
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var link = ProjectGraph.HiddenLinks[lpos];
+			var source = link.source;
+			var target = link.target;
+			if(source.type == ProjectGraph.PROJECT_TYPE){
+				ProjectGraph.addLink(source.index, target.index);
+			}
+			if(target.type == ProjectGraph.PROJECT_TYPE){
+				ProjectGraph.addLink(target.index, source.index);
+			}
 		}
 		ProjectGraph.redraw(true);
 	},
