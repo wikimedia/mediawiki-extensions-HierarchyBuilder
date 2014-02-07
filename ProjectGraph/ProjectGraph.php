@@ -76,6 +76,19 @@ function wfExtensionProjectGraph_Magic(& $magicWords, $langCode) {
 }
 
 function projectgraph($parser, $projects, $people, $years, $width, $height) {
+	$myparams = func_get_args();
+	array_shift($myparams);
+	foreach($myparams as $value)
+		wfErrorLog("$value\n", "/var/www/html/DEBUG_ProjectGraphParams.out");
+	wfErrorLog("$value\n", "/var/www/html/DEBUG_ProjectGraphParams.out");
+	$paramDictionary = parseParameters($myparams);
+
+	$projects = $paramDictionary["projectNum"];
+	$people = $paramDictionary["employeeNum"];
+	$years = $paramDictionary["fy"];
+	$width = $paramDictionary["width"];
+	$height = $paramDictionary["height"];
+
 	$projectgraph = new ProjectGraph;
 
 	if(!$width)
@@ -87,6 +100,17 @@ function projectgraph($parser, $projects, $people, $years, $width, $height) {
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
+}
+
+function parseParameters($params) {
+	$paramArray = array();
+	foreach ($params as $param) {
+		$ret = preg_split('/=/', $param, 2);
+		if (count($ret) > 1) {
+			$paramArray[$ret[0]] = $ret[1];
+		}
+	}
+	return $paramArray;
 }
 
 function stafftags($parser, $employeenumber) {
