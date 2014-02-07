@@ -421,7 +421,7 @@ window.MultiWikiSearch = {
 				action: "compareDifferentWikiPages",
 				url1: encodeURIComponent(wikiTextURL1),
 				url2: encodeURIComponent(wikiTextURL2),
-				format: "json",
+				format: "json"
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;

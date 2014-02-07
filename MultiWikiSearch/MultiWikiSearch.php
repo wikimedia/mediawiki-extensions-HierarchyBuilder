@@ -16,7 +16,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits[ 'specialpage' ][] = array(
 	'name' => 'MultiWikiSearch',
-	'version' => '1.0',
+	'version' => '1.0.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'multiwikisearch-desc'
 );
