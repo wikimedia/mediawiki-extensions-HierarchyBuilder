@@ -108,50 +108,48 @@ window.ProjectGraph = {
 		$(function(){
     		$.contextMenu({
 		        selector: '.context-menu-one', 
-		        callback: function(key, options) {
-			
-				var node = ProjectGraph.SelectedNode;
-				
-				switch(key){
-					case "freeze":
-						// The integers in 2 and 3 represent boolean values
-						// 3 is the equivalent of true
-						// 2 is the equivalent of false
-						if(node.fixed===2){// if fixed is false
-							node.fixed = 3;// fixed is now true
+		        callback: function(key, options) {			
+					var node = ProjectGraph.SelectedNode;
+					switch(key){
+						case "freeze":
+							// The integers in 2 and 3 represent boolean values
+							// 3 is the equivalent of true
+							// 2 is the equivalent of false
+							if(node.fixed===2){// if node is fixed 
+								node.fixed = 3;// make it movable
+							}
+							else{
+								node.fixed = 2;// make node fixed
+							}
+							break;
+						case "hide":		
+							ProjectGraph.hide(node);
+							break;
+						case "elaborate":
+							if(node.type==ProjectGraph.PROJECT_TYPE){
+								ProjectGraph.getTaskDelivery(node.index);
+								ProjectGraph.redraw(true);
+							}
+							else if (node.type == ProjectGraph.PERSON_TYPE) {
+								ProjectGraph.getStaffTasks(node.index);
+								ProjectGraph.redraw(true);
+							}
+							break;
+						case "showAll":
+							ProjectGraph.showAll();
+							break;
+						case "getinfo":
+							if(node.type==ProjectGraph.PROJECT_TYPE){
+	                            window.open(node.projectPagesURL,'_blank'); 
+	                        }
+	                        else if (node.type == ProjectGraph.PERSON_TYPE) {
+	                            window.open(node.personPagesURL,'_blank');
+	                        }
+							break;
+						case "zoomToFit":
+							ProjectGraph.zoomToFit();
+							break;
 						}
-						else{
-							node.fixed = 2;// make it falsed
-						}
-						break;
-					case "hide":		
-						ProjectGraph.hide(node);
-						break;
-					case "elaborate":
-						if(node.type==ProjectGraph.PROJECT_TYPE){
-							ProjectGraph.getTaskDelivery(node.index);
-							ProjectGraph.redraw(true);
-						}
-						else if (node.type == ProjectGraph.PERSON_TYPE) {
-							ProjectGraph.getStaffTasks(node.index);
-							ProjectGraph.redraw(true);
-						}
-						break;
-					case "showAll":
-						ProjectGraph.showAll();
-						break;
-					case "getinfo":
-						if(node.type==ProjectGraph.PROJECT_TYPE){
-                                                        window.open(node.projectPagesURL,'_blank'); 
-                                                }
-                                                else if (node.type == ProjectGraph.PERSON_TYPE) {
-                                                        window.open(node.personPagesURL,'_blank');
-                                                }
-						break;
-					case "zoomToFit":
-						ProjectGraph.zoomToFit();
-						break;
-				}
 		        },
 		        items: {
 		            "freeze": {name: "Freeze"},
@@ -571,7 +569,7 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
-		
+
 		d3.selectAll(".link").filter(function(d){
 			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
 				var hidden_node = ProjectGraph.HiddenNodes[hnode];
