@@ -97,7 +97,7 @@ window.ProjectGraph = {
 		  step: .001, // set the value for each individual increment
 		  value: ProjectGraph.Zoompos,
 		  slide: function( event, ui ) {
-			console.log(ProjectGraph.Zoompos);
+//			console.log(ProjectGraph.Zoompos);
 			// set the zoom scale equal to the current value of the slider
 			// which is the current position
 		        ProjectGraph.Zoompos = ui.value;
@@ -117,8 +117,15 @@ window.ProjectGraph = {
 
 				switch(key){
 					case "frozen":
-						if(node.fixed===2){node.fixed = 3;}
-						else{node.fixed = 2;}
+						// The integers in 2 and 3 represent boolean values
+						// 3 is the equivalent of true
+						// 2 is the equivalent of false
+						if(node.fixed===2){// if fixed is false
+							node.fixed = 3;// fixed is now true
+						}
+						else{
+							node.fixed = 2;// make it falsed
+						}
 						return toggle;
 						break;
 					case "hide":		
@@ -329,7 +336,7 @@ window.ProjectGraph = {
 	    // autozoom according to the set zoom position and translation vectors
 	    var view = ProjectGraph.transformZoom(ProjectGraph.Zoompos, ProjectGraph.zoom.translate());
 	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
-
+	    console.log(view);
 	},
 
 	interpolateZoom: function(translate, scale) {
@@ -366,10 +373,9 @@ window.ProjectGraph = {
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
-		for(var link_id=0; link_id<ProjectGraph.LinkSelection[0].length; link_id++){
-			var link = ProjectGraph.LinkSelection[0][link_id];
-			if(link!=null){
-			if((link.source!=null)||(link.target!=null)){
+/*		for(var link_id=0; link_id<ProjectGraph.Links.length; link_id++){
+			var link = ProjectGraph.Links[link_id];			
+			var html_link = ProjectGraph.LinkSelection[0][link_id];
 			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
 				var hidden_node = ProjectGraph.HiddenNodes[hnode];
 
@@ -378,13 +384,11 @@ window.ProjectGraph = {
 						==link.target.displayName)
 					||(hidden_node.displayName==
 						link.source.displayName)){
-					console.log("found");
-					ProjectGraph.LinkSelection.splice(link_id,1);
+					ProjectGraph.Links
 				}				
-			}
-			}
-			}
-		}
+			}			
+		}*/
+
 		var newLinks = ProjectGraph.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
 		newLinks.style("stroke", "#23A4FF");
@@ -594,7 +598,17 @@ window.ProjectGraph = {
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
-
+/*
+		d3.selectAll(".link").filter(function(d){
+			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
+				var hidden_node = ProjectGraph.HiddenNodes[hnode];
+				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
+					console.log("wat");
+					return d;
+				}				
+			}			
+		}).remove();
+*/
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -865,31 +879,27 @@ window.ProjectGraph = {
 		// remove all links associated with the
 		// hidden node from the graph
 		}).remove();
-		ProjectGraph.redraw(true);
+		console.log("kill"+ProjectGraph.HiddenNodes.length);
+//		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
 			var node = ProjectGraph.HiddenNodes[npos];
 			if(node.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.addProjectNode(node.displayName, node.employeeNumber);				
+				ProjectGraph.addProjectNode(node.displayName, node.chargeNumber);			
 			} 
 			if(node.type == ProjectGraph.PERSON_TYPE){
-				ProjectGraph.addPersonNode(node.displayName, node.chargeNumber);			
-			}			
-			ProjectGraph.HiddenNodes.splice(npos,1);
-		}
-		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
-			var link = ProjectGraph.HiddenLinks[lpos];
-			var source = link.source;
-			var target = link.target;
-			if(source.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.addLink(source.index, target.index);
-			}
-			if(target.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.addLink(target.index, source.index);
-			}
+				ProjectGraph.addPersonNode(node.displayName, node.employeeNumber);			
+			}	
 		}
 		ProjectGraph.redraw(true);
+		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
+			var link = ProjectGraph.HiddenLinks[lpos];
+			ProjectGraph.addLink(link.target.index, link.source.index);
+		}		
+		ProjectGraph.redraw(true);
+		ProjectGraph.HiddenNodes = new Array();
+		ProjectGraph.HiddenLinks = new Array();
 	},
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
@@ -906,7 +916,7 @@ window.ProjectGraph = {
 			if(node.y<miny){miny = node.y;}
 		});	
 		// scale is used as a tolerance buffer
-		var scale = 0.3;
+		var scale = 0.12;//0.3;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
@@ -917,7 +927,7 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
-		// Calculate center
+		// Calculate center -> The calculate Center function would not center the graph
 		var view = ProjectGraph.transformZoom(ProjectGraph.Zoompos, [0,0]);
 		// Translate to center
 		ProjectGraph.zoom.translate([view.x,view.y]);
