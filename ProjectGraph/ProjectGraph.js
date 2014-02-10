@@ -871,16 +871,21 @@ window.ProjectGraph = {
 		// with the x and y position of the first node in ProjectGraph.Nodes
 		var minx=ProjectGraph.Nodes[0].x; var maxx=ProjectGraph.Nodes[0].x; 
 		var miny=ProjectGraph.Nodes[0].y; var maxy=ProjectGraph.Nodes[0].y;
+		var d={x:0, y:0, count:0};
 		// go through the array of nodes
 		ProjectGraph.Nodes.forEach(function(node){
 			// check to see if the current nodes x or y position is
 			// greater than or less than any of the four domain/range variables
+			d.x += node.x;
+			d.y += node.y;
+			d.count++;
 			if(node.x>maxx){maxx = node.x;}
 			if(node.x<minx){minx = node.x;}
 			if(node.y>maxy){maxy = node.y;}
 			if(node.y<miny){miny = node.y;}
 		});	
-		
+		var avgx = d.x/d.count;
+		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
 		var scale = 0.075;
 		//calculate the zoom for the domain and the zoom for the range
@@ -893,21 +898,27 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
+		console.log(ProjectGraph.Zoompos);
 		// Calculate Translation
-		ProjectGraph.zoom.translate([0,0]);
+		ProjectGraph.calculateTranslation((maxx-minx)/2,(maxy-miny)/2);
+//		ProjectGraph.zoom.translate([0,0]);
 		// zoom
 		ProjectGraph.slide();
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
-		ProjectGraph.redraw(false);
+		ProjectGraph.redraw(true);
 	},
-	calculateTranslation: function(zoom){
-		var translate = new Object();
-		// the mathematical functions below were derived from a line graph formed in excel.
-		// The line graph was generated from pre-generated zoom values found when the zoom
-		// position starts at 1 and the translation vectors start at 0,0
-		translate.x = 0;
-		translate.y = 0;
-		return translate;
+	calculateTranslation: function(x,y){
+		// get the scale
+		var scale = ProjectGraph.zoom.scale();
+		// calculate the centers depending on the scale and viewport
+        var scaledCenterX = (ProjectGraph.width / scale) / 2;
+        var scaledCenterY = (ProjectGraph.height / scale) / 2;
+        // calculate the translation vectors
+        var panx = -(x - scaledCenterX);
+        var pany = -(y - scaledCenterY);
+        // set the translation vectors and the scale
+		ProjectGraph.zoom.translate([panx, pany]);
+//		ProjectGraph.zoom.scale(scale);
 	}
 }
