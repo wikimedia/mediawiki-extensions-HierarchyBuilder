@@ -97,7 +97,6 @@ window.ProjectGraph = {
 		  step: .001, // set the value for each individual increment
 		  value: ProjectGraph.Zoompos,
 		  slide: function( event, ui ) {
-			console.log(ProjectGraph.Zoompos);
 			// set the zoom scale equal to the current value of the slider
 			// which is the current position
 		        ProjectGraph.Zoompos = ui.value;
@@ -115,9 +114,15 @@ window.ProjectGraph = {
 				
 				switch(key){
 					case "freeze":
-						node.fixed = true;
-						node.x = node.x ;
-						node.y = node.y ;
+						// The integers in 2 and 3 represent boolean values
+						// 3 is the equivalent of true
+						// 2 is the equivalent of false
+						if(node.fixed===2){// if fixed is false
+							node.fixed = 3;// fixed is now true
+						}
+						else{
+							node.fixed = 2;// make it falsed
+						}
 						break;
 					case "hide":		
 						ProjectGraph.hide(node);
@@ -288,15 +293,15 @@ window.ProjectGraph = {
 				});
 			}
 			// Autozoom on startup
-			ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
+			ProjectGraph.slide();
 		}
 	},
 
-	slide: function(x,y){		
+	slide: function(){		
 	// set target_zoom to the logged zoom position
         target_zoom = ProjectGraph.Zoompos,
 	// calculate the center of the graph by dividing the width and height by two
-        center = [x / 2, y / 2],
+        center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
 	// set the scale extent
         extent = ProjectGraph.zoom.scaleExtent(),
 	// and the translation vectors
@@ -724,11 +729,12 @@ window.ProjectGraph = {
 			$("#projectgraph-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
 			return null;
 		} else {
-			parseTaskStaff(taskNode, delivery);
+			ProjectGraph.parseTaskStaff(taskNode, delivery);
 			return delivery.taskName;
 		}
 
-		function parseTaskStaff(taskNode, delivery) {
+	},
+		parseTaskStaff: function(taskNode, delivery) {
 			if (typeof delivery.staff == 'object' &&
 				delivery.staff instanceof Array) {
 				for (var i = 0; i < delivery.staff.length; i++) {
@@ -756,8 +762,7 @@ window.ProjectGraph = {
 					}
 				}
 			}
-		}
-	},
+		},
 
 	getStaffTasks: function(index) {
 		//console.log("calling getStaffTasks");
@@ -814,43 +819,58 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		
+		// select all of the nodes
 		d3.selectAll(".node").filter(function(d,i){
+			// if the node selected is the same as 
+			// the node that will be hidden
 			if((node.displayName == d.displayName)){
-                        	return d;
+				// store the node in an array to be re-added later
+				ProjectGraph.HiddenNodes.push(d);
+				// return the node to build the array
+               	return d;
           		}
+        // remove the node from the graph
 		}).remove();
+		// select all of the links
 		d3.selectAll(".link").filter(function(d){
+			// if the link selected is the same as
+			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+				// store the link in an array to be re-added later
+				ProjectGraph.HiddenLinks.push(d);
+				// return the link to build the array
 				return d;
 			}
+		// remove all links associated with the
+		// hidden node from the graph
 		}).remove();
-
-		var pos=0;
-
-		while(pos<ProjectGraph.Nodes.length){
-			ProjectGraph.Nodes;
-		}
-		pos=0;
-		while(pos<ProjectGraph.Links.length){
-			ProjectGraph.Links;
-		}
-		ProjectGraph.redraw(false);
+//		console.log("kill"+ProjectGraph.HiddenNodes.length);
+		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
-		ProjectGraph.HiddenNodes.forEach(function(node){
+		var n = null;
+		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
+			var node = ProjectGraph.HiddenNodes[npos];
+			n = node;
 			if(node.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.getTaskDelivery(node.index);
+				ProjectGraph.addProjectNode(node.displayName, node.chargeNumber);
+//				ProjectGraph.parseTaskStaff(node, new Array());
 			} 
 			if(node.type == ProjectGraph.PERSON_TYPE){
-				ProjectGraph.getStaffTasks(node.index);			
+				ProjectGraph.addPersonNode(node.displayName, node.employeeNumber);			
 			}	
-		});
-		ProjectGraph.HiddenLinks.forEach(function(link){
 
-		});
-		ProjectGraph.redraw(false);
-	},
+		}
+		ProjectGraph.redraw(true);
+		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
+			var link = ProjectGraph.HiddenLinks[lpos];
+			ProjectGraph.addLink(link.target.index, link.source.index);
+		}		
+		ProjectGraph.redraw(true);
+		ProjectGraph.HiddenNodes = new Array();
+		ProjectGraph.HiddenLinks = new Array();
+
+	},	
 	zoomToFit: function(){
 		// initialize the following variables of minimum x and y, and maximum x and y
 		// with the x and y position of the first node in ProjectGraph.Nodes
@@ -878,10 +898,21 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
+		// Calculate Translation
+		ProjectGraph.zoom.translate([0,0]);
 		// zoom
-		ProjectGraph.slide(dzoom,rzoom);
+		ProjectGraph.slide();
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 		ProjectGraph.redraw(false);
 	},
+	calculateTranslation: function(zoom){
+		var translate = new Object();
+		// the mathematical functions below were derived from a line graph formed in excel.
+		// The line graph was generated from pre-generated zoom values found when the zoom
+		// position starts at 1 and the translation vectors start at 0,0
+		translate.x = 0;
+		translate.y = 0;
+		return translate;
+	}
 }
