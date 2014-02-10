@@ -384,10 +384,8 @@ window.ProjectGraph = {
 					d.target == ProjectGraph.SelectedNode ? 1 : ProjectGraph.LINK_OPACITY;
 			}
 		});
-		
 		ProjectGraph.NodeSelection =
 			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes);
-
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
 		
 		newNodes.attr("class", "node context-menu-one box menu-1");
@@ -848,25 +846,22 @@ window.ProjectGraph = {
 		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
-		var n = null;
+		// cycle through all of the nodes and re-add them back to a list
+		// to get added back to the graph
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
 			var node = ProjectGraph.HiddenNodes[npos];
-			n = node;
-			if(node.type == ProjectGraph.PROJECT_TYPE){
-				ProjectGraph.addProjectNode(node.displayName, node.chargeNumber);
-//				ProjectGraph.parseTaskStaff(node, new Array());
-			} 
-			if(node.type == ProjectGraph.PERSON_TYPE){
-				ProjectGraph.addPersonNode(node.displayName, node.employeeNumber);			
-			}	
+			ProjectGraph.addNode(node);
 
 		}
-		ProjectGraph.redraw(true);
+		// cycle through all of the links and re-add them back to a list
+		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var link = ProjectGraph.HiddenLinks[lpos];
 			ProjectGraph.addLink(link.target.index, link.source.index);
 		}		
+		// redraw
 		ProjectGraph.redraw(true);
+		// clear out hidden arrays
 		ProjectGraph.HiddenNodes = new Array();
 		ProjectGraph.HiddenLinks = new Array();
 
