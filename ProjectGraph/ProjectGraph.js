@@ -566,9 +566,23 @@ window.ProjectGraph = {
 		}
 		allHourBarFills.attr("width", width);
 
+
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
+
+		
+		d3.selectAll(".link").filter(function(d){
+			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
+				var hidden_node = ProjectGraph.HiddenNodes[hnode];
+				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
+//					console.log("link found");
+					ProjectGraph.HiddenLinks.push(d);
+					return d;
+				}				
+			}			
+		}).remove();
+
 
 	},
 
@@ -859,11 +873,11 @@ window.ProjectGraph = {
 			var link = ProjectGraph.HiddenLinks[lpos];
 			ProjectGraph.addLink(link.target.index, link.source.index);
 		}		
+		ProjectGraph.HiddenNodes = new Array();
+		ProjectGraph.HiddenLinks = new Array();
 		// redraw
 		ProjectGraph.redraw(true);
 		// clear out hidden arrays
-		ProjectGraph.HiddenNodes = new Array();
-		ProjectGraph.HiddenLinks = new Array();
 
 	},	
 	zoomToFit: function(){
@@ -901,7 +915,6 @@ window.ProjectGraph = {
 		console.log(ProjectGraph.Zoompos);
 		// Calculate Translation
 		ProjectGraph.calculateTranslation((maxx-minx)/2,(maxy-miny)/2);
-//		ProjectGraph.zoom.translate([0,0]);
 		// zoom
 		ProjectGraph.slide();
 		// set the slider
