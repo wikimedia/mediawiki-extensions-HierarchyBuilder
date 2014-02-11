@@ -390,7 +390,7 @@ window.ProjectGraph = {
 		newNodes.on("click", function(d) {
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.displayNodeInfo(d);
-			ProjectGraph.redraw(false);
+			ProjectGraph.redraw(false);			
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
@@ -489,7 +489,9 @@ window.ProjectGraph = {
 			return (d.type == ProjectGraph.PROJECT_TYPE ? "middle" : "right");
 		});
 		newLabels.text(function(d) { return d.displayName });
-		
+
+
+//		var elaborated = ProjectGraph.findNode('index',ProjectGraph.SelectedNode).elaborated;
 		var newHourBarBacks = newNodes.append("svg:rect");
 		var newHourBarFills = newNodes.append("svg:rect");
 		newHourBarBacks.attr("class", "hourbarback");
@@ -518,7 +520,7 @@ window.ProjectGraph = {
 		var allHourBarFills = d3.selectAll(".hourbarfill");
 		var backcolor = function(d) {
 			var link = ProjectGraph.findLink(d.index,
-				ProjectGraph.SelectedNode);
+				ProjectGraph.SelectedNode);			
 			if (link == null) {
 				return "none";
 			}
@@ -564,7 +566,7 @@ window.ProjectGraph = {
 		}
 		allHourBarFills.attr("width", width);
 
-
+		
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
