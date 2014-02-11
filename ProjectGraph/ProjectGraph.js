@@ -490,8 +490,6 @@ window.ProjectGraph = {
 		});
 		newLabels.text(function(d) { return d.displayName });
 
-
-//		var elaborated = ProjectGraph.findNode('index',ProjectGraph.SelectedNode).elaborated;
 		var newHourBarBacks = newNodes.append("svg:rect");
 		var newHourBarFills = newNodes.append("svg:rect");
 		newHourBarBacks.attr("class", "hourbarback");
@@ -516,12 +514,16 @@ window.ProjectGraph = {
 		newHourBarBacks.style("stroke", "none");
 		newHourBarFills.style("stroke", "none");
 
+		// get the selected node
+		var selected = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		var allHourBarBacks = d3.selectAll(".hourbarback");
 		var allHourBarFills = d3.selectAll(".hourbarfill");
 		var backcolor = function(d) {
 			var link = ProjectGraph.findLink(d.index,
 				ProjectGraph.SelectedNode);			
-			if (link == null) {
+			// if the link is null, or the node has not been elaborated
+			// do not display the bar
+			if ((link == null)||(!selected.elaborated)) {
 				return "none";
 			}
 			return "#CCCCCC";
@@ -576,7 +578,6 @@ window.ProjectGraph = {
 			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
 				var hidden_node = ProjectGraph.HiddenNodes[hnode];
 				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
-//					console.log("link found");
 					ProjectGraph.HiddenLinks.push(d);
 					return d;
 				}				
@@ -744,9 +745,7 @@ window.ProjectGraph = {
 			ProjectGraph.parseTaskStaff(taskNode, delivery);
 			return delivery.taskName;
 		}
-
-	},
-		parseTaskStaff: function(taskNode, delivery) {
+		function parseTaskStaff(taskNode, delivery) {
 			if (typeof delivery.staff == 'object' &&
 				delivery.staff instanceof Array) {
 				for (var i = 0; i < delivery.staff.length; i++) {
@@ -774,8 +773,8 @@ window.ProjectGraph = {
 					}
 				}
 			}
-		},
-
+		}		
+	},
 	getStaffTasks: function(index) {
 		//console.log("calling getStaffTasks");
 		var personNode = ProjectGraph.Nodes[index];
