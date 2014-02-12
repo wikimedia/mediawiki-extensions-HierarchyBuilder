@@ -1,0 +1,1 @@
+ALTER TABLE user ADD provider TINYBLOB;
