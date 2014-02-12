@@ -44,7 +44,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 	die('<b>Error:</b> This version of SemanticFormsDisplayTitle is only compatible with Semantic Forms 2.5.2 or above.');
 }
 
-define('SFDT_VERSION', '1.0');
+define('SFDT_VERSION', '1.1.1');
 
 # credits
 $wgExtensionCredits['semantic'][] = array (
@@ -167,7 +167,7 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 			"sort" => $label_property,
 			"limit" => $limit,
 			"link" => "none",
-			"format" => "ul",
+			"format" => "table",
 			"headers" => "hide",
 			"sep" => $this->mSep
 		);
@@ -175,13 +175,18 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 			SMW_OUTPUT_WIKI);
 		$rows = array();
 		if (strlen($result) > 0) {
-			$result = stristr($result, "<li>");
+			$result = stristr($result, "<tr");
 			while ($result && strlen($result) > 0) {
-				$result = substr($result, 4);
-				$i = stripos($result, "</li>");
-				$s = substr($result, 0, $i);
-				$rows[] = $s;
-				$result = stristr($result, "<li>");
+				$j = stripos($result, ">");
+				if ($j > 1) {
+					$result = substr($result, $j + 1);
+					$i = stripos($result, "</tr>");
+					$s = substr($result, 0, $i);
+					$rows[] = $s;
+					$result = stristr($result, "<tr");
+				} else {
+					$result = "";
+				}
 			}
 		}
 		if (count($rows) < 1) {
@@ -200,7 +205,7 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 		$output .= "<option/>";
 		$current =
 			array_map('trim', explode($this->mSep, $this->mCurrentValue));
-		$pattern = '/([^(]*)\s\((.*)\)/';
+		$pattern = '/<td[^>]*>(.*)<\/td>\s*<td[^>]*>(.*)<\/td>/';
 		$options = array();
 		foreach ($rows as $row) {
 			preg_match($pattern, $row, $matches);

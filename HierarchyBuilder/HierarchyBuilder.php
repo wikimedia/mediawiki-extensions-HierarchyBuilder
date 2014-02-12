@@ -41,7 +41,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 # credits
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'HierarchyBuilder',
-	'version' => '1.2',
+	'version' => '1.3',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'hierarchybuilder-desc'
 );
@@ -230,13 +230,16 @@ class HierarchyBuilder {
 		$hierarchy = HierarchyBuilder::parseHierarchy($input,
 			$displayNameProperty, $dummy,
 			function ($pageName, $displayNameProperty, $data) {
-				$pageLink = Title::newFromText($pageName)->getLinkURL();
+				$pageLinkArray = array();
+				$title = Title::newFromText($pageName);
+				if ($title) {
+					$pageLinkArray['href'] = $title->getLinkURL();
+				}
 				if (strlen($displayNameProperty) > 0) {
-					$pageName =
-						HierarchyBuilder::getPageDisplayName($pageName,
+					$pageName = HierarchyBuilder::getPageDisplayName($pageName,
 						$displayNameProperty);
 				}
-				return Html::element('a', array('href' => $pageLink), $pageName);
+				return Html::element('a', $pageLinkArray, $pageName);
 			});
 
 		$parser->getOutput()->addModules('ext.HierarchyBuilder.render');
@@ -265,7 +268,7 @@ END;
 		if ($num_matches !== FALSE) {
 			foreach ($matches[1] as $pageName) {
 				$link = $callback(trim($pageName), $displayNameProperty, $data);
-				$hierarchy = preg_replace("/<a>$pageName<\/a>/", $link, $hierarchy);
+				$hierarchy = str_replace("<a>$pageName</a>", $link, $hierarchy);
 			}
 		}
 		return $hierarchy;
@@ -469,7 +472,11 @@ class SelectFromHierarchy extends SFFormInput {
 		$hierarchy = HierarchyBuilder::parseHierarchy(trim($output),
 			$displaynameproperty, $dummy,
 			function ($pageName, $displayNameProperty, $data) {
-				$pageLink = Title::newFromText($pageName)->getLinkURL();
+				$title = Title::newFromText($pageName);
+				$pageLinkArray = array();
+				if ($title) {
+					$pageLinkArray['href'] = $title->getLinkURL();
+				}
 				if (strlen($displayNameProperty) > 0) {
 					$displayName =
 						HierarchyBuilder::getPageDisplayName($pageName,
@@ -477,9 +484,9 @@ class SelectFromHierarchy extends SFFormInput {
 				} else {
 					$displayName = $pageName;
 				}
-				return Html::openElement('a', array('href' => $pageLink)) . $displayName .
-					Html::element('span', array('style' => 'display:none'), $pageName) .
-					Html::closeElement('a');
+				return Html::openElement('a', $pageLinkArray) . $displayName .
+					Html::element('span', array('style' => 'display:none'),
+					$pageName) .  Html::closeElement('a');
 			});
 
 		$selected_items = array_map('trim', explode(",", $this->mCurrentValue));
