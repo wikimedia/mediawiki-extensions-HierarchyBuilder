@@ -104,7 +104,6 @@ window.ProjectGraph = {
 		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
 		  }
 		});
-
 		$(document).contextmenu({
 			delegate: ".node",
 			preventSelect: true,
@@ -118,12 +117,12 @@ window.ProjectGraph = {
 				{title: "Zoom to Fit", cmd: "zoom_to_fit"}//,
 				],
 			beforeOpen: function(event, ui) {
-				var toggle = true;
 				var freeze_toggle = null;
-				if(toggle==true)
-					freeze_toggle = "Freeze";
-				else
-					freeze_toggle = "Unfreeze"
+				//var toggle = (node.fixed);
+				if(ProjectGraph.SelectedNode.fixed==6)
+					{freeze_toggle = "Freeze";}
+				else if(ProjectGraph.SelectedNode.fixed==7)
+					{freeze_toggle = "Unfreeze";}
 				$(document)
 					.contextmenu("setEntry", "freeze", freeze_toggle)
 			},	
@@ -846,6 +845,7 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
+		var hub = new Array();
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
 			// if the link selected is the same as
@@ -853,24 +853,40 @@ window.ProjectGraph = {
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
 				ProjectGraph.HiddenLinks.push(d);
+				if(node.elaborated){
+					hub.push(d.source);
+					hub.push(d.target);
+				}
 				// return the link to build the array
 				return d;
 			}
 		// remove all links associated with the
 		// hidden node from the graph
 		}).remove();
+
+		if(node.elaborated){
+			ProjectGraph.HiddenLinks.forEach(function(n){					
+				ProjectGraph.HiddenNodes.push(n.source);
+				ProjectGraph.HiddenNodes.push(n.target);
+			});
+		}
+
 		// select all of the nodes
 		d3.selectAll(".node").filter(function(d){
 			// if the node selected is the same as 
 			// the node that will be hidden
-			console.log(node.displayName+" "+d.displayName);
-			if((node.displayName == d.displayName)){
-				// store the node in an array to be re-added later
-				console.log("found");
-				ProjectGraph.HiddenNodes.push(d);
-				// return the node to build the array
-               	return d;
-          		}
+			if(node.elaborated){
+				return ProjectGraph.HiddenNodes;
+			}
+			else{
+
+				if((node.displayName == d.displayName)){
+					// store the node in an array to be re-added later
+					ProjectGraph.HiddenNodes.push(d);
+					// return the node to build the array
+	               	return d;
+	            }
+          	}
         // remove the node from the graph
 		}).remove();
 //		console.log("kill"+ProjectGraph.HiddenNodes.length);
