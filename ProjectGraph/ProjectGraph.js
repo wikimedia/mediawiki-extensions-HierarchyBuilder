@@ -48,6 +48,7 @@ window.ProjectGraph = {
 	Zoompos: 1, // to store values for zoom scale
 	HiddenNodes: new Array(),
 	HiddenLinks: new Array(),	
+	HiddenLinkMap: new Array(),
 	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
@@ -372,7 +373,13 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
-	
+/*		ProjectGraph.LinkMap.forEach(function(link){
+			ProjectGraph.HiddenNodes.forEach(function(node){
+				if((node.displayName == link.source.displayName)||(node.displayName == link.target.displayName)){
+					ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(link),1));					
+				}
+			});
+		});*/
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -588,6 +595,15 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
+		d3.selectAll(".link").filter(function(d){
+            for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
+                    var hidden_node = ProjectGraph.HiddenNodes[hnode];
+                    if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
+                        ProjectGraph.HiddenLinks.push(d);
+                        return d;
+                    }
+            }
+        }).remove();
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -839,7 +855,7 @@ window.ProjectGraph = {
 			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
-//				ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1);
+				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
 				ProjectGraph.HiddenLinks.push(d);
 				// return the link to build the array
 				return d;
@@ -847,23 +863,22 @@ window.ProjectGraph = {
 		// remove all links associated with the
 		// hidden node from the graph
 		}).remove();
-
+		// if the node is a central part of a hub
+		// remove all of its children unless its child has been elaborated
 		if(node.elaborated){
 			var hub = new Array();
 			ProjectGraph.HiddenLinks.forEach(function(l){					
-				ProjectGraph.HiddenNodes.push(l.source);
-				ProjectGraph.HiddenNodes.push(l.target);
+				hub.push(l.source);
+				hub.push(l.target);
 			});
-			ProjectGraph.HiddenNodes.forEach(function(n){
+			hub.forEach(function(n){
 				d3.selectAll(".node").filter(function(d){
-					if((n.displayName == d.displayName)&&((!d.elaborated)||(d.displayName == node.displayName))){
-						console.log("found");
+					if(((n.displayName == d.displayName)&&((d.displayName == node.displayName)||(d.elaborated == false)))){
+						ProjectGraph.HiddenNodes.push(d);						
 						return d;
 					}
 				}).remove();
 			});			
-//			hub = hub.data(ProjectGraph.HiddenNodes);
-//			hub.remove();
 		}
 		else{
 			// select all of the nodes
