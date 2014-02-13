@@ -76,7 +76,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	foreach($myparams as $value)
 		wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
-	$paramDictionary = parseParameters($myparams);
+	$paramDictionary = vikiJS_parseParameters($myparams);
 
 	$pageTitles = $paramDictionary["pageTitle"];
 	$width = $paramDictionary["width"];
@@ -95,7 +95,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 		'noparse' => false);
 }
 
-function parseParameters($params) {
+function vikiJS_parseParameters($params) {
 	$paramArray = array();
 	foreach ($params as $param) {
 		$ret = preg_split('/=/', $param, 2);
