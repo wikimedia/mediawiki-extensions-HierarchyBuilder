@@ -105,61 +105,80 @@ window.ProjectGraph = {
 		  }
 		});
 
-		$(function(){
-    		$.contextMenu({
-		        selector: '.context-menu-one', 
-		        callback: function(key, options) {			
-					var node = ProjectGraph.SelectedNode;
-					switch(key){
-						case "freeze":
-							// The integers in 2 and 3 represent boolean values
-							// 3 is the equivalent of true
-							// 2 is the equivalent of false
-							if(node.fixed===2){// if node is fixed 
-								node.fixed = 3;// make it movable
-							}
-							else{
-								node.fixed = 2;// make node fixed
-							}
-							break;
-						case "hide":		
-							ProjectGraph.hide(node);
-							break;
-						case "elaborate":
-							if(node.type==ProjectGraph.PROJECT_TYPE){
-								ProjectGraph.getTaskDelivery(node.index);
-								ProjectGraph.redraw(true);
-							}
-							else if (node.type == ProjectGraph.PERSON_TYPE) {
-								ProjectGraph.getStaffTasks(node.index);
-								ProjectGraph.redraw(true);
-							}
-							break;
-						case "showAll":
-							ProjectGraph.showAll();
-							break;
-						case "getinfo":
-							if(node.type==ProjectGraph.PROJECT_TYPE){
-	                            window.open(node.projectPagesURL,'_blank'); 
-	                        }
-	                        else if (node.type == ProjectGraph.PERSON_TYPE) {
-	                            window.open(node.personPagesURL,'_blank');
-	                        }
-							break;
-						case "zoomToFit":
-							ProjectGraph.zoomToFit();
-							break;
+		$(document).contextmenu({
+			delegate: ".node",
+			preventSelect: true,
+			taphold: true,
+			menu: [
+				{title: "Freeze", cmd: "freeze"},
+				{title: "Get Info", cmd: "get_info"},
+				{title: "Elaborate", cmd: "elaborate"},
+				{title: "Hide", cmd: "hide"},
+				{title: "Show All", cmd: "show_all"},
+				{title: "Zoom to Fit", cmd: "zoom_to_fit"}//,
+				],
+			beforeOpen: function(event, ui) {
+				var toggle = true;
+				var freeze_toggle = null;
+				if(toggle==true)
+					freeze_toggle = "Freeze";
+				else
+					freeze_toggle = "Unfreeze"
+				$(document)
+					.contextmenu("setEntry", "freeze", freeze_toggle)
+			},	
+			// Handle menu selection to implement a fake-clipboard
+			select: function(event, ui) {
+				var node = ProjectGraph.SelectedNode;
+				switch(ui.cmd){
+					case "freeze":
+						// The integers in 2 and 3 represent boolean values
+						// 3 is the equivalent of true
+						// 2 is the equivalent of false
+						if(node.fixed==true){// if node is fixed 
+							node.fixed = false;// make it movable
 						}
-		        },
-		        items: {
-		            "freeze": {name: "Freeze"},
-		            "getinfo": {name: "Get Info"},
-			    "hide": {name: "Hide"},
-			    "showAll": {name: "Show All"},
-			    "elaborate": {name: "Elaborate"},
-			    "zoomToFit": {name: "Zoom to Fit"},
-		        }
-			});
+						else{
+							node.fixed = true;// make node fixed
+						}
+						return true;
+						break;
+					case "hide":		
+						ProjectGraph.hide(node);
+						return true;
+						break;
+					case "elaborate":
+						if(node.type==ProjectGraph.PROJECT_TYPE){
+							ProjectGraph.getTaskDelivery(node.index);
+							ProjectGraph.redraw(true);
+						}
+						else if (node.type == ProjectGraph.PERSON_TYPE) {
+							ProjectGraph.getStaffTasks(node.index);
+							ProjectGraph.redraw(true);
+						}
+						return true;
+						break;
+					case "showAll":
+						ProjectGraph.showAll();
+						return true;
+						break;
+					case "getinfo":
+						if(node.type==ProjectGraph.PROJECT_TYPE){
+	                        window.open(node.projectPagesURL,'_blank'); 
+	                        console.log("Project");
+	                    }
+	                    else if (node.type == ProjectGraph.PERSON_TYPE) {	                    	
+	                        window.open(node.personPagesURL,'_blank');
+	                        console.log("Person");
+	                    }
+						return true;
+						break;
+					case "zoomToFit":
+						ProjectGraph.zoomToFit();
+						return true;
+						break;
+				}
+			}
 		});
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
@@ -398,7 +417,6 @@ window.ProjectGraph = {
 		// Trigger right clck context menu
 		newNodes.on("contextmenu", function(d) {
 			ProjectGraph.SelectedNode = d;
-			
 			//console.log("right click");
 			//var position = d3.mouse(this);
 			//console.log("x,y = "+position[0]+", "+position[1]);
@@ -831,11 +849,13 @@ window.ProjectGraph = {
 	},
 	hide: function(node){
 		// select all of the nodes
-		d3.selectAll(".node").filter(function(d,i){
+		d3.selectAll(".node").filter(function(d){
 			// if the node selected is the same as 
 			// the node that will be hidden
+			console.log(node.displayName+" "+d.displayName);
 			if((node.displayName == d.displayName)){
 				// store the node in an array to be re-added later
+				console.log("found");
 				ProjectGraph.HiddenNodes.push(d);
 				// return the node to build the array
                	return d;
