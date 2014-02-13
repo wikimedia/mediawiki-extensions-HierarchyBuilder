@@ -51,7 +51,7 @@ window.VikiJS = {
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
 		pageTitles = eval("("+pageTitles+")");
-
+		self.log("pageTitles: "+pageTitles);
 		VikiJS.GraphDiv = graphDiv;
 		VikiJS.DetailsDiv = detailsDiv;
 		VikiJS.ImagePath = imagePath;
@@ -717,4 +717,9 @@ window.VikiJS = {
 		d.setAttribute("href", newURL);
 	}
 	*/
+}
+
+self.log = function(text) {
+	if( (window['console'] !== undefined) )
+		console.log( text );
 }
