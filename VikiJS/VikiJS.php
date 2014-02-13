@@ -110,7 +110,7 @@ class VikiJS {
 
 	private static $pqnum = 0;
 
-	function display($parser, $pageTitles, $years, $width, $height) {
+	function display($parser, $pageTitles, $width, $height) {
 
 		global $wgOut;
 
