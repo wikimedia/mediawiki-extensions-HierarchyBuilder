@@ -157,39 +157,17 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 			return $error_msg;
 		}
 
-		global $wgParser;
-		$wgParser->firstCallInit();
-		$wgParser->setTitle(Title::newFromText('NO TITLE'));
-		$wgParser->mOptions=new ParserOptions();
-		$params = array (
-			$wgParser->replaceVariables($query),
-			"?" . $label_property,
-			"sort" => $label_property,
-			"limit" => $limit,
-			"link" => "none",
-			"format" => "table",
-			"headers" => "hide",
-			"sep" => $this->mSep
-		);
-		$result = SMWQueryProcessor::getResultFromFunctionParams($params,
-			SMW_OUTPUT_WIKI);
-		$rows = array();
-		if (strlen($result) > 0) {
-			$result = stristr($result, "<tr");
-			while ($result && strlen($result) > 0) {
-				$j = stripos($result, ">");
-				if ($j > 1) {
-					$result = substr($result, $j + 1);
-					$i = stripos($result, "</tr>");
-					$s = substr($result, 0, $i);
-					$rows[] = $s;
-					$result = stristr($result, "<tr");
-				} else {
-					$result = "";
-				}
-			}
-		}
-		if (count($rows) < 1) {
+		$store = smwfGetStore();
+		$qp = new SMWQueryParser();
+		$q = new SMWQuery($qp->getQueryDescription($query));
+		$q->sort = true;
+		$q->sortkeys[$label_property] = "ASC";
+		$printRequest = new SMWPrintRequest(SMWPrintRequest::PRINT_PROP,
+			$label_property, SMWPropertyValue::makeProperty($label_property));
+		$q->setExtraPrintouts(array($printRequest));
+		$result = $store->getQueryResult($q);
+
+		if ($result->getCount() < 1) {
 			$error_msg = "<b>No matches</b>";
 			return $error_msg;
 		}
@@ -205,13 +183,19 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 		$output .= "<option/>";
 		$current =
 			array_map('trim', explode($this->mSep, $this->mCurrentValue));
-		$pattern = '/<td[^>]*>(.*)<\/td>\s*<td[^>]*>(.*)<\/td>/';
 		$options = array();
-		foreach ($rows as $row) {
-			preg_match($pattern, $row, $matches);
-			if (isset($matches[1]) && isset($matches[2])) {
-				$value = trim($matches[1]);
-				$label = trim($matches[2]);
+		while ($row = $result->getNext()) {
+			// we only have one print request, so there is only one element
+			// in the result array
+			$p = $row[0];
+			$value = $p->getResultSubject()->getTitle()->getPrefixedText();
+			$content = $p->getContent();
+			// if there are multiple matching properties on the page,
+			// take the first property value as the label
+			$labelobject = $content[0];
+			if ($labelobject->getDIType() == SMWDataItem::TYPE_STRING ||
+				$labelobject->getDIType() == SMWDataItem::TYPE_BLOB) {
+				$label = $labelobject->getString();
 				if (in_array($value, $current)) {
 					$output .=
 						"<option value='$value' selected>$label</option>";
