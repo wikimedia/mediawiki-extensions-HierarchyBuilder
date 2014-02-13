@@ -158,7 +158,7 @@ window.ProjectGraph = {
 						}
 						return true;
 						break;
-					case "showAll":
+					case "show_all":
 						ProjectGraph.showAll();
 						return true;
 						break;
@@ -846,6 +846,19 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
+		// select all of the links
+		d3.selectAll(".link").filter(function(d){
+			// if the link selected is the same as
+			// the link that will be hidden
+			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+				// store the link in an array to be re-added later
+				ProjectGraph.HiddenLinks.push(d);
+				// return the link to build the array
+				return d;
+			}
+		// remove all links associated with the
+		// hidden node from the graph
+		}).remove();
 		// select all of the nodes
 		d3.selectAll(".node").filter(function(d){
 			// if the node selected is the same as 
@@ -859,19 +872,6 @@ window.ProjectGraph = {
                	return d;
           		}
         // remove the node from the graph
-		}).remove();
-		// select all of the links
-		d3.selectAll(".link").filter(function(d){
-			// if the link selected is the same as
-			// the link that will be hidden
-			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
-				// store the link in an array to be re-added later
-				ProjectGraph.HiddenLinks.push(d);
-				// return the link to build the array
-				return d;
-			}
-		// remove all links associated with the
-		// hidden node from the graph
 		}).remove();
 //		console.log("kill"+ProjectGraph.HiddenNodes.length);
 		ProjectGraph.redraw(true);
