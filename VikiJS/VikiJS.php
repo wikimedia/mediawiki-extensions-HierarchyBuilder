@@ -89,7 +89,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	if(!$height)
 		$height = 600;
 
-	$output = $vikiJS->display($parser, $pageTitles, $years, $width, $height);
+	$output = $vikiJS->display($parser, $pageTitles, $width, $height);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -139,7 +139,7 @@ EOT;
 		$script =<<<END
 mw.loader.using(['jquery.ui.slider', 'ext.VikiJS'], function () {
 	$(document).ready(function() {
-		VikiJS.drawGraph("$pageTitles", "$graphdiv", "$detailssubdiv", "$imagePath", "$names_json", "$width", "$height");
+		VikiJS.drawGraph("$pageTitles", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height");
 	});
 });
 END;
