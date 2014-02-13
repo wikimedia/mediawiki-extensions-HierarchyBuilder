@@ -111,7 +111,7 @@ window.ProjectGraph = {
 			taphold: true,
 			menu: [
 				{title: "Freeze", cmd: "freeze"},
-				{title: "Get Info", cmd: "get_info"},
+				{title: "Get Info", cmd: "getinfo"},
 				{title: "Elaborate", cmd: "elaborate"},
 				{title: "Hide", cmd: "hide"},
 				{title: "Show All", cmd: "show_all"},
@@ -165,11 +165,9 @@ window.ProjectGraph = {
 					case "getinfo":
 						if(node.type==ProjectGraph.PROJECT_TYPE){
 	                        window.open(node.projectPagesURL,'_blank'); 
-	                        console.log("Project");
 	                    }
 	                    else if (node.type == ProjectGraph.PERSON_TYPE) {	                    	
 	                        window.open(node.personPagesURL,'_blank');
-	                        console.log("Person");
 	                    }
 						return true;
 						break;
