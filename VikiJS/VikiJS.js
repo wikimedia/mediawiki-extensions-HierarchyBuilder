@@ -47,7 +47,7 @@ window.VikiJS = {
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
 	
-	drawGraph: function(pageTitles, fiscalYear, graphDiv, detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
+	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
 		console.log("drawGraph");
 		pageTitles = eval("("+pageTitles+")");
 		console.log("pageTitles: "+pageTitles);
