@@ -742,7 +742,7 @@ window.ProjectGraph = {
 			$("#projectgraph-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
 			return null;
 		} else {
-			ProjectGraph.parseTaskStaff(taskNode, delivery);
+			parseTaskStaff(taskNode, delivery);
 			return delivery.taskName;
 		}
 		function parseTaskStaff(taskNode, delivery) {
