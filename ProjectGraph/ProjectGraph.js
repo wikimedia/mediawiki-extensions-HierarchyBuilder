@@ -588,18 +588,6 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
-
-		d3.selectAll(".link").filter(function(d){
-			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
-				var hidden_node = ProjectGraph.HiddenNodes[hnode];
-				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
-					ProjectGraph.HiddenLinks.push(d);
-					return d;
-				}				
-			}			
-		}).remove();
-
-
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -845,18 +833,14 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	hide: function(node){
-		var hub = new Array();
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
 			// if the link selected is the same as
 			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
+//				ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1);
 				ProjectGraph.HiddenLinks.push(d);
-				if(node.elaborated){
-					hub.push(d.source);
-					hub.push(d.target);
-				}
 				// return the link to build the array
 				return d;
 			}
@@ -865,30 +849,36 @@ window.ProjectGraph = {
 		}).remove();
 
 		if(node.elaborated){
-			ProjectGraph.HiddenLinks.forEach(function(n){					
-				ProjectGraph.HiddenNodes.push(n.source);
-				ProjectGraph.HiddenNodes.push(n.target);
+			var hub = new Array();
+			ProjectGraph.HiddenLinks.forEach(function(l){					
+				ProjectGraph.HiddenNodes.push(l.source);
+				ProjectGraph.HiddenNodes.push(l.target);
 			});
+			ProjectGraph.HiddenNodes.forEach(function(n){
+				d3.selectAll(".node").filter(function(d){
+					if((n.displayName == d.displayName)&&((!d.elaborated)||(d.displayName == node.displayName))){
+						console.log("found");
+						return d;
+					}
+				}).remove();
+			});			
+//			hub = hub.data(ProjectGraph.HiddenNodes);
+//			hub.remove();
 		}
-
-		// select all of the nodes
-		d3.selectAll(".node").filter(function(d){
+		else{
+			// select all of the nodes
+			d3.selectAll(".node").filter(function(d){
 			// if the node selected is the same as 
 			// the node that will be hidden
-			if(node.elaborated){
-				return ProjectGraph.HiddenNodes;
-			}
-			else{
-
 				if((node.displayName == d.displayName)){
 					// store the node in an array to be re-added later
 					ProjectGraph.HiddenNodes.push(d);
 					// return the node to build the array
 	               	return d;
 	            }
-          	}
-        // remove the node from the graph
-		}).remove();
+	        // remove the node from the graph
+			}).remove();
+		}
 //		console.log("kill"+ProjectGraph.HiddenNodes.length);
 		ProjectGraph.redraw(true);
 	},
