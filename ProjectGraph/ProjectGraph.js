@@ -171,7 +171,7 @@ window.ProjectGraph = {
 	                    }
 						return true;
 						break;
-					case "zoomToFit":
+					case "zoom_to_fit":
 						ProjectGraph.zoomToFit();
 						return true;
 						break;
@@ -931,7 +931,7 @@ window.ProjectGraph = {
 		}	
 		console.log(ProjectGraph.Zoompos);
 		// Calculate Translation
-		ProjectGraph.calculateTranslation((maxx-minx)/2,(maxy-miny)/2);
+		ProjectGraph.calculateTranslation(avgx,avgy);
 		// zoom
 		ProjectGraph.slide();
 		// set the slider
