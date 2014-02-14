@@ -105,79 +105,14 @@ window.ProjectGraph = {
 		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
 		  }
 		});
-		$(document).contextmenu({
-			delegate: ".node",
-			preventSelect: true,
-			taphold: true,
-			menu: [
-				{title: "Freeze", cmd: "freeze"},
-				{title: "Get Info", cmd: "getinfo"},
-				{title: "Elaborate", cmd: "elaborate"},
-				{title: "Hide", cmd: "hide"},
-				{title: "Show All", cmd: "show_all"},
-				{title: "Zoom to Fit", cmd: "zoom_to_fit"}//,
-				],
-			beforeOpen: function(event, ui) {
-				var freeze_toggle = null;
-				//var toggle = (node.fixed);
-				if(ProjectGraph.SelectedNode.fixed==6)
-					{freeze_toggle = "Freeze";}
-				else if(ProjectGraph.SelectedNode.fixed==7)
-					{freeze_toggle = "Unfreeze";}
-				$(document)
-					.contextmenu("setEntry", "freeze", freeze_toggle)
-			},	
-			// Handle menu selection to implement a fake-clipboard
-			select: function(event, ui) {
-				var node = ProjectGraph.SelectedNode;
-				switch(ui.cmd){
-					case "freeze":
-						// The integers in 2 and 3 represent boolean values
-						// 3 is the equivalent of true
-						// 2 is the equivalent of false
-						if(node.fixed==true){// if node is fixed 
-							node.fixed = false;// make it movable
-						}
-						else{
-							node.fixed = true;// make node fixed
-						}
-						return true;
-						break;
-					case "hide":		
-						ProjectGraph.hide(node);
-						return true;
-						break;
-					case "elaborate":
-						if(node.type==ProjectGraph.PROJECT_TYPE){
-							ProjectGraph.getTaskDelivery(node.index);
-							ProjectGraph.redraw(true);
-						}
-						else if (node.type == ProjectGraph.PERSON_TYPE) {
-							ProjectGraph.getStaffTasks(node.index);
-							ProjectGraph.redraw(true);
-						}
-						return true;
-						break;
-					case "show_all":
-						ProjectGraph.showAll();
-						return true;
-						break;
-					case "getinfo":
-						if(node.type==ProjectGraph.PROJECT_TYPE){
-	                        window.open(node.projectPagesURL,'_blank'); 
-	                    }
-	                    else if (node.type == ProjectGraph.PERSON_TYPE) {	                    	
-	                        window.open(node.personPagesURL,'_blank');
-	                    }
-						return true;
-						break;
-					case "zoom_to_fit":
-						ProjectGraph.zoomToFit();
-						return true;
-						break;
-				}
-			}
-		});
+		$('body').append("<div class=\"contextMenu\" id=\"menu\"><ul>"
+			+"<li id=\"freeze\">Freeze</li>"
+	        +"<li id=\"getinfo\">Get Info</li>"
+			+"<li id=\"elaborate\">Elaborate</li>"
+			+"<li id=\"hide\">Hide</li>"
+	        +"<li id=\"showall\">Show All</li>"
+			+"<li id=\"zoomtofit\">Zoom To Fit</li>"
+		    +"</ul></div>");
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -420,7 +355,8 @@ window.ProjectGraph = {
 		});
 		// Trigger right clck context menu
 		newNodes.on("contextmenu", function(d) {
-			ProjectGraph.SelectedNode = d;
+			ProjectGraph.SelectedNode = d.index;
+			ProjectGraph.menu();
 			//console.log("right click");
 			//var position = d3.mouse(this);
 			//console.log("x,y = "+position[0]+", "+position[1]);
@@ -646,7 +582,7 @@ window.ProjectGraph = {
 	newNode: function() {
 		var node = {
 			elaborated: false,
-			fixed: false
+			fix: false
 		};
 		return node;
 	},
@@ -848,6 +784,60 @@ window.ProjectGraph = {
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
 	},
+	menu: function(){
+		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
+		var freeze = {toggle:"",fix:false};
+
+        $('.node').contextMenu('menu', {
+			onShowMenu: function(e, menu) {
+				if(node.fix){
+					freeze.toggle = "Freeze";
+					freeze.fix = false;
+				}
+				else if(!node.fix){
+					freeze.toggle = "Unfreeze";
+					freeze.fix = true;
+				}
+				$('#freeze').html(freeze.toggle);
+        		return menu;
+      		},
+			bindings: {
+		        'freeze': function(t) {
+		        	console.log(freeze);
+					node.fixed = freeze.fix;
+					node.fix = freeze.fix;
+		        },
+		        'getinfo': function(t) {
+					if(node.type==ProjectGraph.PROJECT_TYPE){
+                        window.open(node.projectPagesURL,'_blank'); 
+                    }
+                    else if (node.type == ProjectGraph.PERSON_TYPE) {	                    	
+                        window.open(node.personPagesURL,'_blank');
+                    }
+		        },
+		        'elaborate': function(t) {
+					if(node.type==ProjectGraph.PROJECT_TYPE){
+						ProjectGraph.getTaskDelivery(node.index);
+						ProjectGraph.redraw(true);
+					}
+					else if (node.type == ProjectGraph.PERSON_TYPE) {
+						ProjectGraph.getStaffTasks(node.index);
+						ProjectGraph.redraw(true);
+					}
+		        },
+		        'hide': function(t) {
+					ProjectGraph.hide(node);
+		        },
+		        'showall': function(t) {
+					ProjectGraph.showAll();
+		        },
+		        'zoomtofit': function(t) {
+					ProjectGraph.zoomToFit();
+		        }
+
+	        }
+		});
+	},
 	hide: function(node){
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
@@ -950,7 +940,6 @@ window.ProjectGraph = {
 		else{
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
-		console.log(ProjectGraph.Zoompos);
 		// Calculate Translation
 		ProjectGraph.calculateTranslation(avgx,avgy);
 		// zoom
