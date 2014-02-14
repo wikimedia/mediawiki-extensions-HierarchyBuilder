@@ -48,9 +48,8 @@ window.VikiJS = {
 	Zoompos: 1, // to store values for zoom scale
 	
 	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
-		console.log("drawGraph");
 		pageTitles = eval("("+pageTitles+")");
-		console.log("pageTitles: "+pageTitles);
+		
 		self.log("pageTitles: "+pageTitles);
 		VikiJS.GraphDiv = graphDiv;
 		VikiJS.DetailsDiv = detailsDiv;
@@ -494,7 +493,7 @@ window.VikiJS = {
 			VikiJS.addNode(node);
 			return node;
 		
-	}
+	},
 	/*
 	addProjectNode: function(displayName, chargeNumber) {
 		var node = VikiJS.findNode("chargeNumber", chargeNumber);
