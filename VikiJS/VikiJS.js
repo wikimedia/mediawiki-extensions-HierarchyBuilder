@@ -142,9 +142,8 @@ window.VikiJS = {
 			return;
 		}
 		
-		var pageTitlesArray = pageTitles.split(",");
-		for(var i = 0; i < pageTitlesArray.length; i++)
-			VikiJS.addWikiNode(pageTitlesArray[i]);
+		for(var i = 0; i < pageTitles.length; i++)
+			VikiJS.addWikiNode(pageTitles[i]);
 			
 		initializeGraph();
 
