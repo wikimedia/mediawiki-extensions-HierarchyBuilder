@@ -486,7 +486,7 @@ window.VikiJS = {
 			node = VikiJS.newNode();
 			node.displayName = pageTitle;
 			node.pageTitle = pageTitle;
-			node.info = VikiJS.formatNodeInfo(displayName);
+			node.info = VikiJS.formatNodeInfo(pageTitle);
 			node.type = VikiJS.WIKI_PAGE_TYPE;
 			
 			VikiJS.addNode(node);
