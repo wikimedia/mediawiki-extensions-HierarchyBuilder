@@ -137,8 +137,16 @@ window.VikiJS = {
 			ProjectGraph.elaborateNode(nodes[i]);
 		}
 		*/
+
+		if(pageTitles === null) {
+			alert("You must supply a page title.");
+			return;
+		}
 		
-//		VikiJS.addWikiNode()
+		var pageTitlesArray = pageTitles.split(",");
+		for(var i = 0; i < pageTitlesArray.length; i++)
+			VikiJS.addWikiNode(pageTitlesArray[i]);
+			
 		initializeGraph();
 
 		VikiJS.Force.nodes(VikiJS.Nodes)
@@ -471,6 +479,22 @@ window.VikiJS = {
 		}
 
 	},
+	
+	addWikiNode:function(pageTitle) {
+		var node = VikiJS.findNode("pageTitle", pageTitle);
+		if(node != null)
+			return node;
+		
+			node = VikiJS.newNode();
+			node.displayName = pageTitle;
+			node.pageTitle = pageTitle;
+			node.info = VikiJS.formatNodeInfo(displayName);
+			node.type = VikiJS.WIKI_PAGE_TYPE;
+			
+			VikiJS.addNode(node);
+			return node;
+		
+	}
 	/*
 	addProjectNode: function(displayName, chargeNumber) {
 		var node = VikiJS.findNode("chargeNumber", chargeNumber);
@@ -583,24 +607,27 @@ window.VikiJS = {
 	},
 
 	displayNodeInfo: function(node) {
-		/*
+		
 		if (VikiJS.SelectedNode !== node.index) {
 			return;
 		}
 		jQuery("#" + VikiJS.DetailsDiv).html(node.info);
-		if (node.type == VikiJS.PROJECT_TYPE) {
-			var buttons = " <a href='" + node.projectPagesURL +
+		if (node.type == VikiJS.WIKI_PAGE_TYPE) {
+			var buttons = " <a href='" + node.URL +
 				"' target='_blank'><img src='" + VikiJS.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
-				buttons += " <a class='icon'" +
+/*				buttons += " <a class='icon'" +
 					"onclick='VikiJS.getTaskDelivery(" + node.index +
 					"); VikiJS.redraw(true);'><img src = '" +
 					VikiJS.ImagePath + "plus.png' /></a>";
+*/
+				buttons += " <a class='icon'><img src= '"+ VikiJS.ImagePath+"plus.png' /></a>";
 			}
 			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
-		} else if (node.type == VikiJS.PERSON_TYPE) {
+		} 
+		/*else if (node.type == VikiJS.PERSON_TYPE) {
 			var buttons = " <a href='" + node.personPagesURL +
 				"' target='_blank'><img src='" + VikiJS.ImagePath +
 				"info.png' /></a>";
@@ -614,6 +641,7 @@ window.VikiJS = {
 			h4.html(h4.html() + buttons);
 		}
 		*/
+		
 	},
 	/*
 	getTaskDelivery: function(index) {
