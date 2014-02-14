@@ -46,8 +46,9 @@ window.VikiJS = {
 	NodeSelection: null,
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
-	
+	serverURL: null,
 	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
+		VikiJS.serverURL = mw.config.get("wgServer");
 		pageTitles = eval("("+pageTitles+")");
 		
 		self.log("pageTitles: "+pageTitles);
@@ -88,6 +89,7 @@ window.VikiJS = {
 		  }
 		});
 
+		initializeGraph();
 		/*
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -144,8 +146,6 @@ window.VikiJS = {
 		
 		for(var i = 0; i < pageTitles.length; i++)
 			VikiJS.addWikiNode(pageTitles[i]);
-			
-		initializeGraph();
 
 		VikiJS.Force.nodes(VikiJS.Nodes)
 		VikiJS.Force.links(VikiJS.Links)
@@ -488,7 +488,8 @@ window.VikiJS = {
 			node.pageTitle = pageTitle;
 			node.info = VikiJS.formatNodeInfo(pageTitle);
 			node.type = VikiJS.WIKI_PAGE_TYPE;
-			
+			self.log("URL = "+VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle));
+			node.URL = VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle);
 			VikiJS.addNode(node);
 			return node;
 		
