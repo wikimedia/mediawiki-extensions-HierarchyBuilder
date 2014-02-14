@@ -49,6 +49,7 @@ window.VikiJS = {
 	
 	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
 		console.log("drawGraph");
+		pageTitles = eval("("+pageTitles+")");
 		console.log("pageTitles: "+pageTitles);
 		self.log("pageTitles: "+pageTitles);
 		VikiJS.GraphDiv = graphDiv;
@@ -136,6 +137,8 @@ window.VikiJS = {
 			ProjectGraph.elaborateNode(nodes[i]);
 		}
 		*/
+		
+//		VikiJS.addWikiNode()
 		initializeGraph();
 
 		VikiJS.Force.nodes(VikiJS.Nodes)

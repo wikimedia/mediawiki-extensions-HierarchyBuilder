@@ -133,13 +133,15 @@ class VikiJS {
 </table>
 EOT;
 
+		$pageTitles_json = addslashes(json_encode(array_map('trim', explode(',', $pageTitles))));
+
 		global $wgServer;
 		global $wgScriptPath;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/VikiJS/';
 		$script =<<<END
 mw.loader.using(['jquery.ui.slider', 'ext.VikiJS'], function () {
 	$(document).ready(function() {
-		VikiJS.drawGraph("$pageTitles", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height");
+		VikiJS.drawGraph("$pageTitles_json", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height");
 	});
 });
 END;
