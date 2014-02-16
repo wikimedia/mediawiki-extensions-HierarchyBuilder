@@ -22,23 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class OpenIDConnectLogin extends UnlistedSpecialPage {
+class OpenIDConnectNotAuthorized extends UnlistedSpecialPage {
 
 	function __construct() {
-		parent::__construct('OpenIDConnectLogin');
-//print_r($this->getRequest());
+		parent::__construct('OpenIDConnectNotAuthorized');
 	}
 
 	function execute($param) {
-		if (!$this->getContext()->getUser()->isLoggedIn()) {
-			$returnto = $this->getRequest()->getVal('returnto','');
-			$user = new User;
-			if (session_id() == '') {
-				wfSetupSession();
-			}
-			$session_variable = wfWikiID() . "_returnto";
-			$_SESSION[$session_variable] = $returnto;
-			OpenIDConnect::login($user);
-		}
+		$name = $this->getRequest()->getVal('name','<missing name>');
+		$this->getOutput()->
+			addHTML(wfMessage('openidconnectnotauthorized', $name)->text());
 	}
 }

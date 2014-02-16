@@ -28,6 +28,7 @@ $messages['en'] = array(
 	'openidconnect-desc' => 'Provides authentication by OpenID Connect',
 	'openidconnectlogin' => 'Login',
 	'openidconnectlogout' => 'Logout',
+	'openidconnectnotauthorized' => 'User $1 not authorized.',
 );
 
 /** Message documentation (Message documentation)
@@ -36,4 +37,5 @@ $messages['qqq'] = array(
 	'openidconnect-desc' => '{{desc|name=OpenID Connect|url=http://www.mediawiki.org/wiki/Extension:OpenIDConnect}}',
 	'openidconnectlogin' => 'login text for personal URLs',
 	'openidconnectlogout' => 'logout text for personal URLs',
+	'openidconnectnotauthorized' => 'HTML to display when user is not authorized',
 );
