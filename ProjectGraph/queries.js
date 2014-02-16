@@ -1,3 +1,4 @@
+/*
 window.queryTask = function(chargeNumber, fiscalYear, success, error) {
 	jQuery.ajax({
 		url: "http://projectpages.mitre.org/projects/search",
@@ -27,7 +28,7 @@ window.queryTaskStaff = function(taskId, chargeNumber, success, error) {
 		}
 	});
 };
-
+*/
 window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 	var tasks = null;
 	var request =
