@@ -53,6 +53,8 @@ class OpenIDConnect {
 	}
 
 	public static function login($user) {
+		$oidc = null;
+// die();
 		try {
 			global $OpenIDConnect_Provider, $OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret;
@@ -66,6 +68,7 @@ class OpenIDConnect {
 				$OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret);
 			if ($oidc->authenticate()) {
+// die();
 				$user->mSubject = $oidc->requestUserInfo('sub');
 				$user->mProvider = $oidc->getProviderURL();
 				$user->mId = self::getId($user->mSubject, $user->mProvider);
@@ -102,13 +105,23 @@ class OpenIDConnect {
 
 		$authorized = true;
 		wfRunHooks('OpenIDConnectUserAuthorization', array($user,
-			&$authorized));
+			&$authorized, $oidc));
 		if ($authorized) {
 			if (session_id() == '') {
 				wfSetupSession();
 			}
 			$session_variable = wfWikiID() . "_userid";
 			$_SESSION[$session_variable] = $user->mId;
+			$session_variable = wfWikiID() . "_returnto";
+			if (array_key_exists($session_variable, $_SESSION)) {
+				$returnto = $_SESSION[$session_variable];
+			} else {
+				$returnto = null;
+			}
+			self::redirect($returnto, $oidc);
+		} else {
+			self::redirect("Special:OpenIDConnectNotAuthorized", $oidc,
+				array('name' => $user->mName));
 		}
 		return $authorized;
 	}
@@ -123,13 +136,25 @@ class OpenIDConnect {
 		}
 	}
 
-	public static function redirect($returnto, $output) {
+	public static function redirect($returnto, $oidc, $params) {
 		$redirectTitle = Title::newFromText($returnto);
 		if (is_null($redirectTitle)) {
 			$redirectTitle = Title::newMainPage();
 		}
 		$redirectURL = $redirectTitle->getFullURL();
-		$output->redirect($redirectURL);
+		if (count($params) > 0) {
+			$first = true;
+			foreach ($params as $key => $value) {
+				if ($first) {
+					$first = false;
+					$redirectURL .= '?';
+				} else {
+					$redirectURL .= '&';
+				}
+				$redirectURL .= $key . '=' . $value;
+			}
+		}
+		$oidc->redirect($redirectURL);
 	}	
 
 	private static function getId($subject, $provider) {

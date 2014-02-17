@@ -25,7 +25,7 @@
 class OpenIDConnectAuthorization {
 
 	private static $authorized_users = array(
-		'Cicalese'
+		'Smith'
 	);
 
 	public static function authorize($user, &$authorized) {
