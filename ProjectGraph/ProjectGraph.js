@@ -787,18 +787,18 @@ window.ProjectGraph = {
 	menu: function(){
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		var freeze = {toggle:"",fix:false};
+		if(node.fix){
+			freeze.toggle = "Unfreeze";
+			freeze.fix = false;
+		}
+		else if(!node.fix){
+			freeze.toggle = "Freeze";
+			freeze.fix = true;
+		}
+		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
 			onShowMenu: function(e, menu) {
-				if(node.fix){
-					freeze.toggle = "Freeze";
-					freeze.fix = false;
-				}
-				else if(!node.fix){
-					freeze.toggle = "Unfreeze";
-					freeze.fix = true;
-				}
-				$('#freeze').html(freeze.toggle);
         		return menu;
       		},
 			bindings: {
