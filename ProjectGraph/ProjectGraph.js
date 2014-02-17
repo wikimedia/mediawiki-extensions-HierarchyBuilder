@@ -261,7 +261,7 @@ window.ProjectGraph = {
 	// setup a json object with the translation x and y values with the zoom scale
         view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
 
-	    if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+//	    if (target_zoom < extent[0] || target_zoom > extent[1]) { console.log("false?");return false; }
 
 	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
 	    view.k = target_zoom;
@@ -279,6 +279,7 @@ window.ProjectGraph = {
 
 	interpolateZoom: function(translate, scale) {
 	    var self = this;
+	    console.log("zoom-controls");
 	    // zoom with the set scale and translation values
 	    return d3.transition().duration(50).tween("zoom", function () {
 	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
@@ -294,6 +295,7 @@ window.ProjectGraph = {
 
 	zoomed: function() {
 	// access the element movable and move to the scale and translation vectors
+	console.log("zooming");
 	d3.select("#moveable").attr("transform",
 	        "translate(" + ProjectGraph.zoom.translate() + ")" +
 	        "scale(" + ProjectGraph.zoom.scale() + ")"
@@ -308,13 +310,6 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
-/*		ProjectGraph.LinkMap.forEach(function(link){
-			ProjectGraph.HiddenNodes.forEach(function(node){
-				if((node.displayName == link.source.displayName)||(node.displayName == link.target.displayName)){
-					ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(link),1));					
-				}
-			});
-		});*/
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -357,9 +352,6 @@ window.ProjectGraph = {
 		newNodes.on("contextmenu", function(d) {
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.menu();
-			//console.log("right click");
-			//var position = d3.mouse(this);
-			//console.log("x,y = "+position[0]+", "+position[1]);
 		});
 
 		var drag = ProjectGraph.Force.drag()
@@ -832,7 +824,7 @@ window.ProjectGraph = {
 					ProjectGraph.showAll();
 		        },
 		        'zoomtofit': function(t) {
-					ProjectGraph.zoomToFit();
+					ProjectGraph.zoomToFit(node);
 		        }
 
 	        }
@@ -908,7 +900,7 @@ window.ProjectGraph = {
 		// clear out hidden arrays
 
 	},	
-	zoomToFit: function(){
+	zoomToFit: function(node){
 		// initialize the following variables of minimum x and y, and maximum x and y
 		// with the x and y position of the first node in ProjectGraph.Nodes
 		var minx=ProjectGraph.Nodes[0].x; var maxx=ProjectGraph.Nodes[0].x; 
