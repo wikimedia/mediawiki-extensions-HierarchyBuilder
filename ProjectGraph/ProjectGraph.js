@@ -19,7 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+/*
+function ProjectGraph(){
+		
 
+}
+*/
 window.ProjectGraph = {
 
 	PROJECT_TYPE: 0,
@@ -248,20 +253,22 @@ window.ProjectGraph = {
 	},
 
 	slide: function(){		
-	// set target_zoom to the logged zoom position
-        target_zoom = ProjectGraph.Zoompos,
-	// calculate the center of the graph by dividing the width and height by two
-        center = [ProjectGraph.width / 2, ProjectGraph.height / 2],
-	// set the scale extent
-        extent = ProjectGraph.zoom.scaleExtent(),
-	// and the translation vectors
-        translate = ProjectGraph.zoom.translate(),
-        translation = [],
-        l = [],
-	// setup a json object with the translation x and y values with the zoom scale
-        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
+		// set target_zoom to the logged zoom position
+        target_zoom = ProjectGraph.Zoompos;
+	
+        if(target_zoom>ProjectGraph.MAX_SCALE){target_zoom = ProjectGraph.MAX_SCALE;}
+        if(target_zoom<ProjectGraph.MIN_SCALE){target_zoom = ProjectGraph.MIN_SCALE;}
 
-//	    if (target_zoom < extent[0] || target_zoom > extent[1]) { console.log("false?");return false; }
+		// calculate the center of the graph by dividing the width and height by two
+        center = [ProjectGraph.width / 2, ProjectGraph.height / 2];
+		// set the scale extent
+        extent = ProjectGraph.zoom.scaleExtent();
+		// and the translation vectors
+        translate = ProjectGraph.zoom.translate();
+        translation = [];
+        l = [];
+		// setup a json object with the translation x and y values with the zoom scale
+        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
 
 	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
 	    view.k = target_zoom;
@@ -308,6 +315,10 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
+		ProjectGraph.Force
+			.nodes(ProjectGraph.Nodes)
+			.links(ProjectGraph.Links)
+			.start();
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -346,7 +357,7 @@ window.ProjectGraph = {
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
 		});
-		// Trigger right clck context menu
+		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.menu();
@@ -521,15 +532,18 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
+		// select all of the links
 		d3.selectAll(".link").filter(function(d){
             for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
                     var hidden_node = ProjectGraph.HiddenNodes[hnode];
+                    // if any of the links have a source or target that is now a hidden node, push the link to hidden links
+                    // and return the link to be removed
                     if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
                         ProjectGraph.HiddenLinks.push(d);
                         return d;
                     }
             }
-        }).remove();
+        }).remove();// remove the links
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -775,7 +789,9 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	menu: function(){
+		// find the node according to the index and set it locally
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
+		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
 		if(node.fix){
 			freeze.toggle = "Unfreeze";
@@ -788,9 +804,6 @@ window.ProjectGraph = {
 		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
-			onShowMenu: function(e, menu) {
-        		return menu;
-      		},
 			bindings: {
 		        'freeze': function(t) {
 					node.fixed = freeze.fix;
@@ -815,12 +828,15 @@ window.ProjectGraph = {
 					}
 		        },
 		        'hide': function(t) {
+		        	// when hide is selected, call the hide function
 					ProjectGraph.hide(node);
 		        },
 		        'showall': function(t) {
+		        	// when Show All is selcted, call the showAll function
 					ProjectGraph.showAll();
 		        },
 		        'zoomtofit': function(t) {
+		        	// when zoom to fit is selected, call the zoom to fit function
 					ProjectGraph.zoomToFit(node);
 		        }
 
@@ -844,6 +860,29 @@ window.ProjectGraph = {
 		}).remove();
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
+/*		if(node.elaborated){
+			var hub = new Array();
+			ProjectGraph.HiddenLinks.forEach(function(l){					
+				hub.push(l.source);
+				hub.push(l.target);
+			});
+			hub.forEach(function(n){
+				var index = ProjectGraph.Nodes.indexOf(node);
+				if (index > -1) {
+		    		ProjectGraph.Nodes.splice(index, 1);
+				}
+			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
+			});
+		}
+		else{
+			// select all of the nodes
+			var index = ProjectGraph.Nodes.indexOf(node);
+			if (index > -1) {
+	    		ProjectGraph.Nodes.splice(index, 1);
+			}
+			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
+		}
+*/
 		if(node.elaborated){
 			var hub = new Array();
 			ProjectGraph.HiddenLinks.forEach(function(l){					
@@ -861,20 +900,37 @@ window.ProjectGraph = {
 		}
 		else{
 			// select all of the nodes
-			d3.selectAll(".node").filter(function(d){
-			// if the node selected is the same as 
-			// the node that will be hidden
-				if((node.displayName == d.displayName)){
-					// store the node in an array to be re-added later
-					ProjectGraph.HiddenNodes.push(d);
-					// return the node to build the array
-	               	return d;
-	            }
-	        // remove the node from the graph
-			}).remove();
+				d3.selectAll(".node").filter(function(d){
+					if(node.displayName == d.displayName){
+						ProjectGraph.HiddenNodes.push(d);						
+						return d;
+					}
+				}).remove();
+
+//			var index = ProjectGraph.Nodes.indexOf(node);
+//			if (index > -1) {
+//	    		ProjectGraph.Nodes.splice(index, 1);
+//			}
+//			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
 		}
-//		console.log("kill"+ProjectGraph.HiddenNodes.length);
+		ProjectGraph.spliceNode(node);
 		ProjectGraph.redraw(true);
+	},
+	spliceNode: function(node){
+			var arr = new Array();
+			var index = ProjectGraph.Nodes.indexOf(node);
+			for(var i=0; i<ProjectGraph.Nodes.length; i++){
+				if(ProjectGraph.Nodes[i].displayName==node.displayName){
+
+				}
+				else{
+					arr.push(ProjectGraph.Nodes[i]);
+				}
+			}
+//			if (index > -1) {
+//	    		ProjectGraph.Nodes.splice(index, 1);
+//			}
+		d3.selectAll(".node").data(arr).exit().remove();
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
@@ -918,7 +974,7 @@ window.ProjectGraph = {
 		var avgx = d.x/d.count;
 		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
-		var scale = 0.075;
+		var scale = 0;//0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
@@ -948,6 +1004,5 @@ window.ProjectGraph = {
         var pany = -(y - scaledCenterY);
         // set the translation vectors and the scale
 		ProjectGraph.zoom.translate([panx, pany]);
-//		ProjectGraph.zoom.scale(scale);
 	}
 }
