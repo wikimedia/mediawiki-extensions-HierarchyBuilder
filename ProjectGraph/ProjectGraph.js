@@ -279,7 +279,6 @@ window.ProjectGraph = {
 
 	interpolateZoom: function(translate, scale) {
 	    var self = this;
-	    console.log("zoom-controls");
 	    // zoom with the set scale and translation values
 	    return d3.transition().duration(50).tween("zoom", function () {
 	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
@@ -295,7 +294,6 @@ window.ProjectGraph = {
 
 	zoomed: function() {
 	// access the element movable and move to the scale and translation vectors
-	console.log("zooming");
 	d3.select("#moveable").attr("transform",
 	        "translate(" + ProjectGraph.zoom.translate() + ")" +
 	        "scale(" + ProjectGraph.zoom.scale() + ")"
@@ -795,7 +793,6 @@ window.ProjectGraph = {
       		},
 			bindings: {
 		        'freeze': function(t) {
-		        	console.log(freeze);
 					node.fixed = freeze.fix;
 					node.fix = freeze.fix;
 		        },
