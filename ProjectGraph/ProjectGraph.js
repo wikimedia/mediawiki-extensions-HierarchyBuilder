@@ -526,7 +526,6 @@ window.ProjectGraph = {
 			return scaledHoursPct * ProjectGraph.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
-
 		
 		if (layout) {
 			ProjectGraph.Force.start();
@@ -793,20 +792,27 @@ window.ProjectGraph = {
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
+		// if the node has been fixed, then display "unfreeze" as a menu
+		// option and if unfreeze is selected, unfreeze the node
 		if(node.fix){
 			freeze.toggle = "Unfreeze";
 			freeze.fix = false;
 		}
+		// if the node has not been fixed, then display "freeze" as a menu
+		// option and if freeze is selected, freeze the node
 		else if(!node.fix){
 			freeze.toggle = "Freeze";
 			freeze.fix = true;
 		}
+		// toggle the menu option between freeze and unfreeze
 		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
 			bindings: {
 		        'freeze': function(t) {
+		        	// freeze/unfreeze the node
 					node.fixed = freeze.fix;
+					// store these settings in the metadata
 					node.fix = freeze.fix;
 		        },
 		        'getinfo': function(t) {
@@ -850,7 +856,7 @@ window.ProjectGraph = {
 			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
-				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
+//				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
 				ProjectGraph.HiddenLinks.push(d);
 				// return the link to build the array
 				return d;
@@ -860,7 +866,7 @@ window.ProjectGraph = {
 		}).remove();
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
-/*		if(node.elaborated){
+		if(node.elaborated){
 			var hub = new Array();
 			ProjectGraph.HiddenLinks.forEach(function(l){					
 				hub.push(l.source);
@@ -882,62 +888,32 @@ window.ProjectGraph = {
 			}
 			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
 		}
-*/
-		if(node.elaborated){
-			var hub = new Array();
-			ProjectGraph.HiddenLinks.forEach(function(l){					
-				hub.push(l.source);
-				hub.push(l.target);
-			});
-			hub.forEach(function(n){
-				d3.selectAll(".node").filter(function(d){
-					if(((n.displayName == d.displayName)&&((d.displayName == node.displayName)||(d.elaborated == false)))){
-						ProjectGraph.HiddenNodes.push(d);						
-						return d;
-					}
-				}).remove();
-			});			
-		}
-		else{
-			// select all of the nodes
-				d3.selectAll(".node").filter(function(d){
-					if(node.displayName == d.displayName){
-						ProjectGraph.HiddenNodes.push(d);						
-						return d;
-					}
-				}).remove();
-
-//			var index = ProjectGraph.Nodes.indexOf(node);
-//			if (index > -1) {
-//	    		ProjectGraph.Nodes.splice(index, 1);
-//			}
-//			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
-		}
-		ProjectGraph.spliceNode(node);
 		ProjectGraph.redraw(true);
 	},
-	spliceNode: function(node){
-			var arr = new Array();
-			var index = ProjectGraph.Nodes.indexOf(node);
-			for(var i=0; i<ProjectGraph.Nodes.length; i++){
-				if(ProjectGraph.Nodes[i].displayName==node.displayName){
-
+	filter: function(array, hide){
+		arr = new Array();
+		if(hide.length == 0){
+			return array;
+		}
+		hide.forEach(function(g){
+//			console.log(g);
+			array.forEach(function(m){
+				var found = (g == m);
+				if(!found){
+					arr.push(m);
 				}
-				else{
-					arr.push(ProjectGraph.Nodes[i]);
-				}
-			}
-//			if (index > -1) {
-//	    		ProjectGraph.Nodes.splice(index, 1);
-//			}
-		d3.selectAll(".node").data(arr).exit().remove();
+//				console.log("found "+found);
+			});
+		});
+		return arr;
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
-			var node = ProjectGraph.HiddenNodes[npos];
-			ProjectGraph.addNode(node);
+			console.log(ProjectGraph.HiddenNodes[npos]);
+//			var node = ProjectGraph.HiddenNodes[npos];
+//			ProjectGraph.addNode(node);
 
 		}
 		// cycle through all of the links and re-add them back to a list
