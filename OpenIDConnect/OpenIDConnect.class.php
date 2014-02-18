@@ -54,7 +54,6 @@ class OpenIDConnect {
 
 	public static function login($user) {
 		$oidc = null;
-// die();
 		try {
 			global $OpenIDConnect_Provider, $OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret;
@@ -68,7 +67,6 @@ class OpenIDConnect {
 				$OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret);
 			if ($oidc->authenticate()) {
-// die();
 				$user->mSubject = $oidc->requestUserInfo('sub');
 				$user->mProvider = $oidc->getProviderURL();
 				$user->mId = self::getId($user->mSubject, $user->mProvider);
@@ -136,13 +134,13 @@ class OpenIDConnect {
 		}
 	}
 
-	public static function redirect($returnto, $oidc, $params) {
+	public static function redirect($returnto, $oidc, $params = null) {
 		$redirectTitle = Title::newFromText($returnto);
 		if (is_null($redirectTitle)) {
 			$redirectTitle = Title::newMainPage();
 		}
 		$redirectURL = $redirectTitle->getFullURL();
-		if (count($params) > 0) {
+		if (is_array($params) && count($params) > 0) {
 			$first = true;
 			foreach ($params as $key => $value) {
 				if ($first) {
