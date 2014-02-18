@@ -531,8 +531,6 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
-		// Properly remove the nodes from the graph
-		ProjectGraph.NodeSelection.exit().remove();
 
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
@@ -853,7 +851,7 @@ window.ProjectGraph = {
 		});
 	},
 	hide: function(node){
-				console.log("selected"+node.displayName);
+		console.log(node);
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
 			// if the link selected is the same as
@@ -892,15 +890,12 @@ window.ProjectGraph = {
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
 		}
-		var index = 0;
-		ProjectGraph.Nodes.forEach(function(n){
-			n.index = index;
-			index++;
-			return n;
-		});
-
-		console.log(ProjectGraph.Nodes);
-		ProjectGraph.redraw(true);
+		// Properly remove the nodes from the graph
+		ProjectGraph.NodeSelection =
+			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes, function(d){
+				return ProjectGraph.Nodes.indexOf(d);
+			});
+			ProjectGraph.NodeSelection.exit().remove();
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
