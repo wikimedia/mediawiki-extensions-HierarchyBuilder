@@ -531,6 +531,9 @@ window.ProjectGraph = {
 			ProjectGraph.Force.start();
 		}
 
+		// Properly remove the nodes from the graph
+		ProjectGraph.NodeSelection.exit().remove();
+
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
             for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
@@ -850,13 +853,14 @@ window.ProjectGraph = {
 		});
 	},
 	hide: function(node){
+				console.log("selected"+node.displayName);
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
 			// if the link selected is the same as
 			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
-//				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
+				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
 				ProjectGraph.HiddenLinks.push(d);
 				// return the link to build the array
 				return d;
@@ -873,41 +877,30 @@ window.ProjectGraph = {
 				hub.push(l.target);
 			});
 			hub.forEach(function(n){
-				var index = ProjectGraph.Nodes.indexOf(node);
-				if (index > -1) {
-					ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',index));
-		    		ProjectGraph.Nodes.splice(index, 1);
+				var pos = ProjectGraph.Nodes.indexOf(node);
+				if (pos > -1) {
+					ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
+		    		ProjectGraph.Nodes.splice(pos, 1);
 				}
 			});
 		}
 		else{
 			// select all of the nodes
-			var index = ProjectGraph.Nodes.indexOf(node);
-			if (index > -1) {
-				ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',index));
-	    		ProjectGraph.Nodes.splice(index, 1);
+			var pos = ProjectGraph.Nodes.indexOf(node);
+			if (pos > -1) {
+				ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
+	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
 		}
-		console.log(ProjectGraph.HiddenNodes);
-		d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
-		ProjectGraph.redraw(true);
-	},
-	filter: function(array, hide){
-		arr = new Array();
-		if(hide.length == 0){
-			return array;
-		}
-		hide.forEach(function(g){
-//			console.log(g);
-			array.forEach(function(m){
-				var found = (g == m);
-				if(!found){
-					arr.push(m);
-				}
-//				console.log("found "+found);
-			});
+		var index = 0;
+		ProjectGraph.Nodes.forEach(function(n){
+			n.index = index;
+			index++;
+			return n;
 		});
-		return arr;
+
+		console.log(ProjectGraph.Nodes);
+		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
