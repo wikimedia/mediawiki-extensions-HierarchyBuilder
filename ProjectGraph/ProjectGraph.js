@@ -875,19 +875,21 @@ window.ProjectGraph = {
 			hub.forEach(function(n){
 				var index = ProjectGraph.Nodes.indexOf(node);
 				if (index > -1) {
+					ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',index));
 		    		ProjectGraph.Nodes.splice(index, 1);
 				}
-			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
 			});
 		}
 		else{
 			// select all of the nodes
 			var index = ProjectGraph.Nodes.indexOf(node);
 			if (index > -1) {
+				ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',index));
 	    		ProjectGraph.Nodes.splice(index, 1);
 			}
-			d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
 		}
+		console.log(ProjectGraph.HiddenNodes);
+		d3.selectAll(".node").data(ProjectGraph.Nodes).exit().remove();
 		ProjectGraph.redraw(true);
 	},
 	filter: function(array, hide){
@@ -912,8 +914,8 @@ window.ProjectGraph = {
 		// to get added back to the graph
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
 			console.log(ProjectGraph.HiddenNodes[npos]);
-//			var node = ProjectGraph.HiddenNodes[npos];
-//			ProjectGraph.addNode(node);
+			var node = ProjectGraph.HiddenNodes[npos];
+			ProjectGraph.addNode(node);
 
 		}
 		// cycle through all of the links and re-add them back to a list
