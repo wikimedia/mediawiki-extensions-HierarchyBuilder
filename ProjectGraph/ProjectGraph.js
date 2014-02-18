@@ -315,10 +315,6 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
-		ProjectGraph.Force
-			.nodes(ProjectGraph.Nodes)
-			.links(ProjectGraph.Links)
-			.start();
 		ProjectGraph.LinkSelection =
 			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
 
@@ -530,20 +526,6 @@ window.ProjectGraph = {
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
-
-
-		// select all of the links
-		d3.selectAll(".link").filter(function(d){
-            for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
-                    var hidden_node = ProjectGraph.HiddenNodes[hnode];
-                    // if any of the links have a source or target that is now a hidden node, push the link to hidden links
-                    // and return the link to be removed
-                    if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
-                        ProjectGraph.HiddenLinks.push(d);
-                        return d;
-                    }
-            }
-        }).remove();// remove the links
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -870,15 +852,23 @@ window.ProjectGraph = {
 		// remove all of its children unless its child has been elaborated
 		if(node.elaborated){
 			var hub = new Array();
-			ProjectGraph.HiddenLinks.forEach(function(l){					
-				hub.push(l.source);
-				hub.push(l.target);
+			ProjectGraph.HiddenLinks.forEach(function(l){
+				if(hub.indexOf(l.source)==-1){
+					hub.push(l.source);
+				}
+				if(hub.indexOf(l.target)==-1){
+					hub.push(l.target);
+				}
 			});
 			hub.forEach(function(n){
-				var pos = ProjectGraph.Nodes.indexOf(node);
+				console.log(n);
+				var pos = ProjectGraph.Nodes.indexOf(n);
 				if (pos > -1) {
-					ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
-		    		ProjectGraph.Nodes.splice(pos, 1);
+					if((n.displayName == node.displayName)||(n.elaborated == false)){
+//					if(((n.displayName == d.displayName)&&((n.displayName == node.displayName)||(n.elaborated == false)))){
+						ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
+			    		ProjectGraph.Nodes.splice(pos, 1);
+					}
 				}
 			});
 		}
@@ -895,11 +885,16 @@ window.ProjectGraph = {
 			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes, function(d){
 				return ProjectGraph.Nodes.indexOf(d);
 			});
-			ProjectGraph.NodeSelection.exit().remove();
+		ProjectGraph.NodeSelection.exit().remove();
+		ProjectGraph.redraw(true);
+	},
+	recalibrateLinks: function(){
+
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
+		console.log(ProjectGraph.HiddenNodes);
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
 			console.log(ProjectGraph.HiddenNodes[npos]);
 			var node = ProjectGraph.HiddenNodes[npos];
