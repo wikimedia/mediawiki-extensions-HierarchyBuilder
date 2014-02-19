@@ -33,7 +33,8 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 			if (session_id() == '') {
 				wfSetupSession();
 			}
-			if ($_SESSION['redirect_uri'] === null) {
+			if (!array_key_exists('redirect_uri', $_SESSION) ||
+				$_SESSION['redirect_uri'] === null) {
 				$_SESSION['redirect_uri'] =
 					$this->getRequest()->getVal('returnto','');
 			}

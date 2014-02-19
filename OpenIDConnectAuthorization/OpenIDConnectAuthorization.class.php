@@ -24,12 +24,9 @@
 
 class OpenIDConnectAuthorization {
 
-	private static $authorized_users = array(
-		'Smith'
-	);
-
 	public static function authorize($user, &$authorized) {
-		if (in_array($user->getName(), self::$authorized_users)) {
+		$groups = $user->getGroups();
+		if (in_array('sysop', $groups) || in_array('authorized', $groups)) {
 			$authorized = true;
 		} else {
 			$authorized = false;
