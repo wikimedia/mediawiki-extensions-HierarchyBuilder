@@ -23,7 +23,7 @@
 window.VikiJS = {
 
 	WIKI_PAGE_TYPE: 0,
-	NON_WIKI_PAGE_TYPE: 1,
+	EXTERNAL_PAGE_TYPE: 1,
 
 	MAX_BAR_WIDTH: 60,
 	BAR_HEIGHT: 6,
@@ -90,54 +90,6 @@ window.VikiJS = {
 		});
 
 		initializeGraph();
-		/*
-		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
-			(employeeNumbers == null || employeeNumbers.length == 0)) {
-			alert("No charge number or employee number provided");
-			return;
-		}
-
-		var chargeNumberArray;
-		if (chargeNumbers != null && chargeNumbers.length > 0) {
-			chargeNumberArray = chargeNumbers.split(",");
-		} else {
-			chargeNumberArray = new Array();
-		}
-
-		var employeeNumberArray;
-		if (employeeNumbers != null && employeeNumbers.length > 0) {
-			employeeNumberArray = employeeNumbers;
-		} else {
-			employeeNumberArray = new Array();
-		}
-
-		if (ProjectGraph.FiscalYear == null ||
-			ProjectGraph.FiscalYear.length == 0) {
-			alert("You must supply a fiscal year.");
-			return;
-		} else {
-			var yearpattern = /^[0-9]{4}$/;
-			if (!yearpattern.test(ProjectGraph.FiscalYear)) {
-				alert("Year invalid. Must be of the form YYYY.");
-				return;
-			}
-		}
-
-		for (var i = 0; i < chargeNumberArray.length; i++) {
-			ProjectGraph.addProjectNode(chargeNumberArray[i], chargeNumberArray[i]);
-		}
-		for (var i = 0; i < employeeNumberArray.length; i++) {
-			ProjectGraph.addPersonNode(personNames[i], employeeNumberArray[i]);
-		}
-		
-		var nodes = new Array();
-		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
-			nodes.push(ProjectGraph.Nodes[i]);
-		}
-		for (var i = 0; i < nodes.length; i++) {
-			ProjectGraph.elaborateNode(nodes[i]);
-		}
-		*/
 
 		if(pageTitles === null) {
 			alert("You must supply a page title.");
@@ -146,6 +98,9 @@ window.VikiJS = {
 		
 		for(var i = 0; i < pageTitles.length; i++)
 			VikiJS.addWikiNode(pageTitles[i]);
+
+		for(var i = 0; i < pageTitles.length; i++)
+			VikiJS.elaborateNode(VikiJS.Nodes[i]);
 
 		VikiJS.Force.nodes(VikiJS.Nodes)
 		VikiJS.Force.links(VikiJS.Links)
@@ -174,7 +129,18 @@ window.VikiJS = {
 			   .attr("fill", "white");
 
 			svg.append("svg:g")
-			      .attr("id", "moveable");
+			   .attr("id", "moveable");
+
+			svg.append("defs").append("marker")
+			   .attr("id", "arrowHead")
+			   .attr("viewBox", "0 -5 10 10")
+			   .attr("refX", 9.5)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 6)
+			   .attr("markerHeight", 6)
+			   .attr("orient", "auto")
+			.append("path")
+			   .attr("d", "M0,-4L10,0L0,4");
 
 			d3.select("#moveable").append("svg:g").attr("id", "links");
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
@@ -286,7 +252,7 @@ window.VikiJS = {
 		$("#vikijs-zoom-slider").slider("value",VikiJS.Zoompos);
 	},
 
-	redraw: function(layout) {
+	redraw: function(restartGraph) {
 	
 		VikiJS.LinkSelection =
 			VikiJS.LinkSelection.data(VikiJS.Links);
@@ -294,7 +260,8 @@ window.VikiJS = {
 		var newLinks = VikiJS.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
 		newLinks.style("stroke", "#23A4FF");
-
+		//newLinks.style("stroke", "#000000");
+		newLinks.attr("marker-end", "url(#arrowHead)");
 		VikiJS.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
 				return d.source.index == VikiJS.SelectedNode ||
@@ -381,7 +348,8 @@ window.VikiJS = {
 		});
 */
 		var newLabels = newNodes.append("svg:text");
-		newLabels.text(function(d) { return d.displayName });
+		newLabels.text(function(d) { return d.displayName })
+			.attr("text-anchor", "middle");
 		/*
 		// dx, dy: magic numbers that help make pretty positioning!
 		newLabels.attr("dy", function(d) {
@@ -472,7 +440,7 @@ window.VikiJS = {
 		}
 		allHourBarFills.attr("width", width);
 */
-		if (layout) {
+		if (restartGraph) {
 			VikiJS.Force.start();
 		}
 
@@ -483,16 +451,30 @@ window.VikiJS = {
 		if(node != null)
 			return node;
 		
-			node = VikiJS.newNode();
-			node.displayName = pageTitle;
-			node.pageTitle = pageTitle;
-			node.info = VikiJS.formatNodeInfo(pageTitle);
-			node.type = VikiJS.WIKI_PAGE_TYPE;
-			self.log("URL = "+VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle));
-			node.URL = VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle);
-			VikiJS.addNode(node);
-			return node;
+		node = VikiJS.newNode();
+		node.displayName = pageTitle;
+		node.pageTitle = pageTitle;
+		node.info = VikiJS.formatNodeInfo(pageTitle);
+		node.type = VikiJS.WIKI_PAGE_TYPE;
+		node.URL = VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle.split(" ").join("_"));
+		self.log("node.URL = "+node.URL);
+		VikiJS.addNode(node);
+		return node;
 		
+	},
+	addExternalNode: function(url) {
+		var node = VikiJS.findNode("URL", url);
+		if(node)
+			return node;
+			
+		node = VikiJS.newNode();
+		node.displayName = url;
+		node.info = VikiJS.formatNodeInfo(url);
+		node.type = VikiJS.EXTERNAL_PAGE_TYPE;
+		self.log("URL = "+url);
+		node.URL = url;
+		VikiJS.addNode(node);
+		return node;
 	},
 	/*
 	addProjectNode: function(displayName, chargeNumber) {
@@ -575,16 +557,124 @@ window.VikiJS = {
 		}
 		return link;
 	},
-	/*
 	elaborateNode: function(node) {
-		//console.log("elaborateNode");
-		if (node.type == VikiJS.PROJECT_TYPE) {
-			VikiJS.elaborateProjectNode(node);
-		} else if (node.type == VikiJS.PERSON_TYPE) {
-			VikiJS.elaboratePersonNode(node);
-		}
+		if(node.type === VikiJS.WIKI_PAGE_TYPE)
+			VikiJS.elaborateWikiNode(node);
+		// if node is a non-wiki page, there is no way to elaborate it.
 	},
+	elaborateNodeAtIndex: function(index) {
+		var node = VikiJS.Nodes[index];
+		if(node.type == VikiJS.WIKI_PAGE_TYPE)
+			VikiJS.elaborateWikiNode(node);
+	},
+	elaborateWikiNode: function(node) {
+		var apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
 
+		// get external links OUT from page		
+		jQuery.ajax({
+			url: apiURL,
+			dataType: 'jsonp',
+			data: {
+				action: 'query',
+				prop: 'extlinks',
+				titles: node.pageTitle,
+				ellimit: 'max',
+				format: 'json'
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of ajax call: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success fetching");
+				VikiJS.externalLinksSuccessHandler(data, textStatus, jqXHR, node);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+		
+		// get intra-wiki links OUT from page
+		jQuery.ajax({
+			url: apiURL,
+			dataType: 'jsonp',
+			data: {
+				action: 'query',
+				prop: 'links',
+				titles: node.pageTitle,
+				pllimit: 'max',
+				format: 'json'
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of ajax call: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success fetching");
+				VikiJS.intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+		// get intra-wiki links IN to this page
+		jQuery.ajax({
+			url: apiURL,
+			dataType: 'jsonp',
+			data: {
+				action: 'query',
+				list: 'backlinks',
+				bltitle: node.pageTitle,
+				bllimit: 'max',
+				format: 'json'
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of ajax call: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success fetching");
+				VikiJS.intraWikiInSuccessHandler(data, textStatus, jqXHR, node);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+	node.elaborated = true;
+	},
+	externalLinksSuccessHandler: function(data, textStatus, jqXHR, originNode) {
+		// self.log("data: "+data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"]["0"]["*"]);
+		var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
+		for(var i = 0; i < externalLinks.length; i++) {
+			var externalNode = VikiJS.findNode("URL", externalLinks[i]["*"]);
+			if(externalNode === null)
+				externalNode = VikiJS.addExternalNode(externalLinks[i]["*"]);
+			
+			var link = VikiJS.addLink(originNode.index, externalNode.index);
+		}
+		
+		VikiJS.redraw(true);
+	}, 
+	intraWikiOutSuccessHandler: function(data, textStatus, jqXHR, originNode) {
+		var intraLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["links"];
+		for(var i = 0; i < intraLinks.length; i++) {
+			var intraNode = VikiJS.findNode("pageTitle", intraLinks[i]["title"]);
+			if(!intraNode)
+				intraNode = VikiJS.addWikiNode(intraLinks[i]["title"]);
+			
+			var link = VikiJS.addLink(originNode.index, intraNode.index);
+		}
+		
+		VikiJS.redraw(true);
+	},
+	intraWikiInSuccessHandler: function(data, textStatus, jqXHR, originNode) {
+		var intraLinks = data.query.backlinks;
+		for(var i = 0; i < intraLinks.length; i++) {
+			var intraNode = VikiJS.findNode("pageTitle", intraLinks[i]["title"]);
+			if(!intraNode)
+				intraNode = VikiJS.addWikiNode(intraLinks[i]["title"]);
+				var link = VikiJS.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
+		}
+		VikiJS.redraw(true);
+	},
+	/*
 	elaborateProjectNode: function(node) {
 		var name = VikiJS.getTaskDelivery(node.index);
 		if (name != null) {
@@ -615,17 +705,24 @@ window.VikiJS = {
 			var buttons = " <a href='" + node.URL +
 				"' target='_blank'><img src='" + VikiJS.ImagePath +
 				"info.png' /></a>";
-			if (node.elaborated == false) {
+			if (!node.elaborated) {
 /*				buttons += " <a class='icon'" +
 					"onclick='VikiJS.getTaskDelivery(" + node.index +
 					"); VikiJS.redraw(true);'><img src = '" +
 					VikiJS.ImagePath + "plus.png' /></a>";
 */
-				buttons += " <a class='icon'><img src= '"+ VikiJS.ImagePath+"plus.png' /></a>";
+				buttons += " <a class='icon' onclick='VikiJS.elaborateNodeAtIndex("+node.index+"); VikiJS.redraw(true);'><img src= '"+ VikiJS.ImagePath+"plus.png' /></a>";
 			}
 			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		} 
+		else if(node.type == VikiJS.EXTERNAL_PAGE_TYPE) {
+			var buttons = " <a href='" + node.URL +
+				"' target='_blank'><img src='" + VikiJS.ImagePath +
+				"info.png' /></a>";
+			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
+			h4.html(h4.html() + buttons);
+		}
 		/*else if (node.type == VikiJS.PERSON_TYPE) {
 			var buttons = " <a href='" + node.personPagesURL +
 				"' target='_blank'><img src='" + VikiJS.ImagePath +
