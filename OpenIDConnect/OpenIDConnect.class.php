@@ -53,6 +53,10 @@ class OpenIDConnect {
 	}
 
 	public static function login($user) {
+		if (!array_key_exists('SERVER_PORT', $_SERVER)) {
+			return false;
+		}
+
 		$oidc = null;
 		try {
 			global $OpenIDConnect_Provider, $OpenIDConnect_ClientID,
@@ -189,17 +193,27 @@ class OpenIDConnect {
 	}
 
 	private static function updateUser($user, $realname, $email) {
-		if ($user->mRealName != $realname ||
-			$user->mEmail != $email) {
+		if ($user->mRealName != $realname) {
 			$user->mRealName = $realname;
+			$dbw = wfGetDB(DB_MASTER);
+			$dbw->update('user',
+				array( // SET
+					//'user_real_name' => $realname
+					'user_real_name' => "jkl"
+				), array( // WHERE
+					'user_id' => 2
+				), __METHOD__
+			);
+		}
+		if ($user->mEmail != $email) {
 			$user->mEmail = $email;
 			$dbw = wfGetDB(DB_MASTER);
 			$dbw->update('user',
 				array( // SET
-					'user_real_name' => $realname,
-					'user_email' => $email
+					//'user_email' => $email
+					'user_email' => "mno"
 				), array( // WHERE
-					'user_id' => $user->mId
+					'user_id' => 2
 				), __METHOD__
 			);
 		}
