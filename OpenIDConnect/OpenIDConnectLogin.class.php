@@ -33,9 +33,10 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 			if (session_id() == '') {
 				wfSetupSession();
 			}
-			if (!array_key_exists('redirect_uri', $_SESSION) ||
-				$_SESSION['redirect_uri'] === null) {
-				$_SESSION['redirect_uri'] =
+			$session_variable = wfWikiID() . "_returnto";
+			if (!array_key_exists($session_variable, $_SESSION) ||
+				$_SESSION[$session_variable] === null) {
+				$_SESSION[$session_variable] =
 					$this->getRequest()->getVal('returnto','');
 			}
 			$user = new User;

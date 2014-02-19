@@ -113,6 +113,7 @@ class OpenIDConnect {
 			$session_variable = wfWikiID() . "_returnto";
 			if (array_key_exists($session_variable, $_SESSION)) {
 				$returnto = $_SESSION[$session_variable];
+				unset($_SESSION[$session_variable]);
 			} else {
 				$returnto = null;
 			}
