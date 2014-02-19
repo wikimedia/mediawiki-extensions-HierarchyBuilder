@@ -526,6 +526,14 @@ window.ProjectGraph = {
 		if (layout) {
 			ProjectGraph.Force.start();
 		}
+		d3.selectAll(".link").filter(function(l){
+			ProjectGraph.HiddenNodes.forEach(function(hnode){
+				if((l.source.displayName == hnode.displayName)||(l.target.displayName == hnode.displayName)){
+					ProjectGraph.HiddenLinks.push(l);
+					return l;
+				}
+			});
+		}).remove();
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
