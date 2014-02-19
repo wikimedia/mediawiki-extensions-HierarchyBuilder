@@ -202,7 +202,7 @@ window.ProjectGraph = {
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
 				
 			ProjectGraph.Force = d3.layout.force();
-			ProjectGraph.Force.gravity(0.4)
+			ProjectGraph.Force.gravity(0.02)
 			ProjectGraph.Force.linkStrength(1.25)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
@@ -216,7 +216,7 @@ window.ProjectGraph = {
 			)
 			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
 			// This will decrease edge crossings for the nodes. 	
-			ProjectGraph.Force.charge(-7500)
+			ProjectGraph.Force.charge(-3000)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
 			ProjectGraph.Force.on("tick", tick);
@@ -315,8 +315,11 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
-		ProjectGraph.LinkSelection =
-			ProjectGraph.LinkSelection.data(ProjectGraph.Links);
+		ProjectGraph.LinkSelection = 
+		ProjectGraph.LinkSelection.data(ProjectGraph.Links, function(d){
+			return ProjectGraph.Links.indexOf(d);
+		});
+		ProjectGraph.LinkSelection.exit().remove();
 
 		var newLinks = ProjectGraph.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
@@ -340,8 +343,13 @@ window.ProjectGraph = {
 					d.target == ProjectGraph.SelectedNode ? 1 : ProjectGraph.LINK_OPACITY;
 			}
 		});
+
 		ProjectGraph.NodeSelection =
-			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes);
+			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes, function(d){
+				return ProjectGraph.Nodes.indexOf(d);
+			});
+		ProjectGraph.NodeSelection.exit().remove();
+	
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
 		
 		newNodes.attr("class", "node context-menu-one box menu-1");
@@ -524,6 +532,8 @@ window.ProjectGraph = {
 		allHourBarFills.attr("width", width);
 		
 		if (layout) {
+			ProjectGraph.Force.nodes(ProjectGraph.Nodes);
+			ProjectGraph.Force.links(ProjectGraph.Links);
 			ProjectGraph.Force.start();
 		}
 		d3.selectAll(".link").filter(function(l){
@@ -841,15 +851,14 @@ window.ProjectGraph = {
 		});
 	},
 	hide: function(node){
-		console.log(node);
 		// select all of the links
 		d3.selectAll(".link").filter(function(d){
 			// if the link selected is the same as
 			// the link that will be hidden
 			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
 				// store the link in an array to be re-added later
-				ProjectGraph.HiddenLinkMap.push(ProjectGraph.LinkMap.splice(ProjectGraph.LinkMap.indexOf(node),1));
-				ProjectGraph.HiddenLinks.push(d);
+//				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(d));
+				ProjectGraph.HiddenLinks.push(d);				
 				// return the link to build the array
 				return d;
 			}
@@ -869,13 +878,11 @@ window.ProjectGraph = {
 				}
 			});
 			hub.forEach(function(n){
-				console.log(n);
 				var pos = ProjectGraph.Nodes.indexOf(n);
-				if (pos > -1) {
+				if(pos > -1){
 					if((n.displayName == node.displayName)||(n.elaborated == false)){
-//					if(((n.displayName == d.displayName)&&((n.displayName == node.displayName)||(n.elaborated == false)))){
-						ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
-			    		ProjectGraph.Nodes.splice(pos, 1);
+						ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
+						ProjectGraph.Nodes.splice(pos,1);
 					}
 				}
 			});
@@ -884,27 +891,18 @@ window.ProjectGraph = {
 			// select all of the nodes
 			var pos = ProjectGraph.Nodes.indexOf(node);
 			if (pos > -1) {
-				ProjectGraph.HiddenNodes.push(ProjectGraph.findNode('index',pos));
+				ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
 		}
-		// Properly remove the nodes from the graph
-		ProjectGraph.NodeSelection =
-			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes, function(d){
-				return ProjectGraph.Nodes.indexOf(d);
-			});
-		ProjectGraph.NodeSelection.exit().remove();
-		ProjectGraph.redraw(true);
-	},
-	recalibrateLinks: function(){
 
+		// Properly remove the nodes from the graph
+		ProjectGraph.redraw(true);
 	},
 	showAll: function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
-		console.log(ProjectGraph.HiddenNodes);
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
-			console.log(ProjectGraph.HiddenNodes[npos]);
 			var node = ProjectGraph.HiddenNodes[npos];
 			ProjectGraph.addNode(node);
 
