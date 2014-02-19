@@ -40,17 +40,11 @@ $wgExtensionCredits['semantic'][] = array (
 	'url' => 'https://www.mediawiki.org/wiki/Extension:OpenID_Connect_Authorization',
 );
 
+$wgGroupPermissions['*']['login'] = false;
+$wgGroupPermissions['authorized']['login'] = true;
+
 $wgAutoloadClasses['OpenIDConnectAuthorization'] =
 	__DIR__ . '/OpenIDConnectAuthorization.class.php';
 
 $wgExtensionMessagesFiles['OpenIDConnectAuthorization'] =
 	__DIR__ . '/OpenIDConnectAuthorization.i18n.php';
-
-$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
-$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
-	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
-
-$wgHooks['LoadExtensionSchemaUpdates'][] =
-	'OpenIDConnectAuthorization::loadExtensionSchemaUpdates';
-$wgHooks['OpenIDConnectUserAuthorization'][] =
-	'OpenIDConnectAuthorization::authorize';

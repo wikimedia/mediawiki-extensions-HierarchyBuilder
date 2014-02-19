@@ -30,13 +30,17 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 
 	function execute($param) {
 		if (!$this->getContext()->getUser()->isLoggedIn()) {
-			$returnto = $this->getRequest()->getVal('returnto','');
+			if (session_id() == '') {
+				wfSetupSession();
+			}
+			$session_variable = wfWikiID() . "_returnto";
+			if (!array_key_exists($session_variable, $_SESSION) ||
+				$_SESSION[$session_variable] === null) {
+				$_SESSION[$session_variable] =
+					$this->getRequest()->getVal('returnto','');
+			}
 			$user = new User;
 			OpenIDConnect::login($user);
-			global $wgUser;
-			$wgUser = $user;
-			$this->getContext()->setUser($user);
-			OpenIDConnect::redirect($returnto, $this->getOutput());
 		}
 	}
 }

@@ -53,6 +53,7 @@ class OpenIDConnect {
 	}
 
 	public static function login($user) {
+		$oidc = null;
 		try {
 			global $OpenIDConnect_Provider, $OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret;
@@ -69,28 +70,32 @@ class OpenIDConnect {
 				$user->mSubject = $oidc->requestUserInfo('sub');
 				$user->mProvider = $oidc->getProviderURL();
 				$user->mId = self::getId($user->mSubject, $user->mProvider);
+				$realname = $oidc->requestUserInfo("name");
+				$email = $oidc->requestUserInfo("email");
 				if (is_null($user->mId)) {
-					$name = $oidc->requestUserInfo("preferred_username");
-					$id = User::idFromName($name);
+					$username = $oidc->requestUserInfo("preferred_username");
+					$id = User::idFromName($username);
 					global $OpenIDConnect_MigrateUsers;
 					if ($id && isset($OpenIDConnect_MigrateUsers) &&
 						$OpenIDConnect_MigrateUsers) {
 						$user->mId = $id;
 						$user->loadFromDatabase();
+						self::updateUser($user, $realname, $email);
 						$user->saveToCache();
 					} else {
 						$user->loadDefaults();
-						$user->mRealName = $oidc->requestUserInfo("name");
-						$user->mEmail = $oidc->requestUserInfo("email");
+						$user->mRealName = $realname;
+						$user->mEmail = $email;
 						$user->mEmailAuthenticated = wfTimestamp();
 						$user->mTouched = wfTimestamp();
-						$user->mName = self::getAvailableUsername($name);
+						$user->mName = self::getAvailableUsername($username);
 						$user->addToDatabase();
 					}
 					self::setExtraProperties($user->mId, $user->mSubject,
 						$user->mProvider);
 				} else {
 					$user->loadFromDatabase();
+					self::updateUser($user, $realname, $email);
 					$user->saveToCache();
 				}
 			} else {
@@ -102,13 +107,24 @@ class OpenIDConnect {
 
 		$authorized = true;
 		wfRunHooks('OpenIDConnectUserAuthorization', array($user,
-			&$authorized));
+			&$authorized, $oidc));
 		if ($authorized) {
 			if (session_id() == '') {
 				wfSetupSession();
 			}
 			$session_variable = wfWikiID() . "_userid";
 			$_SESSION[$session_variable] = $user->mId;
+			$session_variable = wfWikiID() . "_returnto";
+			if (array_key_exists($session_variable, $_SESSION)) {
+				$returnto = $_SESSION[$session_variable];
+				unset($_SESSION[$session_variable]);
+			} else {
+				$returnto = null;
+			}
+			self::redirect($returnto, $oidc);
+		} else {
+			self::redirect("Special:OpenIDConnectNotAuthorized", $oidc,
+				array('name' => $user->mName));
 		}
 		return $authorized;
 	}
@@ -123,13 +139,25 @@ class OpenIDConnect {
 		}
 	}
 
-	public static function redirect($returnto, $output) {
+	public static function redirect($returnto, $oidc, $params = null) {
 		$redirectTitle = Title::newFromText($returnto);
 		if (is_null($redirectTitle)) {
 			$redirectTitle = Title::newMainPage();
 		}
 		$redirectURL = $redirectTitle->getFullURL();
-		$output->redirect($redirectURL);
+		if (is_array($params) && count($params) > 0) {
+			$first = true;
+			foreach ($params as $key => $value) {
+				if ($first) {
+					$first = false;
+					$redirectURL .= '?';
+				} else {
+					$redirectURL .= '&';
+				}
+				$redirectURL .= $key . '=' . $value;
+			}
+		}
+		$oidc->redirect($redirectURL);
 	}	
 
 	private static function getId($subject, $provider) {
@@ -158,6 +186,23 @@ class OpenIDConnect {
 			$count++;
 		}
 		return $name . $count;
+	}
+
+	private static function updateUser($user, $realname, $email) {
+		if ($user->mRealName != $realname ||
+			$user->mEmail != $email) {
+			$user->mRealName = $realname;
+			$user->mEmail = $email;
+			$dbw = wfGetDB(DB_MASTER);
+			$dbw->update('user',
+				array( // SET
+					'user_real_name' => $realname,
+					'user_email' => $email
+				), array( // WHERE
+					'user_id' => $user->mId
+				), __METHOD__
+			);
+		}
 	}
 
 	private static function setExtraProperties($id, $subject, $provider) {

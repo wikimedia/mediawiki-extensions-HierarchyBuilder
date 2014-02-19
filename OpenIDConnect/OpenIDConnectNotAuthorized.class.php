@@ -29,6 +29,8 @@ class OpenIDConnectNotAuthorized extends UnlistedSpecialPage {
 	}
 
 	function execute($param) {
-		$this->getOutput()->addHTML('<b>hello</b>');
+		$name = $this->getRequest()->getVal('name','<missing name>');
+		$this->getOutput()->
+			addHTML(wfMessage('openidconnectnotauthorized', $name)->text());
 	}
 }
