@@ -70,28 +70,32 @@ class OpenIDConnect {
 				$user->mSubject = $oidc->requestUserInfo('sub');
 				$user->mProvider = $oidc->getProviderURL();
 				$user->mId = self::getId($user->mSubject, $user->mProvider);
+				$realname = $oidc->requestUserInfo("name");
+				$email = $oidc->requestUserInfo("email");
 				if (is_null($user->mId)) {
-					$name = $oidc->requestUserInfo("preferred_username");
-					$id = User::idFromName($name);
+					$username = $oidc->requestUserInfo("preferred_username");
+					$id = User::idFromName($username);
 					global $OpenIDConnect_MigrateUsers;
 					if ($id && isset($OpenIDConnect_MigrateUsers) &&
 						$OpenIDConnect_MigrateUsers) {
 						$user->mId = $id;
 						$user->loadFromDatabase();
+						self::updateUser($user, $realname, $email);
 						$user->saveToCache();
 					} else {
 						$user->loadDefaults();
-						$user->mRealName = $oidc->requestUserInfo("name");
-						$user->mEmail = $oidc->requestUserInfo("email");
+						$user->mRealName = $realname;
+						$user->mEmail = $email;
 						$user->mEmailAuthenticated = wfTimestamp();
 						$user->mTouched = wfTimestamp();
-						$user->mName = self::getAvailableUsername($name);
+						$user->mName = self::getAvailableUsername($username);
 						$user->addToDatabase();
 					}
 					self::setExtraProperties($user->mId, $user->mSubject,
 						$user->mProvider);
 				} else {
 					$user->loadFromDatabase();
+					self::updateUser($user, $realname, $email);
 					$user->saveToCache();
 				}
 			} else {
@@ -182,6 +186,23 @@ class OpenIDConnect {
 			$count++;
 		}
 		return $name . $count;
+	}
+
+	private static function updateUser($user, $realname, $email) {
+		if ($user->mRealName != $realname ||
+			$user->mEmail != $email) {
+			$user->mRealName = $realname;
+			$user->mEmail = $email;
+			$dbw = wfGetDB(DB_MASTER);
+			$dbw->update('user',
+				array( // SET
+					'user_real_name' => $realname,
+					'user_email' => $email
+				), array( // WHERE
+					'user_id' => $user->mId
+				), __METHOD__
+			);
+		}
 	}
 
 	private static function setExtraProperties($id, $subject, $provider) {
