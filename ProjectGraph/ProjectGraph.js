@@ -949,7 +949,7 @@ window.ProjectGraph = {
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
 		// Calculate Translation
-		ProjectGraph.calculateTranslation((maxx+minx/2),(maxy+miny)/2);
+		ProjectGraph.calculateTranslation(avgx,avgy);
 		// zoom
 		ProjectGraph.slide();
 		// set the slider
