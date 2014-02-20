@@ -27,6 +27,15 @@ class OpenIDConnect {
 	public static function autoLogin($user, &$result) {
 		$result = self::loadUser($user);
 		if (!$result) {
+			if (session_id() == '') {
+				wfSetupSession();
+			}
+			$session_variable = wfWikiID() . "_returnto";
+			if ((!array_key_exists($session_variable, $_SESSION) ||
+				$_SESSION[$session_variable] === null) &&
+				array_key_exists('title', $_REQUEST)) {
+				$_SESSION[$session_variable] = $_REQUEST['title'];
+			}
 			$result = self::login($user);
 		}
 		return false;
