@@ -313,6 +313,16 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
+		d3.selectAll(".link").filter(function(d){
+			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
+				var hidden_node = ProjectGraph.HiddenNodes[hnode];
+				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
+					ProjectGraph.HiddenLinks.push(d);
+					return d;
+				}				
+			}			
+		}).remove();
+
 		ProjectGraph.LinkSelection = 
 		ProjectGraph.LinkSelection.data(ProjectGraph.Links, function(d){
 			return ProjectGraph.Links.indexOf(d);
@@ -530,6 +540,8 @@ window.ProjectGraph = {
 			return scaledHoursPct * ProjectGraph.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
+
+
 
 		if (layout) {
 			ProjectGraph.Force.start();
@@ -802,6 +814,13 @@ window.ProjectGraph = {
 		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
+        	onShowMenu: function(e, menu) {
+        		if(node.elaborated == true){
+          			$('#elaborate', menu).remove();
+        		}
+        		return menu;
+	    	},
+
 			bindings: {
 		        'freeze': function(t) {
 		        	// freeze/unfreeze the node
