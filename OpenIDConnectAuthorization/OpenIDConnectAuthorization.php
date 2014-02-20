@@ -48,3 +48,5 @@ $wgAutoloadClasses['OpenIDConnectAuthorization'] =
 
 $wgExtensionMessagesFiles['OpenIDConnectAuthorization'] =
 	__DIR__ . '/OpenIDConnectAuthorization.i18n.php';
+
+$wgHooks['OpenIDConnectUserAuthorization'][] = 'OpenIDConnectAuthorization::authorize';

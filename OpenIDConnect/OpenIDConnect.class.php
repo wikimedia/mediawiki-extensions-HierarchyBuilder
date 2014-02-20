@@ -71,11 +71,11 @@ class OpenIDConnect {
 				$OpenIDConnect_ClientID,
 				$OpenIDConnect_ClientSecret);
 			if ($oidc->authenticate()) {
-				$user->mSubject = $oidc->requestUserInfo('sub');
-				$user->mProvider = $oidc->getProviderURL();
-				$user->mId = self::getId($user->mSubject, $user->mProvider);
+				$subject = $oidc->requestUserInfo('sub');
+				$provider = $oidc->getProviderURL();
 				$realname = $oidc->requestUserInfo("name");
 				$email = $oidc->requestUserInfo("email");
+				$user->mId = self::getId($subject, $provider);
 				if (is_null($user->mId)) {
 					$username = $oidc->requestUserInfo("preferred_username");
 					$id = User::idFromName($username);
@@ -95,8 +95,8 @@ class OpenIDConnect {
 						$user->mName = self::getAvailableUsername($username);
 						$user->addToDatabase();
 					}
-					self::setExtraProperties($user->mId, $user->mSubject,
-						$user->mProvider);
+					self::setExtraProperties($user->mId, $subject,
+						$provider);
 				} else {
 					$user->loadFromDatabase();
 					self::updateUser($user, $realname, $email);
@@ -111,7 +111,9 @@ class OpenIDConnect {
 
 		$authorized = true;
 		wfRunHooks('OpenIDConnectUserAuthorization', array($user,
-			&$authorized, $oidc));
+			&$authorized));
+		$returnto = null;
+		$params = null;
 		if ($authorized) {
 			if (session_id() == '') {
 				wfSetupSession();
@@ -122,14 +124,13 @@ class OpenIDConnect {
 			if (array_key_exists($session_variable, $_SESSION)) {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
-			} else {
-				$returnto = null;
 			}
-			self::redirect($returnto, $oidc);
 		} else {
-			self::redirect("Special:OpenIDConnectNotAuthorized", $oidc,
-				array('name' => $user->mName));
+			$returnto = 'Special:OpenIDConnectNotAuthorized';
+			$params = array('name' => $user->mName);
 		}
+		global $wgOut;
+		self::redirect($returnto, $wgOut, $params);
 		return $authorized;
 	}
 
@@ -193,27 +194,16 @@ class OpenIDConnect {
 	}
 
 	private static function updateUser($user, $realname, $email) {
-		if ($user->mRealName != $realname) {
+		if ($user->mRealName != $realname || $user->mEmail != $email) {
 			$user->mRealName = $realname;
-			$dbw = wfGetDB(DB_MASTER);
-			$dbw->update('user',
-				array( // SET
-					//'user_real_name' => $realname
-					'user_real_name' => "jkl"
-				), array( // WHERE
-					'user_id' => 2
-				), __METHOD__
-			);
-		}
-		if ($user->mEmail != $email) {
 			$user->mEmail = $email;
 			$dbw = wfGetDB(DB_MASTER);
 			$dbw->update('user',
 				array( // SET
-					//'user_email' => $email
-					'user_email' => "mno"
+					'user_real_name' => $realname,
+					'user_email' => $email
 				), array( // WHERE
-					'user_id' => 2
+					'user_id' => $user->mId
 				), __METHOD__
 			);
 		}
