@@ -9,10 +9,12 @@ window.MultiWikiSearch = {
 	searchTerms: "",
 	totalWikiSearchCount: 0,
 	searchedWikiCount: 0,
+	apiurl: null,
 	initializeMWS: function(apiurl) {
 
 		mw.loader.load('jquery.ui.progressbar');
 		self.log("received apiurl: "+apiurl);
+		MultiWikiSearch.apiurl = apiurl;
 
 		jQuery.ajax({
 			url: apiurl,
@@ -404,9 +406,9 @@ window.MultiWikiSearch = {
 		self.log("wikiTextURL1 = "+wikiTextURL1);
 		self.log("wikiTextURL2 = "+wikiTextURL2);
 
-		apiurl = "http://gestalt-dev.mitre.org/robopedia/api.php";
+		//apiurl = "http://gestalt-dev.mitre.org/robopedia/api.php";
 
-		MultiWikiSearch.executeDiv(apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
+		MultiWikiSearch.executeDiv(MultiWikiSearch.apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
 
 	},
 	clearDiffDiv: function() {
