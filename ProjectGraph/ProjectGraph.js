@@ -214,8 +214,6 @@ window.ProjectGraph = {
 					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
 				}
 			)
-			// Original value of charge was -3000. Increasing the charge maximizes polarity between nodes causing each node to repel.
-			// This will decrease edge crossings for the nodes. 	
 			ProjectGraph.Force.charge(-3000)
 			ProjectGraph.Force.friction(.675)
 			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
@@ -363,6 +361,7 @@ window.ProjectGraph = {
 		});
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
+			console.log("right click selected "+d);
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.menu();
 		});
@@ -478,6 +477,7 @@ window.ProjectGraph = {
 		newHourBarFills.style("stroke", "none");
 
 		// get the selected node
+		console.log("restart Selected Node"+selected);
 		var selected = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		var allHourBarBacks = d3.selectAll(".hourbarback");
 		var allHourBarFills = d3.selectAll(".hourbarfill");
@@ -486,7 +486,7 @@ window.ProjectGraph = {
 				ProjectGraph.SelectedNode);			
 			// if the link is null, or the node has not been elaborated
 			// do not display the bar
-			if ((link == null)||(!selected.elaborated)) {
+			if ((link == null)||(selected == null)||(!selected.elaborated)) {
 				return "none";
 			}
 			return "#CCCCCC";
@@ -530,20 +530,10 @@ window.ProjectGraph = {
 			return scaledHoursPct * ProjectGraph.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
-		
+
 		if (layout) {
-			ProjectGraph.Force.nodes(ProjectGraph.Nodes);
-			ProjectGraph.Force.links(ProjectGraph.Links);
 			ProjectGraph.Force.start();
 		}
-		d3.selectAll(".link").filter(function(l){
-			ProjectGraph.HiddenNodes.forEach(function(hnode){
-				if((l.source.displayName == hnode.displayName)||(l.target.displayName == hnode.displayName)){
-					ProjectGraph.HiddenLinks.push(l);
-					return l;
-				}
-			});
-		}).remove();
 	},
 
 	addProjectNode: function(displayName, chargeNumber) {
@@ -790,7 +780,10 @@ window.ProjectGraph = {
 	},
 	menu: function(){
 		// find the node according to the index and set it locally
+		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
+		console.log("menu selected = "+ProjectGraph.SelectedNode);
+		console.log(node);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
 		// if the node has been fixed, then display "unfreeze" as a menu
@@ -825,12 +818,14 @@ window.ProjectGraph = {
                     }
 		        },
 		        'elaborate': function(t) {
+		        	console.log("elaborate ");
+		        	console.log(node);
 					if(node.type==ProjectGraph.PROJECT_TYPE){
-						ProjectGraph.getTaskDelivery(node.index);
+						ProjectGraph.getTaskDelivery(ProjectGraph.SelectedNode);
 						ProjectGraph.redraw(true);
 					}
 					else if (node.type == ProjectGraph.PERSON_TYPE) {
-						ProjectGraph.getStaffTasks(node.index);
+						ProjectGraph.getStaffTasks(ProjectGraph.SelectedNode);
 						ProjectGraph.redraw(true);
 					}
 		        },
@@ -851,22 +846,16 @@ window.ProjectGraph = {
 		});
 	},
 	hide: function(node){
-		// select all of the links
-		d3.selectAll(".link").filter(function(d){
-			// if the link selected is the same as
-			// the link that will be hidden
-			if((node.displayName == d.source.displayName)||(node.displayName == d.target.displayName)){
+		d3.selectAll(".link").filter(function(l){
+			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
-//				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(d));
-				ProjectGraph.HiddenLinks.push(d);				
-				// return the link to build the array
-				return d;
+				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(l),1);
+				ProjectGraph.HiddenLinks.push(l);				
 			}
-		// remove all links associated with the
-		// hidden node from the graph
-		}).remove();
+		});
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
+		console.log(ProjectGraph.SelectedNode);
 		if(node.elaborated){
 			var hub = new Array();
 			ProjectGraph.HiddenLinks.forEach(function(l){
@@ -877,23 +866,29 @@ window.ProjectGraph = {
 					hub.push(l.target);
 				}
 			});
+			console.log(ProjectGraph.SelectedNode);
 			hub.forEach(function(n){
 				var pos = ProjectGraph.Nodes.indexOf(n);
 				if(pos > -1){
 					if((n.displayName == node.displayName)||(n.elaborated == false)){
 						ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
-						ProjectGraph.Nodes.splice(pos,1);
+						ProjectGraph.Nodes.splice(pos,1);						
 					}
 				}
 			});
+			console.log(ProjectGraph.SelectedNode);
 		}
 		else{
 			// select all of the nodes
+			console.log(ProjectGraph.SelectedNode);
+
 			var pos = ProjectGraph.Nodes.indexOf(node);
 			if (pos > -1) {
 				ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
+			console.log(ProjectGraph.SelectedNode);
+
 		}
 
 		// Properly remove the nodes from the graph
@@ -911,6 +906,7 @@ window.ProjectGraph = {
 		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var link = ProjectGraph.HiddenLinks[lpos];
+			console.log(link);
 			ProjectGraph.addLink(link.target.index, link.source.index);
 		}		
 		ProjectGraph.HiddenNodes = new Array();
@@ -941,7 +937,7 @@ window.ProjectGraph = {
 		var avgx = d.x/d.count;
 		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
-		var scale = 0;//0.075;
+		var scale = 0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
@@ -953,7 +949,7 @@ window.ProjectGraph = {
 			ProjectGraph.Zoompos = rzoom - scale;
 		}	
 		// Calculate Translation
-		ProjectGraph.calculateTranslation(avgx,avgy);
+		ProjectGraph.calculateTranslation((maxx+minx/2),(maxy+miny)/2);
 		// zoom
 		ProjectGraph.slide();
 		// set the slider
