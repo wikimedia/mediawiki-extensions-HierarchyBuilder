@@ -34,7 +34,6 @@ window.VikiJS = {
 	MAX_SCALE: 2,
 	LINK_OPACITY: 0.4,
 
-//	FiscalYear: null,
 	GraphDiv: null,
 	DetailsDiv: null,
 	SelectedNode: null,
@@ -47,7 +46,29 @@ window.VikiJS = {
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
 	serverURL: null,
+	searchableWikis: new Array(),
 	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
+
+		// initialize the list of searchable wikis.
+
+		var apiurl = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
+
+		jQuery.ajax({
+			url: apiurl,
+			dataType: 'json',
+			data: {
+				action: 'getSearchableWikis',
+				format: 'json'
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success fetching");
+				VikiJS.parseSearchableWikisList(data);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Unable to fetch list of wikis.");
+			}
+		});
+
 		VikiJS.serverURL = mw.config.get("wgServer");
 		pageTitles = eval("("+pageTitles+")");
 		
@@ -134,7 +155,7 @@ window.VikiJS = {
 			svg.append("defs").append("marker")
 			   .attr("id", "arrowHead")
 			   .attr("viewBox", "0 -5 10 10")
-			   .attr("refX", 9.5)
+			   .attr("refX", 13)
 			   .attr("refY", 0)
 			   .attr("markerWidth", 6)
 			   .attr("markerHeight", 6)
@@ -190,6 +211,24 @@ window.VikiJS = {
 				});
 			}
 		}
+	},
+
+	parseSearchableWikisList: function(data) {
+		allWikis = data["getSearchableWikis"]["results"];
+		$(document).ready(function() {
+			for(var i in allWikis) {
+				var title = allWikis[i]["fulltext"];
+				self.log(allWikis[i]);
+				var wiki = {
+						wikiTitle: title,
+						apiURL: allWikis[i]["printouts"]["Wiki API URL"][0],
+						contentURL: allWikis[i]["printouts"]["Wiki Content URL"][0]
+					   };
+//				VikiJS.searchableWikis[title] = wiki;
+				VikiJS.searchableWikis.push(wiki);
+
+			}
+		});
 	},
 
 	slide: function(){		
@@ -260,7 +299,6 @@ window.VikiJS = {
 		var newLinks = VikiJS.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
 		newLinks.style("stroke", "#23A4FF");
-		//newLinks.style("stroke", "#000000");
 		newLinks.attr("marker-end", "url(#arrowHead)");
 		VikiJS.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
@@ -294,11 +332,6 @@ window.VikiJS = {
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
-		});
-		newNodes.on("contextmenu", function(d) {
-			//console.log("right click");
-			//var position = d3.mouse(this);
-			//console.log("x,y = "+position[0]+", "+position[1]);
 		});
 
 		var drag = VikiJS.Force.drag()
@@ -349,7 +382,19 @@ window.VikiJS = {
 */
 		var newLabels = newNodes.append("svg:text");
 		newLabels.text(function(d) { return d.displayName })
-			.attr("text-anchor", "middle");
+			.attr("text-anchor", "right")
+			.each(function() {
+				var test = this.getBBox();
+				self.log(test.x+", "+test.y+", "+test.width+", "+test.height);
+
+				d3.select(this.parentNode).insert("svg:rect", "text")
+				   .attr("x", test.x)
+				   .attr("y", test.y)
+				   .attr("width", test.width)
+				   .attr("height", test.height)
+				   .style("fill", "white");
+			});;
+
 		/*
 		// dx, dy: magic numbers that help make pretty positioning!
 		newLabels.attr("dy", function(d) {
@@ -523,9 +568,26 @@ window.VikiJS = {
 	},
 
 	findNode: function(property, value) {
+		self.log("findNode("+property+", "+value+")");
 		for (var i = 0; i < VikiJS.Nodes.length; i++) {
-			if (typeof VikiJS.Nodes[i][property] !== 'undefined' &&
-				VikiJS.Nodes[i][property] === value) {
+			if(property === 'pageTitle') {
+				// a specific check for page titles - the first letter is case insensitive
+				var oldString = VikiJS.Nodes[i][property];
+				var newString = VikiJS.replaceAt(oldString, oldString.indexOf(":")+1, oldString.charAt(oldString.indexOf(":")+1).toLowerCase());
+//				var newString = oldString.charAt(oldString.indexOf(":")+1).toLowerCase()+oldString.substring(1, oldString.length);
+//				var newValue = value.charAt(oldString.indexOf(":")+1).toLowerCase()+value.substring(1, value.length);
+				var newValue = VikiJS.replaceAt(value, value.indexOf(":")+1, value.charAt(value.indexOf(":")+1).toLowerCase());
+				self.log("oldString: "+oldString);
+				self.log("newString: "+newString);
+				self.log("value: "+value);
+				self.log("newValue: "+newValue);
+				if(newString === newValue)
+					return VikiJS.Nodes[i];
+				else
+					return null;
+
+			}
+			else if (typeof VikiJS.Nodes[i][property] !== 'undefined' && VikiJS.Nodes[i][property] === value) {
 				return VikiJS.Nodes[i];
 			}
 		}
@@ -638,9 +700,11 @@ window.VikiJS = {
 			}
 		});
 	node.elaborated = true;
+	node.info = VikiJS.formatNodeInfo(node.displayName);
+	VikiJS.displayNodeInfo(node);
 	},
 	externalLinksSuccessHandler: function(data, textStatus, jqXHR, originNode) {
-		// self.log("data: "+data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"]["0"]["*"]);
+
 		var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 		for(var i = 0; i < externalLinks.length; i++) {
 			var externalNode = VikiJS.findNode("URL", externalLinks[i]["*"]);
@@ -674,22 +738,6 @@ window.VikiJS = {
 		}
 		VikiJS.redraw(true);
 	},
-	/*
-	elaborateProjectNode: function(node) {
-		var name = VikiJS.getTaskDelivery(node.index);
-		if (name != null) {
-			node.displayName = name;
-		}
-
-		node.info = VikiJS.formatNodeInfo(node.displayName);
-		VikiJS.displayNodeInfo(node);
-	},
-
-	elaboratePersonNode: function(node) {
-		//console.log("elaboratePersonNode");
-		VikiJS.getStaffTasks(node.index);
-	},
-*/
 	formatNodeInfo: function(name) {
 		var info = "<h4 id='vikijs-header'>" + name + "</h4>";
 		return info;
@@ -706,11 +754,6 @@ window.VikiJS = {
 				"' target='_blank'><img src='" + VikiJS.ImagePath +
 				"info.png' /></a>";
 			if (!node.elaborated) {
-/*				buttons += " <a class='icon'" +
-					"onclick='VikiJS.getTaskDelivery(" + node.index +
-					"); VikiJS.redraw(true);'><img src = '" +
-					VikiJS.ImagePath + "plus.png' /></a>";
-*/
 				buttons += " <a class='icon' onclick='VikiJS.elaborateNodeAtIndex("+node.index+"); VikiJS.redraw(true);'><img src= '"+ VikiJS.ImagePath+"plus.png' /></a>";
 			}
 			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
@@ -723,126 +766,10 @@ window.VikiJS = {
 			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		}
-		/*else if (node.type == VikiJS.PERSON_TYPE) {
-			var buttons = " <a href='" + node.personPagesURL +
-				"' target='_blank'><img src='" + VikiJS.ImagePath +
-				"info.png' /></a>";
-			if (node.elaborated == false) {
-				buttons += " <a class='icon'" +
-					"onclick='VikiJS.getStaffTasks(" + node.index +
-					"); VikiJS.redraw(true);'><img src = '" +
-					VikiJS.ImagePath + "plus.png' /></a>";
-			}
-			var h4 = jQuery("#" + VikiJS.DetailsDiv + " h4");
-			h4.html(h4.html() + buttons);
-		}
-		*/
-		
 	},
-	/*
-	getTaskDelivery: function(index) {
-		var taskNode = VikiJS.Nodes[index];
-		taskNode.elaborated = true;
-		taskNode.info = VikiJS.formatNodeInfo(taskNode.displayName);
-		VikiJS.displayNodeInfo(taskNode);
-		var delivery = queryTaskDelivery(taskNode.chargeNumber,
-			VikiJS.FiscalYear);
-		if (delivery == null) {
-			//alert("Error getting data for task " + taskNode.chargeNumber + " for fiscal year " + VikiJS.FiscalYear);
-			$("#vikijs-errors-panel").css("visibility", "visible");
-			$("#vikijs-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+VikiJS.FiscalYear+"</p>");
-			return null;
-		} else {
-			parseTaskStaff(taskNode, delivery);
-			return delivery.taskName;
-		}
-
-		function parseTaskStaff(taskNode, delivery) {
-			if (typeof delivery.staff == 'object' &&
-				delivery.staff instanceof Array) {
-				for (var i = 0; i < delivery.staff.length; i++) {
-					var person = delivery.staff[i];
-					var personNode =
-						VikiJS.findNode("employeeNumber",
-						person.employeeNumber);
-					if (personNode == null) {
-						personNode =
-							VikiJS.addPersonNode(person.personName,
-							person.employeeNumber);
-					} else {
-						if (personNode.displayName !== person.personName) {
-							personNode.displayName = person.personName;
-							personNode.info =
-								VikiJS.formatNodeInfo(person.personName);
-						}
-					}
-					var link = VikiJS.addLink(taskNode.index,
-						personNode.index);
-					link.taskHoursPct = person.delivery;
-					link.taskHours = person.hours;
-					if (person.delivery > taskNode.maxHoursPct) {
-						taskNode.maxHoursPct = person.delivery;
-					}
-				}
-			}
-		}
-	},
-
-	getStaffTasks: function(index) {
-		//console.log("calling getStaffTasks");
-		var personNode = VikiJS.Nodes[index];
-		personNode.elaborated = true;
-		personNode.info =
-			VikiJS.formatNodeInfo(personNode.displayName);
-		VikiJS.displayNodeInfo(personNode);
-		var tasks = queryStaffTasks(personNode.employeeNumber,
-			VikiJS.FiscalYear);
-		if (tasks == null) {
-			alert("Error getting data for employee " + node.employeeNumber +
-				" for fiscal year " + VikiJS.FiscalYear);
-		} else {
-			parseStaffTasks(personNode, tasks);
-		}
-
-		function parseStaffTasks(personNode, tasks) {
-			for (var i = 0; i < tasks.length; i++) {
-				var task = tasks[i];
-				var taskNode =
-					VikiJS.findNode("chargeNumber", task.chargeNumber);
-				if (taskNode == null) {
-					taskNode =
-						VikiJS.addProjectNode(task.taskName,
-						task.chargeNumber);
-					taskNode.info = VikiJS.formatNodeInfo(taskNode.displayName);
-					VikiJS.displayNodeInfo(taskNode);
-
-				}
-				if (typeof personNode.maxHoursPct === 'undefined' ||
-					personNode.maxHoursPct == null ||
-					task.percent > personNode.maxHoursPct) {
-					personNode.maxHoursPct = task.percent;
-				}
-				var link = VikiJS.findLink(personNode.index,
-					taskNode.index);
-				if (link == null) {
-					var link = VikiJS.addLink(personNode.index,
-						taskNode.index);
-					link.personHoursPct = task.percent;
-					link.personHours = task.hours;
-				} else {
-					link.personHoursPct = task.percent;
-					link.personHours = task.hours;
-				}
-			}
-		}
-	},
-
-	setDefaultImage: function(d) {
-		var newURL = VikiJS.ImagePath + 'nophoto.png';
-		d.removeAttribute("onerror");
-		d.setAttribute("href", newURL);
+	replaceAt: function(string, index, character) {
+		return string.substr(0, index) + character + string.substr(index+character.length);
 	}
-	*/
 }
 
 self.log = function(text) {
