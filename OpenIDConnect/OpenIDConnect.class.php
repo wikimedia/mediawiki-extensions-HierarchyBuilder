@@ -96,13 +96,15 @@ class OpenIDConnect {
 						self::updateUser($user, $realname, $email);
 						$user->saveToCache();
 					} else {
-						$user->loadDefaults();
+						$name = self::getAvailableUsername($username);
+						$user->loadDefaults($name);
 						$user->mRealName = $realname;
 						$user->mEmail = $email;
 						$user->mEmailAuthenticated = wfTimestamp();
 						$user->mTouched = wfTimestamp();
-						$user->mName = self::getAvailableUsername($username);
 						$user->addToDatabase();
+						self::updateName($user, $name);
+						self::updateUser($user, $realname, $email);
 					}
 					self::setExtraProperties($user->mId, $subject,
 						$provider);
@@ -193,13 +195,29 @@ class OpenIDConnect {
 	public static function getAvailableUsername($name) {
 		$nt = Title::makeTitleSafe(NS_USER, $name);
 		if (is_null($nt)) {
-			$name = "user";
+			$name = "User";
+		} else if (is_null(User::idFromName($name))) {
+			return $nt->getText();
 		}
 		$count = 1;
 		while (!is_null(User::idFromName($name . $count))) {
 			$count++;
 		}
 		return $name . $count;
+	}
+
+	private static function updateName($user, $name) {
+		if ($user->mName != $name) {
+			$user->mName = $name;
+			$dbw = wfGetDB(DB_MASTER);
+			$dbw->update('user',
+				array( // SET
+					'user_name' => $name,
+				), array( // WHERE
+					'user_id' => $user->mId
+				), __METHOD__
+			);
+		}
 	}
 
 	private static function updateUser($user, $realname, $email) {
@@ -257,14 +275,14 @@ class OpenIDConnect {
 			$skin = $wgOut->getSkin();
 			if ($skin->getUser()->isLoggedIn()) {
 				$href = Title::newFromText('Special:OpenIDConnectLogout')->
-					getFullURL() . '?returnto=' .  $title->getText();
+					getFullURL() . '?returnto=' . $title->getText();
 				$personal_urls['openidconnectlogout'] = array(
 					'text' => wfMessage('openidconnectlogout')->text(),
 					'href' => $href
 				);
 			} else {
 				$href = Title::newFromText('Special:OpenIDConnectLogin')->
-					getFullURL() . '?returnto=' .  $title->getText();
+					getFullURL() . '?returnto=' . $title->getText();
 				$personal_urls['openidconnectlogin'] = array(
 					'text' => wfMessage('openidconnectlogin')->text(),
 					'href' => $href
