@@ -406,8 +406,6 @@ window.MultiWikiSearch = {
 		self.log("wikiTextURL1 = "+wikiTextURL1);
 		self.log("wikiTextURL2 = "+wikiTextURL2);
 
-		//apiurl = "http://gestalt-dev.mitre.org/robopedia/api.php";
-
 		MultiWikiSearch.executeDiv(MultiWikiSearch.apiurl, wikiTextURL1, wikiTextURL2, wikiTitle1, pageTitle1, wikiTitle2, pageTitle2);
 
 	},
