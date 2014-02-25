@@ -313,16 +313,6 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
-		d3.selectAll(".link").filter(function(d){
-			for(var hnode=0; hnode<ProjectGraph.HiddenNodes.length; hnode++){
-				var hidden_node = ProjectGraph.HiddenNodes[hnode];
-				if((hidden_node.displayName==d.target.displayName)||(hidden_node.displayName==d.source.displayName)){
-					ProjectGraph.HiddenLinks.push(d);
-					return d;
-				}				
-			}			
-		}).remove();
-
 		ProjectGraph.LinkSelection = 
 		ProjectGraph.LinkSelection.data(ProjectGraph.Links, function(d){
 			return ProjectGraph.Links.indexOf(d);
@@ -540,8 +530,6 @@ window.ProjectGraph = {
 			return scaledHoursPct * ProjectGraph.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
-
-
 
 		if (layout) {
 			ProjectGraph.Force.start();
@@ -814,13 +802,6 @@ window.ProjectGraph = {
 		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
-        	onShowMenu: function(e, menu) {
-        		if(node.elaborated == true){
-          			$('#elaborate', menu).remove();
-        		}
-        		return menu;
-	    	},
-
 			bindings: {
 		        'freeze': function(t) {
 		        	// freeze/unfreeze the node
@@ -868,6 +849,8 @@ window.ProjectGraph = {
 		d3.selectAll(".link").filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
+//				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
+//				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
 				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(l),1);
 				ProjectGraph.HiddenLinks.push(l);				
 			}
@@ -924,9 +907,17 @@ window.ProjectGraph = {
 		// cycle through all of the links and re-add them back to a list
 		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
-			var link = ProjectGraph.HiddenLinks[lpos];
-			console.log(link);
-			ProjectGraph.addLink(link.target.index, link.source.index);
+			var l = ProjectGraph.HiddenLinks[lpos];
+			var link = ProjectGraph.addLink(l.target.index, l.source.index);
+			if(l.taskHoursPct == null){
+					link.personHoursPct = l.personHoursPct;
+					link.personHours = l.personHours;				
+			}
+			else if(l.personHoursPct == null){
+				link.taskHoursPct = l.taskHoursPct; //person.delivery;
+				link.taskHours = l.taskHours; //person.hours;
+
+			}
 		}		
 		ProjectGraph.HiddenNodes = new Array();
 		ProjectGraph.HiddenLinks = new Array();
