@@ -503,7 +503,7 @@ window.ProjectGraph = {
 			if (link == null) {
 				return "none";
 			}
-
+//			console.log(link);
 			var selectedNode = ProjectGraph.Nodes[ProjectGraph.SelectedNode];
 			var scaledHoursPct = 0;
 			
@@ -627,12 +627,14 @@ window.ProjectGraph = {
 
 	elaborateProjectNode: function(node) {
 		var name = ProjectGraph.getTaskDelivery(node.index);
+ //	console.log(ProjectGraph.LinkMap[0+","+1]);
 		if (name != null) {
 			node.displayName = name;
 		}		
 		node.info = ProjectGraph.formatNodeInfo(node.displayName);
 
 		ProjectGraph.displayNodeInfo(node);
+// 	console.log(ProjectGraph.LinkMap[0+","+1]);
 	},
 
 	elaboratePersonNode: function(node) {
@@ -678,6 +680,7 @@ window.ProjectGraph = {
 	},
 
 	getTaskDelivery: function(index) {
+// 	console.log(ProjectGraph.LinkMap[0+","+1]);
 		var taskNode = ProjectGraph.Nodes[index];
 		taskNode.elaborated = true;
 		taskNode.info = ProjectGraph.formatNodeInfo(taskNode.displayName);
@@ -711,8 +714,12 @@ window.ProjectGraph = {
 								ProjectGraph.formatNodeInfo(person.personName);
 						}
 					}
-					var link = ProjectGraph.addLink(taskNode.index,
+					var link = ProjectGraph.findLink(personNode.index,
+					taskNode.index);
+					if (link == null) {
+						link = ProjectGraph.addLink(taskNode.index,
 						personNode.index);
+					}
 					link.taskHoursPct = person.delivery;
 					link.taskHours = person.hours;
 					if (person.delivery > taskNode.maxHoursPct) {
@@ -723,6 +730,7 @@ window.ProjectGraph = {
 		}		
 	},
 	getStaffTasks: function(index) {
+ 	console.log(ProjectGraph.LinkMap[0+","+1]);
 		var personNode = ProjectGraph.Nodes[index];
 		personNode.elaborated = true;
 		personNode.info =
@@ -757,15 +765,13 @@ window.ProjectGraph = {
 				}
 				var link = ProjectGraph.findLink(personNode.index,
 					taskNode.index);
+					console.log("link"+link);
 				if (link == null) {
-					var link = ProjectGraph.addLink(personNode.index,
+					link = ProjectGraph.addLink(personNode.index,
 						taskNode.index);
-					link.personHoursPct = task.percent;
-					link.personHours = task.hours;
-				} else {
-					link.personHoursPct = task.percent;
-					link.personHours = task.hours;
 				}
+					link.personHoursPct = task.percent;
+					link.personHours = task.hours;
 			}
 		}
 	},
@@ -776,6 +782,7 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	menu: function(){
+		console.log(ProjectGraph.LinkMap);
 		// find the node according to the index and set it locally
 		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
@@ -797,6 +804,12 @@ window.ProjectGraph = {
 		$('#freeze').html(freeze.toggle);
 
         $('.node').contextMenu('menu', {
+        	onShowMenu: function(e, menu) {
+		        if (node.elaborated) {
+		          $('#elaborate', menu).remove();
+		        }
+		        return menu;
+	      	},
 			bindings: {
 		        'freeze': function(t) {
 		        	// freeze/unfreeze the node
