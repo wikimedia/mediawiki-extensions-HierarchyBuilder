@@ -491,9 +491,9 @@ window.VikiJS = {
 	
 	addWikiNode:function(pageTitle, apiURL, contentURL) {
 		
-		node = VikiJS.findNode("pageTitle", pageTitle);
-		if(node)
-			return node;
+//		node = VikiJS.findNode("pageTitle", pageTitle);
+//		if(node)
+//			return node;
 
 		node = VikiJS.newNode();
 		node.displayName = pageTitle;
@@ -516,9 +516,9 @@ window.VikiJS = {
 	},
 	addExternalNode: function(url) {
 		
-		node = VikiJS.findNode("URL", url);
-		if(node)
-			return node;
+//		node = VikiJS.findNode("URL", url);
+//		if(node)
+//			return node;
 
 		node = VikiJS.newNode();
 		node.displayName = url;
@@ -530,9 +530,9 @@ window.VikiJS = {
 		return node;
 	},
 	addExternalWikiNode: function(url, wikiIndex) {
-		node = VikiJS.findNode("URL", url);
-		if(node)
-			return node;
+//		node = VikiJS.findNode("URL", url);
+//		if(node)
+//			return node;
 
 		pageTitle = url.replace(VikiJS.searchableWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
 		self.log("addExternalWikiNode - extracted pageTitle = "+pageTitle);
@@ -595,20 +595,21 @@ window.VikiJS = {
 	},
 
 	findNode: function(property, value) {
-		self.log("findNode("+property+", "+value+")");
+		self.log("findNode("+property+", "+value+") - VikiJS.Nodes.length = "+VikiJS.Nodes.length);
 		for (var i = 0; i < VikiJS.Nodes.length; i++) {
 			if(property === 'pageTitle') {
 				// a specific check for page titles - the first letter is case insensitive
 				var oldString = VikiJS.Nodes[i][property];
-				self.log("oldString: "+oldString);
-				var newString = VikiJS.replaceAt(oldString, oldString.indexOf(":")+1, oldString.charAt(oldString.indexOf(":")+1).toLowerCase());
-				var newValue = VikiJS.replaceAt(value, value.indexOf(":")+1, value.charAt(value.indexOf(":")+1).toLowerCase());
-				self.log("newString: "+newString);
-				self.log("value: "+value);
-				self.log("newValue: "+newValue);
-				if(newString === newValue)
-					return VikiJS.Nodes[i];
-
+				if(oldString) {
+					self.log("\toldString: "+oldString);
+					var newString = VikiJS.replaceAt(oldString, oldString.indexOf(":")+1, oldString.charAt(oldString.indexOf(":")+1).toLowerCase());
+					var newValue = VikiJS.replaceAt(value, value.indexOf(":")+1, value.charAt(value.indexOf(":")+1).toLowerCase());
+					self.log("\tnewString: "+newString);
+					self.log("\tvalue: "+value);
+					self.log("\tnewValue: "+newValue + "\n");
+					if(newString === newValue)
+						return VikiJS.Nodes[i];
+				}
 			}
 			else if (typeof VikiJS.Nodes[i][property] !== 'undefined' && VikiJS.Nodes[i][property] === value) {
 				return VikiJS.Nodes[i];
@@ -657,6 +658,7 @@ window.VikiJS = {
 
 		// get external links OUT from page	
 		self.log("elaborateWikiNode - API URL = "+node.apiURL);	
+		self.log("firing first AJAX request (external links OUT)");
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -676,6 +678,7 @@ window.VikiJS = {
 		});
 		
 		// get intra-wiki links OUT from page
+		self.log("firing second AJAX request (intra-wiki links OUT)");
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -694,6 +697,7 @@ window.VikiJS = {
 			}
 		});
 		// get intra-wiki links IN to this page
+		self.log("firing third AJAX request (intra-wiki links IN)");
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -716,7 +720,7 @@ window.VikiJS = {
 		VikiJS.displayNodeInfo(node);
 	},
 	externalLinksSuccessHandler: function(data, textStatus, jqXHR, originNode) {
-
+		self.log("external links OUT success handler");
 		var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 		if(externalLinks) {
 			for(var i = 0; i < externalLinks.length; i++) {
@@ -747,6 +751,7 @@ window.VikiJS = {
 		VikiJS.redraw(true);
 	}, 
 	intraWikiOutSuccessHandler: function(data, textStatus, jqXHR, originNode) {
+		self.log("intra-wiki OUT success handler");
 		var intraLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["links"];
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
@@ -760,6 +765,7 @@ window.VikiJS = {
 		VikiJS.redraw(true);
 	},
 	intraWikiInSuccessHandler: function(data, textStatus, jqXHR, originNode) {
+		self.log("intra-wiki IN success handler");
 		var intraLinks = data.query.backlinks;
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
