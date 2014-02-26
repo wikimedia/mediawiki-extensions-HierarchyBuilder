@@ -27,8 +27,8 @@ window.VikiJS = {
 
 	MAX_BAR_WIDTH: 60,
 	BAR_HEIGHT: 6,
-//	SELECTED_IMAGE_DIMENSION: 30,
-//	UNSELECTED_IMAGE_DIMENSION: 20,
+	SELECTED_IMAGE_DIMENSION: 30,
+	UNSELECTED_IMAGE_DIMENSION: 20,
 
 	MIN_SCALE: .3,
 	MAX_SCALE: 2,
@@ -344,8 +344,8 @@ window.VikiJS = {
 		allToolTips.text(function(d) {
 			return d.displayName;
 		});
-/*		
-		var newImages = newNodes.append("svg:image");
+		
+/*		var newImages = newNodes.append("svg:image");
 		newImages.attr("class", "icon");
 		newImages.attr("xlink:href", function(d) {
 			return d.imageURL;
@@ -379,6 +379,7 @@ window.VikiJS = {
 			}
 		});
 */
+
 		var newLabels = newNodes.append("svg:text");
 		newLabels.text(function(d) { return d.displayName })
 			.attr("text-anchor", "right")
@@ -386,12 +387,24 @@ window.VikiJS = {
 				var textbox = this.getBBox();
 
 				d3.select(this.parentNode).insert("svg:rect", "text")
+				   .attr("class", "whiteBackgroundRect")
 				   .attr("x", textbox.x)
 				   .attr("y", textbox.y)
 				   .attr("width", textbox.width)
 				   .attr("height", textbox.height)
 				   .style("fill", "white");
-			});;
+			});
+
+		var newImages = newNodes.append("svg:image");
+		newImages.attr("class", "icon");
+		newImages.attr("xlink:href", VikiJS.ImagePath+"info.png");
+		newImages
+		   .attr("x", -20)
+		   .attr("y", function(d) {
+			return d3.select(this.parentNode).select("rect").attr("y");
+		   })
+		   .attr("width", 20)
+		   .attr("height", 20);
 
 		/*
 		// dx, dy: magic numbers that help make pretty positioning!
