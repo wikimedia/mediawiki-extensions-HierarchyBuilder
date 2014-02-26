@@ -19,12 +19,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-function ProjectGraph(){
-		
-
-}
-*/
 window.ProjectGraph = {
 
 	PROJECT_TYPE: 0,
@@ -51,6 +45,7 @@ window.ProjectGraph = {
 	NodeSelection: null,
 	ImagePath: null,
 	Zoompos: 1, // to store values for zoom scale
+	NodeCounter: 0,
 	HiddenNodes: new Array(),
 	HiddenLinks: new Array(),	
 	HiddenLinkMap: new Array(),
@@ -104,7 +99,7 @@ window.ProjectGraph = {
 		  value: ProjectGraph.Zoompos,
 		  slide: function( event, ui ) {
 			// set the zoom scale equal to the current value of the slider
-			// which is the current position
+			// which is the current index
 		        ProjectGraph.Zoompos = ui.value;
 			// call the slide function to zoom/pan using the slider
 		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
@@ -251,7 +246,7 @@ window.ProjectGraph = {
 	},
 
 	slide: function(){		
-		// set target_zoom to the logged zoom position
+		// set target_zoom to the logged zoom index
         target_zoom = ProjectGraph.Zoompos;
 	
         if(target_zoom>ProjectGraph.MAX_SCALE){target_zoom = ProjectGraph.MAX_SCALE;}
@@ -361,7 +356,6 @@ window.ProjectGraph = {
 		});
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
-			console.log("right click selected "+d);
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.menu();
 		});
@@ -437,7 +431,7 @@ window.ProjectGraph = {
 		});
 
 		var newLabels = newNodes.append("svg:text");
-		// dx, dy: magic numbers that help make pretty positioning!
+		// dx, dy: magic numbers that help make pretty indexing!
 		newLabels.attr("dy", function(d) {
 			return d.type == ProjectGraph.PROJECT_TYPE ? 20 : -2;
 		});
@@ -477,12 +471,12 @@ window.ProjectGraph = {
 		newHourBarFills.style("stroke", "none");
 
 		// get the selected node
-		console.log("restart Selected Node"+selected);
 		var selected = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		var allHourBarBacks = d3.selectAll(".hourbarback");
 		var allHourBarFills = d3.selectAll(".hourbarfill");
 		var backcolor = function(d) {
-			var link = ProjectGraph.findLink(d.index,
+
+			var link = ProjectGraph.findLink(d.position,
 				ProjectGraph.SelectedNode);			
 			// if the link is null, or the node has not been elaborated
 			// do not display the bar
@@ -493,7 +487,7 @@ window.ProjectGraph = {
 		}
 		allHourBarBacks.style("fill", backcolor);
 		var fillcolor = function(d) {
-			var link = ProjectGraph.findLink(d.index,
+			var link = ProjectGraph.findLink(d.position,
 				ProjectGraph.SelectedNode);
 			if (link == null) {
 				return "none";
@@ -503,13 +497,16 @@ window.ProjectGraph = {
 		allHourBarFills.style("fill", fillcolor);
 
 		var width = function(d) {
-			var link = ProjectGraph.findLink(d.index,
+			console.log(d.index+" "+ProjectGraph.SelectedNode+" "+d.displayName);
+			var link = ProjectGraph.findLink(d.position,
 				ProjectGraph.SelectedNode);
 			if (link == null) {
 				return "none";
 			}
+
 			var selectedNode = ProjectGraph.Nodes[ProjectGraph.SelectedNode];
 			var scaledHoursPct = 0;
+			
 			if (d.type == ProjectGraph.PROJECT_TYPE) {
 				if (typeof link.personHoursPct === 'undefined' ||
 					typeof selectedNode.maxHoursPct === 'undefined') {
@@ -576,8 +573,10 @@ window.ProjectGraph = {
 	newNode: function() {
 		var node = {
 			elaborated: false,
-			fix: false
+			fix: false,
+			position: ProjectGraph.NodeCounter,
 		};
+		ProjectGraph.NodeCounter++;
 		return node;
 	},
 
@@ -686,7 +685,6 @@ window.ProjectGraph = {
 		var delivery = queryTaskDelivery(taskNode.chargeNumber,
 			ProjectGraph.FiscalYear);
 		if (delivery == null) {
-			//alert("Error getting data for task " + taskNode.chargeNumber + " for fiscal year " + ProjectGraph.FiscalYear);
 			$("#projectgraph-errors-panel").css("visibility", "visible");
 			$("#projectgraph-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+ProjectGraph.FiscalYear+"</p>");
 			return null;
@@ -725,7 +723,6 @@ window.ProjectGraph = {
 		}		
 	},
 	getStaffTasks: function(index) {
-		//console.log("calling getStaffTasks");
 		var personNode = ProjectGraph.Nodes[index];
 		personNode.elaborated = true;
 		personNode.info =
@@ -782,8 +779,6 @@ window.ProjectGraph = {
 		// find the node according to the index and set it locally
 		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
-		console.log("menu selected = "+ProjectGraph.SelectedNode);
-		console.log(node);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
 		// if the node has been fixed, then display "unfreeze" as a menu
@@ -818,8 +813,6 @@ window.ProjectGraph = {
                     }
 		        },
 		        'elaborate': function(t) {
-		        	console.log("elaborate ");
-		        	console.log(node);
 					if(node.type==ProjectGraph.PROJECT_TYPE){
 						ProjectGraph.getTaskDelivery(ProjectGraph.SelectedNode);
 						ProjectGraph.redraw(true);
@@ -849,15 +842,14 @@ window.ProjectGraph = {
 		d3.selectAll(".link").filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
-//				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
-//				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
+				//delete ProjectGraph.LinkMap[l.source.index+","+l.target.index
+				//delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
 				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(l),1);
 				ProjectGraph.HiddenLinks.push(l);				
 			}
 		});
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
-		console.log(ProjectGraph.SelectedNode);
 		if(node.elaborated){
 			var hub = new Array();
 			ProjectGraph.HiddenLinks.forEach(function(l){
@@ -868,7 +860,6 @@ window.ProjectGraph = {
 					hub.push(l.target);
 				}
 			});
-			console.log(ProjectGraph.SelectedNode);
 			hub.forEach(function(n){
 				var pos = ProjectGraph.Nodes.indexOf(n);
 				if(pos > -1){
@@ -878,19 +869,14 @@ window.ProjectGraph = {
 					}
 				}
 			});
-			console.log(ProjectGraph.SelectedNode);
 		}
 		else{
 			// select all of the nodes
-			console.log(ProjectGraph.SelectedNode);
-
 			var pos = ProjectGraph.Nodes.indexOf(node);
 			if (pos > -1) {
 				ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
-			console.log(ProjectGraph.SelectedNode);
-
 		}
 
 		// Properly remove the nodes from the graph
@@ -908,7 +894,13 @@ window.ProjectGraph = {
 		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var l = ProjectGraph.HiddenLinks[lpos];
-			var link = ProjectGraph.addLink(l.target.index, l.source.index);
+			console.log(l.target);
+			var link = {
+				source: l.target.index,
+				target: l.source.index
+			};
+
+//			var link = ProjectGraph.addLink(l.target.index, l.source.index);
 			if(l.taskHoursPct == null){
 					link.personHoursPct = l.personHoursPct;
 					link.personHours = l.personHours;				
@@ -918,7 +910,13 @@ window.ProjectGraph = {
 				link.taskHours = l.taskHours; //person.hours;
 
 			}
+			ProjectGraph.Links.push(l);
 		}		
+		for(var i=0; i<ProjectGraph.Nodes.length; i++){
+			ProjectGraph.Nodes[i].index = i;
+		}
+//		ProjectGraph.LinkMap.sort();
+		console.log(ProjectGraph.LinkMap);
 		ProjectGraph.HiddenNodes = new Array();
 		ProjectGraph.HiddenLinks = new Array();
 		// redraw
@@ -928,13 +926,13 @@ window.ProjectGraph = {
 	},	
 	zoomToFit: function(node){
 		// initialize the following variables of minimum x and y, and maximum x and y
-		// with the x and y position of the first node in ProjectGraph.Nodes
+		// with the x and y index of the first node in ProjectGraph.Nodes
 		var minx=ProjectGraph.Nodes[0].x; var maxx=ProjectGraph.Nodes[0].x; 
 		var miny=ProjectGraph.Nodes[0].y; var maxy=ProjectGraph.Nodes[0].y;
 		var d={x:0, y:0, count:0};
 		// go through the array of nodes
 		ProjectGraph.Nodes.forEach(function(node){
-			// check to see if the current nodes x or y position is
+			// check to see if the current nodes x or y index is
 			// greater than or less than any of the four domain/range variables
 			d.x += node.x;
 			d.y += node.y;
