@@ -29,7 +29,7 @@ class ApiGetSearchableWikis extends ApiBase {
  
 	public function execute() {
  		wfErrorLog("API called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
-		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]][[Gestalt_Community_Searchable::Yes]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL&p[limit]=500&p[format]=json");
+		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]][[Gestalt_Community_Searchable::Yes]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL%0D%0A?Small_Wiki_Logo&p[limit]=500&p[format]=json");
 		$results = json_decode($json);
 		wfErrorLog("file contains:\n$json\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
 		$this->getResult()->addValue(null, $this->getModuleName(), $results);

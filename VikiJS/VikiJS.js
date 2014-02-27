@@ -47,31 +47,20 @@ window.VikiJS = {
 	Zoompos: 1, // to store values for zoom scale
 	serverURL: null,
 	myApiURL: mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php",
+	myLogoURL: null,
 	searchableWikis: new Array(),
 	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
-
-		// initialize the list of searchable wikis.
-
-		jQuery.ajax({
-			url: VikiJS.myApiURL,
-			dataType: 'json',
-			data: {
-				action: 'getSearchableWikis',
-				format: 'json'
-			},
-			success: function(data, textStatus, jqXHR) {
-				//self.log("success fetching");
-				VikiJS.parseSearchableWikisList(data);
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch list of wikis.");
-			}
-		});
 
 		VikiJS.serverURL = mw.config.get("wgServer");
 		pageTitles = eval("("+pageTitles+")");
 		
-		//self.log("pageTitles: "+pageTitles);
+		if(pageTitles === null) {
+			alert("You must supply a page title.");
+			return;
+		}
+
+		// initialize graph settings.
+
 		VikiJS.GraphDiv = graphDiv;
 		VikiJS.DetailsDiv = detailsDiv;
 		VikiJS.ImagePath = imagePath;
@@ -111,21 +100,56 @@ window.VikiJS = {
 
 		initializeGraph();
 
-		if(pageTitles === null) {
-			alert("You must supply a page title.");
-			return;
-		}
-		
-		for(var i = 0; i < pageTitles.length; i++)
-			VikiJS.addWikiNode(pageTitles[i], VikiJS.myApiURL, null);
+		// initialize the list of searchable wikis,
+		// get this wiki's own logo URL,
+		// and do initial graph population.
 
-		for(var i = 0; i < pageTitles.length; i++)
-			VikiJS.elaborateNode(VikiJS.Nodes[i]);
+		jQuery.ajax({
+			url: VikiJS.myApiURL,
+			dataType: 'json',
+			data: {
+				action: 'getSearchableWikis',
+				format: 'json'
+			},
+			success: function(data, textStatus, jqXHR) {
+				VikiJS.parseSearchableWikisList(data, pageTitles);
+				jQuery.ajax({
 
-		VikiJS.Force.nodes(VikiJS.Nodes)
-		VikiJS.Force.links(VikiJS.Links)
+					url: VikiJS.myApiURL,
+					dataType: 'json',
+					data: {
+						action: 'getSiteLogo',
+						format: 'json'
+					},
+					success: function(data, textStatus, jqXHR) {
 
-		VikiJS.redraw(true);
+						VikiJS.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
+						self.log("myLogoURL = "+VikiJS.myLogoURL);
+						// do initial graph population
+						for(var i = 0; i < pageTitles.length; i++)
+							VikiJS.addWikiNode(pageTitles[i], VikiJS.myApiURL, null);
+
+						for(var i = 0; i < pageTitles.length; i++)
+							VikiJS.elaborateNode(VikiJS.Nodes[i]);
+
+						VikiJS.Force.nodes(VikiJS.Nodes);
+						VikiJS.Force.links(VikiJS.Links);
+
+						VikiJS.redraw(true);
+
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						alert("Unable to fetch list of wikis.");
+					}
+
+
+				});
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Unable to fetch list of wikis.");
+			}
+		});
 
 		function initializeGraph() {
 			var padding = 20;
@@ -212,22 +236,24 @@ window.VikiJS = {
 		}
 	},
 
-	parseSearchableWikisList: function(data) {
+	parseSearchableWikisList: function(data, pageTitles) {
+		self.log("Retrieved searchableWikisList");
 		allWikis = data["getSearchableWikis"]["results"];
 		$(document).ready(function() {
 			for(var i in allWikis) {
 				var title = allWikis[i]["fulltext"];
-				//self.log(allWikis[i]);
 				var wiki = {
 						wikiTitle: title,
 						apiURL: allWikis[i]["printouts"]["Wiki API URL"][0],
-						contentURL: allWikis[i]["printouts"]["Wiki Content URL"][0]
+						contentURL: allWikis[i]["printouts"]["Wiki Content URL"][0],
+						logoURL: allWikis[i]["printouts"]["Small Wiki Logo"][0]
 					   };
-//				VikiJS.searchableWikis[title] = wiki;
 				VikiJS.searchableWikis.push(wiki);
 
 			}
 		});
+		self.log("searchableWikis.length = "+VikiJS.searchableWikis.length);
+
 	},
 
 	slide: function(){		
@@ -397,7 +423,10 @@ window.VikiJS = {
 
 		var newImages = newNodes.append("svg:image");
 		newImages.attr("class", "icon");
-		newImages.attr("xlink:href", VikiJS.ImagePath+"info.png");
+		//newImages.attr("xlink:href", VikiJS.ImagePath+"info.png");
+		newImages.attr("xlink:href", function(d) {
+			return (d.logoURL ? d.logoURL : VikiJS.ImagePath+"info.png");
+		});
 		newImages
 		   .attr("x", -20)
 		   .attr("y", function(d) {
@@ -522,7 +551,9 @@ window.VikiJS = {
 			node.contentURL = null;
 		}
 		node.apiURL = apiURL;
+		node.logoURL = VikiJS.myLogoURL;
 		self.log("addWikiNode - node.URL = "+node.URL);
+		self.log("addWikiNode - node.logoURL = "+node.logoURL);
 		VikiJS.addNode(node);
 		return node;
 		
@@ -558,6 +589,7 @@ window.VikiJS = {
 		node.URL = url;
 		node.apiURL = VikiJS.searchableWikis[wikiIndex]["apiURL"];
 		node.contentURL = VikiJS.searchableWikis[wikiIndex]["contentURL"];
+		node.logoURL = VikiJS.searchableWikis[wikiIndex]["logoURL"];
 		VikiJS.addNode(node);
 		return node;
 	},

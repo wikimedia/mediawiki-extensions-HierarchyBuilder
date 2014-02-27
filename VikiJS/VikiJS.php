@@ -38,7 +38,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
 	'version' => '1.0',
-	'author' => array("Jason Ji"),
+	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
  
@@ -59,6 +59,8 @@ $wgResourceModules['ext.VikiJS'] = array(
 
 $wgHooks['LanguageGetMagic'][] = 'wfExtensionVikiJS_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
+
+$wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
 
 function efVikiJSParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('vikijs', 'vikijs');
@@ -149,5 +151,28 @@ END;
 		$script = '<script type="text/javascript">' . $script . "</script>";
 		$wgOut->addScript($script);
 		return $output;
+	}
+}
+
+class ApiGetSiteLogo extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+	public function execute() {
+		global $wgLogo;
+		$this->getResult()->addValue(null, $this->getModuleName(), $wgLogo);
+
+		return true;
+	}
+	public function getDescription() {
+		return "Get the URL of the site logo.";
+	}
+	public function getExamples() {
+		return array(
+			'api.php?action=getSiteLogo'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
 	}
 }

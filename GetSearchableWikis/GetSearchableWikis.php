@@ -11,7 +11,7 @@ $wgExtensionCredits['api'][] = array(
 'path' => __FILE__,
 'name' => 'Get Searchable Wikis',
 'descriptionmsg' => 'getsearchablewikis-desc',
-'version' => '1.0.0',
+'version' => '1.0.1',
 'author' => 'Jason Ji'
 
 );
