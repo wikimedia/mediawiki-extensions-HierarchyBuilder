@@ -127,7 +127,7 @@ window.VikiJS = {
 						self.log("myLogoURL = "+VikiJS.myLogoURL);
 						// do initial graph population
 						for(var i = 0; i < pageTitles.length; i++)
-							VikiJS.addWikiNode(pageTitles[i], VikiJS.myApiURL, null);
+							VikiJS.addWikiNode(pageTitles[i], VikiJS.myApiURL, null, VikiJS.myLogoURL);
 
 						for(var i = 0; i < pageTitles.length; i++)
 							VikiJS.elaborateNode(VikiJS.Nodes[i]);
@@ -531,7 +531,7 @@ window.VikiJS = {
 
 	},
 	
-	addWikiNode:function(pageTitle, apiURL, contentURL) {
+	addWikiNode:function(pageTitle, apiURL, contentURL, logoURL) {
 		
 //		node = VikiJS.findNode("pageTitle", pageTitle);
 //		if(node)
@@ -548,10 +548,10 @@ window.VikiJS = {
 		}
 		else {
 			node.URL = VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", pageTitle.split(" ").join("_"));
-			node.contentURL = null;
+			node.contentURL = VikiJS.serverURL+mw.config.get("wgArticlePath").replace("$1", "");
 		}
 		node.apiURL = apiURL;
-		node.logoURL = VikiJS.myLogoURL;
+		node.logoURL = logoURL;
 		self.log("addWikiNode - node.URL = "+node.URL);
 		self.log("addWikiNode - node.logoURL = "+node.logoURL);
 		VikiJS.addNode(node);
@@ -570,6 +570,7 @@ window.VikiJS = {
 		node.type = VikiJS.EXTERNAL_PAGE_TYPE;
 		self.log("addExternalNode - node.URL = "+url);
 		node.URL = url;
+		node.logoURL = VikiJS.ImagePath + "internet.png";
 		VikiJS.addNode(node);
 		return node;
 	},
@@ -802,7 +803,7 @@ window.VikiJS = {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = VikiJS.findNode("pageTitle", intraLinks[i]["title"]);
 				if(!intraNode) {
-					intraNode = VikiJS.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL);			
+					intraNode = VikiJS.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);			
 					var link = VikiJS.addLink(originNode.index, intraNode.index);
 				}
 			}
@@ -816,7 +817,7 @@ window.VikiJS = {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = VikiJS.findNode("pageTitle", intraLinks[i]["title"]);
 				if(!intraNode) {
-					intraNode = VikiJS.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL);
+					intraNode = VikiJS.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
 					var link = VikiJS.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
 				}
 			}
