@@ -32,6 +32,11 @@ window.ProjectGraph = {
 	MIN_SCALE: .3,
 	MAX_SCALE: 2,
 	LINK_OPACITY: 0.4,
+	STANDARD_BOX: 400,
+	ZOOM_MULTIPLIER: -0.0005
+	ZOOM_CONSTANT: 1.2,
+	HUB_LINK_LENGTH: 500,
+	LEAF_LINK_LENGTH: 75,
 
 	FiscalYear: null,
 	GraphDiv: null,
@@ -83,10 +88,14 @@ window.ProjectGraph = {
 		// of an equation formed from gathering data from several different view boxes (300px to 700px). 
 		// The input of this equation is also the lowest value of either height or width.
 		if(ProjectGraph.height>ProjectGraph.width){
-			ProjectGraph.Zoompos = ProjectGraph.width*(ProjectGraph.width*-0.0005+1.2)/400;
+			ProjectGraph.Zoompos = ProjectGraph.width*(
+				ProjectGraph.width*ProjectGraph.ZOOM_MULTIPLIER
+				+ProjectGraph.ZOOM_CONSTANT)/ProjectGraph.STANDARD_BOX;
 		}
 		else{
-			ProjectGraph.Zoompos = ProjectGraph.height*(ProjectGraph.height*-0.0005+1.2)/400;
+			ProjectGraph.Zoompos = ProjectGraph.height*(
+				ProjectGraph.height*ProjectGraph.ZOOM_MULTIPLIER
+				+ProjectGraph.ZOOM_CONSTANT)/ProjectGraph.STANDARD_BOX;
 		}
 		
 		// create a new zoom slider
@@ -205,8 +214,10 @@ window.ProjectGraph = {
 				function(n){
 					// if the source and target has been elaborated, set the variable child to true
 					var child = (n.source.elaborated && n.target.elaborated);
-					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
-					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
+					// if this node is the parent or the center of a cluster of nodes
+					if(child){return ProjectGraph.HUB_LINK_LENGTH;}
+					// if this node is the child or the outer edge of a cluster of nodes
+					else{return ProjectGraph.LEAF_LINK_LENGTH;}
 				}
 			)
 			ProjectGraph.Force.charge(-3000)
@@ -497,7 +508,7 @@ window.ProjectGraph = {
 		allHourBarFills.style("fill", fillcolor);
 
 		var width = function(d) {
-			console.log(d.index+" "+ProjectGraph.SelectedNode+" "+d.displayName);
+//			console.log(d.index+" "+ProjectGraph.SelectedNode+" "+d.displayName);
 			var link = ProjectGraph.findLink(d.position,
 				ProjectGraph.SelectedNode);
 			if (link == null) {
@@ -730,7 +741,7 @@ window.ProjectGraph = {
 		}		
 	},
 	getStaffTasks: function(index) {
- 	console.log(ProjectGraph.LinkMap[0+","+1]);
+// 	console.log(ProjectGraph.LinkMap[0+","+1]);
 		var personNode = ProjectGraph.Nodes[index];
 		personNode.elaborated = true;
 		personNode.info =
@@ -765,7 +776,7 @@ window.ProjectGraph = {
 				}
 				var link = ProjectGraph.findLink(personNode.index,
 					taskNode.index);
-					console.log("link"+link);
+//					console.log("link"+link);
 				if (link == null) {
 					link = ProjectGraph.addLink(personNode.index,
 						taskNode.index);
@@ -782,7 +793,7 @@ window.ProjectGraph = {
 		d.setAttribute("href", newURL);
 	},
 	menu: function(){
-		console.log(ProjectGraph.LinkMap);
+//		console.log(ProjectGraph.LinkMap);
 		// find the node according to the index and set it locally
 		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
@@ -907,7 +918,7 @@ window.ProjectGraph = {
 		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var l = ProjectGraph.HiddenLinks[lpos];
-			console.log(l.target);
+//			console.log(l.target);
 			var link = {
 				source: l.target.index,
 				target: l.source.index
@@ -929,7 +940,7 @@ window.ProjectGraph = {
 			ProjectGraph.Nodes[i].index = i;
 		}
 //		ProjectGraph.LinkMap.sort();
-		console.log(ProjectGraph.LinkMap);
+//		console.log(ProjectGraph.LinkMap);
 		ProjectGraph.HiddenNodes = new Array();
 		ProjectGraph.HiddenLinks = new Array();
 		// redraw
@@ -958,16 +969,16 @@ window.ProjectGraph = {
 		var avgx = d.x/d.count;
 		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
-		var scale = 0.075;
+		var padding = 0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = ProjectGraph.width/(maxx-minx);
 		var rzoom = ProjectGraph.height/(maxy-miny);
 		// whichever zoom is smaller (to fit it in the viewscreen)
 		if(dzoom<rzoom){
-			ProjectGraph.Zoompos = dzoom - scale;
+			ProjectGraph.Zoompos = dzoom - padding;
 		}
 		else{
-			ProjectGraph.Zoompos = rzoom - scale;
+			ProjectGraph.Zoompos = rzoom - padding;
 		}	
 		// Calculate Translation
 		ProjectGraph.calculateTranslation(avgx,avgy);
@@ -990,3 +1001,4 @@ window.ProjectGraph = {
 		ProjectGraph.zoom.translate([panx, pany]);
 	}
 }
+
