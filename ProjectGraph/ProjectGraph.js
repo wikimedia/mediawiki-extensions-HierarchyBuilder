@@ -358,10 +358,7 @@ window.ProjectGraph = {
 		
 		newNodes.attr("class", "node context-menu-one box menu-1");
 		newNodes.on("click", function(d) {
-			console.log(d);
-//			console.log(d.index);
 			ProjectGraph.SelectedNode = d.index;
-//			console.log(ProjectGraph.SelectedNode);
 			ProjectGraph.displayNodeInfo(d);
 			ProjectGraph.redraw(false);			
 		});
@@ -510,14 +507,11 @@ window.ProjectGraph = {
 		}
 		allHourBarFills.style("fill", fillcolor);
 		var width = function(d) {
-			console.log(d.index+" "+d.position+" "+d.displayName);
-
 			var link = ProjectGraph.findLink(d.position,
 				ProjectGraph.SelectedNode);
 			if (link == null) {
 				return "none";
 			}
-			console.log(link);
 			var selectedNode = ProjectGraph.Nodes[ProjectGraph.SelectedNode];
 			var scaledHoursPct = 0;
 			
@@ -773,7 +767,6 @@ window.ProjectGraph = {
 				}
 				var link = ProjectGraph.findLink(personNode.index,
 					taskNode.index);
-//					console.log("link"+link);
 				if (link == null) {
 					link = ProjectGraph.addLink(personNode.index,
 						taskNode.index);
@@ -791,7 +784,6 @@ window.ProjectGraph = {
 	},
 	menu: function(){
 		// find the node according to the index and set it locally
-		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
@@ -862,13 +854,12 @@ window.ProjectGraph = {
 		d3.selectAll(".link").filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
-				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
-				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
+//				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
+//				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
 				ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(l),1);
 				ProjectGraph.HiddenLinks.push(l);				
 			}
 		});
-		console.log(ProjectGraph.LinkMap);
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
 		if(node.elaborated){
@@ -885,9 +876,6 @@ window.ProjectGraph = {
 				var pos = ProjectGraph.Nodes.indexOf(n);
 				if(pos > -1){
 					if((n.displayName == node.displayName)||(n.elaborated == false)){
-						if(node.position==1){
-							console.log(node);
-						}
 						ProjectGraph.HiddenNodes.push(ProjectGraph.Nodes[pos]);
 						ProjectGraph.Nodes.splice(pos,1);						
 					}
@@ -902,9 +890,6 @@ window.ProjectGraph = {
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
 		}
-		ProjectGraph.HiddenLinks.forEach(function(l){
-			console.log(l);
-		});
 		// Properly remove the nodes from the graph
 		ProjectGraph.redraw(true);
 	},
@@ -914,16 +899,13 @@ window.ProjectGraph = {
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
 			var node = ProjectGraph.HiddenNodes[npos];
 			ProjectGraph.Nodes.push(node);
-			if(node.position==1){
-				console.log(node);
-			}
 		}
 		// cycle through all of the links and re-add them back to a list
 		// to get added back to the graph
 		for(var lpos = 0; lpos<ProjectGraph.HiddenLinks.length; lpos++){
 			var l = ProjectGraph.HiddenLinks[lpos];
-
-			var link = ProjectGraph.addLink(l.target.index, l.source.index);			
+			var link = {target:l.target.index, index:l.source.index};
+//			var link = ProjectGraph.addLink(l.target.index, l.source.index);			
 				link.personHoursPct = l.personHoursPct;
 				link.personHours = l.personHours;				
 				link.taskHoursPct = l.taskHoursPct; //person.delivery;
