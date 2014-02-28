@@ -33,7 +33,8 @@ window.VikiJS = {
 	MIN_SCALE: .3,
 	MAX_SCALE: 2,
 	LINK_OPACITY: 0.2,
-
+	INCOMING_LINK_COLOR: "#23A4FF",
+	OUTGOING_LINK_COLOR: "#2ECC71",
 	GraphDiv: null,
 	DetailsDiv: null,
 	SelectedNode: null,
@@ -186,7 +187,7 @@ window.VikiJS = {
 			   .attr("markerHeight", 12)
 			   .attr("markerUnits", "userSpaceOnUse")
 			   .attr("orient", "auto")
-			   .attr("fill", "#2ecc71")
+			   .attr("fill", VikiJS.OUTGOING_LINK_COLOR)
 			   .attr("stroke-width", "2")
 			.append("path")
 			   .attr("d", "M0,-8L20,0L0,8");
@@ -200,7 +201,7 @@ window.VikiJS = {
 			   .attr("markerHeight", 12)
 			   .attr("markerUnits", "userSpaceOnUse")
 			   .attr("orient", "auto")
-			   .attr("fill", "#23A4FF")
+			   .attr("fill", VikiJS.INCOMING_LINK_COLOR)
 			   .attr("stroke-width", "2")
 			.append("path")
 			   .attr("d", "M0,-8L20,0L0,8");
@@ -287,11 +288,11 @@ window.VikiJS = {
 					else
 						return x + width;
 */
-					return x + width/2;
+					return d.source.x + d.source.nodeWidth/2;
 				});
 				VikiJS.LinkSelection.attr("y1", function(d) {
-/*					var offset = 8;	// magic number that makes the graph look better
-
+					var offset = 8;	// magic number that makes the graph look better
+/*
 					var sourceWidth = d.source.nodeWidth;
 					var sourceHeight = d.source.nodeHeight;
 					var targetWidth = d.target.nodeWidth;
@@ -316,7 +317,7 @@ window.VikiJS = {
 					else
 						return y - height*((405.0-angle)/90.0) + offset;
 */
-					return y - height/2 + offset;
+					return d.source.y - d.source.nodeHeight/2 + offset;
 				});
 				VikiJS.LinkSelection.attr("x2", function(d) {
 /*
@@ -350,11 +351,11 @@ window.VikiJS = {
 					else
 						return x - offset;
 */
-					return x + width/2;
+					return d.target.x + d.target.nodeWidth/2;
 				});
 				VikiJS.LinkSelection.attr("y2", function(d) {
-/*					var offset = 8;	// magic number that makes the graph look better
-
+					var offset = 8;	// magic number that makes the graph look better
+/*
 					var sourceWidth = d.source.nodeWidth;
 					var sourceHeight = d.source.nodeHeight;
 					var targetWidth = d.target.nodeWidth;
@@ -379,7 +380,7 @@ window.VikiJS = {
 					else
 						return y - height*(1-(405.0-angle)/90.0) + offset;
 */
-					return y - height/2 + offset;
+					return d.target.y - d.target.nodeHeight/2 + offset;
 				});
 				//self.log("************************************");
 			}
@@ -494,16 +495,16 @@ window.VikiJS = {
 		VikiJS.LinkSelection.style("stroke", function(d) {
 			if(typeof d.source.index !== 'undefined') {
 				if(d.source.index == VikiJS.SelectedNode)
-					return "#2ecc71";
+					return VikiJS.OUTGOING_LINK_COLOR;
 				else if(d.target.index == VikiJS.SelectedNode)
-					return "#23A4FF";
+					return VikiJS.INCOMING_LINK_COLOR;
 				else return "black";
 			}
 			else {
 				if(d.source == VikiJS.SelectedNode)
-					return "#2ecc71";
+					return VikiJS.OUTGOING_LINK_COLOR;
 				else if(d.target == VikiJS.SelectedNode)
-					return "#23A4FF";
+					return VikiJS.INCOMING_LINK_COLOR;
 				else return "black";
 			}
 		});
