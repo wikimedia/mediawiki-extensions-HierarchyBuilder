@@ -319,6 +319,7 @@ window.ProjectGraph = {
 	},
 
 	redraw: function(layout) {
+
 		ProjectGraph.LinkSelection = 
 		ProjectGraph.LinkSelection.data(ProjectGraph.Links, function(d){
 			return ProjectGraph.Links.indexOf(d);
@@ -356,7 +357,7 @@ window.ProjectGraph = {
 	
 		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "node context-menu-one box menu-1");
+		newNodes.attr("class", "node");
 		newNodes.on("click", function(d) {
 			ProjectGraph.SelectedNode = d.index;
 			ProjectGraph.displayNodeInfo(d);
@@ -434,7 +435,7 @@ window.ProjectGraph = {
 			if (d.index == ProjectGraph.SelectedNode) {
 				return 1;
 			} else if (ProjectGraph.findLink(ProjectGraph.SelectedNode,
-				d.index) != null) {
+				d.position) != null) {
 				return 1;
 			} else {
 				return ProjectGraph.LINK_OPACITY;
@@ -890,6 +891,15 @@ window.ProjectGraph = {
 	    		ProjectGraph.Nodes.splice(pos, 1);
 			}
 		}
+		ProjectGraph.HiddenNodes.forEach(function(n){
+			ProjectGraph.Links.forEach(function(l){
+				if((n.displayName==l.target.displayName)||(n.displayName==l.source.displayName)){
+					var link = ProjectGraph.Links.splice(ProjectGraph.Links.indexOf(l),1);
+					ProjectGraph.HiddenLinks.push(link[0]);
+				}
+			});
+		})
+
 		// Properly remove the nodes from the graph
 		ProjectGraph.redraw(true);
 	},
