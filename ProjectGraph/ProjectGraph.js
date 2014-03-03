@@ -19,90 +19,91 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-window.ProjectGraph = {
+function ProjectGraph(){
 
-	PROJECT_TYPE: 0,
-	PERSON_TYPE: 1,
+	this.PROJECT_TYPE = 0;
+	this.PERSON_TYPE = 1;
 
-	MAX_BAR_WIDTH: 60,
-	BAR_HEIGHT: 6,
-	SELECTED_IMAGE_DIMENSION: 30,
-	UNSELECTED_IMAGE_DIMENSION: 20,
+	this.MAX_BAR_WIDTH = 60;
+	this.BAR_HEIGHT = 6;
+	this.SELECTED_IMAGE_DIMENSION = 30;
+	this.UNSELECTED_IMAGE_DIMENSION = 20;
 
-	MIN_SCALE: .3,
-	MAX_SCALE: 2,
-	LINK_OPACITY: 0.4,
+	this.MIN_SCALE = .3;
+	this.MAX_SCALE = 2;
+	this.LINK_OPACITY = 0.4;
 
-	FiscalYear: null,
-	GraphDiv: null,
-	DetailsDiv: null,
-	SelectedNode: null,
-	Nodes: new Array(),
-	Links: new Array(),
-	LinkMap: new Array(),
-	Force: null,
-	LinkSelection: null,
-	NodeSelection: null,
-	ImagePath: null,
-	Zoompos: 1, // to store values for zoom scale
-	NodeCounter: 0,
-	HiddenNodes: new Array(),
-	HiddenLinks: new Array(),	
-	HiddenLinkMap: new Array(),
-	drawGraph: function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
+	this.FiscalYear = null;
+	this.GraphDiv = null;
+	this.DetailsDiv = null;
+	this.SelectedNode = null;
+	this.Nodes = new Array();
+	this.Links = new Array();
+	this.LinkMap = new Array();
+	this.Force = null;
+	this.LinkSelection = null;
+	this.NodeSelection = null;
+	this.ImagePath = null;
+	this.Zoompos = 1; // to store values for zoom scale
+	this.NodeCounter = 0;
+	this.HiddenNodes = new Array();
+	this.HiddenLinks = new Array();
+	this.HiddenLinkMap = new Array();
+	var self = this;
+	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
 
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
 
-		ProjectGraph.FiscalYear = fiscalYear;
-		ProjectGraph.GraphDiv = graphDiv;
-		ProjectGraph.DetailsDiv = detailsDiv;
-		ProjectGraph.ImagePath = imagePath;
+		this.FiscalYear = fiscalYear;
+		this.GraphDiv = graphDiv;
+		this.DetailsDiv = detailsDiv;
+		this.ImagePath = imagePath;
 
-		ProjectGraph.INITIAL_HEIGHT = initialHeight;
-		ProjectGraph.INITIAL_WIDTH = initialWidth;
-		ProjectGraph.height = ProjectGraph.INITIAL_HEIGHT;
-		ProjectGraph.width = ProjectGraph.INITIAL_WIDTH;
+		this.INITIAL_HEIGHT = initialHeight;
+		this.INITIAL_WIDTH = initialWidth;
+		this.height = this.INITIAL_HEIGHT;
+		this.width = this.INITIAL_WIDTH;
 		
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
 		var margin = 10;
 		// the details divider will get 3/5 of the space
-		$("#"+ProjectGraph.DetailsDiv).width((ProjectGraph.width - margin)* 3/5);
+		$("#"+this.DetailsDiv).width((this.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
-		$("#projectgraph-zoom-slider").width((ProjectGraph.width - margin) * 2/5);
+		$("#projectgraph-zoom-slider").width((this.width - margin) * 2/5);
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
-		$(".projectgraph-detail-panel").width(ProjectGraph.width - margin);
+		$(".projectgraph-detail-panel").width(this.width - margin);
 		
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
 		// of an equation formed from gathering data from several different view boxes (300px to 700px). 
 		// The input of this equation is also the lowest value of either height or width.
-		if(ProjectGraph.height>ProjectGraph.width){
-			ProjectGraph.Zoompos = ProjectGraph.width*(ProjectGraph.width*-0.0005+1.2)/400;
+		if(this.height>this.width){
+			this.Zoompos = this.width*(this.width*-0.0005+1.2)/400;
 		}
 		else{
-			ProjectGraph.Zoompos = ProjectGraph.height*(ProjectGraph.height*-0.0005+1.2)/400;
+			this.Zoompos = this.height*(this.height*-0.0005+1.2)/400;
 		}
 		
 		// create a new zoom slider
 		var zoom_slider = $("#projectgraph-zoom-slider").slider(
 		{
 		  orientation: "horizontal",//make the slider horizontal
-		  min: ProjectGraph.MIN_SCALE , // set the lowest value
-		  max: ProjectGraph.MAX_SCALE, // set the highest value
+		  min: this.MIN_SCALE , // set the lowest value
+		  max: this.MAX_SCALE, // set the highest value
 		  step: .001, // set the value for each individual increment
 		  value: ProjectGraph.Zoompos,
 		  slide: function( event, ui ) {
 			// set the zoom scale equal to the current value of the slider
 			// which is the current index
-		        ProjectGraph.Zoompos = ui.value;
+		        self.Zoompos = ui.value;
 			// call the slide function to zoom/pan using the slider
-		        ProjectGraph.slide(ProjectGraph.width,ProjectGraph.height);
+		        self.slide(self.width,self.height);
 		  }
 		});
 		$('body').append("<div class=\"contextMenu\" id=\"menu\"><ul>"
@@ -134,60 +135,60 @@ window.ProjectGraph = {
 			employeeNumberArray = new Array();
 		}
 
-		if (ProjectGraph.FiscalYear == null ||
-			ProjectGraph.FiscalYear.length == 0) {
+		if (this.FiscalYear == null ||
+			this.FiscalYear.length == 0) {
 			alert("You must supply a fiscal year.");
 			return;
 		} else {
 			var yearpattern = /^[0-9]{4}$/;
-			if (!yearpattern.test(ProjectGraph.FiscalYear)) {
+			if (!yearpattern.test(this.FiscalYear)) {
 				alert("Year invalid. Must be of the form YYYY.");
 				return;
 			}
 		}
 
 		for (var i = 0; i < chargeNumberArray.length; i++) {
-			ProjectGraph.addProjectNode(chargeNumberArray[i], chargeNumberArray[i]);
+			this.addProjectNode(chargeNumberArray[i], chargeNumberArray[i]);
 		}
 		for (var i = 0; i < employeeNumberArray.length; i++) {
-			ProjectGraph.addPersonNode(personNames[i], employeeNumberArray[i]);
+			this.addPersonNode(personNames[i], employeeNumberArray[i]);
 		}
 		
 		var nodes = new Array();
-		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
-			nodes.push(ProjectGraph.Nodes[i]);
+		for (var i = 0; i < this.Nodes.length; i++) {
+			nodes.push(this.Nodes[i]);
 		}
 		for (var i = 0; i < nodes.length; i++) {
-			ProjectGraph.elaborateNode(nodes[i]);
+			this.elaborateNode(nodes[i]);
 		}
 
 		initializeGraph();
 
-		ProjectGraph.Force.nodes(ProjectGraph.Nodes)
-		ProjectGraph.Force.links(ProjectGraph.Links)
+		this.Force.nodes(this.Nodes)
+		this.Force.links(this.Links)
 
-		ProjectGraph.redraw(true);
+		this.redraw(true);
 
 		function initializeGraph() {
 			var padding = 20;
 
-			ProjectGraph.zoom = d3.behavior.zoom()
-			   .on("zoom", ProjectGraph.redrawZoom)
+			self.zoom = d3.behavior.zoom()
+			   .on("zoom", self.redrawZoom)
 			  // .scale(ProjectGraph.Zoompos)
-			   .scaleExtent([ProjectGraph.MIN_SCALE, ProjectGraph.MAX_SCALE]);
+			   .scaleExtent([self.MIN_SCALE, self.MAX_SCALE]);
 			
-			var svg = d3.select("#" + ProjectGraph.GraphDiv)
+			var svg = d3.select("#" + self.GraphDiv)
 			   .append("svg:svg")
-			      .attr("width", ProjectGraph.width)
-			      .attr("height", ProjectGraph.height)
+			      .attr("width", self.width)
+			      .attr("height", self.height)
 			      .attr("pointer-events", "all")
 			   .append("svg:g")
-			      .call(ProjectGraph.zoom)
+			      .call(self.zoom)
 			      .on("dblclick.zoom", null)
-			ProjectGraph.SVG = svg
+			self.SVG = svg
 			svg.append("svg:rect")
-			   .attr("width", ProjectGraph.width)
-			   .attr("height", ProjectGraph.height)
+			   .attr("width", self.width)
+			   .attr("height", self.height)
 			   .attr("fill", "white");
 
 			svg.append("svg:g")
@@ -196,12 +197,12 @@ window.ProjectGraph = {
 			d3.select("#moveable").append("svg:g").attr("id", "links");
 			d3.select("#moveable").append("svg:g").attr("id", "nodes");
 				
-			ProjectGraph.Force = d3.layout.force();
-			ProjectGraph.Force.gravity(0.02)
-			ProjectGraph.Force.linkStrength(1.25)
+			self.Force = d3.layout.force();
+			self.Force.gravity(0.02)
+			self.Force.linkStrength(1.25)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
-			ProjectGraph.Force.linkDistance(
+			self.Force.linkDistance(
 				function(n){
 					// if the source and target has been elaborated, set the variable child to true
 					var child = (n.source.elaborated && n.target.elaborated);
@@ -209,59 +210,58 @@ window.ProjectGraph = {
 					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
 				}
 			)
-			ProjectGraph.Force.charge(-3000)
-			ProjectGraph.Force.friction(.675)
-			ProjectGraph.Force.size([ProjectGraph.width, ProjectGraph.height])
-			ProjectGraph.Force.on("tick", tick);
+			self.Force.charge(-3000)
+			self.Force.friction(.675)
+			self.Force.size([self.width, self.height])
+			self.Force.on("tick", tick);
 
-			ProjectGraph.LinkSelection =
+			self.LinkSelection =
 				svg.select("#links").selectAll(".link");
 
-			ProjectGraph.NodeSelection =
+			self.NodeSelection =
 				svg.select("#nodes").selectAll(".node");
 
 			
 	
 			function tick() {
 
-				ProjectGraph.NodeSelection.attr("transform", function(d) {
+				self.NodeSelection.attr("transform", function(d) {
 					return "translate(" + d.x + "," + d.y + ")";
 				});
-				ProjectGraph.LinkSelection.attr("x1", function(d) {
+				self.LinkSelection.attr("x1", function(d) {
 					return d.source.x;
 				});
-				ProjectGraph.LinkSelection.attr("y1", function(d) {
+				self.LinkSelection.attr("y1", function(d) {
 					return d.source.y;
 				});
-				ProjectGraph.LinkSelection.attr("x2", function(d) {
+				self.LinkSelection.attr("x2", function(d) {
 					return d.target.x;
 				});
-				ProjectGraph.LinkSelection.attr("y2", function(d) {
+				self.LinkSelection.attr("y2", function(d) {
 					return d.target.y;
 				});
 			}
 			// Autozoom on startup
-			ProjectGraph.slide();
+			self.slide();
 		}
-	},
-
-	slide: function(){		
+	}
+	ProjectGraph.prototype.slide = function(){		
 		// set target_zoom to the logged zoom index
-        target_zoom = ProjectGraph.Zoompos;
+        target_zoom = this.Zoompos;
 	
-        if(target_zoom>ProjectGraph.MAX_SCALE){target_zoom = ProjectGraph.MAX_SCALE;}
-        if(target_zoom<ProjectGraph.MIN_SCALE){target_zoom = ProjectGraph.MIN_SCALE;}
+        if(target_zoom>this.MAX_SCALE){target_zoom = this.MAX_SCALE;}
+        if(target_zoom<this.MIN_SCALE){target_zoom = this.MIN_SCALE;}
 
 		// calculate the center of the graph by dividing the width and height by two
-        center = [ProjectGraph.width / 2, ProjectGraph.height / 2];
+        center = [this.width / 2, this.height / 2];
 		// set the scale extent
-        extent = ProjectGraph.zoom.scaleExtent();
+        extent = this.zoom.scaleExtent();
 		// and the translation vectors
-        translate = ProjectGraph.zoom.translate();
+        translate = this.zoom.translate();
         translation = [];
         l = [];
 		// setup a json object with the translation x and y values with the zoom scale
-        view = {x: translate[0], y: translate[1], k: ProjectGraph.zoom.scale()};
+        view = {x: translate[0], y: translate[1], k: this.zoom.scale()};
 
 	    translation = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
 	    view.k = target_zoom;
@@ -273,108 +273,108 @@ window.ProjectGraph = {
 	    view.x += center[0] - l[0];
 	    view.y += center[1] - l[1];
 	    // now that the values have been calculated, call the controls and zoom
-	    ProjectGraph.interpolateZoom([view.x, view.y], view.k);
+	    this.interpolateZoom([view.x, view.y], view.k);
 
-	},
+	}
 
-	interpolateZoom: function(translate, scale) {
+	ProjectGraph.prototype.interpolateZoom = function(translate, scale) {
 	    var self = this;
 	    // zoom with the set scale and translation values
 	    return d3.transition().duration(50).tween("zoom", function () {
-	        var iTranslate = d3.interpolate(ProjectGraph.zoom.translate(), translate),
-	            iScale = d3.interpolate(ProjectGraph.zoom.scale(), scale);
+	        var iTranslate = d3.interpolate(self.zoom.translate(), translate),
+	            iScale = d3.interpolate(self.zoom.scale(), scale);
 	        return function (t) {
-	            ProjectGraph.zoom
+	            self.zoom
 	                .scale(iScale(t))
 	                .translate(iTranslate(t));
-	            ProjectGraph.zoomed();
+	            self.zoomed();
 	        };
 	    });
-	},
+	}
 
-	zoomed: function() {
-	// access the element movable and move to the scale and translation vectors
-	d3.select("#moveable").attr("transform",
-	        "translate(" + ProjectGraph.zoom.translate() + ")" +
-	        "scale(" + ProjectGraph.zoom.scale() + ")"
+	ProjectGraph.prototype.zoomed = function() {
+		var self = this;
+		// access the element movable and move to the scale and translation vectors
+		d3.select("#moveable").attr("transform",
+		        "translate(" + self.zoom.translate() + ")" +
+		        "scale(" + self.zoom.scale() + ")"
 	    );
-	},
-
-	redrawZoom: function() {		
+	}
+	ProjectGraph.prototype.redrawZoom = function() {		
 		ProjectGraph.Zoompos = d3.event.scale;
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+ProjectGraph.Zoompos+")");
 		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
-	},
+	}
 
-	redraw: function(layout) {
-		ProjectGraph.LinkSelection = 
-		ProjectGraph.LinkSelection.data(ProjectGraph.Links, function(d){
-			return ProjectGraph.Links.indexOf(d);
+	ProjectGraph.prototype.redraw = function(layout) {
+		this.LinkSelection = 
+		this.LinkSelection.data(this.Links, function(d){
+			return self.Links.indexOf(d);
 		});
-		ProjectGraph.LinkSelection.exit().remove();
+		this.LinkSelection.exit().remove();
 
-		var newLinks = ProjectGraph.LinkSelection.enter().append("svg:line");
+		var newLinks = this.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link");
 		newLinks.style("stroke", "#23A4FF");
 
-		ProjectGraph.LinkSelection.style("stroke-width", function(d) {
+		this.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == ProjectGraph.SelectedNode ||
-					d.target.index == ProjectGraph.SelectedNode ? 2 : 1;
+				return d.source.index == self.SelectedNode ||
+					d.target.index == self.SelectedNode ? 2 : 1;
 			} else {
-				return d.source == ProjectGraph.SelectedNode ||
-					d.target == ProjectGraph.SelectedNode ? 2 : 1;
+				return d.source == self.SelectedNode ||
+					d.target == self.SelectedNode ? 2 : 1;
 			}
 		});
-		ProjectGraph.LinkSelection.style("opacity", function(d) {
+		this.LinkSelection.style("opacity", function(d) {
 			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == ProjectGraph.SelectedNode ||
-					d.target.index == ProjectGraph.SelectedNode ? 1 : ProjectGraph.LINK_OPACITY;
+				return d.source.index == self.SelectedNode ||
+					d.target.index == self.SelectedNode ? 1 : self.LINK_OPACITY;
 			} else {
-				return d.source == ProjectGraph.SelectedNode ||
-					d.target == ProjectGraph.SelectedNode ? 1 : ProjectGraph.LINK_OPACITY;
+				return d.source == self.SelectedNode ||
+					d.target == self.SelectedNode ? 1 : self.LINK_OPACITY;
 			}
 		});
 
-		ProjectGraph.NodeSelection =
-			ProjectGraph.NodeSelection.data(ProjectGraph.Nodes, function(d){
-				return ProjectGraph.Nodes.indexOf(d);
+		this.NodeSelection =
+			this.NodeSelection.data(this.Nodes, function(d){
+				return self.Nodes.indexOf(d);
 			});
-		ProjectGraph.NodeSelection.exit().remove();
+		this.NodeSelection.exit().remove();
 	
-		var newNodes = ProjectGraph.NodeSelection.enter().append("svg:g");
+		var newNodes = this.NodeSelection.enter().append("svg:g");
 		
 		newNodes.attr("class", "node context-menu-one box menu-1");
 		newNodes.on("click", function(d) {
-			ProjectGraph.SelectedNode = d.index;
-			ProjectGraph.displayNodeInfo(d);
-			ProjectGraph.redraw(false);			
+			self.SelectedNode = d.index;
+			self.displayNodeInfo(d);
+			self.redraw(false);			
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
 		});
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
-			ProjectGraph.SelectedNode = d.index;
-			ProjectGraph.menu();
+			self.SelectedNode = d.index;
+			self.menu();
 		});
 
-		var drag = ProjectGraph.Force.drag()
+		var drag = this.Force.drag()
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
 
-		newNodes.call(ProjectGraph.Force.drag);
+		newNodes.call(this.Force.drag);
 		
 		var newToolTips = newNodes.append("svg:title");
 		newToolTips.attr("class", "tooltip");
 		var allToolTips = d3.selectAll(".tooltip");
 		allToolTips.text(function(d) {
 			var title = d.displayName;
-			if (d.index != ProjectGraph.SelectedNode) {
-				var link = ProjectGraph.findLink(d.index,
-					ProjectGraph.SelectedNode);
+			if (d.index != self.SelectedNode) {
+				var link = self.findLink(d.index,
+					self.SelectedNode);
 				if (link != null) {
-					if (d.type == ProjectGraph.PERSON_TYPE) {
+					if (d.type == self.PERSON_TYPE) {
 						if (typeof link.taskHours !== 'undefined' &&
 							link.taskHours != null &&
 							typeof link.taskHoursPct !== 'undefined' &&
@@ -382,7 +382,7 @@ window.ProjectGraph = {
 							title += " (" + link.taskHours +
 								" hours/" + link.taskHoursPct + "%)]";
 						}
-					} else if (d.type == ProjectGraph.PROJECT_TYPE) {
+					} else if (d.type == self.PROJECT_TYPE) {
 						if (typeof link.personHours !== 'undefined' &&
 							link.personHours != null &&
 							typeof link.personHoursPct !== 'undefined' &&
@@ -404,45 +404,45 @@ window.ProjectGraph = {
 		newImages.attr("onerror", "window.ProjectGraph.setDefaultImage(this);");
 
 		//var allImages = d3.selectAll(".icon");
-		var allImages = ProjectGraph.NodeSelection.selectAll(".icon");
+		var allImages = this.NodeSelection.selectAll(".icon");
 		allImages.attr("x", function(d) {
-			return d.index == ProjectGraph.SelectedNode ? -1*ProjectGraph.SELECTED_IMAGE_DIMENSION/2: -1*ProjectGraph.UNSELECTED_IMAGE_DIMENSION/2;
+			return d.index == self.SelectedNode ? -1*self.SELECTED_IMAGE_DIMENSION/2: -1*self.UNSELECTED_IMAGE_DIMENSION/2;
 		});
 		allImages.attr("y", function(d) {
-			return d.index == ProjectGraph.SelectedNode ? -1*ProjectGraph.SELECTED_IMAGE_DIMENSION/2 : -1*ProjectGraph.UNSELECTED_IMAGE_DIMENSION/2;
+			return d.index == self.SelectedNode ? -1*self.SELECTED_IMAGE_DIMENSION/2 : -1*self.UNSELECTED_IMAGE_DIMENSION/2;
 		});
 
 		allImages.attr("width", function(d) {
-			return d.index == ProjectGraph.SelectedNode ? ProjectGraph.SELECTED_IMAGE_DIMENSION : ProjectGraph.UNSELECTED_IMAGE_DIMENSION;
+			return d.index == self.SelectedNode ? self.SELECTED_IMAGE_DIMENSION : self.UNSELECTED_IMAGE_DIMENSION;
 		});
 		allImages.attr("height", function(d) {
-			return d.index == ProjectGraph.SelectedNode ? ProjectGraph.SELECTED_IMAGE_DIMENSION : ProjectGraph.UNSELECTED_IMAGE_DIMENSION;
+			return d.index == self.SelectedNode ? self.SELECTED_IMAGE_DIMENSION : self.UNSELECTED_IMAGE_DIMENSION;
 		});
 
 		allImages.style("opacity", function(d) {
-			if (d.index == ProjectGraph.SelectedNode) {
+			if (d.index == self.SelectedNode) {
 				return 1;
-			} else if (ProjectGraph.findLink(ProjectGraph.SelectedNode,
+			} else if (self.findLink(self.SelectedNode,
 				d.index) != null) {
 				return 1;
 			} else {
-				return ProjectGraph.LINK_OPACITY;
+				return self.LINK_OPACITY;
 			}
 		});
 
 		var newLabels = newNodes.append("svg:text");
 		// dx, dy: magic numbers that help make pretty indexing!
 		newLabels.attr("dy", function(d) {
-			return d.type == ProjectGraph.PROJECT_TYPE ? 20 : -2;
+			return d.type == self.PROJECT_TYPE ? 20 : -2;
 		});
 		newLabels.attr("dx", function(d) {
-			if(d.type == ProjectGraph.PROJECT_TYPE)
+			if(d.type == self.PROJECT_TYPE)
 				return 0;
 			else
-				return d.index == ProjectGraph.SelectedNode ? 25 : 15;
+				return d.index == self.SelectedNode ? 25 : 15;
 		});
 		newLabels.attr("text-anchor", function(d) {
-			return (d.type == ProjectGraph.PROJECT_TYPE ? "middle" : "right");
+			return (d.type == self.PROJECT_TYPE ? "middle" : "right");
 		});
 		newLabels.text(function(d) { return d.displayName });
 
@@ -451,8 +451,8 @@ window.ProjectGraph = {
 		newHourBarBacks.attr("class", "hourbarback");
 		newHourBarFills.attr("class", "hourbarfill");
 		var x = function(d) {
-			if (d.type == ProjectGraph.PROJECT_TYPE) {
-				return -1*ProjectGraph.MAX_BAR_WIDTH/2;		// center bar under folder
+			if (d.type == self.PROJECT_TYPE) {
+				return -1*self.MAX_BAR_WIDTH/2;		// center bar under folder
 			} else {
 				return 15;					// magic number - put bar to right of image 
 			}
@@ -460,24 +460,24 @@ window.ProjectGraph = {
 		newHourBarBacks.attr("x", x);
 		newHourBarFills.attr("x", x);
 		var y = function(d) {
-			return d.type == ProjectGraph.PROJECT_TYPE ? 25 : 3;	// another magic number
+			return d.type == self.PROJECT_TYPE ? 25 : 3;	// another magic number
 		}
 		newHourBarBacks.attr("y", y);
 		newHourBarFills.attr("y", y);
-		newHourBarBacks.attr("height", ProjectGraph.BAR_HEIGHT);
-		newHourBarFills.attr("height", ProjectGraph.BAR_HEIGHT);
-		newHourBarBacks.attr("width", ProjectGraph.MAX_BAR_WIDTH);
+		newHourBarBacks.attr("height", this.BAR_HEIGHT);
+		newHourBarFills.attr("height", this.BAR_HEIGHT);
+		newHourBarBacks.attr("width", this.MAX_BAR_WIDTH);
 		newHourBarBacks.style("stroke", "none");
 		newHourBarFills.style("stroke", "none");
 
 		// get the selected node
-		var selected = ProjectGraph.findNode('index',ProjectGraph.SelectedNode);
+		var selected = this.findNode('index',this.SelectedNode);
 		var allHourBarBacks = d3.selectAll(".hourbarback");
 		var allHourBarFills = d3.selectAll(".hourbarfill");
 		var backcolor = function(d) {
 
-			var link = ProjectGraph.findLink(d.position,
-				ProjectGraph.SelectedNode);			
+			var link = self.findLink(d.position,
+				self.SelectedNode);			
 			// if the link is null, or the node has not been elaborated
 			// do not display the bar
 			if ((link == null)||(selected == null)||(!selected.elaborated)) {
@@ -487,8 +487,8 @@ window.ProjectGraph = {
 		}
 		allHourBarBacks.style("fill", backcolor);
 		var fillcolor = function(d) {
-			var link = ProjectGraph.findLink(d.position,
-				ProjectGraph.SelectedNode);
+			var link = self.findLink(d.position,
+				self.SelectedNode);
 			if (link == null) {
 				return "none";
 			}
@@ -497,24 +497,24 @@ window.ProjectGraph = {
 		allHourBarFills.style("fill", fillcolor);
 
 		var width = function(d) {
-			console.log(d.index+" "+ProjectGraph.SelectedNode+" "+d.displayName);
-			var link = ProjectGraph.findLink(d.position,
-				ProjectGraph.SelectedNode);
+			console.log(d.index+" "+self.SelectedNode+" "+d.displayName);
+			var link = self.findLink(d.position,
+				self.SelectedNode);
 			if (link == null) {
 				return "none";
 			}
 //			console.log(link);
-			var selectedNode = ProjectGraph.Nodes[ProjectGraph.SelectedNode];
+			var selectedNode = self.Nodes[self.SelectedNode];
 			var scaledHoursPct = 0;
 			
-			if (d.type == ProjectGraph.PROJECT_TYPE) {
+			if (d.type == self.PROJECT_TYPE) {
 				if (typeof link.personHoursPct === 'undefined' ||
 					typeof selectedNode.maxHoursPct === 'undefined') {
 					return 0;
 				}
 				scaledHoursPct = link.personHoursPct /
 					selectedNode.maxHoursPct * 100.0;
-			} else if (d.type == ProjectGraph.PERSON_TYPE) {
+			} else if (d.type == self.PERSON_TYPE) {
 				if (typeof link.taskHoursPct === 'undefined' ||
 					typeof selectedNode.maxHoursPct === 'undefined') {
 					return 0;
@@ -524,108 +524,100 @@ window.ProjectGraph = {
 			} else {
 				return 0;
 			}
-			return scaledHoursPct * ProjectGraph.MAX_BAR_WIDTH / 100.0;
+			return scaledHoursPct * self.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
 
 		if (layout) {
-			ProjectGraph.Force.start();
+			this.Force.start();
 		}
-	},
-
-	addProjectNode: function(displayName, chargeNumber) {
-		var node = ProjectGraph.findNode("chargeNumber", chargeNumber);
+	}
+	ProjectGraph.prototype.addProjectNode = function(displayName, chargeNumber) {
+		var node = this.findNode("chargeNumber", chargeNumber);
 		if (node != null) {
 			return node;
 		}
-		node = ProjectGraph.newNode();
+		node = this.newNode();
 		node.displayName = displayName;
 		node.chargeNumber = chargeNumber;
-		node.info = ProjectGraph.formatNodeInfo(displayName);
-		node.type = ProjectGraph.PROJECT_TYPE;
-		node.imageURL = ProjectGraph.ImagePath + 'project.png';
+		node.info = this.formatNodeInfo(displayName);
+		node.type = this.PROJECT_TYPE;
+		node.imageURL = this.ImagePath + 'project.png';
 		node.projectPagesURL =
 			"http://info.mitre.org/phonebook/project.do?projectNumber=" +
-			chargeNumber + "&fiscalYear=" + ProjectGraph.FiscalYear;
+			chargeNumber + "&fiscalYear=" + this.FiscalYear;
 		node.maxHoursPct = 0;
-		ProjectGraph.addNode(node);
+		this.addNode(node);
 		return node;
-	},
-
-	addPersonNode: function(displayName, employeeNumber) {
-		var node = ProjectGraph.findNode("employeeNumber", employeeNumber);
+	}
+	ProjectGraph.prototype.addPersonNode = function(displayName, employeeNumber) {
+		var node = this.findNode("employeeNumber", employeeNumber);
 		if (node != null) {
 			return node;
 		}
-		node = ProjectGraph.newNode();
+		node = this.newNode();
 		node.displayName = displayName;
 		node.employeeNumber = employeeNumber;
-		node.info = ProjectGraph.formatNodeInfo(displayName);
-		node.type = ProjectGraph.PERSON_TYPE;
+		node.info = this.formatNodeInfo(displayName);
+		node.type = this.PERSON_TYPE;
 		node.imageURL = "http://info.mitre.org/phonebook/photos/big/" +
 			employeeNumber + ".jpg";
 		node.personPagesURL =
 			"http://info.mitre.org/people/app/person/" + employeeNumber;
-		ProjectGraph.addNode(node);
+		this.addNode(node);
 		return node;
-	},
-
-	newNode: function() {
+	}
+	ProjectGraph.prototype.newNode = function() {
 		var node = {
 			elaborated: false,
 			fix: false,
-			position: ProjectGraph.NodeCounter,
+			position: this.NodeCounter,
 		};
-		ProjectGraph.NodeCounter++;
+		this.NodeCounter++;
 		return node;
-	},
-
-	findNode: function(property, value) {
-		for (var i = 0; i < ProjectGraph.Nodes.length; i++) {
-			if (typeof ProjectGraph.Nodes[i][property] !== 'undefined' &&
-				ProjectGraph.Nodes[i][property] === value) {
-				return ProjectGraph.Nodes[i];
+	}
+	ProjectGraph.prototype.findNode = function(property, value) {
+		for (var i = 0; i < this.Nodes.length; i++) {
+			if (typeof this.Nodes[i][property] !== 'undefined' &&
+				this.Nodes[i][property] === value) {
+				return this.Nodes[i];
 			}
 		}
 		return null;
-	},
-
-	addNode: function(node) {
-		node.index = ProjectGraph.Nodes.push(node) - 1;
+	}
+	ProjectGraph.prototype.addNode = function(node) {
+		node.index = this.Nodes.push(node) - 1;
 		if (node.index == 0) {
-			ProjectGraph.SelectedNode = 0;
+			this.SelectedNode = 0;
 		}
-	},
-
-	addLink: function(node1, node2) {
+	}
+	ProjectGraph.prototype.addLink = function(node1, node2) {
 		var link = {
 			source: node1,
 			target: node2
 		};
-		ProjectGraph.Links.push(link);
-		ProjectGraph.LinkMap[node1 + "," + node2] = link;
-		ProjectGraph.LinkMap[node2 + "," + node1] = link;
+		this.Links.push(link);
+		this.LinkMap[node1 + "," + node2] = link;
+		this.LinkMap[node2 + "," + node1] = link;
 		return link;
-	},
-
-	findLink: function(from, to) {
-		var link = ProjectGraph.LinkMap[from + "," + to];
+	}
+	ProjectGraph.prototype.findLink = function(from, to) {
+		var link = this.LinkMap[from + "," + to];
 		if (typeof link === 'undefined') {
 			return null;
 		}
 		return link;
-	},
-
-	elaborateNode: function(node) {
+	}
+	ProjectGraph.prototype.elaborateNode = function(node) {
 		//console.log("elaborateNode");
-		if (node.type == ProjectGraph.PROJECT_TYPE) {
-			ProjectGraph.elaborateProjectNode(node);
-		} else if (node.type == ProjectGraph.PERSON_TYPE) {
-			ProjectGraph.elaboratePersonNode(node);
+		if (node.type == this.PROJECT_TYPE) {
+			this.elaborateProjectNode(node);
+		} else if (node.type == this.PERSON_TYPE) {
+			this.elaboratePersonNode(node);
 		}
-	},
-
-	elaborateProjectNode: function(node) {
+	}
+/*
+	ProjectGraph.prototype.elaborateProjectNode = function(node) {
 		var name = ProjectGraph.getTaskDelivery(node.index);
  //	console.log(ProjectGraph.LinkMap[0+","+1]);
 		if (name != null) {
@@ -635,51 +627,50 @@ window.ProjectGraph = {
 
 		ProjectGraph.displayNodeInfo(node);
 // 	console.log(ProjectGraph.LinkMap[0+","+1]);
-	},
-
-	elaboratePersonNode: function(node) {
+	}
+*/
+	ProjectGraph.prototype.elaboratePersonNode = function(node) {
 		//console.log("elaboratePersonNode");
-		ProjectGraph.getStaffTasks(node.index);
-	},
-
-	formatNodeInfo: function(name) {
+		this.getStaffTasks(node.index);
+	}
+	ProjectGraph.prototype.formatNodeInfo = function(name) {
 		var info = "<h4 id='projectgraph-header'>" + name + "</h4>";
 		return info;
-	},
-
-	displayNodeInfo: function(node) {
-		if (ProjectGraph.SelectedNode !== node.index) {
+	}
+	ProjectGraph.prototype.displayNodeInfo = function(node) {
+		if (this.SelectedNode !== node.index) {
 			return;
 		}
-		jQuery("#" + ProjectGraph.DetailsDiv).html(node.info);
-		if (node.type == ProjectGraph.PROJECT_TYPE) {
+		jQuery("#" + this.DetailsDiv).html(node.info);
+		if (node.type == this.PROJECT_TYPE) {
 			var buttons = " <a href='" + node.projectPagesURL +
-				"' target='_blank'><img src='" + ProjectGraph.ImagePath +
+				"' target='_blank'><img src='" + this.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
 				buttons += " <a class='icon'" +
 					"onclick='ProjectGraph.getTaskDelivery(" + node.index +
 					"); ProjectGraph.redraw(true);'><img src = '" +
-					ProjectGraph.ImagePath + "plus.png' /></a>";
+					this.ImagePath + "plus.png' /></a>";
 			}
-			var h4 = jQuery("#" + ProjectGraph.DetailsDiv + " h4");
+			var h4 = jQuery("#" + this.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
-		} else if (node.type == ProjectGraph.PERSON_TYPE) {
+		} else if (node.type == this.PERSON_TYPE) {
 			var buttons = " <a href='" + node.personPagesURL +
-				"' target='_blank'><img src='" + ProjectGraph.ImagePath +
+				"' target='_blank'><img src='" + this.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
 				buttons += " <a class='icon'" +
 					"onclick='ProjectGraph.getStaffTasks(" + node.index +
 					"); ProjectGraph.redraw(true);'><img src = '" +
-					ProjectGraph.ImagePath + "plus.png' /></a>";
+					this.ImagePath + "plus.png' /></a>";
 			}
 			var h4 = jQuery("#" + ProjectGraph.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		}
-	},
+	}
+/*
 
-	getTaskDelivery: function(index) {
+	ProjectGraph.prototype.getTaskDelivery = function(index) {
 // 	console.log(ProjectGraph.LinkMap[0+","+1]);
 		var taskNode = ProjectGraph.Nodes[index];
 		taskNode.elaborated = true;
@@ -728,60 +719,62 @@ window.ProjectGraph = {
 				}
 			}
 		}		
-	},
-	getStaffTasks: function(index) {
- 	console.log(ProjectGraph.LinkMap[0+","+1]);
-		var personNode = ProjectGraph.Nodes[index];
+	}
+*/
+	ProjectGraph.prototype.getStaffTasks = function(index) {
+ 	console.log(this.LinkMap[0+","+1]);
+		var personNode = this.Nodes[index];
 		personNode.elaborated = true;
 		personNode.info =
-			ProjectGraph.formatNodeInfo(personNode.displayName);
-		ProjectGraph.displayNodeInfo(personNode);
+			this.formatNodeInfo(personNode.displayName);
+		this.displayNodeInfo(personNode);
 		var tasks = queryStaffTasks(personNode.employeeNumber,
-			ProjectGraph.FiscalYear);
+			this.FiscalYear);
 		if (tasks == null) {
 			alert("Error getting data for employee " + node.employeeNumber +
-				" for fiscal year " + ProjectGraph.FiscalYear);
+				" for fiscal year " + this.FiscalYear);
 		} else {
-			parseStaffTasks(personNode, tasks);
+			this.parseStaffTasks(personNode, tasks);
 		}
 
-		function parseStaffTasks(personNode, tasks) {
-			for (var i = 0; i < tasks.length; i++) {
-				var task = tasks[i];
-				var taskNode =
-					ProjectGraph.findNode("chargeNumber", task.chargeNumber);
-				if (taskNode == null) {
-					taskNode =
-						ProjectGraph.addProjectNode(task.taskName,
-						task.chargeNumber);
-					taskNode.info = ProjectGraph.formatNodeInfo(taskNode.displayName);
-					ProjectGraph.displayNodeInfo(taskNode);
+	}
+	ProjectGraph.prototype.parseStaffTasks = function(personNode, tasks) {
+		for (var i = 0; i < tasks.length; i++) {
+			var task = tasks[i];
+			var taskNode =
+				this.findNode("chargeNumber", task.chargeNumber);
+			if (taskNode == null) {
+				taskNode =
+					this.addProjectNode(task.taskName,
+					task.chargeNumber);
+				taskNode.info = this.formatNodeInfo(taskNode.displayName);
+				this.displayNodeInfo(taskNode);
 
-				}
-				if (typeof personNode.maxHoursPct === 'undefined' ||
-					personNode.maxHoursPct == null ||
-					task.percent > personNode.maxHoursPct) {
-					personNode.maxHoursPct = task.percent;
-				}
-				var link = ProjectGraph.findLink(personNode.index,
-					taskNode.index);
-					console.log("link"+link);
-				if (link == null) {
-					link = ProjectGraph.addLink(personNode.index,
-						taskNode.index);
-				}
-					link.personHoursPct = task.percent;
-					link.personHours = task.hours;
 			}
+			if (typeof personNode.maxHoursPct === 'undefined' ||
+				personNode.maxHoursPct == null ||
+				task.percent > personNode.maxHoursPct) {
+				personNode.maxHoursPct = task.percent;
+			}
+			var link = this.findLink(personNode.index,
+				taskNode.index);
+				console.log("link"+link);
+			if (link == null) {
+				link = this.addLink(personNode.index,
+					taskNode.index);
+			}
+				link.personHoursPct = task.percent;
+				link.personHours = task.hours;
 		}
-	},
+	}
 
-	setDefaultImage: function(d) {
+/*
+	ProjectGraph.prototype.setDefaultImage = function(d) {
 		var newURL = ProjectGraph.ImagePath + 'nophoto.png';
 		d.removeAttribute("onerror");
 		d.setAttribute("href", newURL);
-	},
-	menu: function(){
+	}
+	ProjectGraph.prototype.menu = function(){
 		console.log(ProjectGraph.LinkMap);
 		// find the node according to the index and set it locally
 		//console.log("menu selected = "+ProjectGraph.SelectedNode);
@@ -850,8 +843,8 @@ window.ProjectGraph = {
 
 	        }
 		});
-	},
-	hide: function(node){
+	}
+	ProjectGraph.prototype.hide = function(node){
 		d3.selectAll(".link").filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
@@ -894,8 +887,8 @@ window.ProjectGraph = {
 
 		// Properly remove the nodes from the graph
 		ProjectGraph.redraw(true);
-	},
-	showAll: function(){
+	}
+	ProjectGraph.prototype.showAll = function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
 		for(var npos = 0; npos<ProjectGraph.HiddenNodes.length; npos++){
@@ -936,8 +929,8 @@ window.ProjectGraph = {
 		ProjectGraph.redraw(true);
 		// clear out hidden arrays
 
-	},	
-	zoomToFit: function(node){
+	}
+	ProjectGraph.prototype.zoomToFit = function(node){
 		// initialize the following variables of minimum x and y, and maximum x and y
 		// with the x and y index of the first node in ProjectGraph.Nodes
 		var minx=ProjectGraph.Nodes[0].x; var maxx=ProjectGraph.Nodes[0].x; 
@@ -976,8 +969,8 @@ window.ProjectGraph = {
 		// set the slider
 		$("#projectgraph-zoom-slider").slider("value",ProjectGraph.Zoompos);
 		ProjectGraph.redraw(true);
-	},
-	calculateTranslation: function(x,y){
+	}
+	ProjectGraph.prototype.calculateTranslation = function(x,y){
 		// get the scale
 		var scale = ProjectGraph.zoom.scale();
 		// calculate the centers depending on the scale and viewport
@@ -989,4 +982,5 @@ window.ProjectGraph = {
         // set the translation vectors and the scale
 		ProjectGraph.zoom.translate([panx, pany]);
 	}
+	*/
 }
