@@ -19,6 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+ /*
+ * Copyright (c) 2013 The MITRE Corporation
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 function ProjectGraph(){
 	this.ID = null;
 	this.PROJECT_TYPE = 0;
@@ -515,7 +537,7 @@ function ProjectGraph(){
 			if (link == null) {
 				return "none";
 			}
-//			console.log(link);
+
 			var selectedNode = self.Nodes[self.SelectedNode];
 			var scaledHoursPct = 0;
 			
@@ -539,7 +561,12 @@ function ProjectGraph(){
 			return scaledHoursPct * self.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
-
+		d3.selectAll(".link-"+this.ID).filter(function(l){
+			if((self.HiddenNodes.indexOf(l.source)>-1)||(self.HiddenNodes.indexOf(l.target)>-1)){
+				self.HiddenLinks.push(l);
+				return l;
+			}
+		}).remove();
 		if (layout) {
 			this.Force.start();
 		}
@@ -859,13 +886,14 @@ function ProjectGraph(){
 		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
-				//delete ProjectGraph.LinkMap[l.source.index+","+l.target.index
-				//delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
+//				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
+//				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
 
 				self.Links.splice(self.Links.indexOf(l),1);
 				self.HiddenLinks.push(l);				
 			}
 		});
+		console.log(this.HiddenLinks);
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
 		if(node.elaborated){
@@ -912,31 +940,25 @@ function ProjectGraph(){
 		// to get added back to the graph
 		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
 			var l = this.HiddenLinks[lpos];
-			console.log(l.target);
-			var link = {
-				source: l.target.index,
-				target: l.source.index
-			};
-
-			if(l.taskHoursPct == null){
-					link.personHoursPct = l.personHoursPct;
-					link.personHours = l.personHours;				
-			}
-			else if(l.personHoursPct == null){
-				link.taskHoursPct = l.taskHoursPct; //person.delivery;
-				link.taskHours = l.taskHours; //person.hours;
-
-			}
-			this.Links.push(l);
-		}		
+			var link = {target:l.target.index, index:l.source.index};
+			this.Links.push(l);		}		
 		for(var i=0; i<this.Nodes.length; i++){
 			this.Nodes[i].index = i;
 		}
+		console.log(this.LinkMap);
 		// clear out hidden arrays
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
+		this.Nodes.sort(compare);
 		// redraw
 		this.redraw(true);
+		function compare(a,b) {
+		  if (a.position < b.position)
+		     return -1;
+		  if (a.position > b.position)
+		    return 1;
+		  return 0;
+		}
 
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
