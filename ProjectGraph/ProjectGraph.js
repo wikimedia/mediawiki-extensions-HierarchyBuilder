@@ -112,7 +112,6 @@ function ProjectGraph(){
 			// set the zoom scale equal to the current value of the slider
 			// which is the current index
 		        self.Zoompos = ui.value;
-		        console.log(self.Zoompos);
 			// call the slide function to zoom/pan using the slider
 		        self.slide();
 		  }
@@ -328,7 +327,7 @@ function ProjectGraph(){
 		this.LinkSelection.exit().remove();
 
 		var newLinks = this.LinkSelection.enter().append("svg:line");
-		newLinks.attr("class", "link");
+		newLinks.attr("class", "link-"+this.ID);
 		newLinks.style("stroke", "#23A4FF");
 
 		this.LinkSelection.style("stroke-width", function(d) {
@@ -358,7 +357,7 @@ function ProjectGraph(){
 	
 		var newNodes = this.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "node");
+		newNodes.attr("class", "node-"+this.ID);
 		newNodes.on("click", function(d) {
 			self.SelectedNode = d.index;
 			self.displayNodeInfo(d);
@@ -622,28 +621,22 @@ function ProjectGraph(){
 		return link;
 	}
 	ProjectGraph.prototype.elaborateNode = function(node) {
-		//console.log("elaborateNode");
 		if (node.type == this.PROJECT_TYPE) {
 			this.elaborateProjectNode(node);
 		} else if (node.type == this.PERSON_TYPE) {
 			this.elaboratePersonNode(node);
 		}
 	}
-/*
 	ProjectGraph.prototype.elaborateProjectNode = function(node) {
-		var name = ProjectGraph.getTaskDelivery(node.index);
- //	console.log(ProjectGraph.LinkMap[0+","+1]);
+		var name = this.getTaskDelivery(node.index);
 		if (name != null) {
 			node.displayName = name;
 		}		
-		node.info = ProjectGraph.formatNodeInfo(node.displayName);
+		node.info = this.formatNodeInfo(node.displayName);
 
-		ProjectGraph.displayNodeInfo(node);
-// 	console.log(ProjectGraph.LinkMap[0+","+1]);
+		this.displayNodeInfo(node);
 	}
-*/
 	ProjectGraph.prototype.elaboratePersonNode = function(node) {
-		//console.log("elaboratePersonNode");
 		this.getStaffTasks(node.index);
 	}
 	ProjectGraph.prototype.formatNodeInfo = function(name) {
@@ -651,6 +644,8 @@ function ProjectGraph(){
 		return info;
 	}
 	ProjectGraph.prototype.displayNodeInfo = function(node) {
+		var self = this;
+		console.log("asdfasdfasdfasdf "+this.ID);
 		if (this.SelectedNode !== node.index) {
 			return;
 		}
@@ -660,10 +655,9 @@ function ProjectGraph(){
 				"' target='_blank'><img src='" + this.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
-				buttons += " <a class='icon'" +
-					"onclick='ProjectGraph.getTaskDelivery(" + node.index +
-					"); ProjectGraph.redraw(true);'><img src = '" +
+				buttons += " <a id="+node.index+" class='icon infopanel'><img src = '" +
 					this.ImagePath + "plus.png' /></a>";
+				$(".infopanel").click("Calling hello world");
 			}
 			var h4 = jQuery("#" + this.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
@@ -672,17 +666,26 @@ function ProjectGraph(){
 				"' target='_blank'><img src='" + this.ImagePath +
 				"info.png' /></a>";
 			if (node.elaborated == false) {
-				buttons += " <a class='icon'" +
-					"onclick='ProjectGraph.getStaffTasks(" + node.index +
-					"); ProjectGraph.redraw(true);'><img src = '" +
+				buttons += " <a id="+node.index+" class='icon infopanel'><img src = '" +
 					this.ImagePath + "plus.png' /></a>";
+				$(".infopanel").click("Calling hello world");
 			}
-			var h4 = jQuery("#" + ProjectGraph.DetailsDiv + " h4");
+			var h4 = jQuery("#" + this.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		}
+		$(".infopanel").click(function(){
+			var node = self.Nodes[this.id];
+			if(node.type==self.PROJECT_TYPE){
+				self.getTaskDelivery(self.SelectedNode);
+				self.redraw(true);
+			}
+			else if (node.type == self.PERSON_TYPE) {
+				self.getStaffTasks(self.SelectedNode);
+				self.redraw(true);
+			}
+		});
 	}
 	ProjectGraph.prototype.getTaskDelivery = function(index) {
-// 	console.log(ProjectGraph.LinkMap[0+","+1]);
 		var taskNode = this.Nodes[index];
 		taskNode.elaborated = true;
 		taskNode.info = this.formatNodeInfo(taskNode.displayName);
@@ -768,7 +771,6 @@ function ProjectGraph(){
 			}
 			var link = this.findLink(personNode.index,
 				taskNode.index);
-				console.log("link"+link);
 			if (link == null) {
 				link = this.addLink(personNode.index,
 					taskNode.index);
@@ -784,6 +786,7 @@ function ProjectGraph(){
 		d.setAttribute("href", newURL);
 	}
 	ProjectGraph.prototype.menu = function(){
+		var self = this;
 		// find the node according to the index and set it locally
 		//console.log("menu selected = "+ProjectGraph.SelectedNode);
 		var node = this.findNode('index',this.SelectedNode);
@@ -803,10 +806,9 @@ function ProjectGraph(){
 		}
 		// toggle the menu option between freeze and unfreeze
 		$('#freeze').html(freeze.toggle);
-
-        $('.node').contextMenu('menu-'+this.ID, {
+        $('.node-'+this.ID).contextMenu('menu-'+self.ID, {
         	onShowMenu: function(e, menu) {
-		        if (node.elaborated) {
+		        if (node.elaborated) {		        	
 		          $('#elaborate', menu).remove();
 		        }
 		        return menu;
@@ -853,11 +855,13 @@ function ProjectGraph(){
 		});
 	}
 	ProjectGraph.prototype.hide = function(node){
-		d3.selectAll(".link").filter(function(l){
+		var self = this;
+		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
 				//delete ProjectGraph.LinkMap[l.source.index+","+l.target.index
 				//delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
+
 				self.Links.splice(self.Links.indexOf(l),1);
 				self.HiddenLinks.push(l);				
 			}
@@ -875,11 +879,11 @@ function ProjectGraph(){
 				}
 			});
 			hub.forEach(function(n){
-				var pos = this.Nodes.indexOf(n);
+				var pos = self.Nodes.indexOf(n);
 				if(pos > -1){
 					if((n.displayName == node.displayName)||(n.elaborated == false)){
-						this.HiddenNodes.push(this.Nodes[pos]);
-						this.Nodes.splice(pos,1);						
+						self.HiddenNodes.push(self.Nodes[pos]);
+						self.Nodes.splice(pos,1);						
 					}
 				}
 			});
@@ -914,7 +918,6 @@ function ProjectGraph(){
 				target: l.source.index
 			};
 
-//			var link = ProjectGraph.addLink(l.target.index, l.source.index);
 			if(l.taskHoursPct == null){
 					link.personHoursPct = l.personHoursPct;
 					link.personHours = l.personHours;				
@@ -929,13 +932,11 @@ function ProjectGraph(){
 		for(var i=0; i<this.Nodes.length; i++){
 			this.Nodes[i].index = i;
 		}
-//		ProjectGraph.LinkMap.sort();
-		console.log(ProjectGraph.LinkMap);
+		// clear out hidden arrays
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
 		// redraw
 		this.redraw(true);
-		// clear out hidden arrays
 
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
