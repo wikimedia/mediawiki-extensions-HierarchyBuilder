@@ -103,7 +103,7 @@ function ProjectGraph(){
 				this.height*this.ZOOM_MULTIPLIER
 				+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
 		}
-		
+		console.log(this.SliderDiv);
 		// create a new zoom slider
 		var zoom_slider = $("#"+this.SliderDiv).slider(
 		{
@@ -258,13 +258,12 @@ function ProjectGraph(){
 				});
 			}
 			// Autozoom on startup
-//			self.slide();
+			self.slide();
 		}
 	}
 	ProjectGraph.prototype.slide = function(){		
 		// set target_zoom to the logged zoom index
         target_zoom = this.Zoompos;
-	
         if(target_zoom>this.MAX_SCALE){target_zoom = this.MAX_SCALE;}
         if(target_zoom<this.MIN_SCALE){target_zoom = this.MIN_SCALE;}
 
@@ -289,30 +288,34 @@ function ProjectGraph(){
 	    view.x += center[0] - l[0];
 	    view.y += center[1] - l[1];
 	    // now that the values have been calculated, call the controls and zoom
-	    this.interpolateZoom([view.x, view.y], view.k);
+	    this.interpolateZoom(this.ID, [view.x, view.y], view.k);
+	    console.log(this.ID);
 
 	}
 
 
-	ProjectGraph.prototype.interpolateZoom = function(translate, scale) {
+	ProjectGraph.prototype.interpolateZoom = function(id, translate, scale) {
 //	    var self = this;
 	    // zoom with the set scale and translation values
+	                console.log(id);
 	    return d3.transition().duration(50).tween("zoom", function () {
 	        var iTranslate = d3.interpolate(self.zoom.translate(), translate),
 	            iScale = d3.interpolate(self.zoom.scale(), scale);
+	                console.log(id);
 	        return function (t) {
 	            self.zoom
 	                .scale(iScale(t))
 	                .translate(iTranslate(t));
-	            self.zoomed();
+	                console.log(id);
+	            self.zoomed(id);
 	        };
 	    });
 	}
 
-	ProjectGraph.prototype.zoomed = function() {
-		var self = this;
+	ProjectGraph.prototype.zoomed = function(id) {
+		//var self = this;
 		// access the element movable and move to the scale and translation vectors
-		d3.select("#moveable-"+self.ID).attr("transform",
+		d3.select("#moveable-"+id).attr("transform",
 		        "translate(" + self.zoom.translate() + ")" +
 		        "scale(" + self.zoom.scale() + ")"
 	    );
@@ -868,11 +871,9 @@ function ProjectGraph(){
 		});
 	}
 	ProjectGraph.prototype.hide = function(node){
-		d3.selectAll(".link").filter(function(l){
+		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
-//				delete ProjectGraph.LinkMap[l.source.index+","+l.target.index];
-//				delete ProjectGraph.LinkMap[l.target.index+","+l.source.index];
 				self.Links.splice(self.Links.indexOf(l),1);
 				self.HiddenLinks.push(l);				
 			}
@@ -907,15 +908,6 @@ function ProjectGraph(){
 	    		this.Nodes.splice(pos, 1);
 			}
 		}
-/*		this.HiddenNodes.forEach(function(n){
-			self.Links.forEach(function(l){
-				if((n.displayName==l.target.displayName)||(n.displayName==l.source.displayName)){
-					var link = self.Links.splice(self.Links.indexOf(l),1);
-					self.HiddenLinks.push(link[0]);
-				}
-			});
-		})
-*/
 		// Properly remove the nodes from the graph
 		this.redraw(true);
 	}
