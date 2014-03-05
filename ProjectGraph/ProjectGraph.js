@@ -55,6 +55,7 @@ function ProjectGraph(){
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
 	this.HiddenLinkMap = new Array();
+	this.Stage = new Array();
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
@@ -88,6 +89,7 @@ function ProjectGraph(){
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(this.width - margin);
+
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
@@ -448,7 +450,7 @@ function ProjectGraph(){
 			if (d.index == self.SelectedNode) {
 				return 1;
 			} else if (self.findLink(self.SelectedNode,
-				d.position) != null) {
+				d.index) != null) {
 				return 1;
 			} else {
 				return self.LINK_OPACITY;
@@ -810,6 +812,7 @@ function ProjectGraph(){
 	}
 	ProjectGraph.prototype.menu = function(){
 		var self = this;
+		this.pause(true);
 		// find the node according to the index and set it locally
 		var node = this.findNode('index',this.SelectedNode);
 		// create a json object to store the variable settings
@@ -843,8 +846,8 @@ function ProjectGraph(){
 		        return menu;
 	      	},
 	      	itemStyle: {
-	        fontFamily : 'Trebuchet MS',
-	        backgroundColor : '#EEEEEE',
+		        fontFamily : 'Trebuchet MS',
+		        backgroundColor : '#EEEEEE',
 	        },
 			bindings: {
 		        'freeze': function(t) {
@@ -852,6 +855,7 @@ function ProjectGraph(){
 					node.fixed = freeze.fix;
 					// store these settings in the metadata
 					node.fix = freeze.fix;
+					self.pause(false);
 		        },
 		        'getinfo': function(t) {
 					if(node.type==self.PROJECT_TYPE){
@@ -860,6 +864,7 @@ function ProjectGraph(){
                     else if (node.type == self.PERSON_TYPE) {	                    	
                         window.open(node.personPagesURL,'_blank');
                     }
+					self.pause(false);
 		        },
 		        'elaborate': function(t) {
 					if(node.type==self.PROJECT_TYPE){
@@ -870,22 +875,39 @@ function ProjectGraph(){
 						self.getStaffTasks(self.SelectedNode);
 						self.redraw(true);
 					}
+					self.pause(false);
 		        },
 		        'hide': function(t) {
 		        	// when hide is selected, call the hide function
 					self.hide(node);
+					self.pause(false);
 		        },
 		        'showall': function(t) {
 		        	// when Show All is selcted, call the showAll function
 					self.showAll();
+					self.pause(false);
 		        },
 		        'zoomtofit': function(t) {
 		        	// when zoom to fit is selected, call the zoom to fit function
 					self.zoomToFit(node);
+					self.pause(false);
 		        }
 
 	        }
 		});
+	}
+	ProjectGraph.prototype.pause = function(still){
+		if(still){
+			d3.selectAll(".node-"+this.ID).filter(function(n){
+				self.Stage.push(n);
+				n.fixed = still;
+			});			
+		}
+		if(!still){
+			this.Nodes.forEach(function(n){
+				n.fixed = n.fix;
+			});
+		}
 	}
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
@@ -941,14 +963,12 @@ function ProjectGraph(){
 		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
 			var l = this.HiddenLinks[lpos];
 			this.Links.push(l);
-			console.log(l);
 		}		
-
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
 
 		this.Nodes.sort(compare);
-//		this.Links.sort(compare);
+		this.Links.sort(compare);
 		// redraw
 		this.redraw(true);
 		// clear out hidden arrays
