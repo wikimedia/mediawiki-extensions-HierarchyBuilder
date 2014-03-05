@@ -120,14 +120,15 @@ function ProjectGraph(){
 		        self.slide();
 		  }
 		});
+
 		$('body').append("<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"
-			+"<li id=\"freeze\">Freeze</li>"
-	        +"<li id=\"getinfo\">Get Info</li>"
-			+"<li id=\"elaborate\">Elaborate</li>"
-			+"<li id=\"hide\">Hide</li>"
-	        +"<li id=\"showall\">Show All</li>"
-			+"<li id=\"zoomtofit\">Zoom To Fit</li>"
-		    +"</ul></div>");
+		+"<li id=\"freeze\">Freeze</li>"
+        +"<li id=\"getinfo\">Get Info</li>"
+		+"<li id=\"elaborate\">Elaborate</li>"
+		+"<li id=\"hide\">Hide</li>"
+        +"<li id=\"showall\">Show All</li>"
+		+"<li id=\"zoomtofit\">Zoom To Fit</li>"
+	    +"</ul></div>");
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
@@ -264,6 +265,7 @@ function ProjectGraph(){
 	ProjectGraph.prototype.slide = function(){		
 		// set target_zoom to the logged zoom index
         target_zoom = this.Zoompos;
+	
         if(target_zoom>this.MAX_SCALE){target_zoom = this.MAX_SCALE;}
         if(target_zoom<this.MIN_SCALE){target_zoom = this.MIN_SCALE;}
 
@@ -288,36 +290,31 @@ function ProjectGraph(){
 	    view.x += center[0] - l[0];
 	    view.y += center[1] - l[1];
 	    // now that the values have been calculated, call the controls and zoom
-	    this.interpolateZoom(this.ID, [view.x, view.y], view.k);
-	    console.log(this.ID);
+	    this.interpolateZoom([view.x, view.y], view.k);
 
 	}
 
-
-	ProjectGraph.prototype.interpolateZoom = function(id, translate, scale) {
-//	    var self = this;
+	ProjectGraph.prototype.interpolateZoom = function(translate, scale) {
+	    var self = this;
 	    // zoom with the set scale and translation values
-	                console.log(id);
 	    return d3.transition().duration(50).tween("zoom", function () {
 	        var iTranslate = d3.interpolate(self.zoom.translate(), translate),
 	            iScale = d3.interpolate(self.zoom.scale(), scale);
-	                console.log(id);
 	        return function (t) {
 	            self.zoom
 	                .scale(iScale(t))
 	                .translate(iTranslate(t));
-	                console.log(id);
-	            self.zoomed(id);
+	            self.zoomed();
 	        };
 	    });
 	}
 
-	ProjectGraph.prototype.zoomed = function(id) {
-		//var self = this;
-		// access the element movable and move to the scale and translation vectors
-		d3.select("#moveable-"+id).attr("transform",
-		        "translate(" + self.zoom.translate() + ")" +
-		        "scale(" + self.zoom.scale() + ")"
+	ProjectGraph.prototype.zoomed = function() {
+		var self = this;
+	// access the element movable and move to the scale and translation vectors
+		d3.select("#moveable-"+this.ID).attr("transform",
+	        "translate(" + self.zoom.translate() + ")" +
+	        "scale(" + self.zoom.scale() + ")"
 	    );
 	}
 	ProjectGraph.prototype.redrawZoom = function() {		
@@ -326,6 +323,7 @@ function ProjectGraph(){
 		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 		$("#"+self.SliderDiv).slider("value",self.Zoompos);
 	}
+
 	ProjectGraph.prototype.redraw = function(layout) {
 		var self = this;
 		this.LinkSelection = 
@@ -871,6 +869,7 @@ function ProjectGraph(){
 		});
 	}
 	ProjectGraph.prototype.hide = function(node){
+		var self = this;
 		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
@@ -890,12 +889,13 @@ function ProjectGraph(){
 					hub.push(l.target);
 				}
 			});
+			console.log("size "+hub.length);
 			hub.forEach(function(n){
-				var pos = this.Nodes.indexOf(n);
+				var pos = self.Nodes.indexOf(n);
 				if(pos > -1){
 					if((n.displayName == node.displayName)||(n.elaborated == false)){
-						this.HiddenNodes.push(this.Nodes[pos]);
-						this.Nodes.splice(pos,1);						
+						self.HiddenNodes.push(self.Nodes[pos]);
+						self.Nodes.splice(pos,1);						
 					}
 				}
 			});
@@ -923,11 +923,6 @@ function ProjectGraph(){
 		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
 			var l = this.HiddenLinks[lpos];
 			var link = {target:l.target.index, index:l.source.index};
-//			var link = ProjectGraph.addLink(l.target.index, l.source.index);			
-				link.personHoursPct = l.personHoursPct;
-				link.personHours = l.personHours;				
-				link.taskHoursPct = l.taskHoursPct; //person.delivery;
-				link.taskHours = l.taskHours; //person.hours;
 			this.Links.push(l);
 		}		
 
