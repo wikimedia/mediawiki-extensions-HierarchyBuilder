@@ -88,7 +88,9 @@ function ProjectGraph(){
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(this.width - margin);
-		
+		$('#'+this.GraphDiv).on('contextmenu', function(){
+  			return false;
+		});
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
@@ -123,15 +125,16 @@ function ProjectGraph(){
 
 		$('body').append(
 			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
-			"<div id=\"name\" style=\"text-align: center;\">Name</div>"+
-			"<li id=\"freeze\">Freeze</li>"+
-        	"<li id=\"getinfo\">Get Info</li>"+
-			"<li id=\"elaborate\">Elaborate</li>"+
+			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			"<div class=\"options\" >"+
+			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
+        	"<li id=\"getinfo\" >Get Info</li>"+
+			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"hide\">Hide</li>"+
 			"<hr>"+
         	"<li id=\"showall\">Show All</li>"+
 			"<li id=\"zoomtofit\">Zoom To Fit</li>"+
-	    	"</ul></div>"
+	    	"</ul></div></div>"
 	    );
 		$("#name").css("text-align","center");
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
@@ -824,24 +827,23 @@ function ProjectGraph(){
 			freeze.fix = true;
 		}
 		// toggle the menu option between freeze and unfreeze
-		$('#name').html(node.displayName);
-		$('#freeze').html(freeze.toggle);
-		if(node.type==self.PROJECT_TYPE){ 
-			$('#elaborate').html("Get Staff");
+		$('#name-'+this.ID).html(node.displayName);
+		$('.freeze-'+this.ID).html(freeze.toggle);
+		if(node.type==this.PROJECT_TYPE){ 
+			$('.elaborate-'+this.ID).html("Get Staff");
 		}
-		else if (node.type == self.PERSON_TYPE) { 
-			$('#elaborate').html("Get Projects");
+		else if (node.type == this.PERSON_TYPE) { 
+			$('.elaborate-'+this.ID).html("Get Projects");
 		}
-
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
-		          $('#elaborate', menu).remove();
+		          $('.elaborate-'+self.ID, menu).remove();
 		        }
 		        return menu;
 	      	},
 	      	itemStyle: {
-	        fontFamily : 'verdana',
+	        fontFamily : 'Trebuchet MS',
 	        backgroundColor : '#EEEEEE',
 	        },
 			bindings: {
