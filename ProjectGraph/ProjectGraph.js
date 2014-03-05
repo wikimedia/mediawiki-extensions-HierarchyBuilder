@@ -103,7 +103,6 @@ function ProjectGraph(){
 				this.height*this.ZOOM_MULTIPLIER
 				+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
 		}
-		console.log(this.SliderDiv);
 		// create a new zoom slider
 		var zoom_slider = $("#"+this.SliderDiv).slider(
 		{
@@ -819,7 +818,6 @@ function ProjectGraph(){
 		}
 		// toggle the menu option between freeze and unfreeze
 		$('#freeze').html(freeze.toggle);
-		console.log(this.ID);
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
@@ -889,7 +887,6 @@ function ProjectGraph(){
 					hub.push(l.target);
 				}
 			});
-			console.log("size "+hub.length);
 			hub.forEach(function(n){
 				var pos = self.Nodes.indexOf(n);
 				if(pos > -1){
