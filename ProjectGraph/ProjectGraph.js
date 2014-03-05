@@ -51,6 +51,7 @@ function ProjectGraph(){
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
 	this.NodeCounter = 0;
+	this.LinkCounter = 0;
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
 	this.HiddenLinkMap = new Array();
@@ -120,15 +121,19 @@ function ProjectGraph(){
 		  }
 		});
 
-		$('body').append("<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"
-		+"<li id=\"freeze\">Freeze</li>"
-        +"<li id=\"getinfo\">Get Info</li>"
-		+"<li id=\"elaborate\">Elaborate</li>"
-		+"<li id=\"hide\">Hide</li>"
-        +"<li id=\"showall\">Show All</li>"
-		+"<li id=\"zoomtofit\">Zoom To Fit</li>"
-	    +"</ul></div>");
-
+		$('body').append(
+			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			"<div id=\"name\" style=\"text-align: center;\">Name</div>"+
+			"<li id=\"freeze\">Freeze</li>"+
+        	"<li id=\"getinfo\">Get Info</li>"+
+			"<li id=\"elaborate\">Elaborate</li>"+
+			"<li id=\"hide\">Hide</li>"+
+			"<hr>"+
+        	"<li id=\"showall\">Show All</li>"+
+			"<li id=\"zoomtofit\">Zoom To Fit</li>"+
+	    	"</ul></div>"
+	    );
+		$("#name").css("text-align","center");
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
 			alert("No charge number or employee number provided");
@@ -617,8 +622,10 @@ function ProjectGraph(){
 	ProjectGraph.prototype.addLink = function(node1, node2) {
 		var link = {
 			source: node1,
-			target: node2
+			target: node2,
+			position: this.LinkCounter
 		};
+		this.LinkCounter++;
 		this.Links.push(link);
 		this.LinkMap[node1 + "," + node2] = link;
 		this.LinkMap[node2 + "," + node1] = link;
@@ -817,7 +824,15 @@ function ProjectGraph(){
 			freeze.fix = true;
 		}
 		// toggle the menu option between freeze and unfreeze
+		$('#name').html(node.displayName);
 		$('#freeze').html(freeze.toggle);
+		if(node.type==self.PROJECT_TYPE){ 
+			$('#elaborate').html("Get Staff");
+		}
+		else if (node.type == self.PERSON_TYPE) { 
+			$('#elaborate').html("Get Projects");
+		}
+
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
@@ -825,6 +840,10 @@ function ProjectGraph(){
 		        }
 		        return menu;
 	      	},
+	      	itemStyle: {
+	        fontFamily : 'verdana',
+	        backgroundColor : '#EEEEEE',
+	        },
 			bindings: {
 		        'freeze': function(t) {
 		        	// freeze/unfreeze the node
@@ -919,14 +938,15 @@ function ProjectGraph(){
 		// to get added back to the graph
 		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
 			var l = this.HiddenLinks[lpos];
-			var link = {target:l.target.index, index:l.source.index};
 			this.Links.push(l);
+			console.log(l);
 		}		
 
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
 
 		this.Nodes.sort(compare);
+//		this.Links.sort(compare);
 		// redraw
 		this.redraw(true);
 		// clear out hidden arrays
