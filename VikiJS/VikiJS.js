@@ -31,10 +31,18 @@ window.VikiJS = {
 	UNSELECTED_IMAGE_DIMENSION: 20,
 
 	MIN_SCALE: .3,
-	MAX_SCALE: 2,
+	MAX_SCALE: 4,
 	LINK_OPACITY: 0.2,
-	INCOMING_LINK_COLOR: "#23A4FF",
-	OUTGOING_LINK_COLOR: "#2ECC71",
+
+	// NOTE: all these colors are from flatuicolors.com
+	// amethyst: #9b59b6
+	// peter river: #3498db
+	// emerald: #2ecc71
+	// sunflower: #f1c40f
+	// Cindy's original light blue: #23a4ff
+	INCOMING_LINK_COLOR: "#3498db",
+	OUTGOING_LINK_COLOR: "#f1c40f",
+
 	GraphDiv: null,
 	DetailsDiv: null,
 	SelectedNode: null,
@@ -254,135 +262,87 @@ window.VikiJS = {
 	
 			function tick() {
 
+				var boundaryRadius = 12;
+
 				VikiJS.NodeSelection.attr("transform", function(d) {
 					return "translate(" + d.x + "," + d.y + ")";
 				});
+
+				// rather than return the (x,y) of the source and target node directly,
+				// which would cause the links to stab through the node text,
+				// we create an imaginary parabola around the node (a, b = node width, height)
+				// and make the links connect to points on this parabola which would extend
+				// the line into the center of the node, if possible.
+				// (x,y) depend on (r, theta) and because this is an ellipse, r is a function of
+				// a, b, and theta.
+
 				VikiJS.LinkSelection.attr("x1", function(d) {
-/*
-					var offset = 3;	// magic number that makes the graph look better
 
-					var sourceWidth = d.source.nodeWidth;
-					var sourceHeight = d.source.nodeHeight;
-					var targetWidth = d.target.nodeWidth;
-					var targetHeight = d.target.nodeHeight;
-
-					var dy = (d.target.y - targetHeight/2) - (d.source.y - sourceHeight/2);
-					var dx = (d.target.x + targetWidth/2) - (d.source.x + sourceWidth/2);
-					var angle = Math.atan2(dy, dx)*180/Math.PI;
-					if(angle < 0) angle = angle + 360;
+					var dy = d.target.y - d.source.y;
+					var dx = d.target.x - d.source.x;
+					var angle = Math.atan2(dy, dx);
 					var width = d.source.nodeWidth;
-					var x = d.source.x;
+					var height = d.source.nodeHeight;
 
-				//	self.log("angle: "+angle);
-				//	self.log("source.x = "+x);
-				//	self.log("source.width = "+width);
-					if(angle > 45 && angle <= 135) {
-						return x + width*((135.0-angle)/90.0);
-					}
-					else if(angle > 135 && angle <= 225) {
-						return x;
-					}
-					else if(angle > 225 && angle <= 315) {
-						return x + width*(1-(315.0-angle)/90.0);
-					}
-					else
-						return x + width;
-*/
-					return d.source.x + d.source.nodeWidth/2;
+					var a = width/2;
+					var b = height/2;
+
+					var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
+
+					return d.source.x + r*Math.cos(angle);
+					//return d.source.x + (width/2)*Math.cos(angle);
+					//return d.source.x + boundaryRadius*Math.cos(angle);
 				});
 				VikiJS.LinkSelection.attr("y1", function(d) {
-					var offset = 8;	// magic number that makes the graph look better
-/*
-					var sourceWidth = d.source.nodeWidth;
-					var sourceHeight = d.source.nodeHeight;
-					var targetWidth = d.target.nodeWidth;
-					var targetHeight = d.target.nodeHeight;
 
-					var dy = (d.target.y - targetHeight/2) - (d.source.y - sourceHeight/2);
-					var dx = (d.target.x + targetWidth/2) - (d.source.x + sourceWidth/2);
-					var angle = Math.atan2(dy, dx)*180/Math.PI;
-					if(angle < 45) angle = angle + 360;
+					var dy = d.target.y - d.source.y;
+					var dx = d.target.x - d.source.x;
+					var angle = Math.atan2(dy, dx);
+					var width = d.source.nodeWidth;
 					var height = d.source.nodeHeight;
-					var y = d.source.y;
 
-					if(angle > 45 && angle <= 135) {
-						return y + offset;
-					}
-					else if(angle > 135 && angle <= 225) {
-						return y - height*(1-(225.0-angle)/90.0) + offset;
-					}
-					else if(angle > 225 && angle <= 315) {
-						return y - height;
-					}
-					else
-						return y - height*((405.0-angle)/90.0) + offset;
-*/
-					return d.source.y - d.source.nodeHeight/2 + offset;
+					var a = width/2;
+					var b = height/2;
+
+					var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
+
+					return d.source.y + r*Math.sin(angle);
+					//return d.source.y + (height/2)*Math.sin(angle);
+					//return d.source.y + boundaryRadius*Math.sin(angle);
 				});
 				VikiJS.LinkSelection.attr("x2", function(d) {
-/*
-					var offset = 3;	// magic number that makes the graph look better
 
-					var sourceWidth = d.source.nodeWidth;
-					var sourceHeight = d.source.nodeHeight;
-					var targetWidth = d.target.nodeWidth;
-					var targetHeight = d.target.nodeHeight;
-
-					var dy = (d.target.y - targetHeight/2) - (d.source.y - sourceHeight/2);
-					var dx = (d.target.x + targetWidth/2) - (d.source.x + sourceWidth/2);
-					var angle = Math.atan2(dy, dx)*180/Math.PI;
-					if(angle < 0) angle = angle + 360;
+					var dy = d.target.y - d.source.y;
+					var dx = d.target.x - d.source.x;
+					var angle = Math.atan2(dy, dx);
 					var width = d.target.nodeWidth;
-					var x = d.target.x;
+					var height = d.target.nodeHeight;
 
-					//self.log("target.x = "+x);
+					var a = width/2;
+					var b = height/2;
 
-					if(angle > 45 && angle <= 135) {
-						//return x + width*(1 - (135.0-angle)/90.0 );
-						return x + width/2;
-					}
-					else if(angle > 135 && angle <= 225) {
-						return x + width + offset;
-					}
-					else if(angle > 225 && angle <= 315) {
-						//return x + width*((315.0-angle)/90.0);
-						return x + width/2;
-					}
-					else
-						return x - offset;
-*/
-					return d.target.x + d.target.nodeWidth/2;
+					var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
+
+					return d.target.x + r*Math.cos(Math.PI+angle);
+					//return d.target.x + (width/2)*Math.cos(Math.PI + angle);
+					//return d.target.x + boundaryRadius*Math.cos(Math.PI + angle);
 				});
 				VikiJS.LinkSelection.attr("y2", function(d) {
-					var offset = 8;	// magic number that makes the graph look better
-/*
-					var sourceWidth = d.source.nodeWidth;
-					var sourceHeight = d.source.nodeHeight;
-					var targetWidth = d.target.nodeWidth;
-					var targetHeight = d.target.nodeHeight;
 
-					var dy = (d.target.y - targetHeight/2) - (d.source.y - sourceHeight/2);
-					var dx = (d.target.x + targetWidth/2) - (d.source.x + sourceWidth/2);
-					var angle = Math.atan2(dy, dx)*180/Math.PI;
-					if(angle < 45) angle = angle + 360;
+					var dy = d.target.y - d.source.y;
+					var dx = d.target.x - d.source.x;
+					var angle = Math.atan2(dy, dx);
+					var width = d.target.nodeWidth;
 					var height = d.target.nodeHeight;
-					var y = d.target.y;
 
-					if(angle > 45 && angle <= 135) {
-						return y - height;
-					}
-					else if(angle > 135 && angle <= 225) {
-						return y - height*((225.0-angle)/90.0) + offset/2;
-					}
-					else if(angle > 225 && angle <= 315) {
-						return y + offset;
-					}
-					else
-						return y - height*(1-(405.0-angle)/90.0) + offset;
-*/
-					return d.target.y - d.target.nodeHeight/2 + offset;
+					var a = width/2;
+					var b = height/2;
+
+					var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
+					return d.target.y + r*Math.sin(Math.PI + angle);
+					return d.target.y + (height/2)*Math.sin(Math.PI + angle);
+					//return d.target.y + boundaryRadius*Math.sin(Math.PI + angle);
 				});
-				//self.log("************************************");
 			}
 		}
 	},
@@ -589,8 +549,10 @@ window.VikiJS = {
 
 		var newLabels = newNodes.append("svg:text");
 		newLabels.text(function(d) { return d.displayName })
-			.attr("text-anchor", "right")
-			.attr("x", 20)
+			.attr("text-anchor", "middle")
+			.attr("dy", ".25em")	// see bost.ocks.org/mike/d3/workshop/#114
+			.attr("dx", 1*VikiJS.UNSELECTED_IMAGE_DIMENSION/2)
+			//.attr("x", 20)
 			.each(function() {
 				var textbox = this.getBBox();
 
@@ -603,7 +565,7 @@ window.VikiJS = {
 				   .style("fill", "white");
 */
 				var node = d3.select(this.parentNode).datum();
-				node.nodeWidth = textbox.width + VikiJS.UNSELECTED_IMAGE_DIMENSION;
+				node.nodeWidth = textbox.width + VikiJS.UNSELECTED_IMAGE_DIMENSION + 2;	// the 2 is a magic number to improve appearance
 				node.nodeHeight = Math.max(textbox.height, VikiJS.UNSELECTED_IMAGE_DIMENSION);
 			});
 
@@ -621,10 +583,14 @@ window.VikiJS = {
 			return (d.logoURL ? d.logoURL : VikiJS.ImagePath+"info.png");
 		});
 		newImages
-		   .attr("x", 0)
+		   .attr("x", function(d) {
+			text = d3.select(this.parentNode).select("text");
+			textbox = d3.select(this.parentNode).select("text").node().getBBox();
+			nodeWidth = textbox.width + VikiJS.UNSELECTED_IMAGE_DIMENSION;
+			return -1 * nodeWidth/2 - 2;	// this -2 is a magic number to make things look better
+		   })
 		   .attr("y", function(d) {
-//			return d3.select(this.parentNode).select("rect").attr("y");
-			return -13;
+			return -1 * VikiJS.UNSELECTED_IMAGE_DIMENSION/2;
 		   })
 		   .attr("width", VikiJS.UNSELECTED_IMAGE_DIMENSION)
 		   .attr("height", VikiJS.UNSELECTED_IMAGE_DIMENSION);
@@ -759,8 +725,9 @@ window.VikiJS = {
 //			return node;
 
 		node = VikiJS.newNode();
-		node.displayName = url;
-		node.info = VikiJS.formatNodeInfo(url);
+		node.displayName = (url.length < 15 ? url : url.substring(0,15)+"...");
+		node.fullDisplayName = url;
+		node.info = VikiJS.formatNodeInfo(node.fullDisplayName);
 		node.type = VikiJS.EXTERNAL_PAGE_TYPE;
 		self.log("addExternalNode - node.URL = "+url);
 		node.URL = url;
