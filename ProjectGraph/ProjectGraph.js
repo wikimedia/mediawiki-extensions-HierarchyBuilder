@@ -198,7 +198,6 @@ function ProjectGraph(){
 
 			self.zoom = d3.behavior.zoom()
 			   .on("zoom", self.redrawZoom)
-			  // .scale(ProjectGraph.Zoompos)
 			   .scaleExtent([self.MIN_SCALE, self.MAX_SCALE]);
 			
 			var svg = d3.select("#" + self.GraphDiv)
@@ -384,6 +383,7 @@ function ProjectGraph(){
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
 			self.SelectedNode = d.index;
+			self.redraw(false);			
 			self.menu();
 		});
 
@@ -503,7 +503,7 @@ function ProjectGraph(){
 		var allHourBarFills = d3.selectAll(".hourbarfill-"+this.ID);
 		var backcolor = function(d) {
 
-			var link = self.findLink(d.position,
+			var link = self.findLink(d.index,
 				self.SelectedNode);			
 			// if the link is null, or the node has not been elaborated
 			// do not display the bar
@@ -514,7 +514,7 @@ function ProjectGraph(){
 		}
 		allHourBarBacks.style("fill", backcolor);
 		var fillcolor = function(d) {
-			var link = self.findLink(d.position,
+			var link = self.findLink(d.index,
 				self.SelectedNode);
 			if (link == null) {
 				return "none";
@@ -523,7 +523,7 @@ function ProjectGraph(){
 		}
 		allHourBarFills.style("fill", fillcolor);
 		var width = function(d) {
-			var link = self.findLink(d.position,
+			var link = self.findLink(d.index,
 				self.SelectedNode);
 			if (link == null) {
 				return "none";
@@ -553,8 +553,8 @@ function ProjectGraph(){
 		allHourBarFills.attr("width", width);
 		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((self.HiddenNodes.indexOf(l.source)>-1)||(self.HiddenNodes.indexOf(l.target)>-1)){
-				self.HiddenLinks.push(l);
-				return l;
+//				self.HiddenLinks.push(l);
+//				return l;
 			}
 		}).remove();
 
@@ -603,9 +603,9 @@ function ProjectGraph(){
 		var node = {
 			elaborated: false,
 			fix: false,
-			position: this.NodeCounter,
+//			position: this.NodeCounter,
 		};
-		this.NodeCounter++;
+//		this.NodeCounter++;
 		return node;
 	}
 	ProjectGraph.prototype.findNode = function(property, value) {
@@ -628,16 +628,27 @@ function ProjectGraph(){
 		var link = {
 			source: node1,
 			target: node2,
-			position: this.LinkCounter
+//			position: this.LinkCounter
 		};
-		this.LinkCounter++;
+//		this.LinkCounter++;
 		this.Links.push(link);
-		this.LinkMap[node1 + "," + node2] = link;
-		this.LinkMap[node2 + "," + node1] = link;
+		this.LinkMap[node1.index + "," + node2.index] = link;
+		this.LinkMap[node2.index + "," + node1.index] = link;
 		return link;
 	}
 
 	ProjectGraph.prototype.findLink = function(from, to) {
+/*
+		var link = null;
+		for(var index=0; index<this.Links.length; index++){
+			if(
+				(this.Links[index].source.index == from)&&(this.Links[index].target.index == to)||
+				(this.Links[index].source.index == to)&&(this.Links[index].target.index == from)
+				){
+				link = this.Links[index];
+			}
+		}
+*/
 		var link = this.LinkMap[from + "," + to];
 		if (typeof link === 'undefined') {
 			return null;
@@ -749,8 +760,8 @@ function ProjectGraph(){
 				var link = this.findLink(personNode.index,
 				taskNode.index);
 				if (link == null) {
-					link = this.addLink(personNode.index,
-					taskNode.index);
+					link = this.addLink(personNode,
+					taskNode);
 				}
 				link.taskHoursPct = person.delivery;
 				link.taskHours = person.hours;
@@ -798,8 +809,8 @@ function ProjectGraph(){
 			var link = this.findLink(personNode.index,
 				taskNode.index);
 			if (link == null) {
-				link = this.addLink(personNode.index,
-					taskNode.index);
+				link = this.addLink(personNode,
+					taskNode);
 			}
 				link.personHoursPct = task.percent;
 				link.personHours = task.hours;
@@ -812,7 +823,7 @@ function ProjectGraph(){
 	}
 	ProjectGraph.prototype.menu = function(){
 		var self = this;
-		this.pause(true);
+//		this.pause(true);
 		// find the node according to the index and set it locally
 		var node = this.findNode('index',this.SelectedNode);
 		// create a json object to store the variable settings
@@ -867,15 +878,11 @@ function ProjectGraph(){
 					self.pause(false);
 		        },
 		        'elaborate': function(t) {
-					if(node.type==self.PROJECT_TYPE){
-						self.getTaskDelivery(self.SelectedNode);
-						self.redraw(true);
-					}
-					else if (node.type == self.PERSON_TYPE) {
-						self.getStaffTasks(self.SelectedNode);
-						self.redraw(true);
-					}
-					self.pause(false);
+					self.elaborateNode(node);
+//					self.indexReset();
+					self.redraw(true);
+
+//					self.pause(false);
 		        },
 		        'hide': function(t) {
 		        	// when hide is selected, call the hide function
@@ -948,6 +955,7 @@ function ProjectGraph(){
 	    		this.Nodes.splice(pos, 1);
 			}
 		}
+		this.indexReset();
 		// Properly remove the nodes from the graph
 		this.redraw(true);
 	}
@@ -964,11 +972,14 @@ function ProjectGraph(){
 			var l = this.HiddenLinks[lpos];
 			this.Links.push(l);
 		}		
+
+		this.indexReset();
+
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
 
-		this.Nodes.sort(compare);
-		this.Links.sort(compare);
+//		this.Nodes.sort(compare);
+//		this.Links.sort(compare);
 		// redraw
 		this.redraw(true);
 		// clear out hidden arrays
@@ -980,6 +991,52 @@ function ProjectGraph(){
 		  return 0;
 		}
 	}
+	ProjectGraph.prototype.indexReset = function(){
+		var self = this;
+		var transition = this.Links;
+		this.Links = new Array();
+		this.LinkMap = new Array();
+		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
+			var node = this.Nodes[node_index];
+			node.index = node_index;
+		}
+		transition.forEach(function(l){
+			var src = null;
+			var tar = null;
+			if((typeof l.source == 'number')||(typeof l.target == 'number')){
+				src = self.findNode('index', l.source);
+				tar = self.findNode('index', l.target);
+			}
+			else{
+				src = self.findNode('displayName',l.source.displayName);
+				tar = self.findNode('displayName',l.target.displayName);
+			}
+			var link = self.addLink(src, tar);
+/*			if((link.source == null)||(link.target == null)){
+				console.log(l);
+				console.log(link);
+				return;
+			}
+			else{
+				console.log(link.source.displayName+"("+link.source.index+")"+" "+l.source.displayName+"("+l.source.index+")");
+				console.log(link.target.displayName+"("+link.target.index+")"+" "+l.target.displayName+"("+l.target.index+")");
+			}
+*/
+			if(typeof l.taskHoursPct != 'undefined'){link.taskHoursPct = l.taskHoursPct;}
+			if(typeof l.taskHours != 'undefined'){link.taskHours = l.taskHours;}					
+			if(typeof l.personHoursPct != 'undefined'){link.personHoursPct = l.personHoursPct;}					
+			if(typeof l.personHours != 'undefined'){link.personHours = l.personHours;}
+
+		});
+		this.Force.start();
+	}
+	ProjectGraph.prototype.search = function(name){
+			for(var index=0; index<self.Nodes.length; index++){
+				if(name == self.Nodes[index].displayName){
+					return self.Nodes[index];
+				}
+			}
+		}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
 		// initialize the following variables of minimum x and y, and maximum x and y
