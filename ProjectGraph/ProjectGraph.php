@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.4.0',
+	'version' => '1.4.1',
 	'author' => array("Cindy Cicalese", "Jason Ji", "Austin Vecchio"),
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -76,7 +76,7 @@ function wfExtensionProjectGraph_Magic(& $magicWords, $langCode) {
 	return true;
 }
 
-function projectgraph($parser, $projects, $people, $years, $width, $height) {
+function projectgraph($parser) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
@@ -84,11 +84,11 @@ function projectgraph($parser, $projects, $people, $years, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_ProjectGraphParams.out");
 	$paramDictionary = parseParameters($myparams);
 
-	$projects = $paramDictionary["projectNum"];
-	$people = $paramDictionary["employeeNum"];
-	$years = $paramDictionary["fy"];
-	$width = $paramDictionary["width"];
-	$height = $paramDictionary["height"];
+	$projects = (array_key_exists("projectNum", $paramDictionary) ? $paramDictionary["projectNum"] : null);
+	$people = (array_key_exists("employeeNum", $paramDictionary) ? $paramDictionary["employeeNum"] : null);
+	$years = (array_key_exists("fy", $paramDictionary) ? $paramDictionary["fy"] : null);
+	$width = (array_key_exists("width", $paramDictionary) ? $paramDictionary["width"] : null);
+	$height = (array_key_exists("height", $paramDictionary) ? $paramDictionary["height"] : null);
 
 	$projectgraph = new ProjectGraph;
 
