@@ -50,12 +50,9 @@ function ProjectGraph(){
 	this.NodeSelection = null;
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
-	this.NodeCounter = 0;
-	this.LinkCounter = 0;
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
 	this.HiddenLinkMap = new Array();
-	this.Stage = new Array();
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
@@ -603,9 +600,7 @@ function ProjectGraph(){
 		var node = {
 			elaborated: false,
 			fix: false,
-//			position: this.NodeCounter,
 		};
-//		this.NodeCounter++;
 		return node;
 	}
 	ProjectGraph.prototype.findNode = function(property, value) {
@@ -628,9 +623,7 @@ function ProjectGraph(){
 		var link = {
 			source: node1,
 			target: node2,
-//			position: this.LinkCounter
 		};
-//		this.LinkCounter++;
 		this.Links.push(link);
 		this.LinkMap[node1.index + "," + node2.index] = link;
 		this.LinkMap[node2.index + "," + node1.index] = link;
@@ -638,17 +631,6 @@ function ProjectGraph(){
 	}
 
 	ProjectGraph.prototype.findLink = function(from, to) {
-/*
-		var link = null;
-		for(var index=0; index<this.Links.length; index++){
-			if(
-				(this.Links[index].source.index == from)&&(this.Links[index].target.index == to)||
-				(this.Links[index].source.index == to)&&(this.Links[index].target.index == from)
-				){
-				link = this.Links[index];
-			}
-		}
-*/
 		var link = this.LinkMap[from + "," + to];
 		if (typeof link === 'undefined') {
 			return null;
@@ -799,7 +781,6 @@ function ProjectGraph(){
 					task.chargeNumber);
 				taskNode.info = this.formatNodeInfo(taskNode.displayName);
 				this.displayNodeInfo(taskNode);
-
 			}
 			if (typeof personNode.maxHoursPct === 'undefined' ||
 				personNode.maxHoursPct == null ||
@@ -879,9 +860,8 @@ function ProjectGraph(){
 		        },
 		        'elaborate': function(t) {
 					self.elaborateNode(node);
-//					self.indexReset();
+					self.indexReset();
 					self.redraw(true);
-
 //					self.pause(false);
 		        },
 		        'hide': function(t) {
@@ -978,18 +958,8 @@ function ProjectGraph(){
 		this.HiddenNodes = new Array();
 		this.HiddenLinks = new Array();
 
-//		this.Nodes.sort(compare);
-//		this.Links.sort(compare);
 		// redraw
 		this.redraw(true);
-		// clear out hidden arrays
-		function compare(a,b) {
-		  if (a.position < b.position)
-		     return -1;
-		  if (a.position > b.position)
-		    return 1;
-		  return 0;
-		}
 	}
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
@@ -1012,23 +982,11 @@ function ProjectGraph(){
 				tar = self.findNode('displayName',l.target.displayName);
 			}
 			var link = self.addLink(src, tar);
-/*			if((link.source == null)||(link.target == null)){
-				console.log(l);
-				console.log(link);
-				return;
-			}
-			else{
-				console.log(link.source.displayName+"("+link.source.index+")"+" "+l.source.displayName+"("+l.source.index+")");
-				console.log(link.target.displayName+"("+link.target.index+")"+" "+l.target.displayName+"("+l.target.index+")");
-			}
-*/
 			if(typeof l.taskHoursPct != 'undefined'){link.taskHoursPct = l.taskHoursPct;}
 			if(typeof l.taskHours != 'undefined'){link.taskHours = l.taskHours;}					
 			if(typeof l.personHoursPct != 'undefined'){link.personHoursPct = l.personHoursPct;}					
 			if(typeof l.personHours != 'undefined'){link.personHours = l.personHours;}
-
 		});
-		this.Force.start();
 	}
 	ProjectGraph.prototype.search = function(name){
 			for(var index=0; index<self.Nodes.length; index++){
