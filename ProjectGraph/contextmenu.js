@@ -18,7 +18,7 @@
 
 (function($) {
 
- 	var menu, shadow, trigger, content, hash, currentTarget;
+ 	var menu, shadow, trigger, content, hash, currentTarget, cur, e;
   var defaults = {
     menuStyle: {
       listStyle: 'none',
@@ -45,7 +45,8 @@
     eventPosY: 'pageY',
     shadow : true,
     onContextMenu: null,
-    onShowMenu: null
+    onShowMenu: null,
+    onExitMenu: null
  	};
 
   $.fn.contextMenu = function(id, options) {
@@ -74,6 +75,7 @@
       shadow: options.shadow || options.shadow === false ? options.shadow : defaults.shadow,
       onContextMenu: options.onContextMenu || defaults.onContextMenu,
       onShowMenu: options.onShowMenu || defaults.onShowMenu,
+      onExitMenu: options.onExitMenu || defaults.onExitMenu,
       eventPosX: options.eventPosX || defaults.eventPosX,
       eventPosY: options.eventPosY || defaults.eventPosY
     });
@@ -89,7 +91,8 @@
   };
 
   function display(index, trigger, e, options) {
-    var cur = hash[index];
+    e = e;
+    cur = hash[index];
     content = $('#'+cur.id).find('ul:first').clone(true);
     content.css(cur.menuStyle).find('li.header').css(cur.itemStyle).css({verticalAlign:'middle',paddingRight:'2px'});
     content.css(cur.menuStyle).find('div.options li').css(cur.itemStyle).hover(
@@ -124,6 +127,7 @@
   function hide() {
     menu.hide();
     shadow.hide();
+    if (!!cur.onExitMenu) {cur.onExitMenu(e, menu);}      
   }
 
   // Apply defaults

@@ -805,7 +805,7 @@ function ProjectGraph(){
 	}
 	ProjectGraph.prototype.menu = function(){
 		var self = this;
-//		this.pause(true);
+		this.pause(true);
 		// find the node according to the index and set it locally
 		var node = this.findNode('index',this.SelectedNode);
 		// create a json object to store the variable settings
@@ -837,6 +837,9 @@ function ProjectGraph(){
 		          $('.elaborate-'+self.ID, menu).remove();
 		        }
 		        return menu;
+	      	},
+	      	onExitMenu: function(e,menu) {
+	      		self.pause(false);
 	      	},
 	      	itemStyle: {
 		        fontFamily : 'Trebuchet MS',
@@ -886,17 +889,8 @@ function ProjectGraph(){
 		});
 	}
 	ProjectGraph.prototype.pause = function(still){
-		if(still){
-			d3.selectAll(".node-"+this.ID).filter(function(n){
-				self.Stage.push(n);
-				n.fixed = still;
-			});			
-		}
-		if(!still){
-			this.Nodes.forEach(function(n){
-				n.fixed = n.fix;
-			});
-		}
+		if(still) { this.Force.stop(); }
+		if(!still){ this.Force.start(); }
 	}
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
@@ -967,7 +961,6 @@ function ProjectGraph(){
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
 		var transition = this.Links;
-//		this.Links = new Array();
 		this.LinkMap = new Array();
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
 			var node = this.Nodes[node_index];
@@ -984,20 +977,11 @@ function ProjectGraph(){
 				src = self.findNode('displayName',l.source.displayName);
 				tar = self.findNode('displayName',l.target.displayName);
 			}
-//			console.log(l.source.index+" "+l.target.index);			
 			l.source = src;
 			l.target = tar;
-//			console.log(l.source.index+" "+l.target.index);			
 			self.LinkMap[l.source.index+","+l.target.index] = l;
 			self.LinkMap[l.source.index+","+l.target.index] = l;
-/*			var link = self.addLink(src, tar);
-			if(typeof l.taskHoursPct != 'undefined'){link.taskHoursPct = l.taskHoursPct;}
-			if(typeof l.taskHours != 'undefined'){link.taskHours = l.taskHours;}					
-			if(typeof l.personHoursPct != 'undefined'){link.personHoursPct = l.personHoursPct;}					
-			if(typeof l.personHours != 'undefined'){link.personHours = l.personHours;}
-*/
 		});
-		console.log(this.Nodes);
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
