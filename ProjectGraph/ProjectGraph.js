@@ -335,6 +335,7 @@ function ProjectGraph(){
 		this.LinkSelection.data(this.Links, function(d){
 			return self.Links.indexOf(d);
 		});
+
 		this.LinkSelection.exit().remove();
 
 		var newLinks = this.LinkSelection.enter().append("svg:line");
@@ -444,10 +445,11 @@ function ProjectGraph(){
 		});
 
 		allImages.style("opacity", function(d) {
+			var link = self.findLink(d.index,self.SelectedNode);			
 			if (d.index == self.SelectedNode) {
 				return 1;
-			} else if (self.findLink(self.SelectedNode,
-				d.index) != null) {
+			} else if ((link != null)||(self.findLink(self.SelectedNode,
+				d.index) != null)) {
 				return 1;
 			} else {
 				return self.LINK_OPACITY;
@@ -525,23 +527,23 @@ function ProjectGraph(){
 			if (link == null) {
 				return "none";
 			}
-			var selectedNode = self.Nodes[self.SelectedNode];
+			var SelectedNode = self.Nodes[self.SelectedNode];
 			var scaledHoursPct = 0;
 			
 			if (d.type == self.PROJECT_TYPE) {
 				if (typeof link.personHoursPct === 'undefined' ||
-					typeof selectedNode.maxHoursPct === 'undefined') {
+					typeof SelectedNode.maxHoursPct === 'undefined') {
 					return 0;
 				}
 				scaledHoursPct = link.personHoursPct /
-					selectedNode.maxHoursPct * 100.0;
+					SelectedNode.maxHoursPct * 100.0;
 			} else if (d.type == self.PERSON_TYPE) {
 				if (typeof link.taskHoursPct === 'undefined' ||
-					typeof selectedNode.maxHoursPct === 'undefined') {
+					typeof SelectedNode.maxHoursPct === 'undefined') {
 					return 0;
 				}
 				scaledHoursPct = link.taskHoursPct /
-					selectedNode.maxHoursPct * 100.0;
+					SelectedNode.maxHoursPct * 100.0;
 			} else {
 				return 0;
 			}
@@ -559,7 +561,6 @@ function ProjectGraph(){
 			this.Force.start();
 		}
 	}
-
 	ProjectGraph.prototype.addProjectNode = function(displayName, chargeNumber) {
 		var node = this.findNode("chargeNumber", chargeNumber);
 		if (node != null) {
@@ -859,6 +860,7 @@ function ProjectGraph(){
 					self.pause(false);
 		        },
 		        'elaborate': function(t) {
+
 					self.elaborateNode(node);
 					self.indexReset();
 					self.redraw(true);
@@ -961,10 +963,11 @@ function ProjectGraph(){
 		// redraw
 		this.redraw(true);
 	}
+
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
 		var transition = this.Links;
-		this.Links = new Array();
+//		this.Links = new Array();
 		this.LinkMap = new Array();
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
 			var node = this.Nodes[node_index];
@@ -981,20 +984,21 @@ function ProjectGraph(){
 				src = self.findNode('displayName',l.source.displayName);
 				tar = self.findNode('displayName',l.target.displayName);
 			}
-			var link = self.addLink(src, tar);
+//			console.log(l.source.index+" "+l.target.index);			
+			l.source = src;
+			l.target = tar;
+//			console.log(l.source.index+" "+l.target.index);			
+			self.LinkMap[l.source.index+","+l.target.index] = l;
+			self.LinkMap[l.source.index+","+l.target.index] = l;
+/*			var link = self.addLink(src, tar);
 			if(typeof l.taskHoursPct != 'undefined'){link.taskHoursPct = l.taskHoursPct;}
 			if(typeof l.taskHours != 'undefined'){link.taskHours = l.taskHours;}					
 			if(typeof l.personHoursPct != 'undefined'){link.personHoursPct = l.personHoursPct;}					
 			if(typeof l.personHours != 'undefined'){link.personHours = l.personHours;}
+*/
 		});
+		console.log(this.Nodes);
 	}
-	ProjectGraph.prototype.search = function(name){
-			for(var index=0; index<self.Nodes.length; index++){
-				if(name == self.Nodes[index].displayName){
-					return self.Nodes[index];
-				}
-			}
-		}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
 		// initialize the following variables of minimum x and y, and maximum x and y
