@@ -26,7 +26,7 @@ h4 {
 
 .detail-panel {
   background-color: white;
-  display: block;
+/*  display: block;*/
   float: left;
   clear: right;
   left:7px;

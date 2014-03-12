@@ -41,6 +41,7 @@ function ProjectGraph(){
 	this.FiscalYear = null;
 	this.GraphDiv = null;
 	this.DetailsDiv = null;
+	this.Resize = null;
 	this.SelectedNode = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
@@ -55,7 +56,7 @@ function ProjectGraph(){
 	this.HiddenLinkMap = new Array();
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
-		detailsDiv, imagePath, personNames, initialWidth, initialHeight) {
+		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
 		var self = this;
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
@@ -64,19 +65,43 @@ function ProjectGraph(){
         this.ID = graphDiv.match(dig)[0];
 		this.FiscalYear = fiscalYear;
 		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv;		
-		this.SliderDiv = this.DetailsDiv.substring(0, this.DetailsDiv.length - 5)+"_zoom_slider";
+		this.DetailsDiv = detailsDiv+'_data';	
+		this.Resize = resize;	
+		this.SliderDiv = detailsDiv+"_zoom_slider";
 		this.ImagePath = imagePath;
-
+		console.log(this.SliderDiv);
 		this.INITIAL_HEIGHT = initialHeight;
 		this.INITIAL_WIDTH = initialWidth;
 		this.height = this.INITIAL_HEIGHT;
 		this.width = this.INITIAL_WIDTH;
-		
+
+		var margin = 10;
+
+		if(resize){
+			var height_inverse = (self.height * ((window.innerHeight) / (self.height)));
+			var width_inverse = (self.width * ((window.innerWidth) / (self.width)));
+			$( window ).resize(function() {
+
+				var calculated_height = Math.round((self.height / height_inverse) *(self.height * ((window.innerHeight) / (self.height))));
+				var calculated_width =  Math.round((self.width / width_inverse) * (self.width * ((window.innerWidth) / (self.width))));
+				var height = calculated_height;
+				var width = calculated_width;
+				var min_height = 200;
+				var min_width = 200;
+
+				if(calculated_height< min_height){height = min_height;}
+				if(calculated_width< min_width){width = min_width;}
+
+				$("#"+self.GraphDiv).height(height).width(width);
+				$("#"+self.ID).height(height).width(width);
+				$("#"+self.DetailsDiv).width((width-margin)* 3/5);
+				$("#"+self.SliderDiv).width((width - margin) * 2/5);
+				$("#"+self.DetailsDiv.substring(0, self.DetailsDiv.length-5)).width((width-margin));				
+			});
+		}
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
-		var margin = 10;
 		$("#"+this.SliderDiv).css("top","-38px");
         $("#"+this.SliderDiv).css("float","right");
 		// the details divider will get 3/5 of the space
@@ -133,6 +158,8 @@ function ProjectGraph(){
 			"<hr>"+
         	"<li id=\"showall\">Show All</li>"+
 			"<li id=\"zoomtofit\">Zoom To Fit</li>"+
+			"<li id=\"popout\">Pop Out</li>"+
+			"<li id=\"grow\">Enable Dynamic Growth</li>"+
 	    	"</ul></div></div>"
 	    );
 		$("#name").css("text-align","center");
@@ -201,12 +228,14 @@ function ProjectGraph(){
 			   .append("svg:svg")
 			      .attr("width", self.width)
 			      .attr("height", self.height)
+			      .attr("id", self.ID)
 			      .attr("pointer-events", "all")
 			   .append("svg:g")
 			      .call(self.zoom)
 			      .on("dblclick.zoom", null)
 			self.SVG = svg
 			svg.append("svg:rect")
+			   .attr("id", self.ID)
 			   .attr("width", self.width)
 			   .attr("height", self.height)
 			   .attr("fill", "white");
@@ -476,7 +505,7 @@ function ProjectGraph(){
 		var newHourBarFills = newNodes.append("svg:rect");
 		newHourBarBacks.attr("class", "hourbarback-"+this.ID);
 		newHourBarFills.attr("class", "hourbarfill-"+this.ID);
-		var x = function(d) {
+		var x = function(d) {			
 			if (d.type == self.PROJECT_TYPE) {
 				return -1*self.MAX_BAR_WIDTH/2;		// center bar under folder
 			} else {
@@ -515,6 +544,7 @@ function ProjectGraph(){
 		var fillcolor = function(d) {
 			var link = self.findLink(d.index,
 				self.SelectedNode);
+			console.log(d.displayName+" "+link);
 			if (link == null) {
 				return "none";
 			}
@@ -851,7 +881,6 @@ function ProjectGraph(){
 					node.fixed = freeze.fix;
 					// store these settings in the metadata
 					node.fix = freeze.fix;
-					self.pause(false);
 		        },
 		        'getinfo': function(t) {
 					if(node.type==self.PROJECT_TYPE){
@@ -860,31 +889,31 @@ function ProjectGraph(){
                     else if (node.type == self.PERSON_TYPE) {	                    	
                         window.open(node.personPagesURL,'_blank');
                     }
-					self.pause(false);
 		        },
 		        'elaborate': function(t) {
 
 					self.elaborateNode(node);
 					self.indexReset();
 					self.redraw(true);
-//					self.pause(false);
 		        },
 		        'hide': function(t) {
 		        	// when hide is selected, call the hide function
 					self.hide(node);
-					self.pause(false);
 		        },
 		        'showall': function(t) {
 		        	// when Show All is selcted, call the showAll function
 					self.showAll();
-					self.pause(false);
 		        },
 		        'zoomtofit': function(t) {
 		        	// when zoom to fit is selected, call the zoom to fit function
 					self.zoomToFit(node);
-					self.pause(false);
-		        }
+		        },
+		        'popout': function(t){
 
+		        },
+		        'grow': function(t){
+
+		        }
 	        }
 		});
 	}
@@ -960,13 +989,12 @@ function ProjectGraph(){
 
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
-		var transition = this.Links;
 		this.LinkMap = new Array();
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
 			var node = this.Nodes[node_index];
 			node.index = node_index;
 		}
-		transition.forEach(function(l){
+		this.Links.forEach(function(l){
 			var src = null;
 			var tar = null;
 			if((typeof l.source == 'number')||(typeof l.target == 'number')){
@@ -980,7 +1008,7 @@ function ProjectGraph(){
 			l.source = src;
 			l.target = tar;
 			self.LinkMap[l.source.index+","+l.target.index] = l;
-			self.LinkMap[l.source.index+","+l.target.index] = l;
+			self.LinkMap[l.target.index+","+l.source.index] = l;
 		});
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
