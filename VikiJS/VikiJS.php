@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.0',
+	'version' => '0.5',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
