@@ -46,8 +46,7 @@ $wgResourceModules['ext.DummyExtender'] = array(
 	'remoteExtPath' => 'DummyExtender',
 	'scripts' => array(
 		'DummyExtenderScripts.js'
-	),
-	'group' => 'DummyBaseHooks'
+	)
 );
 
 global $DummyBase_Function_Hooks;
@@ -55,3 +54,12 @@ global $DummyBase_Function_Hooks;
 $DummyBase_Function_Hooks = array();
 $DummyBase_Function_Hooks['Location 1'] = array('function1', 'function2');
 $DummyBase_Function_Hooks['Location 2'] = array('function3', 'function4');
+
+$wgHooks['ParserFirstCallInit'][] = 'efDummyExtenderParserFunction_Setup';
+
+function efDummyExtenderParserFunction_Setup (& $parser) {
+
+	DummyBase::addResourceModule("ext.DummyExtender");
+	return true;
+
+}

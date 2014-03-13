@@ -89,44 +89,34 @@ function dummybase($parser) {
 
 class DummyBase {
 
-	function display($parser) {
-//		$hooks = addslashes(json_encode( array("Location 1", array("function1", "function2", "function3"),
-//				"Location 2", array("function4", "function5", "function6"),
-//				"Location 3", array("function 7")) ));
+	static $modules = array("ext.DummyBase");
 
-		global $DummyBase_Function_Hooks;
-	
+	static function addResourceModule($moduleName) {
+		self::$modules[] = $moduleName;
+	}
+
+	function display($parser) {
+
+		global $DummyBase_Function_Hooks;	
 		$hooks = addslashes(json_encode($DummyBase_Function_Hooks));
 
-		global $wgOut;
+		$output = $parser->getOutput();
 
-		$output = $parser->getOutput();	// note: $parser->getOutput() is not the same as $wgOut
-
-		$myLoader = $wgOut->getResourceLoader();
-		$moduleNames = $myLoader->getModuleNames();
-		$modulesToLoad = array();
-
-		foreach($moduleNames as $name) {
-			$module = $myLoader->getModule($name);
-			$group = $module->getGroup();
-			wfErrorLog("module name: $name - group: $group\n", "/var/www/html/DEBUG_DummyBase.out");
-			if($group == "DummyBaseHooks") {
-				$modulesToLoad[] = $name;
-			}
+		foreach(self::$modules as $name) {
+			wfErrorLog("Adding module name: $name\n", "/var/www/html/DEBUG_DummyBase.out");
+			$output->addModules($name);
 		}
-		$output->addModules($modulesToLoad);
 
-		$modulesToLoad_json = addslashes(json_encode($modulesToLoad));
+		$modules_json = addslashes(json_encode(self::$modules));
 
 		$output = <<<EOT
 <div id="DummyBase_MainDiv"></div>
 EOT;
 
 		$script = <<<END
-var dummyExtensions = mw.loader.getModuleNames();
-for(var i = 0; i < dummyExtensions.length; i++)
-	console.log(dummyExtensions[i]);
-mw.loader.using(jQuery.parseJSON("$modulesToLoad_json"), function() {
+
+modules = jQuery.parseJSON("$modules_json");
+mw.loader.using(jQuery.parseJSON("$modules_json"), function() {
 	$(document).ready(function() {
 		DummyBase.initialize( "$hooks" );
 	});
@@ -134,7 +124,10 @@ mw.loader.using(jQuery.parseJSON("$modulesToLoad_json"), function() {
 END;
 
 		$script = '<script type="text/javascript">' . $script . "</script";
+
+		global $wgOut;
 		$wgOut->addScript($script);
+
 		return $output;
 
 	}
