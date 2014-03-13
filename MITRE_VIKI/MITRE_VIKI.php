@@ -52,7 +52,7 @@ $wgResourceModules['ext.MITRE_VIKI'] = array(
 global $VikiJS_Function_Hooks;
 
 $VikiJS_Function_Hooks = array();
-$VikiJS_Function_Hooks['GetSearchableWikisHook'] = array('function1', 'function2');
+$VikiJS_Function_Hooks['GetSearchableWikisHook'] = array('mitre_getSearchableWikis');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 
