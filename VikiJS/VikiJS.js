@@ -43,6 +43,8 @@ window.VikiJS = {
 	INCOMING_LINK_COLOR: "#3498db",
 	OUTGOING_LINK_COLOR: "#f1c40f",
 
+	Hooks: null,
+	hasHooks: false,
 	GraphDiv: null,
 	DetailsDiv: null,
 	SelectedNode: null,
@@ -58,8 +60,10 @@ window.VikiJS = {
 	myApiURL: mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php",
 	myLogoURL: null,
 	searchableWikis: new Array(),
-	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight) {
+	drawGraph: function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
 
+		VikiJS.Hooks = jQuery.parseJSON(hooks);
+		VikiJS.hasHooks = (VikiJS.Hooks != null);
 		VikiJS.serverURL = mw.config.get("wgServer");
 		pageTitles = eval("("+pageTitles+")");
 		
@@ -112,6 +116,15 @@ window.VikiJS = {
 		// initialize the list of searchable wikis,
 		// get this wiki's own logo URL,
 		// and do initial graph population.
+
+		if(VikiJS.hasHooks) {
+			if(VikiJS.Hooks["GetSearchableWikisHook"]) {
+				self.log("About to call hooks for GetSearchableWikis...");
+				for(var i = 0; i < VikiJS.Hooks["GetSearchableWikisHook"].length; i++)
+					window[ VikiJS.Hooks["GetSearchableWikisHook"][i] ]();
+				self.log("Called hooks for GetSearchableWikis");
+			}
+		}
 
 		jQuery.ajax({
 			url: VikiJS.myApiURL,
@@ -233,8 +246,7 @@ window.VikiJS = {
 				
 			VikiJS.Force = d3.layout.force();
 			VikiJS.Force.gravity(0.4)
-			//VikiJS.Force.linkStrength(1.25)
-			VikiJS.Force.linkStrength(0.2);
+			VikiJS.Force.linkStrength(1.25)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
 			VikiJS.Force.linkDistance(
@@ -261,7 +273,7 @@ window.VikiJS = {
 	
 			function tick() {
 
-				var boundaryRadius = 12;
+				// var boundaryRadius = 12;
 
 				VikiJS.NodeSelection.attr("transform", function(d) {
 					return "translate(" + d.x + "," + d.y + ")";
@@ -286,6 +298,7 @@ window.VikiJS = {
 					var a = width/2;
 					var b = height/2;
 
+					// value of r is from wikipedia article on ellipses: r as a function of theta, a, b.
 					var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
 
 					return d.source.x + r*Math.cos(angle);
@@ -877,7 +890,7 @@ window.VikiJS = {
 				VikiJS.externalLinksSuccessHandler(data, textStatus, jqXHR, node);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				alert("Error fetching inside elaborateWikiNode - AJAX request (external links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
 		
@@ -901,7 +914,7 @@ window.VikiJS = {
 				VikiJS.intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
 		// get intra-wiki links IN to this page
@@ -920,7 +933,7 @@ window.VikiJS = {
 				VikiJS.intraWikiInSuccessHandler(data, textStatus, jqXHR, node);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links IN). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
 		node.elaborated = true;
@@ -1015,7 +1028,7 @@ window.VikiJS = {
 				if(errorThrown === "Not Found") 
 					VikiJS.wikiPageCheckErrorHandler(jqXHR, textStatus, errorThrown, intraNode);
 				else
-					alert("Error fetching. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					alert("Error fetching inside visitNode - AJAX request (get raw wikitext). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
 
