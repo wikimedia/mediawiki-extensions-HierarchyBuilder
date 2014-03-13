@@ -646,9 +646,11 @@ function ProjectGraph(){
 		return null;	
 	}
 	ProjectGraph.prototype.addNode = function(node) {
-		node.index = this.Nodes.push(node) - 1;
-		if (node.index == 0) {
-			this.SelectedNode = 0;
+		if(this.nodeExist(node)==false){
+			node.index = this.Nodes.push(node) - 1;
+			if (node.index == 0) {
+				this.SelectedNode = 0;
+			}
 		}
 	}
 
@@ -979,7 +981,9 @@ function ProjectGraph(){
 		// to get added back to the graph
 		for(var npos = 0; npos<this.HiddenNodes.length; npos++){
 			var node = this.HiddenNodes[npos];
-			this.Nodes.push(node);
+			if(this.nodeExist(node)==false){
+				this.Nodes.push(node);
+			}
 		}
 		// cycle through all of the links and re-add them back to a list
 		// to get added back to the graph
@@ -1045,7 +1049,14 @@ function ProjectGraph(){
 					self.HiddenLinks.push(l);				
 		});
 	}
-
+	ProjectGraph.prototype.nodeExist = function(node){
+		if     (node.type == this.PROJECT_TYPE){
+			return (this.findNode('chargeNumber', node.chargeNumber)!=null);
+		}
+		else if(node.type == this.PERSON_TYPE){
+			return (this.findNode('employeeNumber', node.employeeNumber)!=null);
+		}		
+	}
 	ProjectGraph.prototype.searchFilter = function(tags){
 
 	}
