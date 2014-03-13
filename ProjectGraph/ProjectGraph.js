@@ -37,6 +37,8 @@ function ProjectGraph(){
 	this.ZOOM_CONSTANT = 1.2;
 	this.HUB_LINK_LENGTH = 500;
 	this.LEAF_LINK_LENGTH = 75;
+	this.MIN_HEIGHT = 200;
+	this.MIN_WIDTH = 200;
 
 	this.FiscalYear = null;
 	this.GraphDiv = null;
@@ -86,11 +88,9 @@ function ProjectGraph(){
 				var calculated_width =  Math.round((self.width / width_inverse) * (self.width * ((window.innerWidth) / (self.width))));
 				var height = calculated_height;
 				var width = calculated_width;
-				var min_height = 200;
-				var min_width = 200;
 
-				if(calculated_height< min_height){height = min_height;}
-				if(calculated_width< min_width){width = min_width;}
+				if(calculated_height< self.MIN_HEIGHT){height = self.MIN_HEIGHT;}
+				if(calculated_width< self.MIN_WIDTH){width = self.MIN_WIDTH;}
 
 				$("#"+self.GraphDiv).height(height).width(width);
 				$("#"+self.ID).height(height).width(width);
@@ -578,13 +578,6 @@ function ProjectGraph(){
 			return scaledHoursPct * self.MAX_BAR_WIDTH / 100.0;
 		}
 		allHourBarFills.attr("width", width);
-		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((self.HiddenNodes.indexOf(l.source)>-1)||(self.HiddenNodes.indexOf(l.target)>-1)){
-//				self.HiddenLinks.push(l);
-//				return l;
-			}
-		}).remove();
-
 		if (layout) {
 			this.Force.start();
 		}
@@ -1011,6 +1004,7 @@ function ProjectGraph(){
 			var node = this.Nodes[node_index];
 			node.index = node_index;
 		}
+		var queue = new Array();
 		this.Links.forEach(function(l){
 			var src = find(l.source);
 			var tar = find(l.target);
@@ -1021,10 +1015,9 @@ function ProjectGraph(){
 				self.LinkMap[l.source.index+","+l.target.index] = l;
 			}
 			else{
-//				if((hiddenFind(l.source))||(hiddenFind(l.target))){
-//					self.Links.splice(self.Links.indexOf(l),1);
-//					self.HiddenLinks.push(l);				
-//				}
+				if((hiddenFind(l.source))||(hiddenFind(l.target))){
+					queue.push(l);
+				}
 			}
 			function find(node){
 				var query = null;
@@ -1044,8 +1037,12 @@ function ProjectGraph(){
 				else if(node.type == self.PERSON_TYPE){
 					query = self.findHiddenNode('employeeNumber',node.employeeNumber);
 				}		
-				return (query == null);
+				return (query != null);
 			}
+		});
+		queue.forEach(function(l){
+					self.Links.splice(self.Links.indexOf(l),1);
+					self.HiddenLinks.push(l);				
 		});
 	}
 
