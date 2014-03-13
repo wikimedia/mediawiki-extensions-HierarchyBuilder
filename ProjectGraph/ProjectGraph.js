@@ -54,6 +54,7 @@ function ProjectGraph(){
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
 	this.HiddenLinkMap = new Array();
+	this.NodeCounter = 0;
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
@@ -69,7 +70,6 @@ function ProjectGraph(){
 		this.Resize = resize;	
 		this.SliderDiv = detailsDiv+"_zoom_slider";
 		this.ImagePath = imagePath;
-		console.log(this.SliderDiv);
 		this.INITIAL_HEIGHT = initialHeight;
 		this.INITIAL_WIDTH = initialWidth;
 		this.height = this.INITIAL_HEIGHT;
@@ -544,7 +544,6 @@ function ProjectGraph(){
 		var fillcolor = function(d) {
 			var link = self.findLink(d.index,
 				self.SelectedNode);
-			console.log(d.displayName+" "+link);
 			if (link == null) {
 				return "none";
 			}
@@ -631,7 +630,9 @@ function ProjectGraph(){
 		var node = {
 			elaborated: false,
 			fix: false,
+			position: this.NodeCounter,
 		};
+		this.NodeCounter++;
 		return node;
 	}
 	ProjectGraph.prototype.findNode = function(property, value) {
@@ -995,22 +996,23 @@ function ProjectGraph(){
 			node.index = node_index;
 		}
 		this.Links.forEach(function(l){
-			var src = null;
-			var tar = null;
-			if((typeof l.source == 'number')||(typeof l.target == 'number')){
-				src = self.findNode('index', l.source);
-				tar = self.findNode('index', l.target);
-			}
-			else{
-				src = self.findNode('displayName',l.source.displayName);
-				tar = self.findNode('displayName',l.target.displayName);
-			}
-			l.source = src;
-			l.target = tar;
-			self.LinkMap[l.source.index+","+l.target.index] = l;
+			l.source = search(l.source);
+			l.target = search(l.target);
 			self.LinkMap[l.target.index+","+l.source.index] = l;
+			self.LinkMap[l.source.index+","+l.target.index] = l;
+
+			function search(node){
+				if     (node.type == self.PROJECT_TYPE){
+					return self.findNode('chargeNumber',node.chargeNumber);					
+				}
+				else if(node.type == self.PERSON_TYPE){
+					return self.findNode('employeeNumber',node.employeeNumber);
+				}
+				return node;
+			}
 		});
 	}
+
 	ProjectGraph.prototype.zoomToFit = function(node){
 
 		// initialize the following variables of minimum x and y, and maximum x and y
