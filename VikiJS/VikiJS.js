@@ -953,7 +953,6 @@ window.VikiJS = {
 
 					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 					VikiJS.visitNode(intraNode);
-
 				}
 			}
 		}
@@ -975,15 +974,13 @@ window.VikiJS = {
 	},
 	visitNode: function(intraNode) {
 		// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
-		var indexPHPURL = intraNode.apiURL.replace("api.php", "index.php");
-		self.log("indexPHPURL = "+indexPHPURL);
 
 		jQuery.ajax({
-			url: indexPHPURL,
-			dataType: 'text',
+			url: intraNode.apiURL,
+			dataType: 'jsonp',
 			data: {
-				action: 'raw',
-				title: intraNode.pageTitle,
+				action: 'query',
+				titles: intraNode.pageTitle,
 				format: 'json'
 			},
 			beforeSend: function (jqXHR, settings) {
@@ -994,23 +991,18 @@ window.VikiJS = {
 				VikiJS.wikiPageCheckHandler(data, textStatus, jqXHR, intraNode);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				if(errorThrown === "Not Found") 
-					VikiJS.wikiPageCheckErrorHandler(jqXHR, textStatus, errorThrown, intraNode);
-				else
-					alert("Error fetching inside visitNode - AJAX request (get raw wikitext). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				alert("Error fetching inside visitNode - AJAX request (query page). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
-
 	},
 	wikiPageCheckHandler: function(data, textStatus, jqXHR, originNode) {
-		self.log("wikiPageCheckHandler");
-		
-	},
-	wikiPageCheckErrorHandler: function(jqXHR, textStatus, errorThrown, node) {
-		node.nonexistentPage = true;
-		self.log("node: "+node.pageTitle+" is nonexistent");
-		node.info = VikiJS.formatNodeInfo(node.pageTitle, true);
-		VikiJS.redraw(true);
+		if(data.query.pages["-1"]) {
+			originNode.nonexistentPage = true;
+			self.log("node: "+originNode.pageTitle+" is nonexistent");
+			originNode.info = VikiJS.formatNodeInfo(originNode.pageTitle, true);
+			VikiJS.redraw(true);	
+
+		}		
 	},
 	indexOfSearchableWiki: function(url) {
 		for(var i = 0; i < VikiJS.searchableWikis.length; i++)
