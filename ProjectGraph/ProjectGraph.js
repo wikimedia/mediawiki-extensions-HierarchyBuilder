@@ -68,8 +68,8 @@ function ProjectGraph(){
         this.ID = graphDiv.match(dig)[0];
 		this.FiscalYear = fiscalYear;
 		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv+'_data';	
 		this.Resize = resize;	
+		this.DetailsDiv = detailsDiv+'_data';	
 		this.SliderDiv = detailsDiv+"_zoom_slider";
 		this.ImagePath = imagePath;
 		this.INITIAL_HEIGHT = initialHeight;
@@ -1056,9 +1056,6 @@ function ProjectGraph(){
 		else if(node.type == this.PERSON_TYPE){
 			return (this.findNode('employeeNumber', node.employeeNumber)!=null);
 		}		
-	}
-	ProjectGraph.prototype.searchFilter = function(tags){
-
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
