@@ -37,8 +37,8 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.0',
-	'author' => array("Jason Ji"),
+	'version' => '0.7',
+	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
  
@@ -59,6 +59,8 @@ $wgResourceModules['ext.VikiJS'] = array(
 
 $wgHooks['LanguageGetMagic'][] = 'wfExtensionVikiJS_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
+
+$wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
 
 function efVikiJSParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('vikijs', 'vikijs');
@@ -109,13 +111,14 @@ function vikiJS_parseParameters($params) {
 class VikiJS {
 
 	private static $pqnum = 0;
+	private static $modules = array("ext.VikiJS", "jquery.ui.slider");
+
+	static function addResourceModule($moduleName) {
+		self::$modules[] = $moduleName;
+	}
 
 	function display($parser, $pageTitles, $width, $height) {
 
-		global $wgOut;
-
-		$parser->getOutput()->addModules('ext.VikiJS');
-		$parser->getOutput()->addModules('jquery.ui.slider');
 		$div = "VikiJS_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
@@ -133,21 +136,58 @@ class VikiJS {
 </table>
 EOT;
 
+		global $VikiJS_Function_Hooks;
+		$hooks = addslashes(json_encode($VikiJS_Function_Hooks));
+
+		$outputObject = $parser->getOutput();
+
+		foreach(self::$modules as $name) {
+			wfErrorLog("Adding module name: $name\n", "/var/www/html/DEBUG_VikiJS.out");
+			$outputObject->addModules($name);
+		}
+
 		$pageTitles_json = addslashes(json_encode(array_map('trim', explode(',', $pageTitles))));
+		$modules_json = addslashes(json_encode(self::$modules));
 
 		global $wgServer;
 		global $wgScriptPath;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/VikiJS/';
 		$script =<<<END
-mw.loader.using(['jquery.ui.slider', 'ext.VikiJS'], function () {
+modules = jQuery.parseJSON("$modules_json");
+mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
-		VikiJS.drawGraph("$pageTitles_json", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height");
+		VikiJS.drawGraph("$pageTitles_json", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height", "$hooks");
 	});
 });
 END;
 
 		$script = '<script type="text/javascript">' . $script . "</script>";
+
+		global $wgOut;
 		$wgOut->addScript($script);
 		return $output;
+	}
+}
+
+class ApiGetSiteLogo extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+	public function execute() {
+		global $wgLogo;
+		$this->getResult()->addValue(null, $this->getModuleName(), $wgLogo);
+
+		return true;
+	}
+	public function getDescription() {
+		return "Get the URL of the site logo.";
+	}
+	public function getExamples() {
+		return array(
+			'api.php?action=getSiteLogo'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
 	}
 }

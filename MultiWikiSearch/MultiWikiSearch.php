@@ -16,7 +16,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits[ 'specialpage' ][] = array(
 	'name' => 'MultiWikiSearch',
-	'version' => '1.0.4',
+	'version' => '1.1.0',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'multiwikisearch-desc'
 );
@@ -36,7 +36,6 @@ $wgResourceModules['ext.MultiWikiSearch'] = array(
 	)
 );
 
-$wgAPIModules['getSearchableWikis'] = 'ApiGetSearchableWikis';
 $wgAPIModules['compareDifferentWikiPages'] = 'ApiCompareDifferentWikiPages';
 
 class SpecialMultiWikiSearch extends SpecialPage {
@@ -121,36 +120,6 @@ END;
 		$script = '<script type="text/javascript">' . $script . "</script>";
 		$output->addScript($script);
 
-	}
-}
-
-class ApiGetSearchableWikis extends ApiBase {
-	public function __construct( $main, $action ) {
-		parent::__construct( $main, $action );
-	}
- 
-	public function execute() {
- 		wfErrorLog("API called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
-		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]][[Gestalt_Community_Searchable::Yes]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL&p[limit]=500&p[format]=json");
-		$results = json_decode($json);
-
-		$this->getResult()->addValue(null, $this->getModuleName(), $results);
-
-		return true;
-	}
- 
-	public function getDescription() {
-		return 'Get a list of Gestalt Community wikis which are searchable.';
-	}
- 
-	public function getExamples() {
-		return array(
-			'api.php?action=getSearchableWikis'
-		);
-	}
- 
-	public function getHelpUrls() {
-		return '';
 	}
 }
 

@@ -64,7 +64,7 @@ window.queryStaffTasks = function(employeeNumber, fiscalYear) {
 			});
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			alert("Unable to fetch project charges.");
+			alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
 		}
 	});
 	return tasks;

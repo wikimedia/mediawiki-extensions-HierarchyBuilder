@@ -55,3 +55,7 @@ div#projectgraph-errors-panel {
 top:-38px;
 float:right;
 }
+
+#menu {
+  display: none;
+}
