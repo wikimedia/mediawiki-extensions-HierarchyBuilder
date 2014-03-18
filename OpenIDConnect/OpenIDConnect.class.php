@@ -275,14 +275,18 @@ class OpenIDConnect {
 			$skin = $wgOut->getSkin();
 			if ($skin->getUser()->isLoggedIn()) {
 				$href = Title::newFromText('Special:OpenIDConnectLogout')->
-					getFullURL() . '?returnto=' . $title->getText();
+					getFullURL() . '?returnto=' . $title->getPrefixedText();
 				$personal_urls['openidconnectlogout'] = array(
 					'text' => wfMessage('openidconnectlogout')->text(),
 					'href' => $href
 				);
 			} else {
 				$href = Title::newFromText('Special:OpenIDConnectLogin')->
-					getFullURL() . '?returnto=' . $title->getText();
+					getFullURL();
+				$returnto = $title->getPrefixedText();
+				if ($returnto != "Special:Badtitle") {
+					$href .= '?returnto=' . $returnto;
+				}
 				$personal_urls['openidconnectlogin'] = array(
 					'text' => wfMessage('openidconnectlogin')->text(),
 					'href' => $href

@@ -36,8 +36,14 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 			$session_variable = wfWikiID() . "_returnto";
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
-				$_SESSION[$session_variable] =
-					$this->getRequest()->getVal('returnto','');
+
+				$returnto = htmlentities(
+					$this->getRequest()->getVal('returnto',''),
+					ENT_QUOTES);
+				$title = Title::newFromText($returnto);
+				if (!is_null($title)) {
+					$_SESSION[$session_variable] = $title->getPrefixedText();
+				}
 			}
 			$user = new User;
 			OpenIDConnect::login($user);

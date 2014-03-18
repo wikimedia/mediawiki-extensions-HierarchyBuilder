@@ -33,7 +33,15 @@ class OpenIDConnectLogout extends UnlistedSpecialPage {
 			OpenIDConnect::logout();
 			global $wgUser;
 			$wgUser->logout();
-			$returnto = $this->getRequest()->getVal('returnto','');
+			$returnto = htmlentities(
+				$this->getRequest()->getVal('returnto',''),
+				ENT_QUOTES);
+			$title = Title::newFromText($returnto);
+			if (is_null($title)) {
+				$returnto = '';
+			} else {
+				$returnto = $title->getPrefixedText();
+			}
 			OpenIDConnect::redirect($returnto, $this->getOutput());
 		}
 	}
