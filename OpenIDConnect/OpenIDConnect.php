@@ -55,6 +55,7 @@ $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
+$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
 if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
 	$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::autoLogin';
 } else {
@@ -63,8 +64,5 @@ if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
 		__DIR__ . '/OpenIDConnect.aliases.php';
 	$wgAutoloadClasses['OpenIDConnectLogin'] =
 		__DIR__ . '/OpenIDConnectLogin.class.php';
-	$wgAutoloadClasses['OpenIDConnectLogout'] =
-		__DIR__ . '/OpenIDConnectLogout.class.php';
 	$wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
-	$wgSpecialPages['OpenIDConnectLogout'] = 'OpenIDConnectLogout';
 }

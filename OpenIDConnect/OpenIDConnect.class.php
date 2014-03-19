@@ -153,6 +153,7 @@ class OpenIDConnect {
 		if (array_key_exists($session_variable, $_SESSION)) {
 			unset($_SESSION[$session_variable]);
 		}
+		return true;
 	}
 
 	public static function redirect($returnto, $oidc, $params = null) {
@@ -260,8 +261,7 @@ class OpenIDConnect {
 		$urls = array(
 			'createaccount',
 			'login',
-			'anonlogin',
-			'logout'
+			'anonlogin'
 		);
 		foreach ($urls as $u) {
 			if (array_key_exists($u, $personal_urls)) {
@@ -273,18 +273,11 @@ class OpenIDConnect {
 			// replace with skin parameter in MW 1.23
 			global $wgOut;
 			$skin = $wgOut->getSkin();
-			if ($skin->getUser()->isLoggedIn()) {
-				$href = Title::newFromText('Special:OpenIDConnectLogout')->
-					getFullURL() . '?returnto=' . $title->getPrefixedText();
-				$personal_urls['openidconnectlogout'] = array(
-					'text' => wfMessage('openidconnectlogout')->text(),
-					'href' => $href
-				);
-			} else {
+			if (!$skin->getUser()->isLoggedIn()) {
 				$href = Title::newFromText('Special:OpenIDConnectLogin')->
 					getFullURL();
 				$returnto = $title->getPrefixedText();
-				if ($returnto != "Special:Badtitle") {
+				if ($returnto != "Special:Badtitle" && $returnto != "Special:UserLogout") {
 					$href .= '?returnto=' . $returnto;
 				}
 				$personal_urls['openidconnectlogin'] = array(
@@ -299,8 +292,7 @@ class OpenIDConnect {
 	public static function modifyLoginSpecialPages(&$specialPagesList) {
 		$specialpages = array(
 			'Userlogin',
-			'CreateAccount',
-			'Userlogout'
+			'CreateAccount'
 		);
 		foreach ($specialpages as $p) {
 			if (array_key_exists($p, $specialPagesList)) {
