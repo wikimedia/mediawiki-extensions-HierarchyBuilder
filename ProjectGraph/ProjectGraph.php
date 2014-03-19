@@ -142,13 +142,14 @@ class ProjectGraph {
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
 		$detailssubdiv = $detailsdiv . "_data";
+		$sliderdiv = $detailsdiv . "_zoom_slider";
 		$output = <<<EOT
 <table>
 <tr><td><div class="projectgraph-graph-container" id="$graphdiv">
 </div></td></tr>
 <tr><td><div class="projectgraph-detail-panel" id="$detailsdiv">
 <div id="$detailssubdiv"></div>
-<div id="projectgraph-zoom-slider"></div>
+<div id="$sliderdiv"></div>
 </div></td></tr>
 <tr><td><div id="projectgraph-errors-panel">
 </div></td></tr>
@@ -173,8 +174,9 @@ mw.loader.using(['jquery.ui.slider', 'ext.ProjectGraph'], function () {
 
 	$(document).ready(function() {
 
-		ProjectGraph.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
-		"$detailssubdiv", "$imagePath", "$names_json", "$width", "$height");
+		var g = new ProjectGraph();
+		g.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
+		"$detailsdiv", "$imagePath", "$names_json", "$width", "$height", true);
 	});
 });
 END;
