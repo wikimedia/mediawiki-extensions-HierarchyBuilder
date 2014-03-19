@@ -110,9 +110,9 @@ function ProjectGraph(){
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
-//		$('#searchbar').keydown(function(event){
-//			self.searchFilter($(this).val());
-//		});
+		$('#searchbar').keyup(function(event){
+			self.searchFilter($(this).val());
+		});
 
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
@@ -657,7 +657,36 @@ function ProjectGraph(){
 			}
 		}
 	}
-
+	ProjectGraph.prototype.hideNodes = function(node, store, cluster){
+		if(node.elaborated && cluster){
+			var hub = new Array();
+			store.Links.forEach(function(l){
+				if(hub.indexOf(l.source)==-1){
+					hub.push(l.source);
+				}
+				if(hub.indexOf(l.target)==-1){
+					hub.push(l.target);
+				}
+			});
+			hub.forEach(function(n){
+				var pos = self.Nodes.indexOf(n);
+				if(pos > -1){
+					if((n.uid == node.uid)||(n.elaborated == false)){
+						store.Nodes.push(self.Nodes[pos]);
+						self.Nodes.splice(pos,1);						
+					}
+				}
+			});
+		}
+		else{
+			// select all of the nodes
+			var pos = this.Nodes.indexOf(node);
+			if (pos > -1) {
+				store.Nodes.push(this.Nodes[pos]);
+	    		this.Nodes.splice(pos, 1);
+			}
+		}
+	}
 	ProjectGraph.prototype.addLink = function(node1, node2) {
 		var link = {
 			source: node1,
@@ -668,12 +697,12 @@ function ProjectGraph(){
 		this.LinkMap[node2.index + "," + node1.index] = link;
 		return link;
 	}
-	ProjectGraph.prototype.removeLink = function(node){
+	ProjectGraph.prototype.hideLinks = function(node, store){
 		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
+			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
 				// store the link in an array to be re-added later
 				self.Links.splice(self.Links.indexOf(l),1);
-				self.Hidden.Links.push(l);				
+				store.Links.push(l);				
 			}
 		});
 	}
@@ -936,43 +965,10 @@ function ProjectGraph(){
 	}
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
-		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
-				// store the link in an array to be re-added later
-				self.Links.splice(self.Links.indexOf(l),1);
-				self.Hidden.Links.push(l);				
-			}
-		});
+		this.hideLinks(node, this.Hidden);
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
-		if(node.elaborated){
-			var hub = new Array();
-			this.Hidden.Links.forEach(function(l){
-				if(hub.indexOf(l.source)==-1){
-					hub.push(l.source);
-				}
-				if(hub.indexOf(l.target)==-1){
-					hub.push(l.target);
-				}
-			});
-			hub.forEach(function(n){
-				var pos = self.Nodes.indexOf(n);
-				if(pos > -1){
-					if((n.uid == node.uid)||(n.elaborated == false)){
-						self.Hidden.Nodes.push(self.Nodes[pos]);
-						self.Nodes.splice(pos,1);						
-					}
-				}
-			});
-		}
-		else{
-			// select all of the nodes
-			var pos = this.Nodes.indexOf(node);
-			if (pos > -1) {
-				this.Hidden.Nodes.push(this.Nodes[pos]);
-	    		this.Nodes.splice(pos, 1);
-			}
-		}
+		this.hideNodes(node, this.Hidden, true);
 		this.indexReset();
 		// Properly remove the nodes from the graph
 		this.redraw(true);
@@ -1044,23 +1040,55 @@ function ProjectGraph(){
 			break;
 			case 3:
 				exist = ((this.findNode('uid', node.uid, this)!=null)||
-						 (this.findNode('uid', uid, this.Hidden)!=null));
+						 (this.findNode('uid', node.uid, this.Hidden)!=null));
 			break;
 			case 4:
 				exist = ((this.findNode('uid', node.uid, this.Hidden)!=null)||
-						 (this.findNode('uid', uid, this.Filter)!=null));
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
 			break;
 			case 5:
 				exist = ((this.findNode('uid', node.uid, this)!=null)||
-						 (this.findNode('uid', uid, this.Filter)!=null));
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
 			break;
 			case 6:
 				exist = ((this.findNode('uid', node.uid, this)!=null)||
-						 (this.findNode('uid', uid, this.Hidden)!=null)||
-						 (this.findNode('uid', uid, this.Filter)!=null));
+						 (this.findNode('uid', node.uid, this.Hidden)!=null)||
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
 			break;
 		}
 		return exist;	
+	}
+	ProjectGraph.prototype.searchFilter = function(lookup){
+		var self = this;
+		this.Nodes.forEach(function(n){
+			if(!isEqual(lookup,n.tags)){
+//				self.hideLinks(n, self.Filter);
+//				self.hideNodes(n, self.Filter, true);
+			}
+		});
+		this.Filter.forEach(function(n){
+			if(isEqual(lookup,n.tags)){
+//				self.hideLinks(n, self.Filter);
+//				self.hideNodes(n, self.Filter, true);
+			}
+		});
+
+		this.indexReset();
+		this.redraw(true);
+
+        function isEqual(lookup, tags){
+			var search = lookup.replace(/\s/g, "");
+			for(var index=0; index<tags.length; index++){
+				var t = tags[index];
+				if(t.length>=search.length){
+					var tag = t.slice(0,search.length);
+					if(search==tag){
+						return true;
+					}
+				}
+			};
+        	return false;
+        }
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
 

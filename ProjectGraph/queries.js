@@ -128,8 +128,9 @@ window.queryTags = function(type, uid){
 		dataType: 'json',
 		async: false,
 		success: function(data){
-//			console.log(data);
-			tags = data.tags;
+			data.tags.forEach(function(t){
+				tags.push(t.replace(/\s/g, ""));
+			});
 		}		
 	});
 	return tags;
