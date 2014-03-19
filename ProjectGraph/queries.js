@@ -120,3 +120,17 @@ window.queryTaskDelivery = function(chargeNumber, fiscalYear) {
 		staff: staff
 	};
 };
+window.queryTags = function(type, uid){
+	var tags = [];
+	$.ajax({
+		url: '../proxy.php?url=http://info.mitre.org/tags/entity/'+type+'/'+uid+'.json',
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(data){
+//			console.log(data);
+			tags = data.tags;
+		}		
+	});
+	return tags;
+}

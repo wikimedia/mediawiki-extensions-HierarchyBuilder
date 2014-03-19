@@ -47,11 +47,7 @@ div#projectgraph-errors-panel {
   visibility: hidden;
   font-size: 2em;
 }
-
-#projectgraph-zoom-slider{
-/* Changed top:-38px to vertical-align:top to make
- * 
- */
-top:-38px;
-float:right;
+.zoom_slider {
+  top:-38px;
+  float:right;
 }

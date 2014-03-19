@@ -53,10 +53,8 @@ function ProjectGraph(){
 	this.NodeSelection = null;
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
-	this.HiddenNodes = new Array();
-	this.HiddenLinks = new Array();
-	this.HiddenLinkMap = new Array();
-	this.NodeCounter = 0;
+	this.Hidden = {Nodes: new Array(), Links: new Array()};
+	this.Filter = {Nodes: new Array(), Links: new Array()};
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
@@ -92,8 +90,7 @@ function ProjectGraph(){
 				if(calculated_height< self.MIN_HEIGHT){height = self.MIN_HEIGHT;}
 				if(calculated_width< self.MIN_WIDTH){width = self.MIN_WIDTH;}
 
-				$("#"+self.GraphDiv).height(height).width(width);
-				$("#"+self.ID).height(height).width(width);
+				$("#"+self.GraphDiv+" ,#"+self.ID).height(height).width(width);
 				$("#"+self.DetailsDiv).width((width-margin)* 3/5);
 				$("#"+self.SliderDiv).width((width - margin) * 2/5);
 				$("#"+self.DetailsDiv.substring(0, self.DetailsDiv.length-5)).width((width-margin));				
@@ -102,8 +99,6 @@ function ProjectGraph(){
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
-		$("#"+this.SliderDiv).css("top","-38px");
-        $("#"+this.SliderDiv).css("float","right");
 		// the details divider will get 3/5 of the space
 		$("#"+this.DetailsDiv).width((this.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
@@ -115,6 +110,10 @@ function ProjectGraph(){
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
+//		$('#searchbar').keydown(function(event){
+//			self.searchFilter($(this).val());
+//		});
+
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
@@ -153,6 +152,7 @@ function ProjectGraph(){
 			"<div class=\"options\" >"+
 			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
         	"<li id=\"getinfo\" >Get Info</li>"+
+			"<li id=\"tags\">Display Tags</li>"+
 			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"hide\">Hide</li>"+
 			"<hr>"+
@@ -525,7 +525,7 @@ function ProjectGraph(){
 		newHourBarFills.style("stroke", "none");
 
 		// get the selected node
-		var selected = this.findNode('index',this.SelectedNode);
+		var selected = this.findNode('index',this.SelectedNode, this);
 		var allHourBarBacks = d3.selectAll(".hourbarback-"+this.ID);
 		var allHourBarFills = d3.selectAll(".hourbarfill-"+this.ID);
 		var backcolor = function(d) {
@@ -583,7 +583,7 @@ function ProjectGraph(){
 		}
 	}
 	ProjectGraph.prototype.addProjectNode = function(displayName, chargeNumber) {
-		var node = this.findNode("chargeNumber", chargeNumber);
+		var node = this.findNode("chargeNumber", chargeNumber, this);
 		if (node != null) {
 			return node;
 		}
@@ -593,6 +593,8 @@ function ProjectGraph(){
 		node.info = this.formatNodeInfo(displayName);
 		node.type = this.PROJECT_TYPE;
 		node.imageURL = this.ImagePath + 'project.png';
+		node.tags = queryTags('project', node.chargeNumber);
+		node.uid = node.chargeNumber;
 		node.projectPagesURL =
 			"http://info.mitre.org/phonebook/project.do?projectNumber=" +
 			chargeNumber + "&fiscalYear=" + this.FiscalYear;
@@ -613,6 +615,8 @@ function ProjectGraph(){
 		node.type = this.PERSON_TYPE;
 		node.imageURL = "http://info.mitre.org/phonebook/photos/big/" +
 			employeeNumber + ".jpg";
+		node.tags = queryTags('employee', node.employeeNumber);
+		node.uid = node.employeeNumber;
 		node.personPagesURL =
 			"http://info.mitre.org/people/app/person/" + employeeNumber;
 		this.addNode(node);
@@ -622,31 +626,31 @@ function ProjectGraph(){
 		var node = {
 			elaborated: false,
 			fix: false,
-			position: this.NodeCounter,
 		};
-		this.NodeCounter++;
 		return node;
 	}
-	ProjectGraph.prototype.findNode = function(property, value) {
-		for (var i = 0; i < this.Nodes.length; i++) {
-			if (typeof this.Nodes[i][property] !== 'undefined' &&
-				this.Nodes[i][property] === value) {
-				return this.Nodes[i];
+	ProjectGraph.prototype.findNode = function(property, value, store) {
+		if(typeof store != 'undefined'){
+			for (var i = 0; i < store.Nodes.length; i++) {
+				if (typeof store.Nodes[i][property] !== 'undefined' &&
+					store.Nodes[i][property] === value) {
+					return store.Nodes[i];
+				}
 			}
 		}
 		return null;
 	}
 	ProjectGraph.prototype.findHiddenNode = function(property, value){
-		for (var i = 0; i < this.HiddenNodes.length; i++) {
-			if (typeof this.HiddenNodes[i][property] !== 'undefined' &&
-				this.HiddenNodes[i][property] === value) {
-				return this.HiddenNodes[i];
+		for (var i = 0; i < this.Hidden.Nodes.length; i++) {
+			if (typeof this.Hidden.Nodes[i][property] !== 'undefined' &&
+				this.Hidden.Nodes[i][property] === value) {
+				return this.Hidden.Nodes[i];
 			}
 		}
 		return null;	
 	}
 	ProjectGraph.prototype.addNode = function(node) {
-		if(this.nodeExist(node)==false){
+		if(this.nodeExist(node,0)==false){
 			node.index = this.Nodes.push(node) - 1;
 			if (node.index == 0) {
 				this.SelectedNode = 0;
@@ -669,7 +673,7 @@ function ProjectGraph(){
 			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
 				// store the link in an array to be re-added later
 				self.Links.splice(self.Links.indexOf(l),1);
-				self.HiddenLinks.push(l);				
+				self.Hidden.Links.push(l);				
 			}
 		});
 	}
@@ -770,7 +774,7 @@ function ProjectGraph(){
 				var person = delivery.staff[i];
 				var personNode =
 					this.findNode("employeeNumber",
-					person.employeeNumber);
+					person.employeeNumber, this);
 				if (personNode == null) {
 					personNode =
 						this.addPersonNode(person.personName,
@@ -817,7 +821,7 @@ function ProjectGraph(){
 		for (var i = 0; i < tasks.length; i++) {
 			var task = tasks[i];
 			var taskNode =
-				this.findNode("chargeNumber", task.chargeNumber);
+				this.findNode("chargeNumber", task.chargeNumber, this);
 			if (taskNode == null) {
 				taskNode =
 					this.addProjectNode(task.taskName,
@@ -849,7 +853,7 @@ function ProjectGraph(){
 		var self = this;
 		this.pause(true);
 		// find the node according to the index and set it locally
-		var node = this.findNode('index',this.SelectedNode);
+		var node = this.findNode('index',this.SelectedNode, this);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
 		// if the node has been fixed, then display "unfreeze" as a menu
@@ -920,11 +924,8 @@ function ProjectGraph(){
 		        	// when zoom to fit is selected, call the zoom to fit function
 					self.zoomToFit(node);
 		        },
-		        'popout': function(t){
-
-		        },
-		        'grow': function(t){
-
+		        'tags': function(t){
+		        	alert(node.tags.join());
 		        }
 	        }
 		});
@@ -936,17 +937,17 @@ function ProjectGraph(){
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
 		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
+			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
 				// store the link in an array to be re-added later
 				self.Links.splice(self.Links.indexOf(l),1);
-				self.HiddenLinks.push(l);				
+				self.Hidden.Links.push(l);				
 			}
 		});
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
 		if(node.elaborated){
 			var hub = new Array();
-			this.HiddenLinks.forEach(function(l){
+			this.Hidden.Links.forEach(function(l){
 				if(hub.indexOf(l.source)==-1){
 					hub.push(l.source);
 				}
@@ -957,8 +958,8 @@ function ProjectGraph(){
 			hub.forEach(function(n){
 				var pos = self.Nodes.indexOf(n);
 				if(pos > -1){
-					if((n.displayName == node.displayName)||(n.elaborated == false)){
-						self.HiddenNodes.push(self.Nodes[pos]);
+					if((n.uid == node.uid)||(n.elaborated == false)){
+						self.Hidden.Nodes.push(self.Nodes[pos]);
 						self.Nodes.splice(pos,1);						
 					}
 				}
@@ -968,7 +969,7 @@ function ProjectGraph(){
 			// select all of the nodes
 			var pos = this.Nodes.indexOf(node);
 			if (pos > -1) {
-				this.HiddenNodes.push(this.Nodes[pos]);
+				this.Hidden.Nodes.push(this.Nodes[pos]);
 	    		this.Nodes.splice(pos, 1);
 			}
 		}
@@ -979,23 +980,23 @@ function ProjectGraph(){
 	ProjectGraph.prototype.showAll = function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
-		for(var npos = 0; npos<this.HiddenNodes.length; npos++){
-			var node = this.HiddenNodes[npos];
-			if(this.nodeExist(node)==false){
+		for(var npos = 0; npos<this.Hidden.Nodes.length; npos++){
+			var node = this.Hidden.Nodes[npos];
+			if(this.nodeExist(node,0)==false){
 				this.Nodes.push(node);
 			}
 		}
 		// cycle through all of the links and re-add them back to a list
 		// to get added back to the graph
-		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
-			var l = this.HiddenLinks[lpos];
+		for(var lpos = 0; lpos<this.Hidden.Links.length; lpos++){
+			var l = this.Hidden.Links[lpos];
 			this.Links.push(l);
 		}		
 
 		this.indexReset();
 
-		this.HiddenNodes = new Array();
-		this.HiddenLinks = new Array();
+		this.Hidden.Nodes = new Array();
+		this.Hidden.Links = new Array();
 
 		// redraw
 		this.redraw(true);
@@ -1010,8 +1011,8 @@ function ProjectGraph(){
 		}
 		var queue = new Array();
 		this.Links.forEach(function(l){
-			var src = find(l.source);
-			var tar = find(l.target);
+			var src = self.findNode('uid', l.source.uid, self);
+			var tar = self.findNode('uid', l.target.uid, self);
 			if((src != null)&&(tar != null)){
 				l.source = src;
 				l.target = tar;			
@@ -1019,43 +1020,47 @@ function ProjectGraph(){
 				self.LinkMap[l.source.index+","+l.target.index] = l;
 			}
 			else{
-				if((hiddenFind(l.source))||(hiddenFind(l.target))){
+				if((self.nodeExist(l.source,1))||(self.nodeExist(l.target,1))){
 					queue.push(l);
 				}
-			}
-			function find(node){
-				var query = null;
-				if     (node.type == self.PROJECT_TYPE){
-					query = self.findNode('chargeNumber',node.chargeNumber);
-				}
-				else if(node.type == self.PERSON_TYPE){
-					query = self.findNode('employeeNumber',node.employeeNumber);
-				}		
-				return query;		
-			}
-			function hiddenFind(node){
-				var query = null;
-				if     (node.type == self.PROJECT_TYPE){
-					query = self.findHiddenNode('chargeNumber',node.chargeNumber);
-				}
-				else if(node.type == self.PERSON_TYPE){
-					query = self.findHiddenNode('employeeNumber',node.employeeNumber);
-				}		
-				return (query != null);
 			}
 		});
 		queue.forEach(function(l){
 					self.Links.splice(self.Links.indexOf(l),1);
-					self.HiddenLinks.push(l);				
+					self.Hidden.Links.push(l);				
 		});
 	}
-	ProjectGraph.prototype.nodeExist = function(node){
-		if     (node.type == this.PROJECT_TYPE){
-			return (this.findNode('chargeNumber', node.chargeNumber)!=null);
+	ProjectGraph.prototype.nodeExist = function(node, level){		
+		var exist = false;
+		switch(level){
+			case 0:
+				exist = (this.findNode('uid', node.uid, this)!=null);
+			break;
+			case 1:
+				exist = (this.findNode('uid', node.uid, this.Hidden)!=null);
+			break;
+			case 2:
+				exist = (this.findNode('uid', node.uid, this.Filter)!=null);
+			break;
+			case 3:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', uid, this.Hidden)!=null));
+			break;
+			case 4:
+				exist = ((this.findNode('uid', node.uid, this.Hidden)!=null)||
+						 (this.findNode('uid', uid, this.Filter)!=null));
+			break;
+			case 5:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', uid, this.Filter)!=null));
+			break;
+			case 6:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', uid, this.Hidden)!=null)||
+						 (this.findNode('uid', uid, this.Filter)!=null));
+			break;
 		}
-		else if(node.type == this.PERSON_TYPE){
-			return (this.findNode('employeeNumber', node.employeeNumber)!=null);
-		}		
+		return exist;	
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
