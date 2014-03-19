@@ -123,13 +123,14 @@ class VikiJS {
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
 		$detailssubdiv = $detailsdiv . "_data";
+		$sliderdiv = $detailsdiv . "_zoom_slider";
 		$output = <<<EOT
 <table>
 <tr><td><div class="vikijs-graph-container" id="$graphdiv">
 </div></td></tr>
 <tr><td><div class="vikijs-detail-panel" id="$detailsdiv">
 <div id="$detailssubdiv"></div>
-<div id="vikijs-zoom-slider"></div>
+<div class="vikijs-zoom-slider" id="$sliderdiv"></div>
 </div></td></tr>
 <tr><td><div id="vikijs-errors-panel">
 </div></td></tr>
@@ -156,7 +157,8 @@ EOT;
 modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
-		VikiJS.drawGraph("$pageTitles_json", "$graphdiv", "$detailssubdiv", "$imagePath", "$width", "$height", "$hooks");
+		var g = new VikiJS();
+		g.drawGraph("$pageTitles_json", "$graphdiv", "$detailsdiv", "$imagePath", "$width", "$height", "$hooks");
 	});
 });
 END;

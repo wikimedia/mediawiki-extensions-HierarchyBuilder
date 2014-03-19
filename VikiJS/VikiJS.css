@@ -48,7 +48,7 @@ div#vikijs-errors-panel {
   font-size: 2em;
 }
 
-#vikijs-zoom-slider{
+.vikijs-zoom-slider{
 float:right;
 /*
  * adjust the slider up 23px
