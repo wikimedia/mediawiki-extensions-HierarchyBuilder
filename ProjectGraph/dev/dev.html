@@ -5,6 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9" >
 <title>Project Pages</title>
 <!--[if IE]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+
 <script language="javascript" type="text/javascript" src="../d3.v3.min.js"></script>
 <script language="javascript" type="text/javascript" src="../jquery-2.0.3.min.js"></script>
 <script language="javascript" type="text/javascript" src="../queries.js"></script>
@@ -24,19 +25,34 @@
     <td>
       <div class="projectgraph-graph-container" id="ProjectGraph_0_graph"></div>
     </td>
+    <td>
+      <div class="projectgraph-graph-container" id="ProjectGraph_1_graph"></div>
+    </td>
   </tr>
   <tr>
     <td>
       <div id="ProjectGraph_0_details" class="projectgraph-detail-panel">
-      	<div id="ProjectGraph_0_details_data" ></div>
-        <div id="projectgraph-zoom-slider"></div>
+        <div id="ProjectGraph_0_details_data" ></div>
+        <div id="ProjectGraph_0_details_zoom_slider"></div>
+      </div>
+    </td>
+    <td>
+      <div id="ProjectGraph_1_details" class="projectgraph-detail-panel">
+        <div id="ProjectGraph_1_details_data" ></div>
+        <div id="ProjectGraph_1_details_zoom_slider"></div>
       </div>
     </td>
   </tr>
 </table>
 <script type="text/javascript">
-ProjectGraph.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
-		"ProjectGraph_0_details_data", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "1050", "600");
+  var alpha = new ProjectGraph();
+  alpha.drawGraph("", "[\"35294\"]", "2014", "ProjectGraph_0_graph",
+    "ProjectGraph_0_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Lunsford, Scot\"]", "700", "400", true);
+
+  var beta = new ProjectGraph();
+  beta.drawGraph("", "[\"36577\"]", "2014", "ProjectGraph_1_graph",
+    "ProjectGraph_1_details", "http://j85d.mitre.org/.mediawiki/extensions/ProjectGraph/", "[\"Vecchio, Austin\"]", "700", "400", true);
+
 </script>
 </body>
 </html>
