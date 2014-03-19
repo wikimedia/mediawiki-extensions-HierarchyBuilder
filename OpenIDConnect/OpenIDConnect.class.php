@@ -146,13 +146,8 @@ class OpenIDConnect {
 	}
 
 	public static function logout() {
-		if ( session_id() == '' ) {
-			wfSetupSession();
-		}
-		$session_variable = wfWikiID() . "_userid";
-		if (array_key_exists($session_variable, $_SESSION)) {
-			unset($_SESSION[$session_variable]);
-		}
+		session_destroy();
+		unset($_SESSION);
 		return true;
 	}
 
