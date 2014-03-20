@@ -640,15 +640,6 @@ function ProjectGraph(){
 		}
 		return null;
 	}
-	ProjectGraph.prototype.findHiddenNode = function(property, value){
-		for (var i = 0; i < this.Hidden.Nodes.length; i++) {
-			if (typeof this.Hidden.Nodes[i][property] !== 'undefined' &&
-				this.Hidden.Nodes[i][property] === value) {
-				return this.Hidden.Nodes[i];
-			}
-		}
-		return null;	
-	}
 	ProjectGraph.prototype.addNode = function(node) {
 		if(this.nodeExist(node,0)==false){
 			node.index = this.Nodes.push(node) - 1;
@@ -714,6 +705,17 @@ function ProjectGraph(){
 			return null;
 		}
 		return link;
+	}
+	ProjectGraph.prototype.linkSearch = function(node, store){
+		if(typeof store != 'undefined'){
+			for (var i = 0; i < store.Links.length; i++) {
+				var link = store.Links[i];
+				if((link.source == node)||(link.target == node)){
+					return link;
+				}
+			}
+		}
+		return null;
 	}
 	ProjectGraph.prototype.elaborateNode = function(node) {
 		if (node.type == this.PROJECT_TYPE) {
@@ -1065,31 +1067,37 @@ function ProjectGraph(){
 		var hide = new Array();
 		this.Nodes.forEach(function(n){
 			if(!isEqual(lookup,n.tags)){
-				console.log(n.displayName);
 				self.hideLinks(n, self.Filter);
 				hide.push(n);
-			}			
+			}
 		});
 		hide.forEach(function(n){
 			self.hideNodes(n, self.Filter, false);
 		});
+		var show = new Array();
 		this.Filter.Nodes.forEach(function(n){
 			if(isEqual(lookup,n.tags)){
-//				self.hideLinks(n, self.Filter);
-//				self.hideNodes(n, self.Filter, true);
+				console.log(n.displayName);
+				self.Nodes.push(n);
+				show.push(n);
+				self.Links.push(self.linkSearch(n, self.Filter));
 			}
+		});
+		show.forEach(function(n){
+			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
 		});
 		this.indexReset();
 		this.redraw(true);
 
         function isEqual(lookup, tags){
 			var search = lookup.replace(/\s/g, "");
+			if(lookup==''){return true;}
+
 			for(var index=0; index<tags.length; index++){
 				var t = tags[index];
 				if(t.length>=search.length){
 					var tag = t.slice(0,search.length);
-					if(search==tag){
-//						console.log('"'+search+'" "'+'"'+tag+'"');
+					if(search===tag){
 						return true;
 					}
 				}

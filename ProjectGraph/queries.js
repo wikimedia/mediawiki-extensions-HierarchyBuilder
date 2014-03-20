@@ -122,6 +122,15 @@ window.queryTaskDelivery = function(chargeNumber, fiscalYear) {
 };
 window.queryTags = function(type, uid){
 	var tags = [];
+	var request =
+'<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">' +
+'	<soap12:Body>' +
+'		<GetTaskPhonebookInfo xmlns="http://Mitre.IWWeb.Data.Service.TaskInformation">' +
+'			<TaskNo>' + type + '</TaskNo>' +
+'			<fiscalPeriod>' + uid + '</fiscalPeriod>' +
+'		</GetTaskPhonebookInfo>' +
+'	</soap12:Body>' +
+'</soap12:Envelope>';
 	$.ajax({
 		url: '../proxy.php?url=http://info.mitre.org/tags/entity/'+type+'/'+uid+'.json',
 		type: 'GET',
