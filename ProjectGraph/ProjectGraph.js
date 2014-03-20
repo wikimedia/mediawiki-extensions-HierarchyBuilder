@@ -658,6 +658,7 @@ function ProjectGraph(){
 		}
 	}
 	ProjectGraph.prototype.hideNodes = function(node, store, cluster){
+		var self = this;
 		if(node.elaborated && cluster){
 			var hub = new Array();
 			store.Links.forEach(function(l){
@@ -698,6 +699,7 @@ function ProjectGraph(){
 		return link;
 	}
 	ProjectGraph.prototype.hideLinks = function(node, store){
+		var self = this;
 		d3.selectAll(".link-"+this.ID).filter(function(l){
 			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
 				// store the link in an array to be re-added later
@@ -1060,19 +1062,23 @@ function ProjectGraph(){
 	}
 	ProjectGraph.prototype.searchFilter = function(lookup){
 		var self = this;
+		var hide = new Array();
 		this.Nodes.forEach(function(n){
 			if(!isEqual(lookup,n.tags)){
-//				self.hideLinks(n, self.Filter);
-//				self.hideNodes(n, self.Filter, true);
-			}
+				console.log(n.displayName);
+				self.hideLinks(n, self.Filter);
+				hide.push(n);
+			}			
 		});
-		this.Filter.forEach(function(n){
+		hide.forEach(function(n){
+			self.hideNodes(n, self.Filter, false);
+		});
+		this.Filter.Nodes.forEach(function(n){
 			if(isEqual(lookup,n.tags)){
 //				self.hideLinks(n, self.Filter);
 //				self.hideNodes(n, self.Filter, true);
 			}
 		});
-
 		this.indexReset();
 		this.redraw(true);
 
@@ -1083,6 +1089,7 @@ function ProjectGraph(){
 				if(t.length>=search.length){
 					var tag = t.slice(0,search.length);
 					if(search==tag){
+//						console.log('"'+search+'" "'+'"'+tag+'"');
 						return true;
 					}
 				}
