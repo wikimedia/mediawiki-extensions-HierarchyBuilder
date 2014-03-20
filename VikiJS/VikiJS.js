@@ -27,11 +27,11 @@ function VikiJS() {
 	this.EXTERNAL_PAGE_TYPE = 1;
 	this.MAX_BAR_WIDTH = 60;
 	this.BAR_HEIGHT = 6;
-	this.SELECTED_IMAGE_DIMENSION = 30;
-	this.UNSELECTED_IMAGE_DIMENSION = 20;
+//	this.SELECTED_IMAGE_DIMENSION = 30;
+	this.UNSELECTED_IMAGE_DIMENSION = 25;
 
-	this.MIN_SCALE = .3;
-	this.MAX_SCALE = 4;
+	this.MIN_SCALE = .2;
+	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
 
 	// NOTE = all these colors are from flatuicolors.com
@@ -127,17 +127,7 @@ function VikiJS() {
 		// get this wiki's own logo URL,
 		// and do initial graph population.
 
-		if(this.hasHooks) {
-			if(this.Hooks["GetSearchableWikisHook"]) {
-				self.log("About to call hooks for GetSearchableWikis...");
-				for(var i = 0; i < self.Hooks["GetSearchableWikisHook"].length; i++)
-					window[ self.Hooks["GetSearchableWikisHook"][i] ](self.myApiURL, self.searchableWikis);
-				self.log("Done with hooks for GetSearchableWikis");
-			}
-		}
-		else {
-			self.log("No hooks for GetSearchableWikis.");
-		}
+		this.callHooks("GetSearchableWikisHook", []);
 
 		self.log("now will get site logo and do graph population");
 		jQuery.ajax({
@@ -151,7 +141,6 @@ function VikiJS() {
 			success: function(data, textStatus, jqXHR) {
 
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
-				self.log("myLogoURL = "+self.myLogoURL);
 				// do initial graph population
 				for(var i = 0; i < pageTitles.length; i++)
 					self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL);
@@ -203,7 +192,7 @@ function VikiJS() {
 			defs.append("marker")
 			   .attr("id", "arrowHead")
 			   .attr("viewBox", "0 -8 20 20")
-			   .attr("refX", 18)
+			   .attr("refX", 16)
 			   .attr("refY", 0)
 			   .attr("markerWidth", 12)
 			   .attr("markerHeight", 12)
@@ -217,7 +206,7 @@ function VikiJS() {
 			defs.append("marker")
 			   .attr("id", "arrowHead2")
 			   .attr("viewBox", "0 -8 20 20")
-			   .attr("refX", 18)
+			   .attr("refX", 16)
 			   .attr("refY", 0)
 			   .attr("markerWidth", 12)
 			   .attr("markerHeight", 12)
@@ -231,7 +220,7 @@ function VikiJS() {
 			defs.append("marker")
 			   .attr("id", "arrowHead3")
 			   .attr("viewBox", "0 -8 20 20")
-			   .attr("refX", 18)
+			   .attr("refX", 16)
 			   .attr("refY", 0)
 			   .attr("markerWidth", 12)
 			   .attr("markerHeight", 12)
@@ -572,6 +561,7 @@ function VikiJS() {
 
 
 		var texts = self.NodeSelection.select("text");
+		texts.text(function(d) { return d.displayName });
 		texts.attr("font-weight", function(d) {
 			return d.index == self.SelectedNode ? "bold" : "normal";
 		});
@@ -581,11 +571,14 @@ function VikiJS() {
 
 		var newImages = newNodes.append("svg:image");
 		newImages.attr("class", "icon");
-		//newImages.attr("xlink:href", self.ImagePath+"info.png");
-		newImages.attr("xlink:href", function(d) {
+
+
+		var allImages = self.NodeSelection.selectAll(".icon");
+
+		allImages.attr("xlink:href", function(d) {
 			return (d.logoURL ? d.logoURL : self.ImagePath+"info.png");
 		});
-		newImages
+		allImages
 		   .attr("x", function(d) {
 			text = d3.select(this.parentNode).select("text");
 			textbox = d3.select(this.parentNode).select("text").node().getBBox();
@@ -712,8 +705,7 @@ function VikiJS() {
 		}
 		node.apiURL = apiURL;
 		node.logoURL = logoURL;
-		self.log("addWikiNode - node.URL = "+node.URL);
-		self.log("addWikiNode - node.logoURL = "+node.logoURL);
+
 		self.addNode(node);
 		return node;
 		
@@ -726,7 +718,6 @@ function VikiJS() {
 		node.fullDisplayName = url;
 		node.info = self.formatNodeInfo(node.fullDisplayName);
 		node.type = self.EXTERNAL_PAGE_TYPE;
-		self.log("addExternalNode - node.URL = "+url);
 		node.URL = url;
 		node.logoURL = self.ImagePath + "internet.png";
 		self.addNode(node);
@@ -736,7 +727,6 @@ function VikiJS() {
 		var self = this;
 
 		pageTitle = url.replace(self.searchableWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
-		self.log("addExternalWikiNode - extracted pageTitle = "+pageTitle);
 
 		node = self.newNode();
 		node.displayName = pageTitle;
@@ -764,7 +754,6 @@ function VikiJS() {
 	VikiJS.prototype.findNode = function(property, value) {
 		var self = this;
 
-		self.log("findNode("+property+", "+value+") - self.Nodes.length = "+self.Nodes.length);
 		for (var i = 0; i < self.Nodes.length; i++) {
 			if(property === 'pageTitle') {
 				// a specific check for page titles - the first letter is case insensitive
@@ -830,8 +819,7 @@ function VikiJS() {
 		//var apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
 
 		// get external links OUT from page	
-		self.log("elaborateWikiNode - API URL = "+node.apiURL);	
-		self.log("firing first AJAX request (external links OUT)");
+
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -851,7 +839,6 @@ function VikiJS() {
 		});
 		
 		// get intra-wiki links OUT from page
-		self.log("firing second AJAX request (intra-wiki links OUT)");
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -862,11 +849,11 @@ function VikiJS() {
 				pllimit: 'max',
 				format: 'json'
 			},
-			beforeSend: function (jqXHR, settings) {
+/*			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
 				self.log("url of ajax call: "+url);
 			},
-			success: function(data, textStatus, jqXHR) {
+*/			success: function(data, textStatus, jqXHR) {
 				self.intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -874,7 +861,6 @@ function VikiJS() {
 			}
 		});
 		// get intra-wiki links IN to this page
-		self.log("firing third AJAX request (intra-wiki links IN)");
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: 'jsonp',
@@ -898,9 +884,10 @@ function VikiJS() {
 	}
 	VikiJS.prototype.externalLinksSuccessHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
-		self.log("external links OUT success handler");
+
 		var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 		if(externalLinks) {
+			var newExternalNodes = [];
 			for(var i = 0; i < externalLinks.length; i++) {
 				// some of these external links are actually links to other searchable wikis.
 				// these should be recognized as wiki nodes, not just external nodes.
@@ -908,7 +895,6 @@ function VikiJS() {
 				// index of the searchable wiki in list of searchable wikis, or -1 if this is not a searchable wiki page.
 				var index = self.indexOfSearchableWiki(externalLinks[i]["*"]);
 				isWikiPage = (index != -1);
-				self.log(externalLinks[i]["*"] + " - " + (isWikiPage ? "Yes, is a wiki page" : "No, is not a wiki page"));
 
 				if(isWikiPage) {
 					externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
@@ -922,15 +908,19 @@ function VikiJS() {
 					if(!externalNode) {
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
 						var link = self.addLink(originNode.index, externalNode.index);
+
+						// now call hook on this node to see if any other special way to handle it (e.g. MII Phonebook)
+						newExternalNodes.push(externalNode);
 					}
 				}
 			}
+			self.callHooks("ExternalNodeHook", [ newExternalNodes] );
 		}
 		self.redraw(true);
 	}
 	VikiJS.prototype.intraWikiOutSuccessHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
-		self.log("intra-wiki OUT success handler");
+
 		var intraLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["links"];
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
@@ -949,7 +939,7 @@ function VikiJS() {
 	}
 	VikiJS.prototype.intraWikiInSuccessHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
-		self.log("intra-wiki IN success handler");
+
 		var intraLinks = data.query.backlinks;
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
@@ -974,11 +964,11 @@ function VikiJS() {
 				titles: intraNode.pageTitle,
 				format: 'json'
 			},
-			beforeSend: function (jqXHR, settings) {
+/*			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
 				self.log("url of ajax call: "+url);
 			},
-			success: function(data, textStatus, jqXHR) {
+*/			success: function(data, textStatus, jqXHR) {
 				self.wikiPageCheckHandler(data, textStatus, jqXHR, intraNode);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -990,7 +980,6 @@ function VikiJS() {
 		var self = this;
 		if(data.query.pages["-1"]) {
 			originNode.nonexistentPage = true;
-			self.log("node: "+originNode.pageTitle+" is nonexistent");
 			originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 			self.redraw(true);	
 
@@ -1040,13 +1029,28 @@ function VikiJS() {
 			h4.html(h4.html() + buttons);
 		}
 		$(".elaborate").click(function() {
-			self.log("Hello clicked");
 			self.elaborateNodeAtIndex(this.id);
 			self.redraw(true);
 		});
 	}
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);
+	}
+
+	VikiJS.prototype.callHooks = function(hookName, parameters) {
+		if(this.hasHooks) {
+			if(this.Hooks[hookName]) {
+				self.log("About to call hooks for "+hookName+"...");
+				for(var i = 0; i < self.Hooks[hookName].length; i++) {
+					window[ self.Hooks[hookName][i] ](self, parameters);
+				}
+				self.log("Done with hooks for "+hookName);
+				self.redraw(true);
+			}
+		}
+		else {
+			self.log("No hooks for GetSearchableWikis.");
+		}
 	}
 
 	VikiJS.prototype.log = function(text) {

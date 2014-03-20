@@ -53,8 +53,11 @@ global $VikiJS_Function_Hooks;
 
 $VikiJS_Function_Hooks = array();
 $VikiJS_Function_Hooks['GetSearchableWikisHook'] = array('mitre_getSearchableWikis');
+$VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchMIIPhonebook');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
+
+$wgAPIModules['mitrePhonebookAPILookup'] = 'ApiMitrePhonebookAPILookup';
 
 function efMITRE_VIKI_Setup (& $parser) {
 
@@ -62,3 +65,48 @@ function efMITRE_VIKI_Setup (& $parser) {
 	return true;
 
 }
+
+class ApiMitrePhonebookAPILookup extends ApiBase {
+
+	public function __construct($main, $action) {
+		parent::__construct($main, $action);
+	}
+
+	public function execute() {
+		$empNum = $this->getMain()->getVal('empNum');
+		$url = "http://info.mitre.org/mitre-api/persons/$empNum.json";
+		$json = json_decode(file_get_contents($url));
+		$this->getResult()->addValue(null, $this->getModuleName(), 
+			array( 'empNum' => $empNum,
+				'result' => $json )
+		);
+	}
+
+	public function getDescription() {
+		return 'Search the MITRE Phonebook API to return a JSON object for an employee given an employee number. 
+
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.';
+	}
+	public function getAllowedParams() {
+		return array(
+			'empNum' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+	public function getParamDescription() {
+		return array(
+			'empNum' => 'employee number of the employee to search the MITRE Phonebook for.'
+		);
+	}
+
+	public function getExamples() {
+		return array('api.php?action=mitrePhonebookAPILookup&empNum=37089&format=json');
+	}
+	public function getHelpUrls() {
+		return '';
+	}
+}
+
+
