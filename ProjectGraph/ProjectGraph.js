@@ -102,8 +102,8 @@ function ProjectGraph(){
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
-		$("#"+this.SliderDiv).css("top","-38px");
-        $("#"+this.SliderDiv).css("float","right");
+		//$("#"+this.SliderDiv).css("top","-38px");
+        //$("#"+this.SliderDiv).css("float","right");
 		// the details divider will get 3/5 of the space
 		$("#"+this.DetailsDiv).width((this.width - margin)* 3/5);
 		// the slider will get 2/5 of the space

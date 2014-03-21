@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.4.2',
+	'version' => '1.5.0',
 	'author' => array("Cindy Cicalese", "Jason Ji", "Austin Vecchio"),
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -149,7 +149,7 @@ class ProjectGraph {
 </div></td></tr>
 <tr><td><div class="projectgraph-detail-panel" id="$detailsdiv">
 <div id="$detailssubdiv"></div>
-<div id="$sliderdiv"></div>
+<div id="$sliderdiv" class="zoom-slider"></div>
 </div></td></tr>
 <tr><td><div id="projectgraph-errors-panel">
 </div></td></tr>
