@@ -280,6 +280,8 @@ class OpenIDConnect {
 					'href' => $href
 				);
 			}
+		} else {
+			unset($personal_urls['logout']);
 		}
 		return true;
 	}
