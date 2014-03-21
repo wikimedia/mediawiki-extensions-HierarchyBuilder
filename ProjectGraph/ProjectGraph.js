@@ -19,7 +19,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-function ProjectGraph(){
+window.ProjectGraph = function() {
 	this.ID = null;
 	this.PROJECT_TYPE = 0;
 	this.PERSON_TYPE = 1;
