@@ -135,7 +135,7 @@ window.queryTags = function(type, uid){
 		url: '../proxy.php?url=http://info.mitre.org/tags/entity/'+type+'/'+uid+'.json',
 		type: 'GET',
 		dataType: 'json',
-		async: true,
+		async: false,
 		success: function(data){
 			tags = data.tags;
 		}		

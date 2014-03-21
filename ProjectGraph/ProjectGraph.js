@@ -110,10 +110,10 @@ function ProjectGraph(){
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
-/*		$('#searchbar').keyup(function(event){
+		$('#searchbar').keyup(function(event){
 			self.searchFilter($(this).val());
 		});
-*/
+
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
@@ -963,9 +963,9 @@ function ProjectGraph(){
 	        }
 		});
 	}
-	ProjectGraph.prototype.pause = function(still){
-		if(still) { this.Force.stop(); }
-		if(!still){ this.Force.start(); }
+	ProjectGraph.prototype.pause = function(stop){
+		if(stop) { this.Force.stop(); }
+		if(!stop){ this.Force.start(); }
 	}
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
@@ -1074,27 +1074,34 @@ function ProjectGraph(){
 		hide.forEach(function(n){
 			self.hideNodes(n, self.Filter, false);
 		});
-		var show = new Array();
+		var show = {nodes:new Array(),links:new Array()};
 		for(var f=0; f<this.Filter.Nodes.length; f++){
 			var n = this.Filter.Nodes[f];
 			if(isEqual(lookup,n.tags)){
 				this.Nodes.push(n);
-				show.push(n);
-				this.Links.push(this.linkSearch(n, this.Filter));
+				show.nodes.push(n);
+				var link = this.linkSearch(n, this.Filter);
+				console.log(this.Links.indexOf(link));
+				if((this.Links.indexOf(link)=='-1')&&(this.Nodes.indexOf(link.source)>-1)&&(this.Nodes.indexOf(link.target)>-1)){
+					this.Links.push(link);
+					show.links.push(link);
+				}
 			}
 		}
-		show.forEach(function(n){
+		show.nodes.forEach(function(n){
 			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
+		});
+		show.links.forEach(function(l){
+			self.Filter.Links.splice(self.Filter.Links.indexOf(l),1);
 		});
 		this.indexReset();
 		this.redraw(true);
-		console.log(this.Links);
         function isEqual(lookup, tags){
 			var search = lookup.replace(/\s/g, "");
 			if(lookup==''){return true;}
-
 			for(var index=0; index<tags.length; index++){
-				var t = tags[index];
+				var t = tags[index].replace(/\s/g,"");
+				console.log('"'+t+'"'+' '+'"'+lookup+'"');
 				if(t.length>=search.length){
 					var tag = t.slice(0,search.length);
 					if(search===tag){
