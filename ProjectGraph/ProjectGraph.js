@@ -110,10 +110,10 @@ function ProjectGraph(){
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
-		$('#searchbar').keyup(function(event){
+/*		$('#searchbar').keyup(function(event){
 			self.searchFilter($(this).val());
 		});
-
+*/
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
@@ -1075,20 +1075,20 @@ function ProjectGraph(){
 			self.hideNodes(n, self.Filter, false);
 		});
 		var show = new Array();
-		this.Filter.Nodes.forEach(function(n){
+		for(var f=0; f<this.Filter.Nodes.length; f++){
+			var n = this.Filter.Nodes[f];
 			if(isEqual(lookup,n.tags)){
-				console.log(n.displayName);
-				self.Nodes.push(n);
+				this.Nodes.push(n);
 				show.push(n);
-				self.Links.push(self.linkSearch(n, self.Filter));
+				this.Links.push(this.linkSearch(n, this.Filter));
 			}
-		});
+		}
 		show.forEach(function(n){
 			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
 		});
 		this.indexReset();
 		this.redraw(true);
-
+		console.log(this.Links);
         function isEqual(lookup, tags){
 			var search = lookup.replace(/\s/g, "");
 			if(lookup==''){return true;}
