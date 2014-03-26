@@ -1066,7 +1066,7 @@ function ProjectGraph(){
 		var self = this;
 		var hide = new Array();
 		this.Nodes.forEach(function(n){
-			if(!isEqual(lookup,n.tags)){
+			if(!isEqual(lookup,n.tags)){				
 				self.hideLinks(n, self.Filter);
 				hide.push(n);
 			}
@@ -1087,6 +1087,7 @@ function ProjectGraph(){
 //				}
 			}
 		}
+		console.log(this.Filter.Links);		
 		for(var l=0; l<this.Filter.Links.length; l++){
 			var link = this.Filter.Links[l];
 			var src = this.findNode('uid', link.source.uid, this);
@@ -1096,6 +1097,7 @@ function ProjectGraph(){
 				show.links.push(link);
 			}
 		}
+		console.log(this.Links);
 		show.nodes.forEach(function(n){
 			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
 		});
