@@ -1075,17 +1075,25 @@ function ProjectGraph(){
 			self.hideNodes(n, self.Filter, false);
 		});
 		var show = {nodes:new Array(),links:new Array()};
-		for(var f=0; f<this.Filter.Nodes.length; f++){
-			var n = this.Filter.Nodes[f];
-			if(isEqual(lookup,n.tags)){
-				this.Nodes.push(n);
-				show.nodes.push(n);
-				var link = this.linkSearch(n, this.Filter);
-				console.log(this.Links.indexOf(link));
-				if((this.Links.indexOf(link)=='-1')&&(this.Nodes.indexOf(link.source)>-1)&&(this.Nodes.indexOf(link.target)>-1)){
-					this.Links.push(link);
-					show.links.push(link);
-				}
+		for(var n=0; n<this.Filter.Nodes.length; n++){
+			var node = this.Filter.Nodes[n];
+			if(isEqual(lookup,node.tags)){
+				this.Nodes.push(node);
+				show.nodes.push(node);
+//				var link = this.linkSearch(node, this.Filter);
+//				if((this.Links.indexOf(link)=='-1')&&(this.Nodes.indexOf(link.source)>-1)&&(this.Nodes.indexOf(link.target)>-1)){
+//					this.Links.push(link);
+//					show.links.push(link);
+//				}
+			}
+		}
+		for(var l=0; l<this.Filter.Links.length; l++){
+			var link = this.Filter.Links[l];
+			var src = this.findNode('uid', link.source.uid, this);
+			var tar = this.findNode('uid', link.target.uid, this);
+			if((typeof src != null)&&(typeof tar != null)){
+				this.Links.push(link);
+				show.links.push(link);
 			}
 		}
 		show.nodes.forEach(function(n){
@@ -1101,7 +1109,6 @@ function ProjectGraph(){
 			if(lookup==''){return true;}
 			for(var index=0; index<tags.length; index++){
 				var t = tags[index].replace(/\s/g,"");
-				console.log('"'+t+'"'+' '+'"'+lookup+'"');
 				if(t.length>=search.length){
 					var tag = t.slice(0,search.length);
 					if(search===tag){
