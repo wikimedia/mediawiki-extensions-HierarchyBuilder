@@ -19,7 +19,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-function ProjectGraph(){
+window.ProjectGraph = function() {
 	this.ID = null;
 	this.PROJECT_TYPE = 0;
 	this.PERSON_TYPE = 1;
@@ -358,18 +358,14 @@ function ProjectGraph(){
 
 	ProjectGraph.prototype.redraw = function(layout) {
 		var self = this;
-
 		this.LinkSelection = 
-		this.LinkSelection.data(this.Links, function(d){
-			return self.Links.indexOf(d);
-		});
+		this.LinkSelection.data(this.Links);
 
 		this.LinkSelection.exit().remove();
 
 		var newLinks = this.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link-"+this.ID);
 		newLinks.style("stroke", "#23A4FF");
-
 		this.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
 				return d.source.index == self.SelectedNode ||
@@ -417,7 +413,7 @@ function ProjectGraph(){
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
 
 		newNodes.call(this.Force.drag);
-		
+
 		var newToolTips = newNodes.append("svg:title");
 		newToolTips.attr("class", "tooltip");
 		var allToolTips = d3.selectAll(".tooltip");
@@ -471,7 +467,6 @@ function ProjectGraph(){
 		allImages.attr("height", function(d) {
 			return d.index == self.SelectedNode ? self.SELECTED_IMAGE_DIMENSION : self.UNSELECTED_IMAGE_DIMENSION;
 		});
-
 		allImages.style("opacity", function(d) {
 			var link = self.findLink(d.index,self.SelectedNode);			
 			if (d.index == self.SelectedNode) {
@@ -707,14 +702,14 @@ function ProjectGraph(){
 		return link;
 	}
 	ProjectGraph.prototype.linkSearch = function(node, store){
-		if(typeof store != 'undefined'){
+//		if(typeof store != 'undefined'){
 			for (var i = 0; i < store.Links.length; i++) {
 				var link = store.Links[i];
-				if((link.source == node)||(link.target == node)){
+				if((link.source.uid == node.uid)||(link.target.uid == node.uid)){
 					return link;
 				}
 			}
-		}
+//		}
 		return null;
 	}
 	ProjectGraph.prototype.elaborateNode = function(node) {
@@ -1020,14 +1015,14 @@ function ProjectGraph(){
 				self.LinkMap[l.source.index+","+l.target.index] = l;
 			}
 			else{
-				if((self.nodeExist(l.source,1))||(self.nodeExist(l.target,1))){
+				if((self.nodeExist(l.source,4))||(self.nodeExist(l.target,4))){
 					queue.push(l);
 				}
 			}
 		});
 		queue.forEach(function(l){
-					self.Links.splice(self.Links.indexOf(l),1);
-					self.Hidden.Links.push(l);				
+			self.Links.splice(self.Links.indexOf(l),1);
+			self.Hidden.Links.push(l);				
 		});
 	}
 	ProjectGraph.prototype.nodeExist = function(node, level){		
@@ -1066,7 +1061,7 @@ function ProjectGraph(){
 		var self = this;
 		var hide = new Array();
 		this.Nodes.forEach(function(n){
-			if(!isEqual(lookup,n.tags)){				
+			if(!isEqual(lookup,n.tags)){
 				self.hideLinks(n, self.Filter);
 				hide.push(n);
 			}
@@ -1074,39 +1069,35 @@ function ProjectGraph(){
 		hide.forEach(function(n){
 			self.hideNodes(n, self.Filter, false);
 		});
-		var show = {nodes:new Array(),links:new Array()};
-		for(var n=0; n<this.Filter.Nodes.length; n++){
-			var node = this.Filter.Nodes[n];
-			if(isEqual(lookup,node.tags)){
-				this.Nodes.push(node);
-				show.nodes.push(node);
-//				var link = this.linkSearch(node, this.Filter);
-//				if((this.Links.indexOf(link)=='-1')&&(this.Nodes.indexOf(link.source)>-1)&&(this.Nodes.indexOf(link.target)>-1)){
-//					this.Links.push(link);
-//					show.links.push(link);
-//				}
+		var show = {node:new Array(),link:new Array()};
+		for(var npos=0; npos<this.Filter.Nodes.length; npos++){
+			var n = this.Filter.Nodes[npos];			
+			if(isEqual(lookup,n.tags)){
+				this.Nodes.push(n);
+				show.node.push(n);
 			}
 		}
-		console.log(this.Filter.Links);		
-		for(var l=0; l<this.Filter.Links.length; l++){
-			var link = this.Filter.Links[l];
-			var src = this.findNode('uid', link.source.uid, this);
-			var tar = this.findNode('uid', link.target.uid, this);
-			if((typeof src != null)&&(typeof tar != null)){
-				this.Links.push(link);
-				show.links.push(link);
+		this.Nodes.forEach(function(n){
+			var link = self.linkSearch(n, self.Filter);
+			var src = self.findNode('uid', link.source.uid, self);
+            var tar = self.findNode('uid', link.target.uid, self);
+			
+			if((src != null)&&( tar != null)){
+		        self.Links.push(link);
+                show.link.push(link);
 			}
-		}
-		console.log(this.Links);
-		show.nodes.forEach(function(n){
+		});
+
+		show.node.forEach(function(n){
 			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
 		});
-		show.links.forEach(function(l){
+		show.link.forEach(function(l){
 			self.Filter.Links.splice(self.Filter.Links.indexOf(l),1);
 		});
+
 		this.indexReset();
 		this.redraw(true);
-        function isEqual(lookup, tags){
+        	function isEqual(lookup, tags){
 			var search = lookup.replace(/\s/g, "");
 			if(lookup==''){return true;}
 			for(var index=0; index<tags.length; index++){
