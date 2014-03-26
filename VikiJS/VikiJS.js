@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-function VikiJS() {
+window.VikiJS = function() {
 
 	this.ID = null;
 	this.WIKI_PAGE_TYPE = 0;
