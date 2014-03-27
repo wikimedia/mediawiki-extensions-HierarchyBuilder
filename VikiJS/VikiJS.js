@@ -576,7 +576,18 @@ window.VikiJS = function() {
 		var allImages = self.NodeSelection.selectAll(".icon");
 
 		allImages.attr("xlink:href", function(d) {
-			return (d.logoURL ? d.logoURL : self.ImagePath+"info.png");
+			// go through the hierarchy of possible icons in order of preference
+			// Title Icons > Hook Icons > Site Logo Icons > External Node Icons > info.png
+			if(d.titleIconURL)
+				return d.titleIconURL;
+			else if(d.hookIconURL)
+				return d.hookIconURL;
+			else if(d.logoURL)
+				return d.logoURL;
+			else if(d.externalNodeIconURL)
+				return d.externalNodeIconURL;
+			else
+				return self.ImagePath+"info.png";
 		});
 		allImages
 		   .attr("x", function(d) {
@@ -705,8 +716,9 @@ window.VikiJS = function() {
 		}
 		node.apiURL = apiURL;
 		node.logoURL = logoURL;
-
+		self.checkForTitleIcon(node);
 		self.addNode(node);
+		
 		return node;
 		
 	}
@@ -719,7 +731,7 @@ window.VikiJS = function() {
 		node.info = self.formatNodeInfo(node.fullDisplayName);
 		node.type = self.EXTERNAL_PAGE_TYPE;
 		node.URL = url;
-		node.logoURL = self.ImagePath + "internet.png";
+		node.externalNodeIconURL = self.ImagePath + "internet.png";
 		self.addNode(node);
 		return node;
 	}
@@ -737,10 +749,46 @@ window.VikiJS = function() {
 		node.apiURL = self.searchableWikis[wikiIndex]["apiURL"];
 		node.contentURL = self.searchableWikis[wikiIndex]["contentURL"];
 		node.logoURL = self.searchableWikis[wikiIndex]["logoURL"];
+		self.checkForTitleIcon(node);
+		
 		self.addNode(node);
 		return node;
 	}
-
+	VikiJS.prototype.checkForTitleIcon = function(node) {
+		
+		jQuery.ajax({
+			url: self.myApiURL,
+			dataType: 'json',
+			data: {
+				action: 'getTitleIcons',
+				format: 'json',
+				pageTitle: node.pageTitle,
+				apiURL: encodeURIComponent(node.apiURL)
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of TitleIcon lookup: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.titleIconSuccessHandler(data, node);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+		
+	}
+	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
+		var titleIconURLs = data["getTitleIcons"]["titleIcon"];
+		if(titleIconURLs.length == 0) {
+			self.log("No title icons here.");
+			return;
+		}
+		else {
+			self.log("Found a title icon! For page: "+node.pageTitle+", URL = "+titleIconURLs[0]);
+			node.titleIconURL = titleIconURLs[0];
+			self.redraw(true);
+		}
+	}
 	VikiJS.prototype.newNode = function() {
 		var self = this;
 
@@ -909,11 +957,11 @@ window.VikiJS = function() {
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
 						var link = self.addLink(originNode.index, externalNode.index);
 
-						// now call hook on this node to see if any other special way to handle it (e.g. MII Phonebook)
 						newExternalNodes.push(externalNode);
 					}
 				}
 			}
+			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 			self.callHooks("ExternalNodeHook", [ newExternalNodes] );
 		}
 		self.redraw(true);
@@ -925,7 +973,7 @@ window.VikiJS = function() {
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode) {
+				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
 					// add the node to the graph immediately.
 					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
 					var link = self.addLink(originNode.index, intraNode.index);
