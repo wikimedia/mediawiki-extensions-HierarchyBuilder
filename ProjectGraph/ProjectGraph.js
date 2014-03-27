@@ -1057,28 +1057,40 @@ window.ProjectGraph = function() {
 
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
-
+		// wipe the linkmap so that it can be rebuilt
 		this.LinkMap = new Array();
+		// loop through all of the nodes in the graph
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
+			// get the node
 			var node = this.Nodes[node_index];
+			// set the node index to the iterative value
+			// [7 5 0 2] becomes [0 1 2 3]
 			node.index = node_index;
 		}
 		var queue = new Array();
+		// loop through all of the links on the graph
 		this.Links.forEach(function(l){
+			// find the new source and target via the 
+			// findNode command by the unique identifier
 			var src = self.findNode('uid', l.source.uid, self);
 			var tar = self.findNode('uid', l.target.uid, self);
+			// as long as both nodes exist on the graph
 			if((src != null)&&(tar != null)){
+				// set the new source and targets
 				l.source = src;
 				l.target = tar;			
+				// add to the linkmap
 				self.LinkMap[l.target.index+","+l.source.index] = l;
 				self.LinkMap[l.source.index+","+l.target.index] = l;
 			}
+			// else, the link does not belong and should be hidden
 			else{
 				if((self.nodeExist(l.source,4))||(self.nodeExist(l.target,4))){
 					queue.push(l);
 				}
 			}
 		});
+		// hide all lingering links that are not attached to both nodes.
 		queue.forEach(function(l){
 			self.Links.splice(self.Links.indexOf(l),1);
 			self.Hidden.Links.push(l);				
@@ -1121,34 +1133,45 @@ window.ProjectGraph = function() {
 	ProjectGraph.prototype.searchFilter = function(lookup){
 		var self = this;
 		var hide = new Array();
+		// loop through all of the nodes, if none of the tags
+		// match, then hide the link, and push the node to an array
+		// to be removed later.
 		this.Nodes.forEach(function(n){
 			if(!isEqual(lookup,n.tags)){
 				self.hideLinks(n, self.Filter);
 				hide.push(n);
 			}
 		});
+		// removing the node later to not disrupt loop
 		hide.forEach(function(n){
 			self.hideNodes(n, self.Filter, false);
 		});
 		var show = {node:new Array(),link:new Array()};
+		// go through all of the nodes in the store
 		for(var npos=0; npos<this.Filter.Nodes.length; npos++){
+			// if the node is what you are looking for, add it to the graph
 			var n = this.Filter.Nodes[npos];			
 			if(isEqual(lookup,n.tags)){
 				this.Nodes.push(n);
 				show.node.push(n);
 			}
 		}
+		// search through all of the ndoes on the graph
 		this.Nodes.forEach(function(n){
+			// find a link via a node
 			var link = self.linkSearch(n, self.Filter);
+			// pull the source and the target from the graph
 			var src = self.findNode('uid', link.source.uid, self);
             var tar = self.findNode('uid', link.target.uid, self);
-			
+			// if either is null, that means both nodes are not on the graph
+			// and the link should not be added			
 			if((src != null)&&( tar != null)){
+				// otherwise, add the link to the graph
 		        self.Links.push(link);
                 show.link.push(link);
 			}
 		});
-
+		// remove the node and link from the filter store (spring cleaning)
 		show.node.forEach(function(n){
 			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
 		});
@@ -1158,12 +1181,21 @@ window.ProjectGraph = function() {
 
 		this.indexReset();
 		this.redraw(true);
-        	function isEqual(lookup, tags){
-			var search = lookup.replace(/\s/g, "");
+		// the core fuction behind searchable graphs
+    	function isEqual(lookup, tags){
+    		// if the lookup is an empty string
+    		// then return true (to add all nodes/links to the graph)
 			if(lookup==''){return true;}
+			// else => strip all spaces (to make it easier) from lookup
+			var search = lookup.replace(/\s/g, "");
+			// loop through all of the tags
 			for(var index=0; index<tags.length; index++){
+				// pull every tag and strip all of the spaces from the tag
 				var t = tags[index].replace(/\s/g,"");
+				// see if the length of the tag being searched upon is less then or equal to
+				// the length of the text, if so, then continue, else, return false automatically				
 				if(t.length>=search.length){
+					// see if the tag matches
 					var tag = t.slice(0,search.length);
 					if(search===tag){
 						return true;
