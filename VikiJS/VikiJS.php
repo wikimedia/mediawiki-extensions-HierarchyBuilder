@@ -61,7 +61,7 @@ $wgHooks['LanguageGetMagic'][] = 'wfExtensionVikiJS_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
 
 $wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
-$wgAPIModules['getTitleIcon'] = 'ApiGetTitleIcon';
+$wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
 
 function efVikiJSParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('vikijs', 'vikijs');
@@ -195,7 +195,7 @@ class ApiGetSiteLogo extends ApiBase {
 	}
 }
 
-class ApiGetTitleIcon extends ApiBase {
+class ApiGetTitleIcons extends ApiBase {
 	public function __construct( $main, $action ) {
 		parent::__construct( $main, $action );
 	}
@@ -214,55 +214,65 @@ class ApiGetTitleIcon extends ApiBase {
 		else
 			$myTitleIconName = $wgViki_TitleIconVarName;
 
-		wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		// wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon.out");
 
 		$apiURL = urldecode($encodedURL);
 		$indexURL = str_replace('api', 'index', $apiURL);
 
 		wfErrorLog("pageTitle = $pageTitle\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		wfErrorLog("apiURL = $apiURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		wfErrorLog("indexURL = $indexURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		// wfErrorLog("apiURL = $apiURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		// wfErrorLog("indexURL = $indexURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
 
 		// make Special:Ask query on the passed-in URL and page title.
 		$askQueryURL = $indexURL . '?title=Special:Ask&q=[[' . $pageTitle . ']]&po=?' . $myTitleIconName . '&p[format]=json';
-		wfErrorLog("query URL: $askQueryURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-//		$askQueryResult = json_decode(file_get_contents($askQueryURL));
-		$json = file_get_contents("http://examples.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Title_Icon_Example_1]]&po=?Logo+Link&p[format]=json");
-		$askQueryResult = json_decode($json, true);
-		wfErrorLog("query result:\n$json\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		// wfErrorLog("query URL: $askQueryURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		$askQueryResult = json_decode(file_get_contents($askQueryURL), true);
+//		$json = file_get_contents("http://examples.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Title_Icon_Example_1]]&po=?Logo+Link&p[format]=json");
+//		$askQueryResult = json_decode($json, true);
+//		wfErrorLog("query result:\n$json\n", "/var/www/html/DEBUG_getTitleIcon.out");
 
-
-//============================================================================================================================================
-
-//		foreach($askQueryResult as $key) {
-//			wfErrorLog("$key\n", "/var/www/html/DEBUG_getTitleIcon.out");
-//		}
-
-
-		// TODO: $askQueryResult is JSON, but having trouble getting $logoLinkArray to work properly.
-		// research how to do JSON parsing in PHP.
-
-//============================================================================================================================================
-
-		$logoLinkArray = $askQueryResult["results"]["$pageTitle"]["printouts"]["$myTitleIconName"];
+		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
+		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
+		// wfErrorLog("pageTitle with spaces: $pageNameWithSpaces\n", "/var/www/html/DEBUG_getTitleIcon.out");
+		$logoLinkArray = $askQueryResult["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
 
 		foreach($logoLinkArray as $key => $value) {
 			wfErrorLog("$key => $value\n", "/var/www/html/DEBUG_getTitleIcon.out");
 		}
 
 		if(count($logoLinkArray) == 0) {
-			wfErrorLog("result array is empty.\n", "/var/www/html/DEBUG_getTitleIcon.out");
+			// wfErrorLog("result array is empty.\n", "/var/www/html/DEBUG_getTitleIcon.out");
 			$this->getResult()->addValue(null, $this->getModuleName(),
 				array('pageTitle' => $pageTitle,
 					'apiURL' => $apiURL,
 					'titleIcon' => array()));
-			return true;
+		}
+		else {
+			
+			$titleIconURLs = array();
+			
+			foreach($logoLinkArray as $imgSrc) {
+				$logoQueryURL = $apiURL . '?action=query&titles=File:' . $imgSrc . '&prop=imageinfo&iiprop=url&format=json';
+				wfErrorLog("logo query URL: $logoQueryURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
+				$logoQueryResult = json_decode(file_get_contents($logoQueryURL), true);
+				wfErrorLog("logo query result: " . file_get_contents($logoQueryURL) . "\n", "/var/www/html/DEBUG_getTitleIcon.out");
+				$key = array_shift(array_keys($logoQueryResult["query"]["pages"]));
+				// wfErrorLog("key: $key\n", "/var/www/html/DEBUG_getTitleIcon.out");
+				$imgURL = $logoQueryResult["query"]["pages"][$key]["imageinfo"][0]["url"];
+				// wfErrorLog("got image url: $imgURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
+				$titleIconURLs[] = $imgURL;
+			}
+			$this->getResult()->addValue(null, $this->getModuleName(),
+				array('pageTitle' => $pageTitle,
+						'apiURL' => $apiURL,
+						'titleIcon' => $titleIconURLs));
+			
 		}
 		return true;
 
 	}
 	public function getDescription() {
-		return "Get the URL of the first Title Icon for the page, if it exists.";
+		return "Get the URLs of all Title Icons for the page, if any exist.";
 	}
 	public function getAllowedParams() {
 		return array(
@@ -278,13 +288,13 @@ class ApiGetTitleIcon extends ApiBase {
 	}
 	public function getParamDescription() {
 		return array(
-			'pageTitle' => 'title of the page whose title icon you wish to retrieve',
+			'pageTitle' => 'title of the page whose title icons you wish to retrieve',
 			'apiURL' => 'encoded URL to the API of the wiki this page belongs to'
 		);
 	}
 	public function getExamples() {
 		return array(
-			'api.php?action=getTitleIcon&pageTitle=Title_Icon_Example_1&apiURL=http%3A%2F%2Fexamples.mitre.org%2F.mediawiki%2Fapi.php');
+			'api.php?action=getTitleIcons&pageTitle=Title_Icon_Example_1&apiURL=http%3A%2F%2Fexamples.mitre.org%2F.mediawiki%2Fapi.php&format=jsonfm');
 	}
 	public function getHelpUrls() {
 		return '';

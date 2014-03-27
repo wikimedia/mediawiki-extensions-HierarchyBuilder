@@ -36,7 +36,18 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 			self.queryPhonebook(vikiObject, node, employeeNum);
 		}
 		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
-
+			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
+			node.pageTitle = deptNum;
+			node.displayName = node.pageTitle;
+			node.fullDisplayName = node.displayName;
+			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+			
+			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+			hook_log("setting hookIconURL to "+node.hookIconURL);
+		}
+		else if(node.URL.indexOf("mitre.org") != -1) {
+			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+			hook_log("setting hookIconURL to "+node.hookIconURL);
 		}
 	}
 }
@@ -92,8 +103,8 @@ window.parsePhonebookData = function(vikiObject, data, node) {
 	node.fullDisplayName = node.displayName;
 	node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
-	node.logoURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-	hook_log(node.logoURL);
+	node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
+	hook_log(node.hookIconURL);
 }
 
 hook_log = function(text) {
