@@ -32,18 +32,19 @@ window.ProjectGraph = function() {
 	this.MIN_SCALE = .3;
 	this.MAX_SCALE = 2;
 	this.LINK_OPACITY = 0.4;
-	this.STANDARD_BOX = 400;
-	this.ZOOM_MULTIPLIER = -0.0005;
+	this.STANDARD_BOX = 400;// standard box width/height
+	this.ZOOM_MULTIPLIER = -0.0005;// a multiplier for calculating zoom scope
 	this.ZOOM_CONSTANT = 1.2;
 	this.HUB_LINK_LENGTH = 500;
 	this.LEAF_LINK_LENGTH = 75;
+	// threshold values for minimum height/width of a 
 	this.MIN_HEIGHT = 200;
 	this.MIN_WIDTH = 200;
 
 	this.FiscalYear = null;
 	this.GraphDiv = null;
 	this.DetailsDiv = null;
-	this.Resize = null;
+	this.Resize = null;// is the graph resizable
 	this.SelectedNode = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
@@ -53,22 +54,27 @@ window.ProjectGraph = function() {
 	this.NodeSelection = null;
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
-	this.Hidden = {Nodes: new Array(), Links: new Array()};
-	this.Filter = {Nodes: new Array(), Links: new Array()};
+	this.Hidden = {Nodes: new Array(), Links: new Array()};// store for hiding and showing nodes/links
+	this.Filter = {Nodes: new Array(), Links: new Array()};// store for a searchable graph
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
 		var self = this;
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
-
+		// regular expression to find the first numeric digit
 		var dig = new RegExp("[0-9]",'g');
+		// search graphDiv for the first numeric digit and se this as the ID
+		// doubt that the id will go over 9 (more than 10 graphs on a page)
         this.ID = graphDiv.match(dig)[0];
+
 		this.FiscalYear = fiscalYear;
 		this.GraphDiv = graphDiv;
 		this.Resize = resize;	
-		this.DetailsDiv = detailsDiv+'_data';	
-		this.SliderDiv = detailsDiv+"_zoom_slider";
+		// generate the details div by appending '_data' to the end of detailsDiv
+		this.DetailsDiv = detailsDiv+'_data';
+		// generate the slider div by appending '_zoom_slider' to the end of detailsDiv
+		this.SliderDiv = detailsDiv+'_zoom_slider';
 		this.ImagePath = imagePath;
 		this.INITIAL_HEIGHT = initialHeight;
 		this.INITIAL_WIDTH = initialWidth;
@@ -77,16 +83,21 @@ window.ProjectGraph = function() {
 
 		var margin = 10;
 
+		// if the graph is resizable?
 		if(resize){
+			// calculate the inverses for height and width (simple math?)
 			var height_inverse = (self.height * ((window.innerHeight) / (self.height)));
 			var width_inverse = (self.width * ((window.innerWidth) / (self.width)));
+			// listen for when the 
 			$( window ).resize(function() {
-
+				// use a combination of the inverses and other values to determine what the calculated height/width should be
+				// this equation may need to be improved upon...
 				var calculated_height = Math.round((self.height / height_inverse) *(self.height * ((window.innerHeight) / (self.height))));
 				var calculated_width =  Math.round((self.width / width_inverse) * (self.width * ((window.innerWidth) / (self.width))));
 				var height = calculated_height;
 				var width = calculated_width;
 
+				// if the calculated values fall below a specified threshold
 				if(calculated_height< self.MIN_HEIGHT){height = self.MIN_HEIGHT;}
 				if(calculated_width< self.MIN_WIDTH){width = self.MIN_WIDTH;}
 
@@ -106,10 +117,13 @@ window.ProjectGraph = function() {
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(this.width - margin);
-
+		// set everything within the graphDiv to not have a context menu
+		// this does not work with nodes, only the canvas
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
+		// Listener for keyup to launch searchFilter rendering the graph searchable via the api tags. 
+		// Look at searchFilter method for more information.
 		$('#searchbar').keyup(function(event){
 			self.searchFilter($(this).val());
 		});
@@ -145,22 +159,26 @@ window.ProjectGraph = function() {
 		        self.slide();
 		  }
 		});
-
+		// the html for the context menu
 		$('body').append(
 			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			// the dynamic menu title (node name)
 			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			// actual navigable menu
 			"<div class=\"options\" >"+
 			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
         	"<li id=\"getinfo\" >Get Info</li>"+
 			"<li id=\"tags\">Display Tags</li>"+
 			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"hide\">Hide</li>"+
-			"<hr>"+
+			"<hr>"+// separator
         	"<li id=\"showall\">Show All</li>"+
 			"<li id=\"zoomtofit\">Zoom To Fit</li>"+
 	    	"</ul></div></div>"
 	    );
+	    // center the title of the context menu
 		$("#name").css("text-align","center");
+
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
 			alert("No charge number or employee number provided");
@@ -358,6 +376,7 @@ window.ProjectGraph = function() {
 
 	ProjectGraph.prototype.redraw = function(layout) {
 		var self = this;
+		// The reason this logic differs from NodeSelection is due to a bug.
 		this.LinkSelection = 
 		this.LinkSelection.data(this.Links);
 
@@ -404,8 +423,11 @@ window.ProjectGraph = function() {
 		});
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
+			// get the node before launching the context menu
 			self.SelectedNode = d.index;
-			self.redraw(false);			
+			// show the selected node
+			self.redraw(false);		
+			// launch the menu	
 			self.menu();
 		});
 
@@ -624,9 +646,16 @@ window.ProjectGraph = function() {
 		};
 		return node;
 	}
+	// search for a node given a property and a value. The property could be
+	// 'uid' and the value could be 'ajx3'. A search will be run 'ajx3' on a store (an array)
+	// to see if it contains a node with the specified value for the given property.
+	// else, return null
 	ProjectGraph.prototype.findNode = function(property, value, store) {
 		if(typeof store != 'undefined'){
+			// loop through store
 			for (var i = 0; i < store.Nodes.length; i++) {
+				// if the node is not undefined and matches property and value
+				// return node, else return null
 				if (typeof store.Nodes[i][property] !== 'undefined' &&
 					store.Nodes[i][property] === value) {
 					return store.Nodes[i];
@@ -636,6 +665,7 @@ window.ProjectGraph = function() {
 		return null;
 	}
 	ProjectGraph.prototype.addNode = function(node) {
+		// see if the node exists on the graph
 		if(this.nodeExist(node,0)==false){
 			node.index = this.Nodes.push(node) - 1;
 			if (node.index == 0) {
@@ -643,10 +673,19 @@ window.ProjectGraph = function() {
 			}
 		}
 	}
+
+	// Warnding! If you are hiding clusters, you must use the method 'hideLinks' before
+	// you can invoke 'hideNodes'
 	ProjectGraph.prototype.hideNodes = function(node, store, cluster){
 		var self = this;
+		// is the node elaborated, and do you wish to hide the entire cluster
+		// if possible?
 		if(node.elaborated && cluster){
 			var hub = new Array();
+			// go through every link that is within a store. For example, if
+			// the store is an array of links that are removed from the graph,
+			// then store both target and source into the 'hub' array. But do not
+			// store duplicates.
 			store.Links.forEach(function(l){
 				if(hub.indexOf(l.source)==-1){
 					hub.push(l.source);
@@ -655,6 +694,8 @@ window.ProjectGraph = function() {
 					hub.push(l.target);
 				}
 			});
+			// then go through every node, and if it exists on the graph,
+			// then push it to the store
 			hub.forEach(function(n){
 				var pos = self.Nodes.indexOf(n);
 				if(pos > -1){
@@ -666,7 +707,7 @@ window.ProjectGraph = function() {
 			});
 		}
 		else{
-			// select all of the nodes
+			// Remove the single node from the graph
 			var pos = this.Nodes.indexOf(node);
 			if (pos > -1) {
 				store.Nodes.push(this.Nodes[pos]);
@@ -686,9 +727,11 @@ window.ProjectGraph = function() {
 	}
 	ProjectGraph.prototype.hideLinks = function(node, store){
 		var self = this;
+		// use d3 to select all of the links (can be rebuilt as a loop?)
 		d3.selectAll(".link-"+this.ID).filter(function(l){
+			// if the node id matches either the source id, or the target id
 			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
-				// store the link in an array to be re-added later
+				// store the link in an array (store) to be re-added later
 				self.Links.splice(self.Links.indexOf(l),1);
 				store.Links.push(l);				
 			}
@@ -701,15 +744,21 @@ window.ProjectGraph = function() {
 		}
 		return link;
 	}
+	// search a specific store for a link that has a matching target or source node
 	ProjectGraph.prototype.linkSearch = function(node, store){
-//		if(typeof store != 'undefined'){
+		if(typeof store != 'undefined'){
+			// go through the entire store
 			for (var i = 0; i < store.Links.length; i++) {
+				// get the link
 				var link = store.Links[i];
+				// if the node id matches either the source id or the target id
+				// return the link
 				if((link.source.uid == node.uid)||(link.target.uid == node.uid)){
 					return link;
 				}
 			}
-//		}
+		}
+		// return null if not found
 		return null;
 	}
 	ProjectGraph.prototype.elaborateNode = function(node) {
@@ -896,25 +945,31 @@ window.ProjectGraph = function() {
 			freeze.toggle = "Freeze";
 			freeze.fix = true;
 		}
-		// toggle the menu option between freeze and unfreeze
+		// set the title of the menu to the name
 		$('#name-'+this.ID).html(node.displayName);
+		// toggle the menu option between freeze and unfreeze
 		$('.freeze-'+this.ID).html(freeze.toggle);
+		// toggle the project on staff and projects 
 		if(node.type==this.PROJECT_TYPE){ 
 			$('.elaborate-'+this.ID).html("Get Staff");
 		}
 		else if (node.type == this.PERSON_TYPE) { 
 			$('.elaborate-'+this.ID).html("Get Projects");
 		}
+		// the actual menu code
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
+        	// activate before the menu shows
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
 		          $('.elaborate-'+self.ID, menu).remove();
 		        }
 		        return menu;
 	      	},
+	      	// activate after the menu shows
 	      	onExitMenu: function(e,menu) {
 	      		self.pause(false);
 	      	},
+	      	// style the menu
 	      	itemStyle: {
 		        fontFamily : 'Trebuchet MS',
 		        backgroundColor : '#EEEEEE',
@@ -927,6 +982,7 @@ window.ProjectGraph = function() {
 					node.fix = freeze.fix;
 		        },
 		        'getinfo': function(t) {
+
 					if(node.type==self.PROJECT_TYPE){
                         window.open(node.projectPagesURL,'_blank'); 
                     }
@@ -958,10 +1014,13 @@ window.ProjectGraph = function() {
 	        }
 		});
 	}
+	// take in a boolean value. If true, then pause the graph,
+	// else unpause the graph.
 	ProjectGraph.prototype.pause = function(stop){
 		if(stop) { this.Force.stop(); }
 		if(!stop){ this.Force.start(); }
 	}
+
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
 		this.hideLinks(node, this.Hidden);
@@ -993,12 +1052,12 @@ window.ProjectGraph = function() {
 		this.Hidden.Nodes = new Array();
 		this.Hidden.Links = new Array();
 
-		// redraw
 		this.redraw(true);
 	}
 
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
+
 		this.LinkMap = new Array();
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
 			var node = this.Nodes[node_index];
@@ -1025,6 +1084,8 @@ window.ProjectGraph = function() {
 			self.Hidden.Links.push(l);				
 		});
 	}
+	// general switch method to pull in if a node exists within a different stores. 
+	// There may be a better way to do this? For loop perhaps?
 	ProjectGraph.prototype.nodeExist = function(node, level){		
 		var exist = false;
 		switch(level){
