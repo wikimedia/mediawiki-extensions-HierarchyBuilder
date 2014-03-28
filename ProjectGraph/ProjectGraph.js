@@ -1211,23 +1211,17 @@ window.ProjectGraph = function() {
 		// with the x and y index of the first node in ProjectGraph.Nodes
 		var minx=this.Nodes[0].x; var maxx=this.Nodes[0].x; 
 		var miny=this.Nodes[0].y; var maxy=this.Nodes[0].y;
-		var d={x:0, y:0, count:0};
 		// go through the array of nodes
 		this.Nodes.forEach(function(node){
 			// check to see if the current nodes x or y index is
 			// greater than or less than any of the four domain/range variables
-			d.x += node.x;
-			d.y += node.y;
-			d.count++;
 			if(node.x>maxx){maxx = node.x;}
 			if(node.x<minx){minx = node.x;}
 			if(node.y>maxy){maxy = node.y;}
 			if(node.y<miny){miny = node.y;}
 		});	
-		var avgx = d.x/d.count;
-		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
-		var padding = 0.075;
+		var padding = 0;//0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = this.width/(maxx-minx);
 		var rzoom = this.height/(maxy-miny);
@@ -1239,23 +1233,14 @@ window.ProjectGraph = function() {
 			this.Zoompos = rzoom - padding;
 		}	
 		// Calculate Translation
-		this.calculateTranslation(avgx,avgy);
-		// zoom
+		zoom_scale = this.zoom.scale();
+		graph_x = (this.width/2.0/zoom_scale) - (maxx+minx)/2;
+		graph_y = (this.height/2.0/zoom_scale) - (maxy+miny)/2;
+
+		this.zoom.translate([graph_x, graph_y]);
+
 		this.slide();
-		// set the slider
 		$("#"+this.SliderDiv).slider("value",this.Zoompos);
 		this.redraw(true);
-	}
-	ProjectGraph.prototype.calculateTranslation = function(x,y){
-		// get the scale
-		var scale = this.zoom.scale();
-		// calculate the centers depending on the scale and viewport
-        var scaledCenterX = (this.width / scale) / 2;
-        var scaledCenterY = (this.height / scale) / 2;
-        // calculate the translation vectors
-        var panx = -(x - scaledCenterX);
-        var pany = -(y - scaledCenterY);
-        // set the translation vectors and the scale
-		this.zoom.translate([panx, pany]);
 	}
 }
