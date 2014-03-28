@@ -121,3 +121,19 @@ window.queryTaskDelivery = function(chargeNumber, fiscalYear) {
 		staff: staff
 	};
 };
+window.queryTags = function(type, uid){
+	var tags = [];
+	// simple get request interfacing with proxy script
+	// proxy.php take in one parameter 'url' with the url you are trying to access
+	// both ajax request and proxy script is get requests
+	$.ajax({
+		url: '../proxy.php?url=http://info.mitre.org/tags/entity/'+type+'/'+uid+'.json',
+		type: 'GET',
+		dataType: 'json',
+		async: false,// must be set to false otherwise tags do not get returned.
+		success: function(data){
+			tags = data.tags;
+		}		
+	});
+	return tags;
+}
