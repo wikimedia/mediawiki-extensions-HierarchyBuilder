@@ -63,6 +63,8 @@ $wgResourceModules['ext.ProjectGraph'] = array(
 $wgHooks['LanguageGetMagic'][] = 'wfExtensionProjectGraph_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efProjectGraphParserFunction_Setup';
 
+// $wgAPIModules['getMITRETags'] = 'ApiGetMITRETags';
+
 function efProjectGraphParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('projectgraph', 'projectgraph');
 	$parser->setFunctionHook('stafftags', 'stafftags');
