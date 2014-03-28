@@ -110,11 +110,7 @@ window.ProjectGraph = function() {
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
-<<<<<<< HEAD
-		//$("#"+this.SliderDiv).css("top","-38px");
-        //$("#"+this.SliderDiv).css("float","right");
-=======
->>>>>>> 5908c3cad40ecbbdd2df6d0df29ad3c14fe10b56
+		
 		// the details divider will get 3/5 of the space
 		$("#"+this.DetailsDiv).width((this.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
@@ -1248,20 +1244,4 @@ window.ProjectGraph = function() {
 		$("#"+this.SliderDiv).slider("value",this.Zoompos);
 		this.redraw(true);
 	}
-<<<<<<< HEAD
-	ProjectGraph.prototype.calculateTranslation = function(x,y){
-		// get the scale
-		var scale = this.zoom.scale();
-		// calculate the centers depending on the scale and viewport
-        var scaledCenterX = (this.width / scale) / 2;
-        var scaledCenterY = (this.height / scale) / 2;
-        // calculate the translation vectors
-        var panx = -(x - scaledCenterX);
-        var pany = -(y - scaledCenterY);
-        // set the translation vectors and the scale
-		this.zoom.translate([panx, pany]);
-	}
 }
-=======
-}
->>>>>>> 5908c3cad40ecbbdd2df6d0df29ad3c14fe10b56
