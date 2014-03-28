@@ -63,7 +63,7 @@ $wgResourceModules['ext.ProjectGraph'] = array(
 $wgHooks['LanguageGetMagic'][] = 'wfExtensionProjectGraph_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efProjectGraphParserFunction_Setup';
 
-// $wgAPIModules['getMITRETags'] = 'ApiGetMITRETags';
+$wgAPIModules['getMITRETags'] = 'ApiGetMITRETags';
 
 function efProjectGraphParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('projectgraph', 'projectgraph');
@@ -147,6 +147,9 @@ class ProjectGraph {
 		$detailssubdiv = $detailsdiv . "_data";
 		$sliderdiv = $detailsdiv . "_zoom_slider";
 		$output = <<<EOT
+<div align="center">
+<input type="text" id="searchbar"/>
+</div>
 <table>
 <tr><td><div class="projectgraph-graph-container" id="$graphdiv">
 </div></td></tr>
@@ -232,6 +235,58 @@ END;
 		}
 
 		return $names;
+	}
+}
+
+class ApiGetMITRETags extends ApiBase {
+	public function __construct( $main, $action) {
+		parent::__construct($main, $action);
+	}
+	public function execute() {
+		$type = $this->getMain()->getVal('entityType');
+		$key = $this->getMain()->getVal('entityKey');
+		
+		$URL = 'http://info.mitre.org/tags/entity/' . $type . '/' . $key . '.json';
+		$json = json_decode(file_get_contents($URL), true);
+		
+		$this->getResult()->addValue(null, $this->getModuleName(),
+		array ('entityType' => $type,
+				'entityKey' => $key,
+				'result' => $json));
+				
+				return true;
+	}
+	public function getDescription() {
+		return 'Get MITRE tags for a person or project using the MITRE Tags API.
+
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.
+			';
+	}
+	public function getAllowedParams() {
+		return array(
+			'entityType' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			),
+			'entityKey' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+	public function getParamDescription() {
+		return array(
+			'entityType' => 'type of tag, e.g. employee or project',
+			'entityKey' => 'if entityType = project, the enduring project number (EPF number). if entityType = person, the employee number.'
+		);
+	}
+	public function getExamples() {
+		return array(
+			'api.php?action=getMITRETags&entityType=employee&entityKey=37089&format=json'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
 	}
 }
 

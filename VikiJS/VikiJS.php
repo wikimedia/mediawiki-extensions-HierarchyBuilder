@@ -274,7 +274,9 @@ class ApiGetTitleIcons extends ApiBase {
 
 	}
 	public function getDescription() {
-		return "Get the URLs of all Title Icons for the page, if any exist.";
+		return "Get the URLs of all Title Icons for the page, if any exist.
+			
+			Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
 	}
 	public function getAllowedParams() {
 		return array(
