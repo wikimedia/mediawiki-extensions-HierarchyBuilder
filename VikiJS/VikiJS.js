@@ -121,6 +121,10 @@ window.VikiJS = function() {
 		  }
 		});
 
+		$("#addNodesButton").click(function() {
+			var newNodesWindow = self.showNewNodesWindow();
+		});
+
 		initializeGraph();
 
 		// initialize the list of searchable wikis,
@@ -700,7 +704,7 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.addWikiNode = function(pageTitle, apiURL, contentURL, logoURL) {
 		var self = this;
-
+		self.log("addWikiNode - pageTitle = "+pageTitle);
 		node = self.newNode();
 		node.displayName = pageTitle;
 		node.pageTitle = pageTitle;
@@ -1080,6 +1084,25 @@ window.VikiJS = function() {
 			self.elaborateNodeAtIndex(this.id);
 			self.redraw(true);
 		});
+	}
+	
+	VikiJS.prototype.showNewNodesWindow = function() {
+		var self = this;
+		
+		self.log("show new nodes window pressed");
+		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width=400, height=400");
+		self.newNodesWindow.delegate = self;
+	}
+	
+	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
+		self.log("close new nodes window pressed");
+		self.newNodesWindow.close();
+		
+		for(var i = 0; i < returnArgs.length; i++) {
+			self.log(returnArgs[i]["pageTitle"]);
+			self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL);
+		}
+		self.redraw(true);
 	}
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);

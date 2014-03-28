@@ -135,6 +135,8 @@ class VikiJS {
 </div></td></tr>
 <tr><td><div id="vikijs-errors-panel">
 </div></td></tr>
+<tr><td><div id="vikijs-add-nodes-panel"><button id="addNodesButton">Add Nodes</button>
+</div></td></tr>
 </table>
 EOT;
 
