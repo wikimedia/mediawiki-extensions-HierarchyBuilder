@@ -12,7 +12,7 @@ if (!defined('MEDIAWIKI')) {
 
 if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of Collection is only compatible with MediaWiki 1.21 or above.');
-}
+}xw
 
 $wgExtensionCredits[ 'specialpage' ][] = array(
 	'name' => 'MultiWikiSearch',

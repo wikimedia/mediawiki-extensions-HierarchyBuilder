@@ -1,0 +1,19 @@
+<html>
+	<head>New Window Test</head>
+	<body>
+		<p>This is a test!</p>
+		<button id="closeMe">Close Me!</button>
+	</body>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script language="javascript" type="text/javascript">
+		var newNodes = [
+		{ 'pageTitle' : 'Robotics'},
+		{ 'pageTitle' : 'Hard Impact New Devices'}
+		];
+		$(document).ready(function() {
+			$("#closeMe").click(function() {
+				window.delegate.closeNewNodesWindow(newNodes);
+			});
+		});
+	</script>
+</html>

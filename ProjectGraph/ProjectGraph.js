@@ -32,18 +32,19 @@ window.ProjectGraph = function() {
 	this.MIN_SCALE = .3;
 	this.MAX_SCALE = 2;
 	this.LINK_OPACITY = 0.4;
-	this.STANDARD_BOX = 400;
-	this.ZOOM_MULTIPLIER = -0.0005;
+	this.STANDARD_BOX = 400;// standard box width/height
+	this.ZOOM_MULTIPLIER = -0.0005;// a multiplier for calculating zoom scope
 	this.ZOOM_CONSTANT = 1.2;
 	this.HUB_LINK_LENGTH = 500;
 	this.LEAF_LINK_LENGTH = 75;
+	// threshold values for minimum height/width of a 
 	this.MIN_HEIGHT = 200;
 	this.MIN_WIDTH = 200;
 
 	this.FiscalYear = null;
 	this.GraphDiv = null;
 	this.DetailsDiv = null;
-	this.Resize = null;
+	this.Resize = null;// is the graph resizable
 	this.SelectedNode = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
@@ -53,24 +54,27 @@ window.ProjectGraph = function() {
 	this.NodeSelection = null;
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
-	this.HiddenNodes = new Array();
-	this.HiddenLinks = new Array();
-	this.HiddenLinkMap = new Array();
-	this.NodeCounter = 0;
+	this.Hidden = {Nodes: new Array(), Links: new Array()};// store for hiding and showing nodes/links
+	this.Filter = {Nodes: new Array(), Links: new Array()};// store for a searchable graph
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
 		var self = this;
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
-
+		// regular expression to find the first numeric digit
 		var dig = new RegExp("[0-9]",'g');
+		// search graphDiv for the first numeric digit and se this as the ID
+		// doubt that the id will go over 9 (more than 10 graphs on a page)
         this.ID = graphDiv.match(dig)[0];
+
 		this.FiscalYear = fiscalYear;
 		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv+'_data';	
 		this.Resize = resize;	
-		this.SliderDiv = detailsDiv+"_zoom_slider";
+		// generate the details div by appending '_data' to the end of detailsDiv
+		this.DetailsDiv = detailsDiv+'_data';
+		// generate the slider div by appending '_zoom_slider' to the end of detailsDiv
+		this.SliderDiv = detailsDiv+'_zoom_slider';
 		this.ImagePath = imagePath;
 		this.INITIAL_HEIGHT = initialHeight;
 		this.INITIAL_WIDTH = initialWidth;
@@ -79,21 +83,25 @@ window.ProjectGraph = function() {
 
 		var margin = 10;
 
+		// if the graph is resizable?
 		if(resize){
+			// calculate the inverses for height and width (simple math?)
 			var height_inverse = (self.height * ((window.innerHeight) / (self.height)));
 			var width_inverse = (self.width * ((window.innerWidth) / (self.width)));
+			// listen for when the 
 			$( window ).resize(function() {
-
+				// use a combination of the inverses and other values to determine what the calculated height/width should be
+				// this equation may need to be improved upon...
 				var calculated_height = Math.round((self.height / height_inverse) *(self.height * ((window.innerHeight) / (self.height))));
 				var calculated_width =  Math.round((self.width / width_inverse) * (self.width * ((window.innerWidth) / (self.width))));
 				var height = calculated_height;
 				var width = calculated_width;
 
+				// if the calculated values fall below a specified threshold
 				if(calculated_height< self.MIN_HEIGHT){height = self.MIN_HEIGHT;}
 				if(calculated_width< self.MIN_WIDTH){width = self.MIN_WIDTH;}
 
-				$("#"+self.GraphDiv).height(height).width(width);
-				$("#"+self.ID).height(height).width(width);
+				$("#"+self.GraphDiv+" ,#"+self.ID).height(height).width(width);
 				$("#"+self.DetailsDiv).width((width-margin)* 3/5);
 				$("#"+self.SliderDiv).width((width - margin) * 2/5);
 				$("#"+self.DetailsDiv.substring(0, self.DetailsDiv.length-5)).width((width-margin));				
@@ -102,8 +110,7 @@ window.ProjectGraph = function() {
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
 		// space that the .detail-panel class uses.
-		//$("#"+this.SliderDiv).css("top","-38px");
-        //$("#"+this.SliderDiv).css("float","right");
+		
 		// the details divider will get 3/5 of the space
 		$("#"+this.DetailsDiv).width((this.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
@@ -111,10 +118,17 @@ window.ProjectGraph = function() {
 		// set the entire detail-panel to the width of the input minus the size of
 		// the paddings, margins and other values to align with the graph.
 		$(".projectgraph-detail-panel").width(this.width - margin);
-
+		// set everything within the graphDiv to not have a context menu
+		// this does not work with nodes, only the canvas
 		$('#'+this.GraphDiv).on('contextmenu', function(){
   			return false;
 		});
+		// Listener for keyup to launch searchFilter rendering the graph searchable via the api tags. 
+		// Look at searchFilter method for more information.
+		$('#searchbar').keyup(function(event){
+			self.searchFilter($(this).val());
+		});
+
 		// The below if and else statement scaled the initial zoom level. This is calculated by
 		// relations to the standard size. The standard size is a 400px by 400px box with a zoom level 1;
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
@@ -146,21 +160,26 @@ window.ProjectGraph = function() {
 		        self.slide();
 		  }
 		});
-
+		// the html for the context menu
 		$('body').append(
 			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			// the dynamic menu title (node name)
 			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			// actual navigable menu
 			"<div class=\"options\" >"+
 			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
         	"<li id=\"getinfo\" >Get Info</li>"+
+			"<li id=\"tags\">Display Tags</li>"+
 			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"hide\">Hide</li>"+
-			"<hr>"+
+			"<hr>"+// separator
         	"<li id=\"showall\">Show All</li>"+
 			"<li id=\"zoomtofit\">Zoom To Fit</li>"+
 	    	"</ul></div></div>"
 	    );
+	    // center the title of the context menu
 		$("#name").css("text-align","center");
+
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
 			alert("No charge number or employee number provided");
@@ -358,18 +377,15 @@ window.ProjectGraph = function() {
 
 	ProjectGraph.prototype.redraw = function(layout) {
 		var self = this;
-
+		// The reason this logic differs from NodeSelection is due to a bug.
 		this.LinkSelection = 
-		this.LinkSelection.data(this.Links, function(d){
-			return self.Links.indexOf(d);
-		});
+		this.LinkSelection.data(this.Links);
 
 		this.LinkSelection.exit().remove();
 
 		var newLinks = this.LinkSelection.enter().append("svg:line");
 		newLinks.attr("class", "link-"+this.ID);
 		newLinks.style("stroke", "#23A4FF");
-
 		this.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
 				return d.source.index == self.SelectedNode ||
@@ -408,8 +424,11 @@ window.ProjectGraph = function() {
 		});
 		// Trigger right click context menu
 		newNodes.on("contextmenu", function(d) {
+			// get the node before launching the context menu
 			self.SelectedNode = d.index;
-			self.redraw(false);			
+			// show the selected node
+			self.redraw(false);		
+			// launch the menu	
 			self.menu();
 		});
 
@@ -417,7 +436,7 @@ window.ProjectGraph = function() {
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
 
 		newNodes.call(this.Force.drag);
-		
+
 		var newToolTips = newNodes.append("svg:title");
 		newToolTips.attr("class", "tooltip");
 		var allToolTips = d3.selectAll(".tooltip");
@@ -471,7 +490,6 @@ window.ProjectGraph = function() {
 		allImages.attr("height", function(d) {
 			return d.index == self.SelectedNode ? self.SELECTED_IMAGE_DIMENSION : self.UNSELECTED_IMAGE_DIMENSION;
 		});
-
 		allImages.style("opacity", function(d) {
 			var link = self.findLink(d.index,self.SelectedNode);			
 			if (d.index == self.SelectedNode) {
@@ -525,7 +543,7 @@ window.ProjectGraph = function() {
 		newHourBarFills.style("stroke", "none");
 
 		// get the selected node
-		var selected = this.findNode('index',this.SelectedNode);
+		var selected = this.findNode('index',this.SelectedNode, this);
 		var allHourBarBacks = d3.selectAll(".hourbarback-"+this.ID);
 		var allHourBarFills = d3.selectAll(".hourbarfill-"+this.ID);
 		var backcolor = function(d) {
@@ -583,7 +601,7 @@ window.ProjectGraph = function() {
 		}
 	}
 	ProjectGraph.prototype.addProjectNode = function(displayName, chargeNumber) {
-		var node = this.findNode("chargeNumber", chargeNumber);
+		var node = this.findNode("chargeNumber", chargeNumber, this);
 		if (node != null) {
 			return node;
 		}
@@ -593,6 +611,8 @@ window.ProjectGraph = function() {
 		node.info = this.formatNodeInfo(displayName);
 		node.type = this.PROJECT_TYPE;
 		node.imageURL = this.ImagePath + 'project.png';
+		node.tags = queryTags('project', node.chargeNumber);
+		node.uid = node.chargeNumber;
 		node.projectPagesURL =
 			"http://info.mitre.org/phonebook/project.do?projectNumber=" +
 			chargeNumber + "&fiscalYear=" + this.FiscalYear;
@@ -613,6 +633,8 @@ window.ProjectGraph = function() {
 		node.type = this.PERSON_TYPE;
 		node.imageURL = "http://info.mitre.org/phonebook/photos/big/" +
 			employeeNumber + ".jpg";
+		node.tags = queryTags('employee', node.employeeNumber);
+		node.uid = node.employeeNumber;
 		node.personPagesURL =
 			"http://info.mitre.org/people/app/person/" + employeeNumber;
 		this.addNode(node);
@@ -622,31 +644,30 @@ window.ProjectGraph = function() {
 		var node = {
 			elaborated: false,
 			fix: false,
-			position: this.NodeCounter,
 		};
-		this.NodeCounter++;
 		return node;
 	}
-	ProjectGraph.prototype.findNode = function(property, value) {
-		for (var i = 0; i < this.Nodes.length; i++) {
-			if (typeof this.Nodes[i][property] !== 'undefined' &&
-				this.Nodes[i][property] === value) {
-				return this.Nodes[i];
+	// search for a node given a property and a value. The property could be
+	// 'uid' and the value could be 'ajx3'. A search will be run 'ajx3' on a store (an array)
+	// to see if it contains a node with the specified value for the given property.
+	// else, return null
+	ProjectGraph.prototype.findNode = function(property, value, store) {
+		if(typeof store != 'undefined'){
+			// loop through store
+			for (var i = 0; i < store.Nodes.length; i++) {
+				// if the node is not undefined and matches property and value
+				// return node, else return null
+				if (typeof store.Nodes[i][property] !== 'undefined' &&
+					store.Nodes[i][property] === value) {
+					return store.Nodes[i];
+				}
 			}
 		}
 		return null;
 	}
-	ProjectGraph.prototype.findHiddenNode = function(property, value){
-		for (var i = 0; i < this.HiddenNodes.length; i++) {
-			if (typeof this.HiddenNodes[i][property] !== 'undefined' &&
-				this.HiddenNodes[i][property] === value) {
-				return this.HiddenNodes[i];
-			}
-		}
-		return null;	
-	}
 	ProjectGraph.prototype.addNode = function(node) {
-		if(this.nodeExist(node)==false){
+		// see if the node exists on the graph
+		if(this.nodeExist(node,0)==false){
 			node.index = this.Nodes.push(node) - 1;
 			if (node.index == 0) {
 				this.SelectedNode = 0;
@@ -654,6 +675,47 @@ window.ProjectGraph = function() {
 		}
 	}
 
+	// Warnding! If you are hiding clusters, you must use the method 'hideLinks' before
+	// you can invoke 'hideNodes'
+	ProjectGraph.prototype.hideNodes = function(node, store, cluster){
+		var self = this;
+		// is the node elaborated, and do you wish to hide the entire cluster
+		// if possible?
+		if(node.elaborated && cluster){
+			var hub = new Array();
+			// go through every link that is within a store. For example, if
+			// the store is an array of links that are removed from the graph,
+			// then store both target and source into the 'hub' array. But do not
+			// store duplicates.
+			store.Links.forEach(function(l){
+				if(hub.indexOf(l.source)==-1){
+					hub.push(l.source);
+				}
+				if(hub.indexOf(l.target)==-1){
+					hub.push(l.target);
+				}
+			});
+			// then go through every node, and if it exists on the graph,
+			// then push it to the store
+			hub.forEach(function(n){
+				var pos = self.Nodes.indexOf(n);
+				if(pos > -1){
+					if((n.uid == node.uid)||(n.elaborated == false)){
+						store.Nodes.push(self.Nodes[pos]);
+						self.Nodes.splice(pos,1);						
+					}
+				}
+			});
+		}
+		else{
+			// Remove the single node from the graph
+			var pos = this.Nodes.indexOf(node);
+			if (pos > -1) {
+				store.Nodes.push(this.Nodes[pos]);
+	    		this.Nodes.splice(pos, 1);
+			}
+		}
+	}
 	ProjectGraph.prototype.addLink = function(node1, node2) {
 		var link = {
 			source: node1,
@@ -664,12 +726,15 @@ window.ProjectGraph = function() {
 		this.LinkMap[node2.index + "," + node1.index] = link;
 		return link;
 	}
-	ProjectGraph.prototype.removeLink = function(node){
+	ProjectGraph.prototype.hideLinks = function(node, store){
+		var self = this;
+		// use d3 to select all of the links (can be rebuilt as a loop?)
 		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
-				// store the link in an array to be re-added later
+			// if the node id matches either the source id, or the target id
+			if((node.uid == l.source.uid)||(node.uid == l.target.uid)){
+				// store the link in an array (store) to be re-added later
 				self.Links.splice(self.Links.indexOf(l),1);
-				self.HiddenLinks.push(l);				
+				store.Links.push(l);				
 			}
 		});
 	}
@@ -679,6 +744,23 @@ window.ProjectGraph = function() {
 			return null;
 		}
 		return link;
+	}
+	// search a specific store for a link that has a matching target or source node
+	ProjectGraph.prototype.linkSearch = function(node, store){
+		if(typeof store != 'undefined'){
+			// go through the entire store
+			for (var i = 0; i < store.Links.length; i++) {
+				// get the link
+				var link = store.Links[i];
+				// if the node id matches either the source id or the target id
+				// return the link
+				if((link.source.uid == node.uid)||(link.target.uid == node.uid)){
+					return link;
+				}
+			}
+		}
+		// return null if not found
+		return null;
 	}
 	ProjectGraph.prototype.elaborateNode = function(node) {
 		if (node.type == this.PROJECT_TYPE) {
@@ -770,7 +852,7 @@ window.ProjectGraph = function() {
 				var person = delivery.staff[i];
 				var personNode =
 					this.findNode("employeeNumber",
-					person.employeeNumber);
+					person.employeeNumber, this);
 				if (personNode == null) {
 					personNode =
 						this.addPersonNode(person.personName,
@@ -817,7 +899,7 @@ window.ProjectGraph = function() {
 		for (var i = 0; i < tasks.length; i++) {
 			var task = tasks[i];
 			var taskNode =
-				this.findNode("chargeNumber", task.chargeNumber);
+				this.findNode("chargeNumber", task.chargeNumber, this);
 			if (taskNode == null) {
 				taskNode =
 					this.addProjectNode(task.taskName,
@@ -849,7 +931,7 @@ window.ProjectGraph = function() {
 		var self = this;
 		this.pause(true);
 		// find the node according to the index and set it locally
-		var node = this.findNode('index',this.SelectedNode);
+		var node = this.findNode('index',this.SelectedNode, this);
 		// create a json object to store the variable settings
 		var freeze = {toggle:"",fix:false};
 		// if the node has been fixed, then display "unfreeze" as a menu
@@ -864,25 +946,31 @@ window.ProjectGraph = function() {
 			freeze.toggle = "Freeze";
 			freeze.fix = true;
 		}
-		// toggle the menu option between freeze and unfreeze
+		// set the title of the menu to the name
 		$('#name-'+this.ID).html(node.displayName);
+		// toggle the menu option between freeze and unfreeze
 		$('.freeze-'+this.ID).html(freeze.toggle);
+		// toggle the project on staff and projects 
 		if(node.type==this.PROJECT_TYPE){ 
 			$('.elaborate-'+this.ID).html("Get Staff");
 		}
 		else if (node.type == this.PERSON_TYPE) { 
 			$('.elaborate-'+this.ID).html("Get Projects");
 		}
+		// the actual menu code
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
+        	// activate before the menu shows
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
 		          $('.elaborate-'+self.ID, menu).remove();
 		        }
 		        return menu;
 	      	},
+	      	// activate after the menu shows
 	      	onExitMenu: function(e,menu) {
 	      		self.pause(false);
 	      	},
+	      	// style the menu
 	      	itemStyle: {
 		        fontFamily : 'Trebuchet MS',
 		        backgroundColor : '#EEEEEE',
@@ -895,6 +983,7 @@ window.ProjectGraph = function() {
 					node.fix = freeze.fix;
 		        },
 		        'getinfo': function(t) {
+
 					if(node.type==self.PROJECT_TYPE){
                         window.open(node.projectPagesURL,'_blank'); 
                     }
@@ -920,58 +1009,25 @@ window.ProjectGraph = function() {
 		        	// when zoom to fit is selected, call the zoom to fit function
 					self.zoomToFit(node);
 		        },
-		        'popout': function(t){
-
-		        },
-		        'grow': function(t){
-
+		        'tags': function(t){
+		        	alert(node.tags.join());
 		        }
 	        }
 		});
 	}
-	ProjectGraph.prototype.pause = function(still){
-		if(still) { this.Force.stop(); }
-		if(!still){ this.Force.start(); }
+	// take in a boolean value. If true, then pause the graph,
+	// else unpause the graph.
+	ProjectGraph.prototype.pause = function(stop){
+		if(stop) { this.Force.stop(); }
+		if(!stop){ this.Force.start(); }
 	}
+
 	ProjectGraph.prototype.hide = function(node){
 		var self = this;
-		d3.selectAll(".link-"+this.ID).filter(function(l){
-			if((node.displayName == l.source.displayName)||(node.displayName == l.target.displayName)){
-				// store the link in an array to be re-added later
-				self.Links.splice(self.Links.indexOf(l),1);
-				self.HiddenLinks.push(l);				
-			}
-		});
+		this.hideLinks(node, this.Hidden);
 		// if the node is a central part of a hub
 		// remove all of its children unless its child has been elaborated
-		if(node.elaborated){
-			var hub = new Array();
-			this.HiddenLinks.forEach(function(l){
-				if(hub.indexOf(l.source)==-1){
-					hub.push(l.source);
-				}
-				if(hub.indexOf(l.target)==-1){
-					hub.push(l.target);
-				}
-			});
-			hub.forEach(function(n){
-				var pos = self.Nodes.indexOf(n);
-				if(pos > -1){
-					if((n.displayName == node.displayName)||(n.elaborated == false)){
-						self.HiddenNodes.push(self.Nodes[pos]);
-						self.Nodes.splice(pos,1);						
-					}
-				}
-			});
-		}
-		else{
-			// select all of the nodes
-			var pos = this.Nodes.indexOf(node);
-			if (pos > -1) {
-				this.HiddenNodes.push(this.Nodes[pos]);
-	    		this.Nodes.splice(pos, 1);
-			}
-		}
+		this.hideNodes(node, this.Hidden, true);
 		this.indexReset();
 		// Properly remove the nodes from the graph
 		this.redraw(true);
@@ -979,86 +1035,176 @@ window.ProjectGraph = function() {
 	ProjectGraph.prototype.showAll = function(){
 		// cycle through all of the nodes and re-add them back to a list
 		// to get added back to the graph
-		for(var npos = 0; npos<this.HiddenNodes.length; npos++){
-			var node = this.HiddenNodes[npos];
-			if(this.nodeExist(node)==false){
+		for(var npos = 0; npos<this.Hidden.Nodes.length; npos++){
+			var node = this.Hidden.Nodes[npos];
+			if(this.nodeExist(node,0)==false){
 				this.Nodes.push(node);
 			}
 		}
 		// cycle through all of the links and re-add them back to a list
 		// to get added back to the graph
-		for(var lpos = 0; lpos<this.HiddenLinks.length; lpos++){
-			var l = this.HiddenLinks[lpos];
+		for(var lpos = 0; lpos<this.Hidden.Links.length; lpos++){
+			var l = this.Hidden.Links[lpos];
 			this.Links.push(l);
 		}		
 
 		this.indexReset();
 
-		this.HiddenNodes = new Array();
-		this.HiddenLinks = new Array();
+		this.Hidden.Nodes = new Array();
+		this.Hidden.Links = new Array();
 
-		// redraw
 		this.redraw(true);
 	}
 
 	ProjectGraph.prototype.indexReset = function(){
 		var self = this;
+		// wipe the linkmap so that it can be rebuilt
 		this.LinkMap = new Array();
+		// loop through all of the nodes in the graph
 		for(var node_index = 0; node_index<this.Nodes.length; node_index++){
+			// get the node
 			var node = this.Nodes[node_index];
+			// set the node index to the iterative value
+			// [7 5 0 2] becomes [0 1 2 3]
 			node.index = node_index;
 		}
 		var queue = new Array();
+		// loop through all of the links on the graph
 		this.Links.forEach(function(l){
-			var src = find(l.source);
-			var tar = find(l.target);
+			// find the new source and target via the 
+			// findNode command by the unique identifier
+			var src = self.findNode('uid', l.source.uid, self);
+			var tar = self.findNode('uid', l.target.uid, self);
+			// as long as both nodes exist on the graph
 			if((src != null)&&(tar != null)){
+				// set the new source and targets
 				l.source = src;
 				l.target = tar;			
+				// add to the linkmap
 				self.LinkMap[l.target.index+","+l.source.index] = l;
 				self.LinkMap[l.source.index+","+l.target.index] = l;
 			}
+			// else, the link does not belong and should be hidden
 			else{
-				if((hiddenFind(l.source))||(hiddenFind(l.target))){
+				if((self.nodeExist(l.source,4))||(self.nodeExist(l.target,4))){
 					queue.push(l);
 				}
 			}
-			function find(node){
-				var query = null;
-				if     (node.type == self.PROJECT_TYPE){
-					query = self.findNode('chargeNumber',node.chargeNumber);
-				}
-				else if(node.type == self.PERSON_TYPE){
-					query = self.findNode('employeeNumber',node.employeeNumber);
-				}		
-				return query;		
-			}
-			function hiddenFind(node){
-				var query = null;
-				if     (node.type == self.PROJECT_TYPE){
-					query = self.findHiddenNode('chargeNumber',node.chargeNumber);
-				}
-				else if(node.type == self.PERSON_TYPE){
-					query = self.findHiddenNode('employeeNumber',node.employeeNumber);
-				}		
-				return (query != null);
-			}
 		});
+		// hide all lingering links that are not attached to both nodes.
 		queue.forEach(function(l){
-					self.Links.splice(self.Links.indexOf(l),1);
-					self.HiddenLinks.push(l);				
+			self.Links.splice(self.Links.indexOf(l),1);
+			self.Hidden.Links.push(l);				
 		});
 	}
-	ProjectGraph.prototype.nodeExist = function(node){
-		if     (node.type == this.PROJECT_TYPE){
-			return (this.findNode('chargeNumber', node.chargeNumber)!=null);
+	// general switch method to pull in if a node exists within a different stores. 
+	// There may be a better way to do this? For loop perhaps?
+	ProjectGraph.prototype.nodeExist = function(node, level){		
+		var exist = false;
+		switch(level){
+			case 0:
+				exist = (this.findNode('uid', node.uid, this)!=null);
+			break;
+			case 1:
+				exist = (this.findNode('uid', node.uid, this.Hidden)!=null);
+			break;
+			case 2:
+				exist = (this.findNode('uid', node.uid, this.Filter)!=null);
+			break;
+			case 3:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', node.uid, this.Hidden)!=null));
+			break;
+			case 4:
+				exist = ((this.findNode('uid', node.uid, this.Hidden)!=null)||
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
+			break;
+			case 5:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
+			break;
+			case 6:
+				exist = ((this.findNode('uid', node.uid, this)!=null)||
+						 (this.findNode('uid', node.uid, this.Hidden)!=null)||
+						 (this.findNode('uid', node.uid, this.Filter)!=null));
+			break;
 		}
-		else if(node.type == this.PERSON_TYPE){
-			return (this.findNode('employeeNumber', node.employeeNumber)!=null);
-		}		
+		return exist;	
 	}
-	ProjectGraph.prototype.searchFilter = function(tags){
+	ProjectGraph.prototype.searchFilter = function(lookup){
+		var self = this;
+		var hide = new Array();
+		// loop through all of the nodes, if none of the tags
+		// match, then hide the link, and push the node to an array
+		// to be removed later.
+		this.Nodes.forEach(function(n){
+			if(!isEqual(lookup,n.tags)){
+				self.hideLinks(n, self.Filter);
+				hide.push(n);
+			}
+		});
+		// removing the node later to not disrupt loop
+		hide.forEach(function(n){
+			self.hideNodes(n, self.Filter, false);
+		});
+		var show = {node:new Array(),link:new Array()};
+		// go through all of the nodes in the store
+		for(var npos=0; npos<this.Filter.Nodes.length; npos++){
+			// if the node is what you are looking for, add it to the graph
+			var n = this.Filter.Nodes[npos];			
+			if(isEqual(lookup,n.tags)){
+				this.Nodes.push(n);
+				show.node.push(n);
+			}
+		}
+		// search through all of the ndoes on the graph
+		this.Nodes.forEach(function(n){
+			// find a link via a node
+			var link = self.linkSearch(n, self.Filter);
+			// pull the source and the target from the graph
+			var src = self.findNode('uid', link.source.uid, self);
+            var tar = self.findNode('uid', link.target.uid, self);
+			// if either is null, that means both nodes are not on the graph
+			// and the link should not be added			
+			if((src != null)&&( tar != null)){
+				// otherwise, add the link to the graph
+		        self.Links.push(link);
+                show.link.push(link);
+			}
+		});
+		// remove the node and link from the filter store (spring cleaning)
+		show.node.forEach(function(n){
+			self.Filter.Nodes.splice(self.Filter.Nodes.indexOf(n),1);
+		});
+		show.link.forEach(function(l){
+			self.Filter.Links.splice(self.Filter.Links.indexOf(l),1);
+		});
 
+		this.indexReset();
+		this.redraw(true);
+		// the core fuction behind searchable graphs
+    	function isEqual(lookup, tags){
+    		// if the lookup is an empty string
+    		// then return true (to add all nodes/links to the graph)
+			if(lookup==''){return true;}
+			// else => strip all spaces (to make it easier) from lookup
+			var search = lookup.replace(/\s/g, "");
+			// loop through all of the tags
+			for(var index=0; index<tags.length; index++){
+				// pull every tag and strip all of the spaces from the tag
+				var t = tags[index].replace(/\s/g,"");
+				// see if the length of the tag being searched upon is less then or equal to
+				// the length of the text, if so, then continue, else, return false automatically				
+				if(t.length>=search.length){
+					// see if the tag matches
+					var tag = t.slice(0,search.length);
+					if(search===tag){
+						return true;
+					}
+				}
+			};
+        	return false;
+        }
 	}
 	ProjectGraph.prototype.zoomToFit = function(node){
 
@@ -1066,23 +1212,17 @@ window.ProjectGraph = function() {
 		// with the x and y index of the first node in ProjectGraph.Nodes
 		var minx=this.Nodes[0].x; var maxx=this.Nodes[0].x; 
 		var miny=this.Nodes[0].y; var maxy=this.Nodes[0].y;
-		var d={x:0, y:0, count:0};
 		// go through the array of nodes
 		this.Nodes.forEach(function(node){
 			// check to see if the current nodes x or y index is
 			// greater than or less than any of the four domain/range variables
-			d.x += node.x;
-			d.y += node.y;
-			d.count++;
 			if(node.x>maxx){maxx = node.x;}
 			if(node.x<minx){minx = node.x;}
 			if(node.y>maxy){maxy = node.y;}
 			if(node.y<miny){miny = node.y;}
 		});	
-		var avgx = d.x/d.count;
-		var avgy = d.y/d.count;
 		// scale is used as a tolerance buffer
-		var padding = 0.075;
+		var padding = 0;//0.075;
 		//calculate the zoom for the domain and the zoom for the range
 		var dzoom = this.width/(maxx-minx);
 		var rzoom = this.height/(maxy-miny);
@@ -1094,23 +1234,14 @@ window.ProjectGraph = function() {
 			this.Zoompos = rzoom - padding;
 		}	
 		// Calculate Translation
-		this.calculateTranslation(avgx,avgy);
-		// zoom
+		zoom_scale = this.zoom.scale();
+		graph_x = (this.width/2.0/zoom_scale) - (maxx+minx)/2;
+		graph_y = (this.height/2.0/zoom_scale) - (maxy+miny)/2;
+
+		this.zoom.translate([graph_x, graph_y]);
+
 		this.slide();
-		// set the slider
 		$("#"+this.SliderDiv).slider("value",this.Zoompos);
 		this.redraw(true);
-	}
-	ProjectGraph.prototype.calculateTranslation = function(x,y){
-		// get the scale
-		var scale = this.zoom.scale();
-		// calculate the centers depending on the scale and viewport
-        var scaledCenterX = (this.width / scale) / 2;
-        var scaledCenterY = (this.height / scale) / 2;
-        // calculate the translation vectors
-        var panx = -(x - scaledCenterX);
-        var pany = -(y - scaledCenterY);
-        // set the translation vectors and the scale
-		this.zoom.translate([panx, pany]);
 	}
 }

@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-function VikiJS() {
+window.VikiJS = function() {
 
 	this.ID = null;
 	this.WIKI_PAGE_TYPE = 0;
@@ -119,6 +119,10 @@ function VikiJS() {
 			// call the slide function to zoom/pan using the slider
 		        self.slide();
 		  }
+		});
+
+		$("#addNodesButton").click(function() {
+			var newNodesWindow = self.showNewNodesWindow();
 		});
 
 		initializeGraph();
@@ -576,7 +580,18 @@ function VikiJS() {
 		var allImages = self.NodeSelection.selectAll(".icon");
 
 		allImages.attr("xlink:href", function(d) {
-			return (d.logoURL ? d.logoURL : self.ImagePath+"info.png");
+			// go through the hierarchy of possible icons in order of preference
+			// Title Icons > Hook Icons > Site Logo Icons > External Node Icons > info.png
+			if(d.titleIconURL)
+				return d.titleIconURL;
+			else if(d.hookIconURL)
+				return d.hookIconURL;
+			else if(d.logoURL)
+				return d.logoURL;
+			else if(d.externalNodeIconURL)
+				return d.externalNodeIconURL;
+			else
+				return self.ImagePath+"info.png";
 		});
 		allImages
 		   .attr("x", function(d) {
@@ -689,7 +704,7 @@ function VikiJS() {
 	
 	VikiJS.prototype.addWikiNode = function(pageTitle, apiURL, contentURL, logoURL) {
 		var self = this;
-
+		self.log("addWikiNode - pageTitle = "+pageTitle);
 		node = self.newNode();
 		node.displayName = pageTitle;
 		node.pageTitle = pageTitle;
@@ -705,8 +720,9 @@ function VikiJS() {
 		}
 		node.apiURL = apiURL;
 		node.logoURL = logoURL;
-
+		self.checkForTitleIcon(node);
 		self.addNode(node);
+		
 		return node;
 		
 	}
@@ -719,7 +735,7 @@ function VikiJS() {
 		node.info = self.formatNodeInfo(node.fullDisplayName);
 		node.type = self.EXTERNAL_PAGE_TYPE;
 		node.URL = url;
-		node.logoURL = self.ImagePath + "internet.png";
+		node.externalNodeIconURL = self.ImagePath + "internet.png";
 		self.addNode(node);
 		return node;
 	}
@@ -737,10 +753,46 @@ function VikiJS() {
 		node.apiURL = self.searchableWikis[wikiIndex]["apiURL"];
 		node.contentURL = self.searchableWikis[wikiIndex]["contentURL"];
 		node.logoURL = self.searchableWikis[wikiIndex]["logoURL"];
+		self.checkForTitleIcon(node);
+		
 		self.addNode(node);
 		return node;
 	}
-
+	VikiJS.prototype.checkForTitleIcon = function(node) {
+		
+		jQuery.ajax({
+			url: self.myApiURL,
+			dataType: 'json',
+			data: {
+				action: 'getTitleIcons',
+				format: 'json',
+				pageTitle: node.pageTitle,
+				apiURL: encodeURIComponent(node.apiURL)
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of TitleIcon lookup: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.titleIconSuccessHandler(data, node);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+		
+	}
+	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
+		var titleIconURLs = data["getTitleIcons"]["titleIcon"];
+		if(titleIconURLs.length == 0) {
+			self.log("No title icons here.");
+			return;
+		}
+		else {
+			self.log("Found a title icon! For page: "+node.pageTitle+", URL = "+titleIconURLs[0]);
+			node.titleIconURL = titleIconURLs[0];
+			self.redraw(false);
+		}
+	}
 	VikiJS.prototype.newNode = function() {
 		var self = this;
 
@@ -909,11 +961,11 @@ function VikiJS() {
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
 						var link = self.addLink(originNode.index, externalNode.index);
 
-						// now call hook on this node to see if any other special way to handle it (e.g. MII Phonebook)
 						newExternalNodes.push(externalNode);
 					}
 				}
 			}
+			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 			self.callHooks("ExternalNodeHook", [ newExternalNodes] );
 		}
 		self.redraw(true);
@@ -925,7 +977,7 @@ function VikiJS() {
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode) {
+				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
 					// add the node to the graph immediately.
 					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
 					var link = self.addLink(originNode.index, intraNode.index);
@@ -1032,6 +1084,25 @@ function VikiJS() {
 			self.elaborateNodeAtIndex(this.id);
 			self.redraw(true);
 		});
+	}
+	
+	VikiJS.prototype.showNewNodesWindow = function() {
+		var self = this;
+		
+		self.log("show new nodes window pressed");
+		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width=400, height=400");
+		self.newNodesWindow.delegate = self;
+	}
+	
+	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
+		self.log("close new nodes window pressed");
+		self.newNodesWindow.close();
+		
+		for(var i = 0; i < returnArgs.length; i++) {
+			self.log(returnArgs[i]["pageTitle"]);
+			self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL);
+		}
+		self.redraw(true);
 	}
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);

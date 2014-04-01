@@ -1,6 +1,6 @@
 // Hook functions
 
-function mitre_getSearchableWikis(vikiObject, parameters) {
+window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 // parameters = []
 	apiURL = vikiObject.myApiURL;
 	searchableWikisArray = vikiObject.searchableWikis;
@@ -20,10 +20,9 @@ function mitre_getSearchableWikis(vikiObject, parameters) {
 			alert("Unable to fetch list of wikis.");
 		}
 	});
-
 }
 
-function mitre_matchMIIPhonebook(vikiObject, parameters) {
+window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 //parameters = [ new external nodes ]
 	nodes = parameters[0];
 
@@ -37,14 +36,25 @@ function mitre_matchMIIPhonebook(vikiObject, parameters) {
 			self.queryPhonebook(vikiObject, node, employeeNum);
 		}
 		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
-
+			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
+			node.pageTitle = deptNum;
+			node.displayName = node.pageTitle;
+			node.fullDisplayName = node.displayName;
+			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+			
+			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+			hook_log("setting hookIconURL to "+node.hookIconURL);
+		}
+		else if(node.URL.indexOf("mitre.org") != -1) {
+			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+			hook_log("setting hookIconURL to "+node.hookIconURL);
 		}
 	}
 }
 
 // Helper functions
 
-function parseSearchableWikisList(data, searchableWikisArray) {
+window.parseSearchableWikisList = function(data, searchableWikisArray) {
 	hook_log("Retrieved searchableWikisList");
 	allWikis = data["getSearchableWikis"]["results"];
 
@@ -61,11 +71,9 @@ function parseSearchableWikisList(data, searchableWikisArray) {
 	}
 
 	hook_log("searchableWikisArray.length = "+searchableWikisArray.length);
-
 }
 
-function queryPhonebook(vikiObject, node, employeeNum) {
-	
+window.queryPhonebook = function(vikiObject, node, employeeNum) {
 	jQuery.ajax({
 		async: false,
 		url: vikiObject.myApiURL,
@@ -86,18 +94,17 @@ function queryPhonebook(vikiObject, node, employeeNum) {
 
 		}
 	});
-
 }
 
-function parsePhonebookData(vikiObject, data, node) {
+window.parsePhonebookData = function(vikiObject, data, node) {
 	result = data["mitrePhonebookAPILookup"]["result"];
 	node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
 	node.displayName = node.pageTitle;
 	node.fullDisplayName = node.displayName;
 	node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
-	node.logoURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-	hook_log(node.logoURL);
+	node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
+	hook_log(node.hookIconURL);
 }
 
 hook_log = function(text) {

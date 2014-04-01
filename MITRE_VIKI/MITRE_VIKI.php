@@ -55,6 +55,10 @@ $VikiJS_Function_Hooks = array();
 $VikiJS_Function_Hooks['GetSearchableWikisHook'] = array('mitre_getSearchableWikis');
 $VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchMIIPhonebook');
 
+global $wgViki_TitleIconVarName;
+
+$wgViki_TitleIconVarName = 'Logo+Link';
+
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 
 $wgAPIModules['mitrePhonebookAPILookup'] = 'ApiMitrePhonebookAPILookup';
