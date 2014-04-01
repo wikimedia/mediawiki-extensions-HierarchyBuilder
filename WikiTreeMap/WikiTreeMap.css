@@ -1,0 +1,8 @@
+.wikitreemap-graph-container {
+  float: left;
+  top: 55px;
+  padding:5px 5px 5px 5px;
+  border: 1px solid blue;
+  border-radius: 7px;
+  overflow: hidden;
+}
