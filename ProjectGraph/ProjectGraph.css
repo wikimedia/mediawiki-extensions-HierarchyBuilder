@@ -1,4 +1,3 @@
-a {color: #FFFFFF !important;}
 .projectgraph-node text {
   font: 10px sans-serif;
   cursor: pointer;
@@ -48,21 +47,12 @@ div#projectgraph-errors-panel {
   visibility: hidden;
   font-size: 2em;
 }
-<<<<<<< HEAD
 
-.zoom-slider{
-/* Changed top:-38px to vertical-align:top to make
- * 
- */
-top:-20px;
-float:right;
-=======
-.zoom_slider {
-  top:-38px;
+.zoom-slider {
+  top:-19px;
   float:right;
->>>>>>> 5908c3cad40ecbbdd2df6d0df29ad3c14fe10b56
 }
 
-#menu {
+.contextMenu {
   display: none;
 }
