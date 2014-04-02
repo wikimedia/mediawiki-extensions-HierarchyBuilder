@@ -1,8 +1,25 @@
-Thanks! .orgchart-graph-container {
+.orgchart-graph-container {
   float: left;
   top: 55px;
   padding:5px 5px 5px 5px;
   border: 1px solid blue;
   border-radius: 7px;
   overflow: hidden;
+}
+
+.node circle {
+  cursor: pointer;
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font-size: 11px;
+}
+
+path.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
 }
