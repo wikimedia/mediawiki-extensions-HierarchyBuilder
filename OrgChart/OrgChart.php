@@ -60,6 +60,9 @@ $wgResourceModules['ext.OrgChart'] = array(
 $wgHooks['LanguageGetMagic'][] = 'wfExtensionOrgChart_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efOrgChartParserFunction_Setup';
 
+$wgAPIModules['getOrgParent'] = 'ApiGetOrgParent';
+$wgAPIModules['getOrgChildren'] = 'ApiGetOrgChildren';
+
 function efOrgChartParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('orgchart', 'orgchart');
 	return true;
@@ -137,4 +140,112 @@ END;
 		$wgOut->addScript($script);
 		return $output;
 	}
+}
+
+class ApiGetOrgParent extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+
+	public function execute() {
+		global $wgServer;
+		global $wgScriptPath;
+		$orgName = $this->getMain()->getVal('orgName');
+
+		$queryURL = $wgServer . $wgScriptPath . "/index.php?title=Special:Ask&q=[[" . $orgName . "]]&po=?Parent&p[format]=json";
+
+		$this->getResult()->addValue(null, $this->getModuleName(),
+			array('orgName' =>$orgName,
+				'result' => "hello my parents"
+			)
+		);
+
+		return true;
+	}
+
+	public function getDescription() {
+		return "Get the parent organization of this organization.
+
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
+	}
+	public function getAllowedParams() {
+		return array(
+			'orgName' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+
+	public function getParamDescription() {
+		return array(
+			'orgName' => 'title of the organization whose parent you wish to retrieve'
+		);
+	}
+
+	public function getExamples() {
+		return array(
+			'api.php?action=getOrgParent&orgName=USA&format=jsonfm'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
+	}
+
+}
+
+class ApiGetOrgChildren extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+
+	public function execute() {
+		global $wgServer;
+		global $wgScriptPath;
+
+		$orgName = $this->getMain()->getVal('orgName');
+
+		$queryURL = $wgServer . $wgScriptPath . "/index.php?title=Special:Ask&q=[[Parent::" . $orgName . "]]&p[format]=json";
+		$queryResult = json_decode(file_get_contents($queryURL), true);
+//		$queryResult = json_decode(Http::get($queryURL), true);
+//		if(!$queryResult)
+//			die("failure to retrieve!!");
+		$this->getResult()->addValue(null, $this->getModuleName(),
+			array('orgName' =>$orgName,
+				'result' => $queryResult["results"]
+			)
+		);
+
+		return true;
+	}
+
+	public function getDescription() {
+		return "Get the children organizations of this organization.
+
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
+	}
+	public function getAllowedParams() {
+		return array(
+			'orgName' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+
+	public function getParamDescription() {
+		return array(
+			'orgName' => 'title of the organization whose children you wish to retrieve'
+		);
+	}
+
+	public function getExamples() {
+		return array(
+			'api.php?action=getOrgChildren&orgName=USA&format=jsonfm'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
+	}
+
 }
