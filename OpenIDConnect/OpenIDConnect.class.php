@@ -141,11 +141,13 @@ class OpenIDConnect {
 			$params = array('name' => $user->mName);
 		}
 		global $wgOut;
+		session_regenerate_id(true); 
 		self::redirect($returnto, $wgOut, $params);
 		return $authorized;
 	}
 
 	public static function logout() {
+		session_regenerate_id(true); 
 		session_destroy();
 		unset($_SESSION);
 		return true;
