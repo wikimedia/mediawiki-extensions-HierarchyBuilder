@@ -2,15 +2,16 @@ window.OrgChart = function() {
 	this.width = 0;
 	this.height = 0;
 	this.nodeWidth = 350;
-	this.nodeHeight = 75;
+	this.nodeHeight = 100;
+	this.imagePadding = 20;
+	this.imageWidth = this.nodeHeight-this.imagePadding;
 
-	this.imageWidth = this.nodeHeight;
-
-	this.MIN_SCALE = .2;
+	this.MIN_SCALE = .1;
 	this.MAX_SCALE = 3;
 	this.Zoompos = 1;
 
 	this.tree = null;
+	this.apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/api.php";
 	this.imagePath = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/extensions/OrgChart/";
 /*	this.familyTreeData = {
 		"name" : "DoD",
@@ -45,31 +46,18 @@ window.OrgChart = function() {
 		var orgChartData = self.queryForParents(orgName, null);
 		// after queryForParents, orgChartData is a linear tree (no branches) from top org to bottom.
 		var currentOrg = orgChartData;
+
 		while(currentOrg["children"]) {
 			currentOrg = currentOrg["children"][0];
 		}
-		// now currentOrg should point to the bottom org in the tree
-//		currentOrg["children"] = self.queryForChildren(currentOrg.name, 
-		self.log(orgChartData);
-		this.familyTreeData = orgChartData;
-	//====================================================================================================================
-	// query to get parent and page info (e.g. name, longName)
-/*		jQuery.ajax({
-			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[' + orgName + ']]&po=?Parent%0D%0A?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
-			dataType: 'json',
-			beforeSend: function(jqXHR, settings) {
-				self.log("url of query: "+settings.url);
-			},
-			success: function(data, textStatus, jqXHR) {
-				self.log("result: "+data["results"]);
-			},
-			failure: function(jqXHR, textStatus, errorThrown) {
-				alert("failed query to Special:Ask");
-			}
-		});
-*/
-	//====================================================================================================================
+		// now currentOrg should point to the bottom org in the tree (also the originally passed-in org)
+		currentOrg["focused"] = true;
+		currentOrg["children"] = self.queryForChildren(currentOrg);
+		if(!currentOrg["children"])
+			delete currentOrg["children"];
 
+		self.log(orgChartData);
+		this.orgTreeData = orgChartData;
 
 	}
 
@@ -81,29 +69,29 @@ window.OrgChart = function() {
 			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[' + encodeURIComponent(orgName) + ']]&po=?Parent%0D%0A?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
 			dataType: 'json',
 			beforeSend: function(jqXHR, settings) {
-				self.log("url of query: "+settings.url);
+				self.log("url of parent query: "+settings.url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				result = data["results"][orgName]["printouts"];
-				var newOrg = {
-					"name" : result["Short Name"][0],
-					"longName" : result["Long Name"][0],
-					"website" : result["Website"][0],
-					"img" : result["Logo Link"][0],
-//					"children" : [ orgChartData ]
-				};
-				if(orgChartData)
-					newOrg["children"] = [ orgChartData ];
+				if(data) {
+					result = data["results"][orgName]["printouts"];
+					var newOrg = {
+						"name" : result["Short Name"][0],
+						"longName" : result["Long Name"][0],
+						"website" : result["Website"][0],
+						"img" : result["Logo Link"][0]
+					};
+					if(orgChartData)
+						newOrg["children"] = [ orgChartData ];
 
-				orgChartData = newOrg;
+					orgChartData = newOrg;
 
-				if(result["Parent"][0]) {
-					orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+					if(result["Parent"][0]) {
+						orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+					}
 				}
-
 			},
 			failure: function(jqXHR, textStatus, errorThrown) {
-				alert("failed query to Special:Ask");
+				alert("failed query to Special:Ask for parent");
 			}
 		});
 
@@ -111,19 +99,82 @@ window.OrgChart = function() {
 	}
 
 	OrgChart.prototype.queryForChildren = function(orgObject) {
+		var self = this;
+
 		// query for children on orgObject.name
 		// for each result:
 		// 	result = { name, children = [] }
 		//	orgObject.children.push(result)
 		//	queryForChildren(result) - to get any children of this result
-		//	queryChild(result) - to get page info ABOUT this result
+
+		var children = [];
+
+		jQuery.ajax({
+			async: false,
+			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[Parent::' + encodeURIComponent(orgObject.name) + ']]&po=?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
+			dataType: 'json',
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of children query: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				if(data) {
+					for(var childOrg in data["results"]) {
+						result = data["results"][childOrg]["printouts"];
+						self.log(childOrg);
+						newOrg = {
+							"name" : result["Short Name"][0],
+							"longName" : result["Long Name"][0],
+							"website" : result["Website"][0],
+							"img" : result["Logo Link"][0]
+						}
+						children.push(newOrg);
+						newOrg["children"] = self.queryForChildren(newOrg);
+						if(!newOrg["children"])
+							delete newOrg["children"];
+					}
+				}
+			},
+			failure: function(jqXHR, textStatus, errorThrown) {
+				alert("failed query to Special:Ask for children");
+			}
+		});
+		return (children.length > 0 ? children : null);
+	}
+
+	OrgChart.prototype.queryForImage = function(imgName, imageElement) {
+		var self = this;
+
+		jQuery.ajax({
+			url: self.apiURL,
+			dataType: 'json',
+			data: {
+				"action" : "query",
+				"titles" : "File:"+imgName,
+				"prop" : "imageinfo",
+				"iiprop" : "url",
+				"format" : "json"
+			},
+			beforeSend: function(jqXHR, settings) {
+				self.log("url of image query: "+settings.url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log(data);
+				pageKey = Object.keys(data["query"]["pages"])[0]; 
+				self.log(pageKey);
+				imgURL = data["query"]["pages"][pageKey]["imageinfo"][0]["url"];
+				self.log(imgURL);
+
+				imageElement.attr("xlink:href",imgURL);
+			},
+			failure: function(jqXHR, textStatus, errorThrown) {
+				alert("failed query for image");
+			}
+		});
 
 	}
 
 	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height) {
 		var self = this;
-
-		self.assembleData(orgName);
 
 		self.width = width;
 		self.height = height;
@@ -158,9 +209,9 @@ window.OrgChart = function() {
 
 		// initialize the tree.
 		self.tree = d3.layout.tree()
-		  .nodeSize([self.nodeWidth, self.nodeHeight*2])
+		  .nodeSize([self.nodeWidth, self.nodeHeight*4])
 		  .separation(function(a,b) {
-			return a.parent == b.parent ? 2 : 3;
+			return a.parent == b.parent ? 1 : 3;
 		  });
 		
 	    // change x and y (for the left to right tree)
@@ -168,10 +219,12 @@ window.OrgChart = function() {
 		var diagonal = d3.svg.diagonal()
 		    .projection(function(d) { return [d.x, d.y]; });
 		
+		// query for data.
+		self.assembleData(orgName);
 		
 		// set up the nodes (from the JSON data) and the links (from the nodes)
 		// this is on the data side, not on the drawing side
-		var nodes = self.tree.nodes(self.familyTreeData);
+		var nodes = self.tree.nodes(self.orgTreeData);
 		var links = self.tree.links(nodes);
 		
 		// do a data-join to draw paths for all links
@@ -190,23 +243,32 @@ window.OrgChart = function() {
 		.attr("class", "node");
 
 		// draw stuff inside the node.
-		var padding = 2;
+//		var padding = 2;
 
 		allNodes.append("svg:rect")
 		.attr("x", function(d) { return -1*self.nodeWidth/2; })
 		.attr("y", function(d) { return -1*self.nodeHeight/2; })
 		.attr("width", self.nodeWidth)
 		.attr("height", self.nodeHeight)
-		.attr("fill", "white")
+		.attr("fill", function(d) { return d.focused ? "#2ecc71" : "white"; })
 		.attr("stroke", "black")
 		.attr("stroke-width", 1);
 
-		allNodes.append("svg:image")
+/*		allNodes.append("svg:image")
 		.attr("xlink:href", function(d) { return self.imagePath + d.img; })
 		.attr("width", this.imageWidth)
 		.attr("height", this.imageWidth)
 		.attr("x", -1*self.nodeWidth/2)
 		.attr("y", -1*self.nodeHeight/2);
+*/
+		allNodes.append("svg:image")
+		.attr("width", this.imageWidth)
+		.attr("height", this.imageWidth)
+		.attr("x", -1*self.nodeWidth/2+this.imagePadding/2)
+		.attr("y", -1*self.nodeHeight/2+this.imagePadding/2)
+		.each(function(d) {
+			self.queryForImage(d.img, d3.select(this));
+		});		
 
 		allNodes.append("svg:text")
 		.attr("text-anchor", "start")
@@ -214,7 +276,8 @@ window.OrgChart = function() {
 		.style("font-family", "Verdana")
 		.style("font-size", "20pt")
 		.style("font-weight", "bold")
-		.attr("x", -1*self.nodeWidth/2 + self.imageWidth + padding)
+		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
+		.attr("x", -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding)
 		.attr("y", -1*self.nodeHeight/4)
 		.attr("dy", ".5em")	// see bost.ocks.org/mike/d3/workshop/#114
 		.attr("id", "titleLabel");
@@ -225,6 +288,7 @@ window.OrgChart = function() {
 		.style("font-family", "Verdana")
 		.style("font-size", "11pt")
 		.style("font-style", "italic")
+		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
 		.attr("y", function(d) {
 			var node = d3.select(this.parentNode);
 			var topText = node.select("#titleLabel").node();
@@ -232,7 +296,7 @@ window.OrgChart = function() {
 			return -1*self.nodeHeight/4 + textbox.height;
 
 		})
-		.call(self.textWrap, this.nodeWidth-this.imageWidth, -1*self.nodeWidth/2 + self.imageWidth + padding);
+		.call(self.textWrap, 0.9*(this.nodeWidth-this.imageWidth), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
 
 	}
 
