@@ -205,11 +205,33 @@ class ApiGetOrgChildren extends ApiBase {
 
 		$orgName = $this->getMain()->getVal('orgName');
 
-		$queryURL = $wgServer . $wgScriptPath . "/index.php?title=Special:Ask&q=[[Parent::" . $orgName . "]]&p[format]=json";
-		$queryResult = json_decode(file_get_contents($queryURL), true);
-//		$queryResult = json_decode(Http::get($queryURL), true);
-//		if(!$queryResult)
-//			die("failure to retrieve!!");
+		$queryURL = $wgServer . $wgScriptPath . "/index.php";
+		$data = array(
+				'title' => 'Special:Ask',
+				'q' => '[[' . urlencode($orgName) . ']]',
+				'po' => '?Parent
+?Short Name
+?Long Name
+?Website
+?Logo Link',
+				'p[format]' => 'json'
+			);
+
+		$options = array(
+			'http' => array(
+				'method' => "POST",
+				'content' => http_build_query($data)
+				)
+			);
+
+		$test = http_build_query($data);
+
+		wfErrorLog("$test\n", "/var/www/html/DEBUG_OrgChart.out");
+		
+		$context = stream_context_create($options);
+
+		$queryResult = json_decode(file_get_contents($queryURL, false, $context), true);
+
 		$this->getResult()->addValue(null, $this->getModuleName(),
 			array('orgName' =>$orgName,
 				'result' => $queryResult["results"]

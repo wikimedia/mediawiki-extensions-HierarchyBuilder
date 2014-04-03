@@ -101,12 +101,6 @@ window.OrgChart = function() {
 	OrgChart.prototype.queryForChildren = function(orgObject) {
 		var self = this;
 
-		// query for children on orgObject.name
-		// for each result:
-		// 	result = { name, children = [] }
-		//	orgObject.children.push(result)
-		//	queryForChildren(result) - to get any children of this result
-
 		var children = [];
 
 		jQuery.ajax({
@@ -254,13 +248,6 @@ window.OrgChart = function() {
 		.attr("stroke", "black")
 		.attr("stroke-width", 1);
 
-/*		allNodes.append("svg:image")
-		.attr("xlink:href", function(d) { return self.imagePath + d.img; })
-		.attr("width", this.imageWidth)
-		.attr("height", this.imageWidth)
-		.attr("x", -1*self.nodeWidth/2)
-		.attr("y", -1*self.nodeHeight/2);
-*/
 		allNodes.append("svg:image")
 		.attr("width", this.imageWidth)
 		.attr("height", this.imageWidth)
