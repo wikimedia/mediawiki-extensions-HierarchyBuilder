@@ -1,7 +1,7 @@
 window.OrgChart = function() {
 	this.width = 0;
 	this.height = 0;
-	this.nodeWidth = 350;
+	this.nodeWidth = 370;
 	this.nodeHeight = 100;
 	this.imagePadding = 20;
 	this.imageWidth = this.nodeHeight-this.imagePadding;
@@ -59,6 +59,7 @@ window.OrgChart = function() {
 		self.log(orgChartData);
 		this.orgTreeData = orgChartData;
 
+		return currentOrg;
 	}
 
 	OrgChart.prototype.queryForParents = function(orgName, orgChartData) {
@@ -174,7 +175,7 @@ window.OrgChart = function() {
 		self.height = height;
 
 		// set up the zoom behavior.
-		self.zoom = d3.behavior.zoom().translate([600,200]).scale(0.7)
+		self.zoom = d3.behavior.zoom()
 		   .on("zoom", self.redrawZoom)
 		   .scaleExtent([self.MIN_SCALE, self.MAX_SCALE]);
 
@@ -191,19 +192,17 @@ window.OrgChart = function() {
 		  svg.append("svg:rect")
 		     .attr("width", self.width)
 		     .attr("height", self.height)
-		     .attr("fill", "white")
+		     .attr("fill", "white");
 
 		  svg.append("svg:g")
-		     .attr("id", "moveable")
-	//	     .attr("transform", "translate("+self.width/2+", "+self.height*3/2+")");
-		     .attr("transform", "translate(600,200) scale(0.7)");	
+		     .attr("id", "moveable");	
 	  
 		d3.select("#moveable").append("svg:g").attr("id", "links");
 		d3.select("#moveable").append("svg:g").attr("id", "nodes");
 
 		// initialize the tree.
 		self.tree = d3.layout.tree()
-		  .nodeSize([self.nodeWidth, self.nodeHeight*4])
+		  .nodeSize([self.nodeWidth/4, self.nodeHeight*8])
 		  .separation(function(a,b) {
 			return a.parent == b.parent ? 1 : 3;
 		  });
@@ -211,11 +210,11 @@ window.OrgChart = function() {
 	    // change x and y (for the left to right tree)
 		// or don't change them for the top-to-bottom tree
 		var diagonal = d3.svg.diagonal()
-		    .projection(function(d) { return [d.x, d.y]; });
+		    .projection(function(d) { return [d.y, d.x]; });
 		
 		// query for data.
-		self.assembleData(orgName);
-		
+		var currentOrg = self.assembleData(orgName);
+
 		// set up the nodes (from the JSON data) and the links (from the nodes)
 		// this is on the data side, not on the drawing side
 		var nodes = self.tree.nodes(self.orgTreeData);
@@ -233,7 +232,7 @@ window.OrgChart = function() {
 		.data(nodes)
 		.enter().append("svg:g")
 		// if swapped x,y above, then swap it here too
-		.attr("transform", function(d) { return "translate("+d.x+", "+d.y+")"})
+		.attr("transform", function(d) { return "translate("+d.y+", "+d.x+")"})
 		.attr("class", "node");
 
 		// draw stuff inside the node.
@@ -284,6 +283,26 @@ window.OrgChart = function() {
 
 		})
 		.call(self.textWrap, 0.9*(this.nodeWidth-this.imageWidth), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
+
+		// do some calculations to get proper zoom and translate
+
+		focusedNode = allNodes.filter(function(d,i) {
+			return d.name === currentOrg.name;
+		});
+
+		transform = focusedNode.attr("transform");
+		var regExp = /[0-9]+/g;
+		var focus_x = transform.match(regExp)[0];
+		focus_x = +focus_x;
+		var focus_y = transform.match(regExp)[1];
+		focus_y = +focus_y;
+
+		var translate_x = (self.width/2)-focus_x;
+		var translate_y = (self.height/2)+focus_y;
+
+		// do proper zoom and translate
+		self.zoom.translate([translate_x/0.5,translate_y/0.5]).scale(0.5);
+		d3.select("#moveable").attr("transform", "translate("+translate_x/0.5+","+translate_y/0.5+") scale(0.5)");
 
 	}
 

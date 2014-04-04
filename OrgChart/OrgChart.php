@@ -213,7 +213,7 @@ class ApiGetOrgChildren extends ApiBase {
 ?Short Name
 ?Long Name
 ?Website
-?Logo Link',
+me?Logo Link',
 				'p[format]' => 'json'
 			);
 
