@@ -54,11 +54,23 @@ function efUserFieldsParserFunction_Setup (&$parser) {
 }
 
 function getUserRealName($parser, $name) {
+	if (is_null($name)) {
+		return "";
+	}
 	$user = User::newFromName($name);
-	return trim($user->getRealName());
+	if (is_object($user)) {
+		return trim($user->getRealName());
+	}
+	return "";
 }
 
 function getUserEmail($parser, $name) {
+	if (is_null($name)) {
+		return "";
+	}
 	$user = User::newFromName($name);
-	return trim($user->getEmail());
+	if (is_object($user)) {
+		return trim($user->getEmail());
+	}
+	return "";
 }
