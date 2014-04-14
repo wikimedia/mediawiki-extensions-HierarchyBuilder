@@ -134,6 +134,7 @@ class OpenIDConnect {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
 			}
+			wfRunHooks( 'UserLoginComplete', array( &$user, &$injected_html ) );
 		} else {
 			$returnto = 'Special:OpenIDConnectNotAuthorized';
 			$params = array('name' => $user->mName);
