@@ -56,7 +56,7 @@ window.OrgChart = function() {
 		if(!currentOrg["children"])
 			delete currentOrg["children"];
 
-		self.log(orgChartData);
+		//self.log(orgChartData);
 		this.orgTreeData = orgChartData;
 
 		return currentOrg;
@@ -70,7 +70,7 @@ window.OrgChart = function() {
 			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[' + encodeURIComponent(orgName) + ']]&po=?Parent%0D%0A?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
 			dataType: 'json',
 			beforeSend: function(jqXHR, settings) {
-				self.log("url of parent query: "+settings.url);
+				//self.log("url of parent query: "+settings.url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data) {
@@ -109,13 +109,13 @@ window.OrgChart = function() {
 			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[Parent::' + encodeURIComponent(orgObject.name) + ']]&po=?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
 			dataType: 'json',
 			beforeSend: function(jqXHR, settings) {
-				self.log("url of children query: "+settings.url);
+				//self.log("url of children query: "+settings.url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data) {
 					for(var childOrg in data["results"]) {
 						result = data["results"][childOrg]["printouts"];
-						self.log(childOrg);
+						//self.log(childOrg);
 						newOrg = {
 							"name" : result["Short Name"][0],
 							"longName" : result["Long Name"][0],
@@ -150,14 +150,14 @@ window.OrgChart = function() {
 				"format" : "json"
 			},
 			beforeSend: function(jqXHR, settings) {
-				self.log("url of image query: "+settings.url);
+				//self.log("url of image query: "+settings.url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				self.log(data);
+				//self.log(data);
 				pageKey = Object.keys(data["query"]["pages"])[0]; 
-				self.log(pageKey);
+				//self.log(pageKey);
 				imgURL = data["query"]["pages"][pageKey]["imageinfo"][0]["url"];
-				self.log(imgURL);
+				//self.log(imgURL);
 
 				imageElement.attr("xlink:href",imgURL);
 			},
@@ -168,12 +168,14 @@ window.OrgChart = function() {
 
 	}
 
-	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height) {
+	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height, alignment) {
 		var self = this;
 
 		self.width = width;
 		self.height = height;
-
+		self.alignment = (alignment === "vertical" ? "vertical" : "horizontal");
+//		self.alignment = "vertical";
+	
 		// set up the zoom behavior.
 		self.zoom = d3.behavior.zoom()
 		   .on("zoom", self.redrawZoom)
@@ -202,15 +204,19 @@ window.OrgChart = function() {
 
 		// initialize the tree.
 		self.tree = d3.layout.tree()
-		  .nodeSize([self.nodeWidth/4, self.nodeHeight*8])
 		  .separation(function(a,b) {
 			return a.parent == b.parent ? 1 : 3;
 		  });
 		
+		if(self.alignment === "vertical")
+			self.tree.nodeSize([self.nodeWidth, self.nodeHeight*4]);
+		else
+			self.tree.nodeSize([self.nodeWidth/4, self.nodeHeight*8]);
+
 	    // change x and y (for the left to right tree)
 		// or don't change them for the top-to-bottom tree
 		var diagonal = d3.svg.diagonal()
-		    .projection(function(d) { return [d.y, d.x]; });
+		    .projection(function(d) { return self.alignment === "vertical" ? [d.x, d.y] : [d.y, d.x]; });
 		
 		// query for data.
 		var currentOrg = self.assembleData(orgName);
@@ -232,7 +238,7 @@ window.OrgChart = function() {
 		.data(nodes)
 		.enter().append("svg:g")
 		// if swapped x,y above, then swap it here too
-		.attr("transform", function(d) { return "translate("+d.y+", "+d.x+")"})
+		.attr("transform", function(d) { return self.alignment === "vertical" ? "translate("+d.x+", "+d.y+")" : "translate("+d.y+", "+d.x+")"})
 		.attr("class", "node");
 
 		// draw stuff inside the node.
@@ -286,23 +292,57 @@ window.OrgChart = function() {
 
 		// do some calculations to get proper zoom and translate
 
+		var regExp = /-*[0-9]+(.[0-9]+)*/g;
+
 		focusedNode = allNodes.filter(function(d,i) {
 			return d.name === currentOrg.name;
 		});
 
 		transform = focusedNode.attr("transform");
-		var regExp = /[0-9]+/g;
 		var focus_x = transform.match(regExp)[0];
 		focus_x = +focus_x;
 		var focus_y = transform.match(regExp)[1];
-		focus_y = +focus_y;
+		focus_y = +focus_y;	// focus_y should typically be 0 because of the structure of this org chart (straight line through parent nodes)
 
-		var translate_x = (self.width/2)-focus_x;
-		var translate_y = (self.height/2)+focus_y;
+		xVals = [];
+		yVals = [];
 
-		// do proper zoom and translate
-		self.zoom.translate([translate_x/0.5,translate_y/0.5]).scale(0.5);
-		d3.select("#moveable").attr("transform", "translate("+translate_x/0.5+","+translate_y/0.5+") scale(0.5)");
+		nodes = d3.selectAll(".node");
+		nodes.each(function(d, i) {
+		
+			transform = d3.select(this).attr("transform");
+			xVals.push(+transform.match(regExp)[0]);
+			yVals.push(+transform.match(regExp)[1]);
+
+		});
+
+		xMax = d3.max(xVals);
+		xMin = d3.min(xVals);
+		yMax = d3.max(yVals);
+		yMin = d3.min(yVals);
+		centerX = (xMax - xMin)/2 + xMin;
+		centerY = (yMax - yMin)/2 + yMin;
+
+		self.log(xMax+", "+xMin+", "+yMax+", "+yMin);
+		self.log("(centerX, centerY) = ("+centerX+", "+centerY+")");
+
+		// do proper zoom and translate from calculation result
+		
+		var scaleFactor = 0.3;
+		var translate_x, translate_y;
+
+		if(self.alignment === "vertical") {
+			var translate_x = self.width/2 - focus_x*scaleFactor;
+			var translate_y = self.height/2 - focus_y*scaleFactor;
+		}
+		else {
+			var translate_x = self.width/2 - focus_x*scaleFactor;
+			var translate_y = self.height/2 + focus_y*scaleFactor;	
+		}
+		self.zoom.translate([translate_x, translate_y]);
+		self.zoom.scale(scaleFactor);
+
+		d3.select("#moveable").attr("transform", "translate("+translate_x+", "+translate_y+") scale("+scaleFactor+")");
 
 	}
 
@@ -331,7 +371,8 @@ window.OrgChart = function() {
 		});
 	}
 
-	OrgChart.prototype.redrawZoom = function() {	
+	OrgChart.prototype.redrawZoom = function() {
+		var self = this;	
 		self.Zoompos = d3.event.scale;
 		d3.select("#moveable").attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
 	}

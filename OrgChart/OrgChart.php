@@ -73,7 +73,7 @@ function wfExtensionOrgChart_Magic(& $magicWords, $langCode) {
 	return true;
 }
 
-function orgchart($parser, $orgName, $width, $height) {
+function orgchart($parser) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
@@ -81,9 +81,10 @@ function orgchart($parser, $orgName, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_OrgChart.out");
 	$paramDictionary = orgChart_parseParameters($myparams);
 
-	$orgName = $paramDictionary["orgName"];
-	$width = $paramDictionary["width"];
-	$height = $paramDictionary["height"];
+	$orgName = array_key_exists("orgName", $paramDictionary) ? $paramDictionary["orgName"] : null;
+	$width = array_key_exists("width", $paramDictionary) ? $paramDictionary["width"] : null;
+	$height = array_key_exists("height", $paramDictionary) ? $paramDictionary["height"] : null;
+	$alignment = array_key_exists("align", $paramDictionary) ? $paramDictionary["align"] : null;
 
 	$orgChart = new OrgChart;
 
@@ -91,8 +92,10 @@ function orgchart($parser, $orgName, $width, $height) {
 		$width = 1200;
 	if(!$height)
 		$height = 600;
+	if(!$alignment)
+		$alignment = "horizontal";
 
-	$output = $orgChart->display($parser, $orgName, $width, $height);
+	$output = $orgChart->display($parser, $orgName, $width, $height, $alignment);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -113,7 +116,7 @@ class OrgChart {
 
 	private static $pqnum = 0;
 
-	function display($parser, $orgName, $width, $height) {
+	function display($parser, $orgName, $width, $height, $alignment) {
 
 		$div = "OrgChart_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
@@ -130,7 +133,7 @@ EOT;
 mw.loader.using('ext.OrgChart', function () {
 	$(document).ready(function() {
 		var g = new OrgChart();
-		g.drawChart("$orgName", "$graphdiv", "$width", "$height");
+		g.drawChart("$orgName", "$graphdiv", "$width", "$height", "$alignment");
 	});
 });
 END;
