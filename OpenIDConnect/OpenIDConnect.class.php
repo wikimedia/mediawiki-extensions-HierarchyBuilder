@@ -24,25 +24,23 @@
 
 class OpenIDConnect {
 
-	public static function autoLogin($user, &$result) {
-		$result = self::loadUser($user);
-		if (!$result) {
-			if (session_id() == '') {
-				wfSetupSession();
-			}
-			$session_variable = wfWikiID() . "_returnto";
-			if ((!array_key_exists($session_variable, $_SESSION) ||
-				$_SESSION[$session_variable] === null) &&
-				array_key_exists('title', $_REQUEST)) {
-				$_SESSION[$session_variable] = $_REQUEST['title'];
-			}
-			$result = self::login($user);
-		}
-		return false;
-	}
-
 	public static function userLoadFromSession($user, &$result) {
 		$result = self::loadUser($user);
+		global $OpenIDConnect_AutoLogin;
+		if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
+			if (!$result) {
+				if (session_id() == '') {
+					wfSetupSession();
+				}
+				$session_variable = wfWikiID() . "_returnto";
+				if ((!array_key_exists($session_variable, $_SESSION) ||
+					$_SESSION[$session_variable] === null) &&
+					array_key_exists('title', $_REQUEST)) {
+					$_SESSION[$session_variable] = $_REQUEST['title'];
+				}
+				$result = self::login($user);
+			}
+		}
 		return false;
 	}
 
@@ -136,6 +134,7 @@ class OpenIDConnect {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
 			}
+			wfRunHooks( 'UserLoginComplete', array( &$user, &$injected_html ) );
 		} else {
 			$returnto = 'Special:OpenIDConnectNotAuthorized';
 			$params = array('name' => $user->mName);

@@ -140,6 +140,7 @@ class HierarchyBuilder {
 	public function hierarchyBreadcrumb($currentPage, $hierarchyPage,
 		$hierarchyProperty, $displayNameProperty) {
 		$xmlstr = self::getPropertyFromPage($hierarchyPage, $hierarchyProperty);
+		$xmlstr = htmlspecialchars_decode($xmlstr);
 		try {
 			$xml = @new SimpleXMLElement($xmlstr);
 			$found = false;
