@@ -65,74 +65,160 @@ window.OrgChart = function() {
 	OrgChart.prototype.queryForParents = function(orgName, orgChartData) {
 		var self = this;
 
-		jQuery.ajax({
-			async: false,
-			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[' + encodeURIComponent(orgName) + ']]&po=?Parent%0D%0A?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
-			dataType: 'json',
-			beforeSend: function(jqXHR, settings) {
-				//self.log("url of parent query: "+settings.url);
-			},
-			success: function(data, textStatus, jqXHR) {
-				if(data) {
-					result = data["results"][orgName]["printouts"];
-					var newOrg = {
-						"name" : result["Short Name"][0],
-						"longName" : result["Long Name"][0],
-						"website" : result["Website"][0],
-						"img" : result["Logo Link"][0]
-					};
-					if(orgChartData)
-						newOrg["children"] = [ orgChartData ];
+		var regExp = /1.2[0-9]/g;
+		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
 
-					orgChartData = newOrg;
+		if(mwVersion === "1.22") {
 
-					if(result["Parent"][0]) {
-						orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+			jQuery.ajax({
+				async: false,
+				url: self.apiURL,
+				data: {
+					action : "askargs", 
+					conditions : orgName,
+					printouts : "Parent|Short Name|Long Name|Website|Logo Link",
+					format : "json"
+				},
+				success: function(data, textStatus, jqXHR) {
+					if(data) {
+						result = data["query"]["results"][orgName]["printouts"];
+						var newOrg = {
+							"name" : result["Short Name"][0],
+							"longName" : result["Long Name"][0],
+							"website" : result["Website"][0],
+							"img" : result["Logo Link"][0]
+						};
+						if(orgChartData)
+							newOrg["children"] = [ orgChartData ];
+
+						orgChartData = newOrg;
+
+						if(result["Parent"][0]) {
+							orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+						}
 					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					alert("failed query to Special:Ask for parent");
 				}
-			},
-			failure: function(jqXHR, textStatus, errorThrown) {
-				alert("failed query to Special:Ask for parent");
-			}
-		});
+			});
+
+		}
+		else {
+
+			jQuery.ajax({
+				async: false,
+				url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[' + encodeURIComponent(orgName) + ']]&po=?Parent%0D%0A?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
+				dataType: 'json',
+				beforeSend: function(jqXHR, settings) {
+					//self.log("url of parent query: "+settings.url);
+				},
+				success: function(data, textStatus, jqXHR) {
+					if(data) {
+						result = data["results"][orgName]["printouts"];
+						var newOrg = {
+							"name" : result["Short Name"][0],
+							"longName" : result["Long Name"][0],
+							"website" : result["Website"][0],
+							"img" : result["Logo Link"][0]
+						};
+						if(orgChartData)
+							newOrg["children"] = [ orgChartData ];
+
+						orgChartData = newOrg;
+
+						if(result["Parent"][0]) {
+							orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+						}
+					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					alert("failed query to Special:Ask for parent");
+				}
+			});
+	
+		}
 
 		return orgChartData;
 	}
 
 	OrgChart.prototype.queryForChildren = function(orgObject) {
 		var self = this;
-
 		var children = [];
 
-		jQuery.ajax({
-			async: false,
-			url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[Parent::' + encodeURIComponent(orgObject.name) + ']]&po=?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
-			dataType: 'json',
-			beforeSend: function(jqXHR, settings) {
-				//self.log("url of children query: "+settings.url);
-			},
-			success: function(data, textStatus, jqXHR) {
-				if(data) {
-					for(var childOrg in data["results"]) {
-						result = data["results"][childOrg]["printouts"];
-						//self.log(childOrg);
-						newOrg = {
-							"name" : result["Short Name"][0],
-							"longName" : result["Long Name"][0],
-							"website" : result["Website"][0],
-							"img" : result["Logo Link"][0]
+		var regExp = /1.2[0-9]/g;
+		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
+
+		if(mwVersion === "1.22") {
+
+			jQuery.ajax({
+				async: false,
+				url: self.apiURL,
+				data: {
+					action : "askargs",
+					conditions : "Parent::"+orgObject.name,
+					printouts : "Short Name|Long Name|Website|Logo Link",
+					format : "json"
+				},
+				success: function(data, textStatus, jqXHR) {
+					if(data) {
+						for(var childOrg in data["query"]["results"]) {
+							result = data["query"]["results"][childOrg]["printouts"];
+							//self.log(childOrg);
+							newOrg = {
+								"name" : result["Short Name"][0],
+								"longName" : result["Long Name"][0],
+								"website" : result["Website"][0],
+								"img" : result["Logo Link"][0]
+							}
+							children.push(newOrg);
+							newOrg["children"] = self.queryForChildren(newOrg);
+							if(!newOrg["children"])
+								delete newOrg["children"];
 						}
-						children.push(newOrg);
-						newOrg["children"] = self.queryForChildren(newOrg);
-						if(!newOrg["children"])
-							delete newOrg["children"];
 					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					alert("failed query to Special:Ask for children");
 				}
-			},
-			failure: function(jqXHR, textStatus, errorThrown) {
-				alert("failed query to Special:Ask for children");
-			}
-		});
+
+			});
+
+		}
+		else {
+
+			jQuery.ajax({
+				async: false,
+				url: 'http://gestalt-dev.mitre.org/bispr/index.php?title=Special:Ask&q=[[Parent::' + encodeURIComponent(orgObject.name) + ']]&po=?Short Name%0D%0A?Long Name%0D%0A?Website%0D%0A?Logo Link&p[format]=json',
+				dataType: 'json',
+				beforeSend: function(jqXHR, settings) {
+					//self.log("url of children query: "+settings.url);
+				},
+				success: function(data, textStatus, jqXHR) {
+					if(data) {
+						for(var childOrg in data["results"]) {
+							result = data["results"][childOrg]["printouts"];
+							//self.log(childOrg);
+							newOrg = {
+								"name" : result["Short Name"][0],
+								"longName" : result["Long Name"][0],
+								"website" : result["Website"][0],
+								"img" : result["Logo Link"][0]
+							}
+							children.push(newOrg);
+							newOrg["children"] = self.queryForChildren(newOrg);
+							if(!newOrg["children"])
+								delete newOrg["children"];
+						}
+					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					alert("failed query to Special:Ask for children");
+				}
+			});
+
+		}
+
 		return (children.length > 0 ? children : null);
 	}
 
@@ -161,7 +247,7 @@ window.OrgChart = function() {
 
 				imageElement.attr("xlink:href",imgURL);
 			},
-			failure: function(jqXHR, textStatus, errorThrown) {
+			error: function(jqXHR, textStatus, errorThrown) {
 				alert("failed query for image");
 			}
 		});
