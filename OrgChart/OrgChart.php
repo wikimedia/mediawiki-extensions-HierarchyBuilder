@@ -85,6 +85,7 @@ function orgchart($parser) {
 	$width = array_key_exists("width", $paramDictionary) ? $paramDictionary["width"] : null;
 	$height = array_key_exists("height", $paramDictionary) ? $paramDictionary["height"] : null;
 	$alignment = array_key_exists("align", $paramDictionary) ? $paramDictionary["align"] : null;
+	$color = array_key_exists("borderColor", $paramDictionary) ? $paramDictionary["borderColor"] : null;
 
 	$orgChart = new OrgChart;
 
@@ -94,8 +95,10 @@ function orgchart($parser) {
 		$height = 600;
 	if(!$alignment)
 		$alignment = "horizontal";
+	if(!$color)
+		$color = "blue";
 
-	$output = $orgChart->display($parser, $orgName, $width, $height, $alignment);
+	$output = $orgChart->display($parser, $orgName, $width, $height, $alignment, $color);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -116,7 +119,7 @@ class OrgChart {
 
 	private static $pqnum = 0;
 
-	function display($parser, $orgName, $width, $height, $alignment) {
+	function display($parser, $orgName, $width, $height, $alignment, $color) {
 
 		$div = "OrgChart_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
@@ -133,7 +136,7 @@ EOT;
 mw.loader.using('ext.OrgChart', function () {
 	$(document).ready(function() {
 		var g = new OrgChart();
-		g.drawChart("$orgName", "$graphdiv", "$width", "$height", "$alignment");
+		g.drawChart("$orgName", "$graphdiv", "$width", "$height", "$alignment", "$color");
 	});
 });
 END;

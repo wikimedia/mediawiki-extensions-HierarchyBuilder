@@ -254,14 +254,15 @@ window.OrgChart = function() {
 
 	}
 
-	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height, alignment) {
+	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height, alignment, color) {
 		var self = this;
 
 		self.width = width;
 		self.height = height;
 		self.alignment = (alignment === "vertical" ? "vertical" : "horizontal");
-//		self.alignment = "vertical";
-	
+
+		$(".orgchart-graph-container").css("border", "1px solid "+color);
+
 		// set up the zoom behavior.
 		self.zoom = d3.behavior.zoom()
 		   .on("zoom", self.redrawZoom)
