@@ -66,6 +66,9 @@ window.VikiJS = function() {
 	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
 		var self = this;
 
+		// CSS option for the Vex modal dialog library
+		vex.defaultOptions.className = 'vex-theme-default';
+
 		var dig = new RegExp("[0-9]", 'g');
 		this.ID = graphDiv.match(dig)[0];
 
@@ -1098,7 +1101,7 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.showNewNodesWindow = function() {
 		var self = this;
-		
+/*		
 		self.log("show new nodes window pressed");
 		var height = 300;
 		var width = 800;
@@ -1107,6 +1110,14 @@ window.VikiJS = function() {
 		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width="+width+", height="+height+", top="+top+", left="+left);
 		self.newNodesWindow.mwConfigObject = mw.config;
 		self.newNodesWindow.delegate = self;
+*/
+
+		vex.dialog.confirm({
+			message: 'Are you absolutely sure you want to destroy the alien planet?',
+			callback: function(value) {
+				return console.log(value ? 'Successfully destroyed the planet.' : 'Chicken.');
+			}
+		});
 	}
 	
 	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
