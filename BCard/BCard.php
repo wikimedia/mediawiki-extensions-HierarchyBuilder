@@ -120,17 +120,17 @@ class BCard {
 		}
 
 		global $BCard_ServerNames;
-		$ldapconn = @ldap_connect($BCard_ServerNames);
+		$ldapconn = ldap_connect($BCard_ServerNames);
 		if ($ldapconn == false) {
 			return false;
 		}
 
-		@ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
-		@ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
+		ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
+		ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
 
 		global $BCard_UseTLS;
 		if ($BCard_UseTLS) {
-			@ldap_start_tls($ldapconn);
+			ldap_start_tls($ldapconn);
 		}
 
 		global $BCard_SearchString;
@@ -139,15 +139,15 @@ class BCard {
 		global $BCard_Filter;
 		$filter = str_replace("PERSON", $person, $BCard_Filter);
 
-		$result = @ldap_search($ldapconn, $searchstring, $filter);
+		$result = ldap_search($ldapconn, $searchstring, $filter);
 
 		if ($result == false) {
-			@ldap_unbind($ldapconn);
+			ldap_unbind($ldapconn);
 			return false;
 		}
 
-		$entries = @ldap_get_entries($ldapconn, $result);
-		@ldap_unbind($ldapconn);
+		$entries = ldap_get_entries($ldapconn, $result);
+		ldap_unbind($ldapconn);
 
 		if (count($entries) > 1) {
 			return $entries[0];
