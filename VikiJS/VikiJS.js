@@ -122,7 +122,9 @@ window.VikiJS = function() {
 		});
 
 		$("#addNodesButton").click(function() {
-			var newNodesWindow = self.showNewNodesWindow();
+			setTimeout(function() {
+				var newNodesWindow = self.showNewNodesWindow();
+			}, 0);
 		});
 
 		initializeGraph();
@@ -1090,7 +1092,12 @@ window.VikiJS = function() {
 		var self = this;
 		
 		self.log("show new nodes window pressed");
-		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width=400, height=400");
+		var height = 300;
+		var width = 800;
+		var top = screen.height/2 - height/2;
+		var left = screen.width/2 - width/2;
+		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width="+width+", height="+height+", top="+top+", left="+left);
+		self.newNodesWindow.mwConfigObject = mw.config;
 		self.newNodesWindow.delegate = self;
 	}
 	
@@ -1100,7 +1107,9 @@ window.VikiJS = function() {
 		
 		for(var i = 0; i < returnArgs.length; i++) {
 			self.log(returnArgs[i]["pageTitle"]);
-			self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL);
+			wikiNode = self.findNode("pageTitle", returnArgs[i]["pageTitle"]);
+			if(!wikiNode)
+				self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL);
 		}
 		self.redraw(true);
 	}
