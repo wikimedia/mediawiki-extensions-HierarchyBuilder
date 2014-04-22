@@ -882,6 +882,10 @@ window.VikiJS = function() {
 				ellimit: 'max',
 				format: 'json'
 			},
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url;
+				self.log("url of extlinks ajax call: "+url);
+			},
 			success: function(data, textStatus, jqXHR) {
 				self.externalLinksSuccessHandler(data, textStatus, jqXHR, node);
 			},
@@ -901,11 +905,11 @@ window.VikiJS = function() {
 				pllimit: 'max',
 				format: 'json'
 			},
-/*			beforeSend: function (jqXHR, settings) {
+			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				self.log("url of intrawiki OUT ajax call: "+url);
 			},
-*/			success: function(data, textStatus, jqXHR) {
+			success: function(data, textStatus, jqXHR) {
 				self.intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -922,6 +926,10 @@ window.VikiJS = function() {
 				bltitle: node.pageTitle,
 				bllimit: 'max',
 				format: 'json'
+			},
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url;
+				self.log("url of intrawiki IN ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.intraWikiInSuccessHandler(data, textStatus, jqXHR, node);
