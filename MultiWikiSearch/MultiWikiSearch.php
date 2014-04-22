@@ -12,7 +12,11 @@ if (!defined('MEDIAWIKI')) {
 
 if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of Collection is only compatible with MediaWiki 1.21 or above.');
-}xw
+}
+
+if(!defined('GET_SEARCHABLE_WIKIS_VERSION')) {
+	die('<b>Error:</b> This extension requires the extension GetSearchableWikis to be included first.');
+}
 
 $wgExtensionCredits[ 'specialpage' ][] = array(
 	'name' => 'MultiWikiSearch',
@@ -112,8 +116,10 @@ EOT;
 		$apiurl = $wgServer . $wgScriptPath . "/api.php";
 
 		$script=<<<END
-mw.loader.using(['ext.MultiWikiSearch'], function() {
-	MultiWikiSearch.initializeMWS("$apiurl");
+mw.loader.using(['jquery.ui.progressbar', 'ext.MultiWikiSearch'], function() {
+//	MultiWikiSearch.initializeMWS("$apiurl");
+	var g = new MultiWikiSearch();
+	g.initializeMWS("$apiurl");
 });
 END;
 
