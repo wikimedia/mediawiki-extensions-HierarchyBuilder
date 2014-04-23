@@ -50,65 +50,6 @@ class SpecialMultiWikiSearch extends SpecialPage {
 		$request = $this->getRequest();
 		$output = $this->getOutput();
 		$this->setHeaders();
-		$out = <<<EOT
-<div id="searchTermsDiv">
-	<fieldset>
-		<legend>Search Parameters</legend>
-		<p>Enter at least one search term and at least one wiki to be included in the search:</p>
-		<table><tbody>
-			<tr><td id="searchTermsTd">Search terms:</td><td><input type="text" name="searchTerms" id="searchTerms"></td>
-			<tr><td>Scope:</td><td>
-				<select name="scope" id="scope">
-					<option value="title">Title only</option>
-					<option value="text">Text only</option>
-					<option value="both">Title and text</option>
-				</select></td></tr>
-			<tr><td id="wikisTd">Wikis:</td><td>
-				<table><tbody>
-					<tr><td>
-						<fieldset>
-							<legend>Included Wikis</legend>
-							<select name="wikis" id="includedWikis" multiple="multiple"></select>
-						</fieldset>
-					<td>
-						<button type="button" id="moveLeft">Move Left</button>
-						<button type="button" id="moveRight">Move Right</button>
-					</td>
-					</td><td>
-						<fieldset>
-							<legend>Excluded Wikis</legend>
-							<select name="wikis" id="excludedWikis" multiple="multiple"></select>
-						</fieldset>
-					</td></tr>
-				</tbody></table>
-			</td></tr>
-			<tr><td>Namespaces:</td><td>
-				<fieldset>
-					<legend>Namespaces</legend>
-					<div id="namespacesDiv"></div>
-				</fieldset>
-			</td></tr>
-			<tr><td><button type="button" id="searchButton">Search</button></td></tr>
-		</tbody></table>
-	</fieldset>
-</div>
-<div id="searchResultsDiv">
-	<fieldset>
-		<legend>Search Results</legend>
-		<div id="progressbar"></div>
-		<div id="searchResultsSection"></div>
-		<button type="button" id="diffButton">Diff</button>
-	</fieldset>
-</div>
-<div id="diffDiv">
-	<fieldset>
-		<legend>Diff Results</legend>
-		<div id="diffResultsSection"></div>
-	</fieldset>
-</div>
-EOT;
-
-//		$output->addHTML($out);
 
 		$output->addModules('ext.MultiWikiSearch');
 

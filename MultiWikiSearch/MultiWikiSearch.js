@@ -10,10 +10,21 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	this.totalWikiSearchCount= 0;
 	this.searchedWikiCount= 0;
 	this.apiurl= apiURL;
+	this.maxWidth = -1;
+	this.snippets = true;
+
 	if(purpose === "diff" || purpose === "addNodes")
 		this.searchPurpose = purpose;
 	else
 		this.searchPurpose = "diff";
+
+	MultiWikiSearch.prototype.showSnippets = function(show) {
+		this.snippets = show ? true : false;
+	}
+
+	MultiWikiSearch.prototype.setMaxWidth = function(width) {
+		this.maxWidth = width;
+	}
 
 	MultiWikiSearch.prototype.initializeMWS = function(divID) {
 		var self = this;
@@ -71,22 +82,24 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			<button type=\"button\" id=\"diffButton\">Diff</button>\
 		</fieldset>\
 	</div>\
-</div>\
 ";
 
 		if(self.searchPurpose === 'diff') {
 			html += "\
-<div id=\"diffDiv\">\
-	<fieldset>\
-		<legend>Diff Results</legend>\
-		<div id=\"diffResultsSection\"></div>\
-	</fieldset>\
-</div>\
+	<div id=\"diffDiv\">\
+		<fieldset>\
+			<legend>Diff Results</legend>\
+			<div id=\"diffResultsSection\"></div>\
+		</fieldset>\
+	</div>\
 ";
+		}
+		else {
+			html+="</div>";
 		}
 
 		div.append(html);
-		$("#MultiWikiSearch").append($("#diffDiv").detach());
+
 
 		jQuery.ajax({
 			url: self.apiurl,
@@ -406,7 +419,18 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		self.log("total searches to execute = "+self.totalWikiSearchCount);
 		self.searchedWikiCount = 0;
 		$("#progressbar").progressbar({ max: self.totalWikiSearchCount, value:0});
-		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
+
+		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th>';
+
+		if(self.snippets) 
+			html += '<th>Snippet</th>';
+
+		if(self.searchPurpose === 'diff')
+			html += '<th>1st</th><th>2nd</th>';
+		else
+			html += '<th>Add</th>';
+
+		html += '</tr></thead>';
 
 		for(var i = 0; i < includedWikis.length; i++) {
 			var title = $(includedWikis[i]).text();
@@ -504,7 +528,19 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			var snippet = results[i]["snippet"];
 			if(snippet === undefined)
 				snippet = "(snippet unavailable)";
-			row.append("<tr><td>"+title+"</td><td><a href=\""+pageURL+"\">"+pageTitle+"</a></td><td>"+snippet+"</td><td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>");
+
+			var html = "<tr><td>"+title+"</td><td><a href='"+pageURL+"'>"+pageTitle+"</a></td>";
+			if(self.snippets)
+				html += "<td>"+snippet+"</td>";
+
+			if(self.searchPurpose === 'diff')
+				html += "<td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>";
+			else
+				html += "<td><input type='checkbox'></td></tr>";
+
+			row.append(html);
+
+//			row.append("<tr><td>"+title+"</td><td><a href=\""+pageURL+"\">"+pageTitle+"</a></td><td>"+snippet+"</td><td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>");
 		}
 	}
 

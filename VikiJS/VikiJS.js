@@ -1147,6 +1147,7 @@ window.VikiJS = function() {
 			},
 			afterOpen: function($vexContent) {
 				var m = new MultiWikiSearch("addNodes", self.myApiURL);
+				m.showSnippets(false);
 				m.initializeMWS(".vex-dialog-input");
 				$vexContent.append(style);
 			},
