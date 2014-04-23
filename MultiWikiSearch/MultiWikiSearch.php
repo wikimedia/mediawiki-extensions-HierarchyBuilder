@@ -108,7 +108,7 @@ class SpecialMultiWikiSearch extends SpecialPage {
 </div>
 EOT;
 
-		$output->addHTML($out);
+//		$output->addHTML($out);
 
 		$output->addModules('ext.MultiWikiSearch');
 
@@ -118,8 +118,12 @@ EOT;
 		$script=<<<END
 mw.loader.using(['jquery.ui.progressbar', 'ext.MultiWikiSearch'], function() {
 //	MultiWikiSearch.initializeMWS("$apiurl");
-	var g = new MultiWikiSearch();
-	g.initializeMWS("$apiurl");
+//	g.initializeMWS("$apiurl");
+
+	$(document).ready(function() {
+		var g = new MultiWikiSearch("diff", "$apiurl");
+		g.initializeMWS("#mw-content-text");
+	});
 });
 END;
 

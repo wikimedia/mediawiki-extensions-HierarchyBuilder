@@ -1,4 +1,4 @@
-window.MultiWikiSearch = function() {
+window.MultiWikiSearch = function(purpose, apiURL) {
 
 	this.excludedWikis = [];
 	this.includedWikis= [];
@@ -9,16 +9,87 @@ window.MultiWikiSearch = function() {
 	this.searchTerms= "";
 	this.totalWikiSearchCount= 0;
 	this.searchedWikiCount= 0;
-	this.apiurl= null;
+	this.apiurl= apiURL;
+	if(purpose === "diff" || purpose === "addNodes")
+		this.searchPurpose = purpose;
+	else
+		this.searchPurpose = "diff";
 
-	MultiWikiSearch.prototype.initializeMWS = function(apiurl) {
+	MultiWikiSearch.prototype.initializeMWS = function(divID) {
 		var self = this;
 
-		self.log("received apiurl: "+apiurl);
-		self.apiurl = apiurl;
+		div = $(""+divID);
+
+		html = "\
+<div id=\"MultiWikiSearch\">\
+	<div id=\"searchTermsDiv\">\
+		<fieldset>\
+			<legend>Search Parameters</legend>\
+			<p>Enter at least one search term and at least one wiki to be included in the search:</p>\
+			<table><tbody>\
+				<tr><td id=\"searchTermsTd\">Search terms:</td><td><input type=\"text\" name=\"searchTerms\" id=\"searchTerms\"></td>\
+				<tr><td>Scope:</td><td>\
+					<select name=\"scope\" id=\"scope\">\
+						<option value=\"title\">Title only</option>\
+						<option value=\"text\">Text only</option>\
+						<option value=\"both\">Title and text</option>\
+					</select></td></tr>\
+				<tr><td id=\"wikisTd\">Wikis:</td><td>\
+					<table><tbody>\
+						<tr><td>\
+							<fieldset>\
+								<legend>Included Wikis</legend>\
+								<select name=\"wikis\" id=\"includedWikis\" multiple=\"multiple\"></select>\
+							</fieldset>\
+						<td>\
+							<button type=\"button\" id=\"moveLeft\">Move Left</button>\
+							<button type=\"button\" id=\"moveRight\">Move Right</button>\
+						</td>\
+						</td><td>\
+							<fieldset>\
+								<legend>Excluded Wikis</legend>\
+								<select name=\"wikis\" id=\"excludedWikis\" multiple=\"multiple\"></select>\
+							</fieldset>\
+						</td></tr>\
+					</tbody></table>\
+				</td></tr>\
+				<tr><td>Namespaces:</td><td>\
+					<fieldset>\
+						<legend>Namespaces</legend>\
+						<div id=\"namespacesDiv\"></div>\
+					</fieldset>\
+				</td></tr>\
+				<tr><td><button type=\"button\" id=\"searchButton\">Search</button></td></tr>\
+			</tbody></table>\
+		</fieldset>\
+	</div>\
+	<div id=\"searchResultsDiv\">\
+		<fieldset>\
+			<legend>Search Results</legend>\
+			<div id=\"progressbar\"></div>\
+			<div id=\"searchResultsSection\"></div>\
+			<button type=\"button\" id=\"diffButton\">Diff</button>\
+		</fieldset>\
+	</div>\
+</div>\
+";
+
+		if(self.searchPurpose === 'diff') {
+			html += "\
+<div id=\"diffDiv\">\
+	<fieldset>\
+		<legend>Diff Results</legend>\
+		<div id=\"diffResultsSection\"></div>\
+	</fieldset>\
+</div>\
+";
+		}
+
+		div.append(html);
+		$("#MultiWikiSearch").append($("#diffDiv").detach());
 
 		jQuery.ajax({
-			url: apiurl,
+			url: self.apiurl,
 			dataType: 'json',
 			data: {
 				action: "getSearchableWikis",
@@ -335,7 +406,7 @@ window.MultiWikiSearch = function() {
 		self.log("total searches to execute = "+self.totalWikiSearchCount);
 		self.searchedWikiCount = 0;
 		$("#progressbar").progressbar({ max: self.totalWikiSearchCount, value:0});
-		var html = '<table id="searchResultsTable"><col width=\"200\" /><col width=\"200\" /><col width=\"300\" /><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
+		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
 
 		for(var i = 0; i < includedWikis.length; i++) {
 			var title = $(includedWikis[i]).text();
