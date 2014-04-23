@@ -335,7 +335,7 @@ window.MultiWikiSearch = function() {
 		self.log("total searches to execute = "+self.totalWikiSearchCount);
 		self.searchedWikiCount = 0;
 		$("#progressbar").progressbar({ max: self.totalWikiSearchCount, value:0});
-		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
+		var html = '<table id="searchResultsTable"><col width=\"200\" /><col width=\"200\" /><col width=\"300\" /><thead><tr><th>Wiki</th><th>Page Name</th><th>Snippet</th><th>1st</th><th>2nd</th></tr></thead>';
 
 		for(var i = 0; i < includedWikis.length; i++) {
 			var title = $(includedWikis[i]).text();

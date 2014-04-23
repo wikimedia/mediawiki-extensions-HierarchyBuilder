@@ -67,7 +67,7 @@ window.VikiJS = function() {
 		var self = this;
 
 		// CSS option for the Vex modal dialog library
-		vex.defaultOptions.className = 'vex-theme-os';
+		vex.defaultOptions.className = 'vex-theme-default';
 		var dig = new RegExp("[0-9]", 'g');
 		this.ID = graphDiv.match(dig)[0];
 
