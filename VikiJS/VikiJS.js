@@ -67,8 +67,7 @@ window.VikiJS = function() {
 		var self = this;
 
 		// CSS option for the Vex modal dialog library
-		vex.defaultOptions.className = 'vex-theme-default';
-
+		vex.defaultOptions.className = 'vex-theme-os';
 		var dig = new RegExp("[0-9]", 'g');
 		this.ID = graphDiv.match(dig)[0];
 
@@ -1111,18 +1110,112 @@ window.VikiJS = function() {
 		self.newNodesWindow.mwConfigObject = mw.config;
 		self.newNodesWindow.delegate = self;
 */
-
+/*
 		vex.dialog.confirm({
 			message: 'Are you absolutely sure you want to destroy the alien planet?',
 			callback: function(value) {
-				return console.log(value ? 'Successfully destroyed the planet.' : 'Chicken.');
+				if(value) {
+					self.closeNewNodesWindow(
+						[
+							{ 'pageTitle' : 'Robotics' },
+							{ 'pageTitle' : 'Hard Impact New Devices' }
+						]
+					);
+				}
+				else {
+					alert("Ok then.");
+				}
+				//return;
 			}
 		});
+	
+*/
+
+		var content = "\
+<style>\
+	body {\
+	  font-family: sans-serif;\
+	  font-size: 0.8em;\
+	  padding: 1.25em 1.5em 1.5em 1.25em;\
+	}\
+</style>\
+\
+<div id=\"searchTermsDiv\">\
+	<fieldset>\
+		<legend>Search Parameters</legend>\
+		<p>Enter at least one search term and at least one wiki to be included in the search:</p>\
+		<table><tbody>\
+			<tr><td id=\"searchTermsTd\">Search terms:</td><td><input type=\"text\" name=\"searchTerms\" id=\"searchTerms\"></td>\
+			<tr><td>Scope:</td><td>\
+				<select name=\"scope\" id=\"scope\">\
+					<option value=\"title\">Title only</option>\
+					<option value=\"text\">Text only</option>\
+					<option value=\"both\">Title and text</option>\
+				</select></td></tr>\
+			<tr><td id=\"wikisTd\">Wikis:</td><td>\
+				<table><tbody>\
+					<tr><td>\
+						<fieldset>\
+							<legend>Included Wikis</legend>\
+							<select name=\"wikis\" id=\"includedWikis\" multiple=\"multiple\"></select>\
+						</fieldset>\
+					<td>\
+						<button type=\"button\" id=\"moveLeft\">Move Left</button>\
+						<button type=\"button\" id=\"moveRight\">Move Right</button>\
+					</td>\
+					</td><td>\
+						<fieldset>\
+							<legend>Excluded Wikis</legend>\
+							<select name=\"wikis\" id=\"excludedWikis\" multiple=\"multiple\"></select>\
+						</fieldset>\
+					</td></tr>\
+				</tbody></table>\
+			</td></tr>\
+			<tr><td>Namespaces:</td><td>\
+				<fieldset>\
+					<legend>Namespaces</legend>\
+					<div id=\"namespacesDiv\"></div>\
+				</fieldset>\
+			</td></tr>\
+			<tr><td><button type=\"button\" id=\"searchButton\">Search</button></td></tr>\
+		</tbody></table>\
+	</fieldset>\
+</div>\
+<div id=\"searchResultsDiv\">\
+	<fieldset>\
+		<legend>Search Results</legend>\
+		<div id=\"progressbar\"></div>\
+		<div id=\"searchResultsSection\"></div>\
+		<button type=\"button\" id=\"diffButton\">Diff</button>\
+	</fieldset>\
+</div>\
+	";
+
+		vex.dialog.open({
+			message: "Search For Nodes",
+			contentCSS: {
+				"width" : "750px"
+			},
+			afterOpen: function($vexContent) {
+				var m = new MultiWikiSearch();
+				m.initializeMWS(self.myApiURL);
+			},
+			input: content,
+			callback: function(data) {
+				if(!data)
+					return console.log("Canceled");
+				else
+					return console.log(data);
+
+			}
+
+		});
+
 	}
+
 	
 	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
 		self.log("close new nodes window pressed");
-		self.newNodesWindow.close();
 		
 		for(var i = 0; i < returnArgs.length; i++) {
 			self.log(returnArgs[i]["pageTitle"]);
