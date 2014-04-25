@@ -32,7 +32,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		div = $(""+divID);
 
 		html = "\
-<div id=\"MultiWikiSearch\">\
 	<div id=\"searchTermsDiv\">\
 		<fieldset>\
 			<legend>Search Parameters</legend>\
@@ -91,12 +90,11 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			<legend>Diff Results</legend>\
 			<div id=\"diffResultsSection\"></div>\
 		</fieldset>\
-	</div>\
 ";
 		}
-		else {
-			html+="</div>";
-		}
+//		else {
+//			html+="</div>";
+//		}
 
 		div.append(html);
 
