@@ -53,9 +53,7 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 	),
 	'scripts' => array(
 		'd3.v3.min.js',
-		'WikiTreeMap.js',
-		'bootstrap.min.js',
-		'jquery.contextMenu.js'
+		'WikiTreeMap.js'
 	)
 );
 
@@ -116,8 +114,11 @@ class WikiTreeMap {
 		$div = "WikiTreeMap_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
+<select id="wikis" style="width:500px;"></select>
+<p><button id="loadData" type="button">Load Data</button></p>	
+<h1></h1>	
 <table>
-<tr><td><div class="wikitreemap-graph-container" id="$graphdiv">
+<tr><td><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height">
 </div></td></tr>
 </table>
 EOT;
@@ -125,8 +126,9 @@ EOT;
 		global $wgServer;
 		global $wgScriptPath;
 		$script =<<<END
-mw.loader.using(['jquery.ui.position', 'ext.WikiTreeMap'], function () {
+mw.loader.using(['ext.WikiTreeMap'], function () {
 	$(document).ready(function() {
+
 		var g = new WikiTreeMap();
 		g.drawChart("$graphdiv", "$width", "$height");
 	});
