@@ -38,7 +38,9 @@ class ApiGetSearchableWikis extends ApiBase {
 	}
  
 	public function getDescription() {
-		return 'Get a list of Gestalt Community wikis which are searchable.';
+		return 'Get a list of Gestalt Community wikis which are searchable.
+
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.';
 	}
  
 	public function getExamples() {

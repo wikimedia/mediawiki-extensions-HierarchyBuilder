@@ -6,6 +6,8 @@
 * include_once("$IP/extensions/GetSearchableWikis/GetSearchableWikis.php");
 */
 
+define('GET_SEARCHABLE_WIKIS_VERSION', '1.0.1');
+
 $wgExtensionCredits['api'][] = array(
 
 'path' => __FILE__,
