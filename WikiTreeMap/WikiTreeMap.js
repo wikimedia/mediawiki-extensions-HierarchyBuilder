@@ -30,7 +30,12 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, width, height) {
           o.name = o['*'];
           o.value = o.pages;
         })
-          var paddingAllowance = 2;
+
+	  var margin = {top: 40, right: 10, bottom: 10, left: 10},
+	      width = 960 - margin.left - margin.right,
+	      height = 500 - margin.top - margin.bottom;
+          
+	  var paddingAllowance = 2;
           var color = d3.scale.category20();
 
           var treemap = d3.layout.treemap()
@@ -39,10 +44,10 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, width, height) {
 
           var canvas = d3.select("#" + graphDiv).append("svg")
                       .style("position", "relative")
-                      .style("width", width + "px")
-                      .style("height", height + "px")
+                      .style("width", width + margin.left + margin.right + "px")
+                      .style("height", height + margin.top + margin.bottom + "px")
                       .append("g")
-                      .attr("transform", "translate(-.5,-.5)");
+                  //  .attr("transform", "translate(-.5,-.5)");
                   // .attr("width", width)  // width
                   // .attr("height", height) // height
 
@@ -53,7 +58,7 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, width, height) {
               .data(treemap)
               .enter().append("g")
               .attr("class", "cell")
-
+	      .call(position);
 
           // This makes the DOM object elements a function of the treemap variables
           cells.append("rect")
@@ -63,58 +68,128 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, width, height) {
               .attr("height", function (d) {return d.dy; })
               .attr("fill", function (d) {return d.children ? null : color(d.parent.name);})
               .attr("stroke", "white")
+//	      .call(wrap, 10);
+//	      .text(function(d) { return d.children ? null : d.name; });
 
-          // cells.append("text")
-          //     .attr("x", function(d){ return d.x + d.dx / 2})
-          //     .attr("y", function(d){ return d.y + d.dy / 2})
-          //     .attr('text-anchor', 'middle')
-          //     .text(function(d){return d.children ? null : d['*'];})
-          //     // .call(self.textWrap, 0.9*(this.width), -1*self.width/2 + paddingAllowance);
+//           cells.append("text")
+//               .attr("x", function(d){ return d.x + d.dx / 2})
+//               .attr("y", function(d){ return d.y + d.dy / 2})
+//               .attr('text-anchor', 'middle')
+//               .text(function(d){return d.children ? null : d['*'];})
+// 	       .call(wrap, 10);	
+               // .call(self.textWrap, 0.9*(this.width), -1*self.width/2 + paddingAllowance);
 
-
-          // // this method adapted from bl.ocks.org/mbostock/7555321
-          //   WikiTreeMap.prototype.textWrap = function(text, width, x) {  
-          //     text.each(function() {
-          //       var text = d3.select(this),
-          //         words = text.text().split(/\s+/).reverse(),
-          //         word,
-          //         line = [],
-          //         lineNumber = 0,
-          //         lineHeight = 1.1, // ems
-          //         y = text.attr("y"),
-          //         dy = parseFloat(text.attr("dy")) || 0,
-          //         tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
-          //       while (word = words.pop()) {
-          //         line.push(word);
-          //         tspan.text(line.join(" "));
-          //         if (tspan.node().getComputedTextLength() > width) {
-          //           line.pop();
-          //           tspan.text(line.join(" "));
-          //           line = [word];
-          //           tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
-          //         }
-          //       }
-          //     });
-          //   }
+	cells.append("svg:text")
+		.attr("x", function(d){return d.x})
+		.attr("y", function(d){return d.y})
+		.attr("dx", "0.35em")
+		.attr("dy", "0.9em")
+		.each(fontSize)
+		.each(wordWrap);
 
 
-           cells.append("foreignObject")
-                .attr("class", "foreignObject")
-                .attr("width", function(d) {
-                    return d.dx - paddingAllowance;
-                })
-                .attr("height", function(d) {
-                    return d.dy;
-                })
-                .append("xhtml:body")
-                .attr("class", "labelbody")
-                .append("div")
-                .attr("class", "label")
-                .text(function(d) {
-                    return d.children ? null : d['*'];
-                })
-                .attr("text-anchor", "middle")
-      }
+//	   d3.selectAll("input").on("change", function change() {
+//	    var value = this.value === "count"
+//	        ? function() { return 1; }
+//	        : function(d) { return d.size; };
+//
+//	    cells
+//	        .data(treemap.value(value).cells)
+//	      .transition()
+//	        .duration(1500)
+//	        .call(position);
+//	   });
+
+
+}   
+
+
+function fontSize(d,i) {
+var size = d.dx/5;
+var words = d.name.split(' ');
+var word = words[0];
+var width = d.dx;
+var height = d.dy;
+var length = 0;
+d3.select(this).style("font-size", size + "px").text(word);
+while(((this.getBBox().width >= width) || (this.getBBox().height >= height)) && (size > 12))
+ {
+  size--;
+  if(d.dy===0){
+	d3.select(this).style("font-size", 0 + "px");
+  } else {
+  	d3.select(this).style("font-size", size + "px");
+  }
+  this.firstChild.data = word;
+ }
+}
+
+function wordWrap(d, i){
+var words = d.name.split(' ');
+var line = new Array();
+var length = 0;
+var text = "";
+var width = d.dx;
+var height = d.dy;
+var word;
+do {
+   word = words.shift();
+   line.push(word);
+   if (words.length)
+     this.firstChild.data = line.join(' ') + " " + words[0]; 
+   else
+     this.firstChild.data = line.join(' ');
+   length = this.getBBox().width;
+   if (length < width && words.length) {
+     ;
+   }
+   else {
+     text = line.join(' ');
+     this.firstChild.data = text;
+     if (this.getBBox().width > width) { 
+       text = d3.select(this).select(function() {return this.lastChild;}).text();
+       text = text + "...";
+       d3.select(this).select(function() {return this.lastChild;}).text(text);
+       d3.select(this).classed("wordwrapped", true);
+       break;
+    }
+    else
+      ;
+
+//  if (text != '') {
+//    d3.select(this).append("svg:tspan")
+//    .attr("x", 0)
+//    .attr("dx", "0.15em")
+//    .attr("dy", "0.9em")
+//    .text(text);
+//  }
+//  else
+//     ;
+
+  if(this.getBBox().height > height && words.length) {
+     text = d3.select(this).select(function() {return this.lastChild;}).text();
+     text = text + "...";
+     d3.select(this).select(function() {return this.lastChild;}).text(text);
+     d3.select(this).classed("wordwrapped", true);
+
+     break;
+  }
+  else
+     ;
+
+  line = new Array();
+    }
+  } while (words.length);
+ // this.firstChild.data = '';
+} 
+
+
+     function position() {
+      this.style("left", function(d) { return d.x + "px"; })
+      .style("top", function(d) { return d.y + "px"; })
+      .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+      .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+	}
 
 
       function recursiveQuery(wUrl,graphDiv, width, height){

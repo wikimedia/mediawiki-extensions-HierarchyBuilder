@@ -121,6 +121,11 @@ class WikiTreeMap {
 <tr><td><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height">
 </div></td></tr>
 </table>
+<form>
+  <label><input type="radio" name="mode" value="size" checked> Size</label>
+  <label><input type="radio" name="mode" value="count"> Count</label>
+</form>
+
 EOT;
 
 		global $wgServer;
