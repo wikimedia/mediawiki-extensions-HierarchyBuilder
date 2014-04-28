@@ -766,13 +766,12 @@ window.VikiJS = function() {
 	VikiJS.prototype.checkForTitleIcon = function(node) {
 		
 		jQuery.ajax({
-			url: self.myApiURL,
-			dataType: 'json',
+			url: node.apiURL,
+			dataType: 'jsonp',
 			data: {
 				action: 'getTitleIcons',
 				format: 'json',
-				pageTitle: node.pageTitle,
-				apiURL: encodeURIComponent(node.apiURL)
+				pageTitle: node.pageTitle
 			},
 			beforeSend: function(jqXHR, settings) {
 				self.log("url of TitleIcon lookup: "+settings.url);
@@ -787,7 +786,7 @@ window.VikiJS = function() {
 		
 	}
 	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
-		var titleIconURLs = data["getTitleIcons"]["titleIcon"];
+		var titleIconURLs = data["getTitleIcons"]["titleIcons"];
 		if(titleIconURLs.length == 0) {
 			self.log("No title icons here.");
 			return;

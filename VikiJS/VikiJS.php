@@ -204,7 +204,77 @@ class ApiGetTitleIcons extends ApiBase {
 	public function __construct( $main, $action ) {
 		parent::__construct( $main, $action );
 	}
+	
 	public function execute() {
+		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon2.out");
+
+		$pageTitle = $this->getMain()->getVal('pageTitle');
+
+		global $wgViki_TitleIconVarName;
+		$myTitleIconName = "";
+
+		if(!$wgViki_TitleIconVarName)
+			$myTitleIconName = "Title+Icon";
+		else
+			$myTitleIconName = $wgViki_TitleIconVarName;
+
+		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
+		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
+
+		wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon2.out");
+		wfErrorLog("pageTitle = $pageTitle\n", "/var/www/html/DEBUG_getTitleIcon2.out");
+		
+		$api = new ApiMain(
+			new DerivativeRequest(
+				$this->getRequest(),
+				array(
+					'action' => 'askargs',
+					'conditions' => $pageTitle,
+					'printouts' => $titleIconWithSpaces
+				)
+			),
+			false
+		);
+		
+		$api->execute();
+		$data = $api->getResultData();
+
+		$titleIconNames = $data["query"]["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
+		$titleIconURLs = array();
+		
+		foreach($titleIconNames as $name) {
+			wfErrorLog("$name\n", "/var/www/html/DEBUG_getTitleIcon2.out");
+			
+			$api = new ApiMain(
+				new DerivativeRequest(
+					$this->getRequest(),
+					array(
+						'action' => 'query',
+						'titles' => 'File:' . $name,
+						'prop' => 'imageinfo',
+						'iiprop' => 'url'
+					)
+				),
+				false
+			);			
+
+			$api->execute();
+			$data = $api->getResultData();
+			$key = array_shift(array_keys($data["query"]["pages"]));
+			$url = $data["query"]["pages"][$key]["imageinfo"][0]["url"];
+			wfErrorLog("$key --> $url\n", "/var/www/html/DEBUG_getTitleIcon2.out");
+			$titleIconURLs[] = $url;
+		}
+
+		$this->getResult()->addValue(null, $this->getModuleName(),
+			array('pageTitle' => $pageTitle,
+				'titleIcons' => $titleIconURLs
+					));
+		
+		return true;
+		
+	}
+/*	public function execute() {
 
 		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon.out");
 
@@ -276,18 +346,15 @@ class ApiGetTitleIcons extends ApiBase {
 		return true;
 
 	}
+	*/
 	public function getDescription() {
 		return "Get the URLs of all Title Icons for the page, if any exist.
 			
-			Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
 	}
 	public function getAllowedParams() {
 		return array(
 			'pageTitle' => array(
-				ApiBase::PARAM_TYPE => 'string',
-				ApiBase::PARAM_REQUIRED => true
-			),
-			'apiURL' => array(
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true
 			)
@@ -295,13 +362,12 @@ class ApiGetTitleIcons extends ApiBase {
 	}
 	public function getParamDescription() {
 		return array(
-			'pageTitle' => 'title of the page whose title icons you wish to retrieve',
-			'apiURL' => 'encoded URL to the API of the wiki this page belongs to'
+			'pageTitle' => 'title of the page whose title icons you wish to retrieve'
 		);
 	}
 	public function getExamples() {
 		return array(
-			'api.php?action=getTitleIcons&pageTitle=Title_Icon_Example_1&apiURL=http%3A%2F%2Fexamples.mitre.org%2F.mediawiki%2Fapi.php&format=jsonfm');
+			'api.php?action=getTitleIcons&pageTitle=Test_Page_C&format=jsonfm');
 	}
 	public function getHelpUrls() {
 		return '';
