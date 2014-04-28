@@ -5,6 +5,8 @@
   border: 1px solid blue;
   border-radius: 7px;
   overflow: hidden;
+  width: 1200;
+  height: 800;
 }
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;

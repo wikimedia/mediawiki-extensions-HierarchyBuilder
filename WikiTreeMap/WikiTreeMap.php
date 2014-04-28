@@ -116,15 +116,15 @@ class WikiTreeMap {
 		$output = <<<EOT
 <select id="wikis" style="width:500px;"></select>
 <p><button id="loadData" type="button">Load Data</button></p>	
+<p><button id="clearData" type="button">clear</button></p>	
 <h1></h1>	
 <table>
-<tr><td><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height">
-</div></td></tr>
+<tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
+	<svg style="width: $width;">
+	</svg>
+</div>
+</td></tr>
 </table>
-<form>
-  <label><input type="radio" name="mode" value="size" checked> Size</label>
-  <label><input type="radio" name="mode" value="count"> Count</label>
-</form>
 
 EOT;
 
