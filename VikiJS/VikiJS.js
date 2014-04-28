@@ -33,7 +33,8 @@ window.VikiJS = function() {
 	this.MIN_SCALE = .2;
 	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
-
+	this.HUB_LINK_LENGTH = 400;
+	this.LEAF_LINK_LENGTH = 100;
 	// NOTE = all these colors are from flatuicolors.com
 	// amethyst = #9b59b6
 	// peter river = #3498db
@@ -251,8 +252,8 @@ window.VikiJS = function() {
 				function(n){
 					// if the source and target has been elaborated, set the variable child to true
 					var child = (n.source.elaborated && n.target.elaborated);
-					if(child){return 500;}// if this node is the parent or the center of a cluster of nodes
-					else{return 75;}// if this node is the child or the outer edge of a cluster of nodes
+					if(child){return self.HUB_LINK_LENGTH;}// if this node is the parent or the center of a cluster of nodes
+					else{return self.LEAF_LINK_LENGTH;}// if this node is the child or the outer edge of a cluster of nodes
 
 				}
 			)
@@ -962,19 +963,25 @@ window.VikiJS = function() {
 
 				if(isWikiPage) {
 					externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
-					if(!externalWikiNode) {
+					if(!externalWikiNode)
 						externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);
-						var link = self.addLink(originNode.index, externalWikiNode.index);
-					}
+					
+					var link = self.findLink(originNode.index, externalWikiNode.index);
+					if(!link)
+						link = self.addLink(originNode.index, externalWikiNode.index);
+					
 				}
 				else {
 					externalNode = self.findNode("URL", externalLinks[i]["*"]);
-					if(!externalNode) {
+					if(!externalNode)
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
-						var link = self.addLink(originNode.index, externalNode.index);
+					
+					var link = self.findLink(originNode.index, externalNode.index);
+					if(!link)
+						link = self.addLink(originNode.index, externalNode.index);
 
-						newExternalNodes.push(externalNode);
-					}
+					newExternalNodes.push(externalNode);
+					
 				}
 			}
 			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
@@ -992,11 +999,14 @@ window.VikiJS = function() {
 				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
 					// add the node to the graph immediately.
 					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
-					var link = self.addLink(originNode.index, intraNode.index);
-
-					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
-					self.visitNode(intraNode);
 				}
+				var link = self.findLink(originNode.index, intraNode.index);
+				if(!link) {
+					link = self.addLink(originNode.index, intraNode.index);
+				}
+				// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
+				self.visitNode(intraNode);
+				
 			}
 		}
 		self.redraw(true);
@@ -1008,10 +1018,12 @@ window.VikiJS = function() {
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode) {
+				if(!intraNode)
 					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
-					var link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
-				}
+				var link = self.findLink(intraNode.index, originNode.index);
+				if(!link)
+					link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
+				
 			}
 		}
 		self.redraw(true);
