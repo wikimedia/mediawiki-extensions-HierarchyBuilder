@@ -62,6 +62,10 @@ window.VikiJS = function() {
 	this.myApiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
 	this.myLogoURL = null;
 	this.searchableWikis = new Array();
+	
+	this.namespaceIds = mw.config.get("wgNamespaceIds");
+	this.disallowedNamespaces = ["mediawiki", "template", "property"];
+
 	var self = this;
 
 	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
@@ -786,6 +790,11 @@ window.VikiJS = function() {
 		
 	}
 	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
+		if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
+			self.log("WARNING: The wiki for page "+node.pageTitle+" did not support getTitleIcons. Likely an older production wiki.");
+			return;
+		}
+
 		var titleIconURLs = data["getTitleIcons"]["titleIcons"];
 		if(titleIconURLs.length == 0) {
 			self.log("No title icons here.");
@@ -962,8 +971,10 @@ window.VikiJS = function() {
 
 				if(isWikiPage) {
 					externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
-					if(!externalWikiNode)
+					if(!externalWikiNode) {
 						externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);
+					}
+						
 					
 					var link = self.findLink(originNode.index, externalWikiNode.index);
 					if(!link)
@@ -1017,8 +1028,21 @@ window.VikiJS = function() {
 		if(intraLinks) {
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode)
+				if(!intraNode) {
+					var disallowed = false;
+					for(var j in self.disallowedNamespaces) {
+						var disallowedNS = self.disallowedNamespaces[j];
+						if(intraLinks[i]["ns"] === self.namespaceIds[disallowedNS]) {
+							self.log("Found page from disallowed namespace: pageTitle = "+intraLinks[i]["title"] +", namespace = "+intraLinks[i]["ns"]+"("+disallowedNS+")");
+							disallowed = true;
+							break;
+						}
+					}		
+					if(disallowed) {
+						continue;
+					}
 					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
+				}
 				var link = self.findLink(intraNode.index, originNode.index);
 				if(!link)
 					link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
