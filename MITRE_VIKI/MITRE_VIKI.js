@@ -64,12 +64,28 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 				wikiTitle: title,
 				apiURL: allWikis[i]["printouts"]["Wiki API URL"][0],
 				contentURL: allWikis[i]["printouts"]["Wiki Content URL"][0],
-				logoURL: allWikis[i]["printouts"]["Small Wiki Logo"][0]
+				logoURL: allWikis[i]["printouts"]["Small Wiki Logo"][0],
 			   };
+			   if(allWikis[i]["printouts"]["Gestalt Community Searchable"].length > 0 && allWikis[i]["printouts"]["Gestalt Community Searchable"][0] === 't')
+				   wiki.searchableWiki = true;
+			   else
+				   wiki.searchableWiki = false;
+			   
 		searchableWikisArray.push(wiki);
 
 	}
 
+	// var testWiki = {
+	// 	wikiTitle : 'US MC Net Ops (gestalt-ed test)',
+	// 	apiURL : 'http://gestalt-ed.mitre.org/usmcnetops/api.php',
+	// 	contentURL : 'http://gestalt-ed.mitre.org/usmcnetops/index.php/',
+	// 	logoURL : 'http://gestalt-dev.mitre.org/usmcnetops/branding/logo.png',
+	// 	searchableWiki : false
+	// 	
+	// }
+	// 
+	// searchableWikisArray.push(testWiki);
+	// 
 	hook_log("searchableWikisArray.length = "+searchableWikisArray.length);
 }
 

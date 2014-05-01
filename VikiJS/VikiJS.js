@@ -58,8 +58,9 @@ window.VikiJS = function() {
 	this.NodeSelection = null;
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
-	this.serverURL = null;
-	this.myApiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
+	this.serverURL = mw.config.get("wgServer");;
+	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
+
 	this.myLogoURL = null;
 	this.searchableWikis = new Array();
 	
@@ -156,7 +157,7 @@ window.VikiJS = function() {
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
 				// do initial graph population
 				for(var i = 0; i < pageTitles.length; i++)
-					self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL);
+					self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
 
 				for(var i = 0; i < pageTitles.length; i++)
 					self.elaborateNode(self.Nodes[i]);
@@ -711,13 +712,12 @@ window.VikiJS = function() {
 
 	}
 	
-	VikiJS.prototype.addWikiNode = function(pageTitle, apiURL, contentURL, logoURL) {
+	VikiJS.prototype.addWikiNode = function(pageTitle, apiURL, contentURL, logoURL, searchable) {
 		var self = this;
 		self.log("addWikiNode - pageTitle = "+pageTitle);
 		node = self.newNode();
 		node.displayName = pageTitle;
 		node.pageTitle = pageTitle;
-		node.info = self.formatNodeInfo(pageTitle, node.nonexistentPage);
 		node.type = self.WIKI_PAGE_TYPE;
 		if(contentURL && typeof contentURL !== 'undefined') {
 			node.URL = contentURL+(pageTitle.split(" ").join("_"));
@@ -729,6 +729,12 @@ window.VikiJS = function() {
 		}
 		node.apiURL = apiURL;
 		node.logoURL = logoURL;
+		node.searchable = searchable;
+		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
+
+		if(!node.searchable)
+			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");;
+		
 		self.checkForTitleIcon(node);
 		self.addNode(node);
 		
@@ -756,22 +762,29 @@ window.VikiJS = function() {
 		node = self.newNode();
 		node.displayName = pageTitle;
 		node.pageTitle = pageTitle;
-		node.info = self.formatNodeInfo(pageTitle, node.nonexistentPage);
 		node.type = self.WIKI_PAGE_TYPE;
 		node.URL = url;
+		node.wikiIndex = wikiIndex;
 		node.apiURL = self.searchableWikis[wikiIndex]["apiURL"];
 		node.contentURL = self.searchableWikis[wikiIndex]["contentURL"];
 		node.logoURL = self.searchableWikis[wikiIndex]["logoURL"];
-		self.checkForTitleIcon(node);
+		node.searchable = self.searchableWikis[wikiIndex]["searchableWiki"];
+		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 		
+		if(!node.searchable)
+			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");;
+
+		
+		self.checkForTitleIcon(node);
 		self.addNode(node);
+		
 		return node;
 	}
 	VikiJS.prototype.checkForTitleIcon = function(node) {
 		
 		jQuery.ajax({
 			url: node.apiURL,
-			dataType: 'jsonp',
+			dataType: node.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'getTitleIcons',
 				format: 'json',
@@ -887,7 +900,7 @@ window.VikiJS = function() {
 
 		jQuery.ajax({
 			url: node.apiURL,
-			dataType: 'jsonp',
+			dataType: node.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
 				prop: 'extlinks',
@@ -910,7 +923,7 @@ window.VikiJS = function() {
 		// get intra-wiki links OUT from page
 		jQuery.ajax({
 			url: node.apiURL,
-			dataType: 'jsonp',
+			dataType: node.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
 				prop: 'links',
@@ -932,7 +945,7 @@ window.VikiJS = function() {
 		// get intra-wiki links IN to this page
 		jQuery.ajax({
 			url: node.apiURL,
-			dataType: 'jsonp',
+			dataType: node.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
 				list: 'backlinks',
@@ -995,7 +1008,7 @@ window.VikiJS = function() {
 				}
 			}
 			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
-			self.callHooks("ExternalNodeHook", [ newExternalNodes] );
+			self.callHooks("ExternalNodeHook", [newExternalNodes]);
 		}
 		self.redraw(true);
 	}
@@ -1008,7 +1021,7 @@ window.VikiJS = function() {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
 					// add the node to the graph immediately.
-					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
+					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL, originNode.searchable);
 				}
 				var link = self.findLink(originNode.index, intraNode.index);
 				if(!link) {
@@ -1041,7 +1054,7 @@ window.VikiJS = function() {
 					if(disallowed) {
 						continue;
 					}
-					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL);
+					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL, originNode.searchable);
 				}
 				var link = self.findLink(intraNode.index, originNode.index);
 				if(!link)
@@ -1057,7 +1070,7 @@ window.VikiJS = function() {
 
 		jQuery.ajax({
 			url: intraNode.apiURL,
-			dataType: 'jsonp',
+			dataType: intraNode.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
 				titles: intraNode.pageTitle,
@@ -1114,7 +1127,7 @@ window.VikiJS = function() {
 			var buttons = " <a href='" + node.URL +
 				"' target='_blank'><img src='" + self.ImagePath +
 				"info.png' /></a>";
-			if (!node.elaborated)
+			if (!node.elaborated && node.searchable)	// only show the + for searchable nodes
 				buttons += " <a id = "+node.index+" class='icon elaborate'><img src= '"+ self.ImagePath+"plus.png' /></a>";
 			var h4 = jQuery("#" + self.DetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
@@ -1207,7 +1220,7 @@ window.VikiJS = function() {
 			self.log(returnArgs[i]["pageTitle"]);
 			wikiNode = self.findNode("pageTitle", returnArgs[i]["pageTitle"]);
 			if(!wikiNode)
-				self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL);
+				self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL, true);
 		}
 		self.redraw(true);
 	}
