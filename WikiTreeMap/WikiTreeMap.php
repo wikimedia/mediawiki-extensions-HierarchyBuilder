@@ -70,7 +70,7 @@ function wfExtensionWikiTreeMap_Magic(& $magicWords, $langCode) {
 	return true;
 }
 
-function wikitreemap($parser, $width, $height) {
+function wikitreemap($parser, $width, $height, $wiki) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
@@ -80,6 +80,7 @@ function wikitreemap($parser, $width, $height) {
 
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
+	//$wiki = $paramDictionary["wiki"];
 
 	$wikiTreeMap = new WikiTreeMap;
 
@@ -88,7 +89,7 @@ function wikitreemap($parser, $width, $height) {
 	if(!$height)
 		$height = 600;
 
-	$output = $wikiTreeMap->display($parser, $width, $height);
+	$output = $wikiTreeMap->display($parser, $width, $height, $wiki);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -109,7 +110,7 @@ class WikiTreeMap {
 
 	private static $pqnum = 0;
 
-	function display($parser, $width, $height) {
+	function display($parser, $width, $height, $wiki) {
 
 		$div = "WikiTreeMap_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
@@ -135,7 +136,7 @@ mw.loader.using(['ext.WikiTreeMap'], function () {
 	$(document).ready(function() {
 
 		var g = new WikiTreeMap();
-		g.drawChart("$graphdiv", "$width", "$height");
+		g.drawChart("$graphdiv", "$width", "$height", "$wiki");
 	});
 });
 END;

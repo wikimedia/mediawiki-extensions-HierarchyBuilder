@@ -3,10 +3,29 @@ window.WikiTreeMap = function() {
     var elmData;
 }
 
-WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight) {
+WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
       var wikis = ["cnsdtm", "darpapedia", "dstc", "dstc-devel","enable", "eseteam", "examples", "experipedia",  "geopedia", "gestalt",  "gestaltd", "healthcareanalytics", "international", "j850mip", "j85d",  "jcrew-connect",  "languapedia","map",  "mitrepedia","mobilepedia", "mooc", "odp", "phatwiki", "reading",  "robopedia","socialmedia","tge", "tools","viki"];     
       fillAppropriateDropdown('#wikis', wikis);
       // var graphDiv = graphDiv;
+
+	window.onload = function(e){
+        var elmDiv = wiki;
+            elmData = elmDiv;        
+            jsonData = {"name":"allcategories", "children" : []};
+         //   $('svg').remove();
+//            $('h2').append().text(elmData);
+	    $('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
+        if(elmData==="mitrepedia"){
+          var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
+        } else {
+          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
+        }
+          recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
+  
+//	getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight);
+          
+      }; 
+    
 
 
     $('#clearData').click(function(e){$('svg').remove(); $('h2').remove();})
@@ -18,22 +37,30 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight) {
          //   $('svg').remove();
 //            $('h2').append().text(elmData);
 	    $('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
+	var wanted = getWanted(elmData);
+
         if(elmData==="mitrepedia"){
 
           var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
         } else {
-          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&acmax=500&acto=Tags"
+          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
         }
-            recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
+//            recursiveQuery(wikiUrl, graphDiv, divwidth, divheight, wanted);       
+              recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
+  
       }); 
 }
 
-      var tutorTree = function(data, graphDiv, divwidth, divheight){
+      var tutorTree = function(data, graphDiv, divwidth, divheight, wanted){
 		// add the necessary names and values for the treemap to recognize the data          
         data.children.forEach(function(o){
           o.name = o['*'];
           o.value = o.pages;
         })
+
+//	wanted.forEach( function(w){ 
+//		data.children.forEach( function(d){ if(d['*']===w){d.color = "#990000"; console.log("Got Here")} else{d.color = "black"} }  )
+//	})
 
 	  var margin = {top: 40, right: 20, bottom: 10, left: 20},
 	      width = 829 - margin.left - margin.right,
@@ -147,20 +174,27 @@ var width = d.dx;
 var height = d.dy;
 var word;
 do {
-   word = words.shift();
-   line.push(word);
-   if (words.length)
-     this.firstChild.data = line.join(' ') + " " + words[0]; 
+   word = words.shift(); // adds the first word in the title to the variable 'word'
+   line.push(word); // adds that word to the 'line'
+   if (words.length) // if there are still words left in the 'words' array, 
+     this.firstChild.data = line.join(' ') + " " + words[0];
+	 // declare the actual text object to be the line plus the next value
    else
-     this.firstChild.data = line.join(' ');
-   length = this.getBBox().width;
-   if (length < width && words.length) {
+     this.firstChild.data = line.join(' ');  // if no more words, set text to the 'line'
+
+   length = this.getBBox().width;  // determine the width of the bounding box
+   if (length < width && words.length) {  
+	// if the bounding box is less wide than the rect, and there are words left, 
+	// move to the next word
      ;
    }
-   else {
-     text = line.join(' ');
-     this.firstChild.data = text;
+   else { // but if the bounding box is bigger than the rect, or there are no words left,
+	  // then the box should be sufficuently populated
+     text = line.join(' '); // declare 'text' to be the stuff in the line
+     this.firstChild.data = text;  // declare the svg element to be 'text'
      if (this.getBBox().width > width) { 
+	// if the bbox is wider than the rect
+	// add dots and make it a part of the object
        text = d3.select(this).select(function() {return this.lastChild;}).text();
        text = text + "...";
        d3.select(this).select(function() {return this.lastChild;}).text(text);
@@ -170,15 +204,16 @@ do {
     else
       ;
 
-//  if (text != '') {
-//    d3.select(this).append("svg:tspan")
-//    .attr("x", 0)
-//    .attr("dx", "0.15em")
-//    .attr("dy", "0.9em")
-//    .text(text);
-//  }
-//  else
-//     ;
+  if (text != '') {
+    d3.select(this).append("svg:tspan")
+    .attr("x", function(d){return d.x})
+    .attr("dx", "0.1em")
+    .attr("dy", "0.9em")
+    .style("fill",function(d){return d.color})
+    .text(text);
+  }
+  else
+     ;
 
   if(this.getBBox().height > height && words.length) {
      text = d3.select(this).select(function() {return this.lastChild;}).text();
@@ -190,11 +225,12 @@ do {
   }
   else
      ;
-
-  line = new Array();
+// So what if the line was refreshed only at the end, so everything is presented in 'text'
+  line = new Array(); // Line is reinstantiated, deleting what was in it before
     }
   } while (words.length);
- // this.firstChild.data = '';
+  this.firstChild.data = '';
+ //   line = new Array();
 } 
 
 
@@ -206,29 +242,29 @@ do {
 	}
 
 
-      function recursiveQuery(wUrl,graphDiv, divwidth, divheight){
+      function recursiveQuery(wUrl,graphDiv, divwidth, divheight, wanted){
         jQuery.ajax({
 
             url: wUrl,
             dataType: 'jsonp',
             async: false,
-            success: function (data, textStatus, jqXHR) {
-              jsonData.children = jsonData.children.concat(data.query.allcategories);
+            success: function (dta, textStatus, jqXHR) {
+              jsonData.children = jsonData.children.concat(dta.query.allcategories);
               if(elmData==="mitrepedia"){
-                if (data.hasOwnProperty("query-continue")){        
-                  var qCont = data['query-continue'].allcategories.acfrom;
+                if (dta.hasOwnProperty("query-continue")){        
+                  var qCont = dta['query-continue'].allcategories.acfrom;
                   var newQuery = wUrl.split("&acfrom=")[0] + "&acfrom=" + qCont;
-                  recursiveQuery(newQuery, graphDiv, divwidth, divheight);
+                  recursiveQuery(newQuery, graphDiv, divwidth, divheight, wanted);
                 } else {
-                  tutorTree(jsonData, graphDiv, divwidth, divheight);
+                  tutorTree(jsonData, graphDiv, divwidth, divheight, wanted);
                 }
               } else {
-                 if (data.hasOwnProperty("query-continue")){        
-                  var qCont = data['query-continue'].allcategories.accontinue;
+                 if (dta.hasOwnProperty("query-continue")){        
+                  var qCont = dta['query-continue'].allcategories.accontinue;
                   var newQuery = wUrl.split("&acfrom=")[0] + "&acfrom=" + qCont;
-                  recursiveQuery(newQuery, graphDiv, divwidth, divheight);
+                  recursiveQuery(newQuery, graphDiv, divwidth, divheight, wanted);
                 } else {
-                  tutorTree(jsonData, graphDiv, divwidth, divheight);
+                  tutorTree(jsonData, graphDiv, divwidth, divheight, wanted);
                 }
               }
             },
@@ -247,3 +283,25 @@ do {
             $(dropdownName).prepend("<option value='0' selected='true'>" +"--Select a Wiki--"+ "</option>");
             $(dropdownName).find("option:first")[0].selected = true;
     }
+
+			
+     function getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight){
+	if(elmData==="mitrepedia"){
+          var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
+        } else {
+          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=querypage&qppage=Wantedcategories&format=json"
+        }
+	  jQuery.ajax({
+
+            url: wikiUrl,
+            dataType: 'jsonp',
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+		      var wanted = data.query.querypage.results;
+	              recursiveQuery(wikiUrl, graphDiv, divwidth, divheight, wanted);
+		},
+            error: function (jqXHR, textStatus, errorThrown) {
+               error(textStatus);
+            }
+        }); 
+     }
