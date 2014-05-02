@@ -732,8 +732,7 @@ window.VikiJS = function() {
 		node.searchable = searchable;
 		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 
-		if(!node.searchable)
-			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");;
+		node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
 		
 		self.checkForTitleIcon(node);
 		self.addNode(node);
@@ -771,8 +770,7 @@ window.VikiJS = function() {
 		node.searchable = self.searchableWikis[wikiIndex]["searchableWiki"];
 		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 		
-		if(!node.searchable)
-			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");;
+		node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
 
 		
 		self.checkForTitleIcon(node);
