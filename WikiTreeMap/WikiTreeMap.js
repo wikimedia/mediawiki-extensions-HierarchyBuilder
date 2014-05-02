@@ -20,9 +20,9 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
         } else {
           var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
         }
-          recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
+//          recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
   
-//	getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight);
+	getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight);
           
       }; 
     
@@ -58,9 +58,9 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
           o.value = o.pages;
         })
 
-//	wanted.forEach( function(w){ 
-//		data.children.forEach( function(d){ if(d['*']===w){d.color = "#990000"; console.log("Got Here")} else{d.color = "black"} }  )
-//	})
+	wanted.forEach( function(w){ 
+		data.children.forEach( function(d){ if(d['*']===w.title.split(':')[1]){d.color = "#990000"; console.log("Got Here")} else{d.color = "black"} }  )
+	})
 
 	  var margin = {top: 40, right: 20, bottom: 10, left: 20},
 	      width = 829 - margin.left - margin.right,
@@ -248,19 +248,19 @@ do {
             url: wUrl,
             dataType: 'jsonp',
             async: false,
-            success: function (dta, textStatus, jqXHR) {
-              jsonData.children = jsonData.children.concat(dta.query.allcategories);
+            success: function (data, textStatus, jqXHR) {
+              jsonData.children = jsonData.children.concat(data.query.allcategories);
               if(elmData==="mitrepedia"){
-                if (dta.hasOwnProperty("query-continue")){        
-                  var qCont = dta['query-continue'].allcategories.acfrom;
+                if (data.hasOwnProperty("query-continue")){        
+                  var qCont = data['query-continue'].allcategories.acfrom;
                   var newQuery = wUrl.split("&acfrom=")[0] + "&acfrom=" + qCont;
                   recursiveQuery(newQuery, graphDiv, divwidth, divheight, wanted);
                 } else {
                   tutorTree(jsonData, graphDiv, divwidth, divheight, wanted);
                 }
               } else {
-                 if (dta.hasOwnProperty("query-continue")){        
-                  var qCont = dta['query-continue'].allcategories.accontinue;
+                 if (data.hasOwnProperty("query-continue")){        
+                  var qCont = data['query-continue'].allcategories.accontinue;
                   var newQuery = wUrl.split("&acfrom=")[0] + "&acfrom=" + qCont;
                   recursiveQuery(newQuery, graphDiv, divwidth, divheight, wanted);
                 } else {
@@ -285,7 +285,7 @@ do {
     }
 
 			
-     function getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight){
+     function getWanted(elmData, wUrl, graphDiv, divwidth, divheight){
 	if(elmData==="mitrepedia"){
           var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
         } else {
@@ -298,7 +298,7 @@ do {
             async: false,
             success: function (data, textStatus, jqXHR) {
 		      var wanted = data.query.querypage.results;
-	              recursiveQuery(wikiUrl, graphDiv, divwidth, divheight, wanted);
+	              recursiveQuery(wUrl, graphDiv, divwidth, divheight, wanted);
 		},
             error: function (jqXHR, textStatus, errorThrown) {
                error(textStatus);
