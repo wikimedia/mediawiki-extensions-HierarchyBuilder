@@ -29,6 +29,7 @@ window.VikiJS = function() {
 	this.BAR_HEIGHT = 6;
 //	this.SELECTED_IMAGE_DIMENSION = 30;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
+	this.THIS_WIKI = "THIS WIKI";
 
 	this.MIN_SCALE = .2;
 	this.MAX_SCALE = 5;
@@ -49,7 +50,7 @@ window.VikiJS = function() {
 	this.GraphDiv = null;
 	this.DetailsDiv = null;
 	this.SliderDiv = null;
-	vSelectedNode = null;
+	this.SelectedNode = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
 	this.LinkMap = new Array();
@@ -60,12 +61,21 @@ window.VikiJS = function() {
 	this.Zoompos = 1; // to store values for zoom scale
 	this.serverURL = mw.config.get("wgServer");;
 	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
+	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
+	this.contentNamespaces = mw.config.get("wgContentNamespaces");
 
 	this.myLogoURL = null;
 	this.searchableWikis = new Array();
 	
+	this.thisWikiData = {
+				wikiTitle : this.THIS_WIKI,
+				apiURL : this.myApiURL,
+				contentURL : this.myContentURL,
+				logoURL : this.myLogoURL,
+				searchableWiki : true
+			}
+	
 	this.namespaceIds = mw.config.get("wgNamespaceIds");
-	this.disallowedNamespaces = ["mediawiki", "template", "property"];
 
 	var self = this;
 
@@ -155,9 +165,11 @@ window.VikiJS = function() {
 			success: function(data, textStatus, jqXHR) {
 
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
+				self.thisWikiData.logoURL = self.myLogoURL;
 				// do initial graph population
 				for(var i = 0; i < pageTitles.length; i++)
-					self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
+					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
+					self.addWikiNodeFromWiki(pageTitles[i], self.THIS_WIKI)
 
 				for(var i = 0; i < pageTitles.length; i++)
 					self.elaborateNode(self.Nodes[i]);
@@ -740,6 +752,48 @@ window.VikiJS = function() {
 		return node;
 		
 	}
+	VikiJS.prototype.addWikiNodeFromWiki = function(pageTitle, wikiTitle) {
+		var self = this;
+		
+		var wiki = null;
+		if(wikiTitle === self.THIS_WIKI)
+			wiki = self.thisWikiData;
+		else
+			wiki = self.searchableWikis[ self.searchableWikiIndexForName(wikiTitle) ];	
+			
+		// for(var i = 0; i < self.searchableWikis.length; i++)
+		// if(self.searchableWikis[i].wikiTitle === wikiTitle) {
+		// 	wiki = self.searchableWikis[i];
+		// 	break;
+		// }
+		// 
+		// if(wikiTitle === self.THIS_WIKI) {
+		// 	wiki = self.thisWikiData;
+		// }
+		
+		if(!wiki)		// should never happen...
+			return null;
+			
+		node = self.newNode();
+		node.displayName = pageTitle;
+		node.pageTitle = pageTitle;
+		node.type = self.WIKI_PAGE_TYPE;
+		node.contentURL = wiki.contentURL;
+		node.URL = node.contentURL + (pageTitle.split(" ").join("_"));
+		node.apiURL = wiki.apiURL;
+		node.logoURL = wiki.logoURL;
+		node.searchable = wiki.searchableWiki;
+		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
+		node.wikiTitle = wikiTitle;
+		
+		node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
+		
+		self.checkForTitleIcon(node);
+		self.addNode(node);
+		
+		return node;
+	}
+	
 	VikiJS.prototype.addExternalNode = function(url) {
 		var self = this;
 
@@ -753,6 +807,7 @@ window.VikiJS = function() {
 		self.addNode(node);
 		return node;
 	}
+	
 	VikiJS.prototype.addExternalWikiNode = function(url, wikiIndex) {
 		var self = this;
 
@@ -769,6 +824,7 @@ window.VikiJS = function() {
 		node.logoURL = self.searchableWikis[wikiIndex]["logoURL"];
 		node.searchable = self.searchableWikis[wikiIndex]["searchableWiki"];
 		node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
+		node.wikiTitle = self.searchableWikis[wikiIndex].wikiTitle;
 		
 		node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
 
@@ -983,14 +1039,15 @@ window.VikiJS = function() {
 				if(isWikiPage) {
 					externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
 					if(!externalWikiNode) {
-						externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);
+							externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);	
 					}
 						
-					
 					var link = self.findLink(originNode.index, externalWikiNode.index);
 					if(!link)
 						link = self.addLink(originNode.index, externalWikiNode.index);
 					
+					self.visitNode(externalWikiNode);
+
 				}
 				else {
 					externalNode = self.findNode("URL", externalLinks[i]["*"]);
@@ -1015,19 +1072,39 @@ window.VikiJS = function() {
 
 		var intraLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["links"];
 		if(intraLinks) {
+			// get list of namespaces, or fetch with AJAX if required.
+
+			var wiki = null;
+			if(originNode.wikiTitle === self.THIS_WIKI) {
+				wiki = self.thisWikiData;
+			}
+			else {
+				wiki = self.searchableWikis[ self.searchableWikiIndexForName(originNode.wikiTitle) ];
+			}
+			if(!wiki.contentNamespaces)
+				self.getContentNamespaces(wiki.wikiTitle);						
+				
+			var contentNamespaces = wiki.contentNamespaces;
+			
+			self.log("contentNamespaces for "+originNode.wikiTitle+": "+ contentNamespaces);
+			
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
-					// add the node to the graph immediately.
-					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL, originNode.searchable);
+					// add the node to the graph immediately if it is within the wiki's content namespaces.
+					
+					if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
+						intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
+
 				}
-				var link = self.findLink(originNode.index, intraNode.index);
-				if(!link) {
-					link = self.addLink(originNode.index, intraNode.index);
+				if(intraNode) {
+					var link = self.findLink(originNode.index, intraNode.index);
+					if(!link) {
+						link = self.addLink(originNode.index, intraNode.index);
+					}
+					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
+					self.visitNode(intraNode);
 				}
-				// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
-				self.visitNode(intraNode);
-				
 			}
 		}
 		self.redraw(true);
@@ -1037,31 +1114,89 @@ window.VikiJS = function() {
 
 		var intraLinks = data.query.backlinks;
 		if(intraLinks) {
+			// get list of namespaces, or fetch with AJAX if required.
+
+			var wiki = null;
+			if(originNode.wikiTitle === self.THIS_WIKI) {
+				wiki = self.thisWikiData;
+			}
+			else {
+				wiki = self.searchableWikis[ self.searchableWikiIndexForName(originNode.wikiTitle) ];
+			}
+			if(!wiki.contentNamespaces)
+				self.getContentNamespaces(wiki.wikiTitle);						
+				
+			var contentNamespaces = wiki.contentNamespaces;
+			
+			self.log("contentNamespaces for "+originNode.wikiTitle+": "+ contentNamespaces);
+			
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode) {
-					var disallowed = false;
-					for(var j in self.disallowedNamespaces) {
-						var disallowedNS = self.disallowedNamespaces[j];
-						if(intraLinks[i]["ns"] === self.namespaceIds[disallowedNS]) {
-							self.log("Found page from disallowed namespace: pageTitle = "+intraLinks[i]["title"] +", namespace = "+intraLinks[i]["ns"]+"("+disallowedNS+")");
-							disallowed = true;
-							break;
-						}
-					}		
-					if(disallowed) {
-						continue;
-					}
-					intraNode = self.addWikiNode(intraLinks[i]["title"], originNode.apiURL, originNode.contentURL, originNode.logoURL, originNode.searchable);
+				if(!intraNode  || intraNode.apiURL !== originNode.apiURL) {					
+					// add the node to the graph immediately if it is within the wiki's content namespaces.
+					
+					if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
+						intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);					
+
+
 				}
-				var link = self.findLink(intraNode.index, originNode.index);
-				if(!link)
-					link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
-				
+				if(intraNode) {
+					var link = self.findLink(intraNode.index, originNode.index);
+					if(!link)
+						link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
+				}
 			}
 		}
 		self.redraw(true);
 	}
+	
+	VikiJS.prototype.getContentNamespaces = function(wikiTitle) {
+		var wiki = null;
+		var index = null;
+		if(wikiTitle == self.THIS_WIKI) {
+			wiki = self.thisWikiData;
+		}
+		else {
+			index = self.searchableWikiIndexForName(wikiTitle);
+			wiki = self.searchableWikis[index];			
+		}
+		var sameServer = wiki.contentURL.indexOf(self.serverURL) > -1;
+		jQuery.ajax({
+			url : wiki.apiURL,
+			async: false,
+			dataType : sameServer ? 'json' : 'jsonp',
+			data : {
+				action : 'getContentNamespaces',
+				format : 'json'
+			},
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url;
+				self.log("url of ajax call: "+url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
+				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
+					self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
+					if(wikiTitle === self.THIS_WIKI)
+						self.thisWikiData.contentNamespaces = [0];
+					else
+						self.searchableWikis[index].contentNamespaces = [0];
+				}
+				else {
+					if(wikiTitle === self.THIS_WIKI)
+						self.thisWikiData.contentNamespaces = data["getContentNamespaces"];
+					else
+						self.searchableWikis[index].contentNamespaces = data["getContentNamespaces"];
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+		
+		self.log("end of getContentNamespaces("+wikiTitle+")");
+	}
+	
 	VikiJS.prototype.visitNode = function(intraNode) {
 		var self = this;
 		// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
@@ -1086,6 +1221,7 @@ window.VikiJS = function() {
 			}
 		});
 	}
+	
 	VikiJS.prototype.wikiPageCheckHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
 		if(data.query.pages["-1"]) {
@@ -1095,6 +1231,7 @@ window.VikiJS = function() {
 
 		}		
 	}
+	
 	VikiJS.prototype.indexOfSearchableWiki = function(url) {
 		var self = this;
 		for(var i = 0; i < self.searchableWikis.length; i++)
@@ -1102,6 +1239,17 @@ window.VikiJS = function() {
 				return i;
 		return -1;
 	}
+	
+	VikiJS.prototype.searchableWikiIndexForName = function(wikiTitle) {
+		var self = this;
+		
+		for(var i = 0; i < self.searchableWikis.length; i++)
+			if(self.searchableWikis[i].wikiTitle === wikiTitle)
+				return i;
+		
+		return null;
+	}
+	
 	VikiJS.prototype.formatNodeInfo = function(name, isNonexistentPage) {
 		var self = this;
 		var info;
@@ -1212,15 +1360,15 @@ window.VikiJS = function() {
 
 	
 	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
-		self.log("close new nodes window pressed");
-		
-		for(var i = 0; i < returnArgs.length; i++) {
-			self.log(returnArgs[i]["pageTitle"]);
-			wikiNode = self.findNode("pageTitle", returnArgs[i]["pageTitle"]);
-			if(!wikiNode)
-				self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL, true);
-		}
-		self.redraw(true);
+		// self.log("close new nodes window pressed");
+		// 
+		// for(var i = 0; i < returnArgs.length; i++) {
+		// 	self.log(returnArgs[i]["pageTitle"]);
+		// 	wikiNode = self.findNode("pageTitle", returnArgs[i]["pageTitle"]);
+		// 	if(!wikiNode)
+		// 		self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL, true);
+		// }
+		// self.redraw(true);
 	}
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);

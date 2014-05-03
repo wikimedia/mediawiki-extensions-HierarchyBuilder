@@ -65,6 +65,7 @@ $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
 
 $wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
 $wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
+$wgAPIModules['getContentNamespaces'] = 'ApiGetContentNamespaces';
 
 function efVikiJSParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('vikijs', 'vikijs');
@@ -373,3 +374,29 @@ Note that because the returned value is a JSON object, you must specify format=j
 		return '';
 	}
 }
+
+class ApiGetContentNamespaces extends ApiBase {
+	public function __construct( $main, $action ) {
+		parent::__construct( $main, $action );
+	}
+	public function execute() {
+		global $wgContentNamespaces;
+		$this->getResult()->addValue(null, $this->getModuleName(), $wgContentNamespaces);
+
+		return true;
+	}
+	public function getDescription() {
+		return "Get the list of content namespaces for this wiki.
+			
+Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
+	}
+	public function getExamples() {
+		return array(
+			'api.php?action=getContentNamespaces'
+		);
+	}
+	public function getHelpUrls() {
+		return '';
+	}
+}
+
