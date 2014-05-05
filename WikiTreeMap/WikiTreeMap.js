@@ -6,25 +6,18 @@ window.WikiTreeMap = function() {
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
       var wikis = ["cnsdtm", "darpapedia", "dstc", "dstc-devel","enable", "eseteam", "examples", "experipedia",  "geopedia", "gestalt",  "gestaltd", "healthcareanalytics", "international", "j850mip", "j85d",  "jcrew-connect",  "languapedia","map",  "mitrepedia","mobilepedia", "mooc", "odp", "phatwiki", "reading",  "robopedia","socialmedia","tge", "tools","viki"];     
       fillAppropriateDropdown('#wikis', wikis);
-      // var graphDiv = graphDiv;
 
 	window.onload = function(e){
-        var elmDiv = wiki;
-            elmData = elmDiv;        
-            jsonData = {"name":"allcategories", "children" : []};
-         //   $('svg').remove();
-//            $('h2').append().text(elmData);
+    	var elmDiv = wiki;
+        elmData = elmDiv;        
+        jsonData = {"name":"allcategories", "children" : []};
 	    $('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
-        if(elmData==="mitrepedia"){
-          var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
-        } else {
-          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
-        }
-//          recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
-  
-	getWanted(elmData, wikiUrl, graphDiv, divwidth, divheight);
-          
-      }; 
+		var categoryUrl = getCategoryUrl(elmData);
+		var	wantedUrl = getWantedUrl(elmData);
+	    var unusedUrl = getUnusedUrl(elmData);
+		getWanted(wantedUrl, categoryUrl, graphDiv, divwidth, divheight);
+		getUnused(unusedUrl, categoryUrl, graphDiv, divwidth, divheight);
+    }; 
     
 
 
@@ -32,22 +25,14 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 
     $('#loadData').click(function(e){
         var elmDiv = $('#wikis');
-            elmData = elmDiv[0].value;        
-            jsonData = {"name":"allcategories", "children" : []};
-         //   $('svg').remove();
-//            $('h2').append().text(elmData);
+        elmData = elmDiv[0].value;        
+        jsonData = {"name":"allcategories", "children" : []};
 	    $('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
-	var wanted = getWanted(elmData);
-
-        if(elmData==="mitrepedia"){
-
-          var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
-        } else {
-          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
-        }
-//            recursiveQuery(wikiUrl, graphDiv, divwidth, divheight, wanted);       
-              recursiveQuery(wikiUrl, graphDiv, divwidth, divheight);       
-  
+		var categoryUrl = getCategoryUrl(elmData);
+	    var unusedUrl = getUnusedUrl(elmData);
+		var wantedUrl = getWantedUrl(elmData);
+	    getWanted(wantedUrl, categoryUrl, graphDiv, divwidth, divheight);  
+		getUnused(unusedUrl, categoryUrl, graphDiv, divwidth, divheight);
       }); 
 }
 
@@ -58,9 +43,11 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
           o.value = o.pages;
         })
 
-	wanted.forEach( function(w){ 
-		data.children.forEach( function(d){ if(d['*']===w.title.split(':')[1]){d.color = "#990000"; console.log("Got Here")} else{d.color = "black"} }  )
-	})
+	if(wanted){
+		wanted.forEach( function(w){ 
+			data.children.forEach( function(d){ if(d['*']===w.title.split(':')[1]){d.color = "#990000";} else{d.color = "black"} }  )
+		})
+	}
 
 	  var margin = {top: 40, right: 20, bottom: 10, left: 20},
 	      width = 829 - margin.left - margin.right,
@@ -225,7 +212,6 @@ do {
   }
   else
      ;
-// So what if the line was refreshed only at the end, so everything is presented in 'text'
   line = new Array(); // Line is reinstantiated, deleting what was in it before
     }
   } while (words.length);
@@ -285,23 +271,114 @@ do {
     }
 
 			
-     function getWanted(elmData, wUrl, graphDiv, divwidth, divheight){
-	if(elmData==="mitrepedia"){
-          var wikiUrl = "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
-        } else {
-          var wikiUrl = "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=querypage&qppage=Wantedcategories&format=json"
-        }
+     function getWanted(wantedUrl, categoryUrl, graphDiv, divwidth, divheight){
 	  jQuery.ajax({
-
-            url: wikiUrl,
+            url: wantedUrl,
             dataType: 'jsonp',
             async: false,
             success: function (data, textStatus, jqXHR) {
 		      var wanted = data.query.querypage.results;
-	              recursiveQuery(wUrl, graphDiv, divwidth, divheight, wanted);
+	              recursiveQuery(categoryUrl, graphDiv, divwidth, divheight, wanted);
 		},
             error: function (jqXHR, textStatus, errorThrown) {
                error(textStatus);
+	           recursiveQuery(categoryUrl, graphDiv, divwidth, divheight);
             }
         }); 
      }
+
+    function getWantedUrl(elmData){
+		if(elmData==="mitrepedia"){
+          return "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
+        } else {
+          return "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=querypage&qppage=Wantedcategories&format=json"
+        }		
+    }
+
+	function getCategoryUrl(elmData){
+        if(elmData==="mitrepedia"){
+          return "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
+        } else {
+          return "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
+        }
+	}
+
+	
+	function getUnusedUrl(elmData){
+        if(elmData==="mitrepedia"){
+          return "http://" + elmData + ".mitre.org/api.php?action=query&list=allcategories&acmin=1&acto=Tags&format=json&aclimit=max&acmax=max&acprop=size"
+        } else {
+          return "http://" + elmData + ".mitre.org/.mediawiki/api.php?action=query&list=querypage&qppage=Unusedcategories&format=json"
+        }
+	}
+
+	function getUnused(unusedUrl, categoryUrl, graphDiv, divwidth, divheight){
+		jQuery.ajax({
+            url: unusedUrl,
+            dataType: 'jsonp',
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+	     	    var unused = data.query.querypage.results;   			
+				if(unused.length){
+					var tabulation = tabulate(unused, ["Unused Categories:"]);
+					setTimeout(function() {
+			  			 $('div.wikitreemap-graph-container').append(tabulation);
+					;}, 1000);
+				}		      
+			},
+            error: function (jqXHR, textStatus, errorThrown) {
+               error(textStatus);
+//	           recursiveQuery(categoryUrl, graphDiv, divwidth, divheight);
+            }
+        }); 	
+	}	
+	
+
+			function tabulate(unused, columns) {
+				data = Array();
+				// parses names of unused categories into an array				
+				unused.forEach(function(d){ 
+					data.push(d.value);
+				});   
+
+				    var table = d3.select("body").append("table")
+			            .attr("style", "margin-left: 250px"),
+
+				    thead = table.append("thead"),
+			        tbody = table.append("tbody");
+
+					table.attr("class", "unusedTable");
+
+			    	// append the header row
+    				thead.append("tr")
+					.attr("style", "text-align:left")
+   				     .selectAll("th")
+ 				     .data(columns)
+                     .enter()
+			 	     .append("th")
+                      .text(function(column) { return column; });
+
+		    		// create a row for each object in the data
+				    var rows = tbody.selectAll("tr")
+        				.data(data)
+        				.enter()
+        				.append("tr");
+
+				    // create a cell in each row for each column
+				    var cells = rows.selectAll("td")
+        				.data(function(row) {
+	         				 return columns.map(function(column) {
+	 			               	return {column: column, value: row};
+	            			 });
+       					})
+				        .enter()
+				        .append("td")
+        				.attr("style", "font-family: Courier")
+            				.html(function(d) { return d.value; });
+    
+	
+    				return table;
+			}
+
+	// render the table
+//	var peopleTable = tabulate(data, ["date", "close"]);

@@ -29,3 +29,11 @@ form {
   position: absolute;
   text-indent: 2px;
 }
+
+td, th {
+    padding: 1px 4px;
+}
+
+.unusedTable {
+	align: left;
+}
