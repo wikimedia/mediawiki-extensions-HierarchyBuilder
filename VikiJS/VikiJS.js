@@ -23,6 +23,7 @@
 window.VikiJS = function() {
 
 	this.ID = null;
+	this.loadingView = null;
 	this.WIKI_PAGE_TYPE = 0;
 	this.EXTERNAL_PAGE_TYPE = 1;
 	this.MAX_BAR_WIDTH = 60;
@@ -30,6 +31,9 @@ window.VikiJS = function() {
 //	this.SELECTED_IMAGE_DIMENSION = 30;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
+
+	this.searchableCount = 0;
+	this.contentNamespacesFetched = 0;
 
 	this.MIN_SCALE = .2;
 	this.MAX_SCALE = 5;
@@ -45,6 +49,7 @@ window.VikiJS = function() {
 	this.INCOMING_LINK_COLOR = "#3498db";
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
 
+	this.initialPageTitles = null;
 	this.Hooks = null;
 	this.hasHooks = false;
 	this.GraphDiv = null;
@@ -81,23 +86,73 @@ window.VikiJS = function() {
 
 	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
 		var self = this;
-
+		self.log("very start of drawGraph");
 		// CSS option for the Vex modal dialog library
 		vex.defaultOptions.className = 'vex-theme-default';
+		// vex.showLoading();
+		
+		var loadingContent = '\
+<div id="loadingDiv">\
+	<div id="textDiv">Loading...</div>\
+	<div id="spinnerDiv"></div>\
+</div>';
+
+		var loadingStyle = '\
+<style>\
+	#textDiv {\
+		text-align: center;\
+	}\
+	#spinnerDiv {\
+		height: 75px;\
+	}\
+</style>';
+		
+		var opts = {
+		  lines: 11, // The number of lines to draw
+		  length: 8, // The length of each line
+		  width: 4, // The line thickness
+		  radius: 8, // The radius of the inner circle
+		  corners: 1, // Corner roundness (0..1)
+		  rotate: 0, // The rotation offset
+		  direction: 1, // 1: clockwise, -1: counterclockwise
+		  color: '#000', // #rgb or #rrggbb or array of colors
+		  speed: 1, // Rounds per second
+		  trail: 60, // Afterglow percentage
+		  shadow: false, // Whether to render a shadow
+		  hwaccel: false, // Whether to use hardware acceleration
+		  className: 'spinner', // The CSS class to assign to the spinner
+		  zIndex: 2e9, // The z-index (defaults to 2000000000)
+		  top: '60%', // Top position relative to parent
+		  left: '50%' // Left position relative to parent
+		};
+		
+		self.log("showing load screen");
+		self.loadingView = vex.open({
+			content: loadingContent,
+			contentCSS: {
+				width : '150px'
+			},
+			afterOpen: function($vexContent) {
+				$vexContent.append(loadingStyle);
+				spinner = new Spinner(opts).spin(document.getElementById('spinnerDiv'));
+			},
+			showCloseButton: false
+		});
+		
+		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
 		var dig = new RegExp("[0-9]", 'g');
 		this.ID = graphDiv.match(dig)[0];
 
+		// get hooks available
 		this.Hooks = jQuery.parseJSON(hooks);
 		this.hasHooks = (self.Hooks != null);
 		this.serverURL = mw.config.get("wgServer");
-		pageTitles = eval("("+pageTitles+")");
+		this.initialPageTitles = eval("("+pageTitles+")");
 		
-		if(pageTitles === null) {
+		if(this.initialPageTitles === null) {
 			alert("You must supply a page title.");
 			return;
 		}
-
-		self.log("START - pageTitles = "+pageTitles[0]);
 
 		// initialize graph settings.
 
@@ -152,40 +207,6 @@ window.VikiJS = function() {
 		// and do initial graph population.
 
 		this.callHooks("GetSearchableWikisHook", []);
-
-		self.log("now will get site logo and do graph population");
-		jQuery.ajax({
-
-			url: self.myApiURL,
-			dataType: 'json',
-			data: {
-				action: 'getSiteLogo',
-				format: 'json'
-			},
-			success: function(data, textStatus, jqXHR) {
-
-				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
-				self.thisWikiData.logoURL = self.myLogoURL;
-				// do initial graph population
-				for(var i = 0; i < pageTitles.length; i++)
-					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
-					self.addWikiNodeFromWiki(pageTitles[i], self.THIS_WIKI)
-
-				for(var i = 0; i < pageTitles.length; i++)
-					self.elaborateNode(self.Nodes[i]);
-
-				self.Force.nodes(self.Nodes);
-				self.Force.links(self.Links);
-
-				self.redraw(true);
-
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch list of wikis.");
-			}
-
-
-		});
 
 		function initializeGraph() {
 			var padding = 20;
@@ -373,6 +394,104 @@ window.VikiJS = function() {
 				});
 			}
 		}
+	}
+	
+	VikiJS.prototype.fetchContentNamespaces = function() {
+		var self = this;
+		
+		actuallySearchableWikis = self.searchableWikis.filter(function(wiki) {
+			return wiki.searchableWiki;
+		});
+		
+		self.log("actually searchable wikis: "+actuallySearchableWikis.length);
+		self.searchableCount = actuallySearchableWikis.length;
+		
+		for(var i = 0; i < actuallySearchableWikis.length; i++) {
+			self.log("wiki: "+actuallySearchableWikis[i].wikiTitle+" is searchable, getting content namespaces now");
+			self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
+		}
+	}
+	
+	VikiJS.prototype.getContentNamespaceForWikiAtIndex = function(actuallySearchableWikis, index) {
+		var self = this;
+		self.log("in getContentNamespaceForWikiAtIndex: "+index+" which is wiki "+actuallySearchableWikis[index].wikiTitle);
+		var wiki = actuallySearchableWikis[index];
+		var wikiTitle = wiki.wikiTitle;
+
+		var sameServer = wiki.contentURL.indexOf(self.serverURL) > -1;
+		jQuery.ajax({
+			url : wiki.apiURL,
+			dataType : sameServer ? 'json' : 'jsonp',
+			data : {
+				action : 'getContentNamespaces',
+				format : 'json'
+			},
+			beforeSend: function (jqXHR, settings) {
+				url = settings.url;
+				self.log("url of ajax call: "+url);
+			},
+			success: function(data, textStatus, jqXHR) {
+				self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
+				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
+					self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
+					actuallySearchableWikis[index].contentNamespaces = [0];
+				}
+				else {
+					actuallySearchableWikis[index].contentNamespaces = data["getContentNamespaces"];
+				}
+			
+				self.contentNamespacesFetched++;
+				self.log("" + self.contentNamespacesFetched + " wikis' content namespaces fetched");
+				if(self.contentNamespacesFetched == self.searchableCount) {
+					self.log("all namespaces fetched; now populating graph");
+					self.populateInitialGraph();				
+				}
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+			}
+		});
+	
+		// self.log("end of getContentNamespaces("+wikiTitle+")");
+	}
+	
+	VikiJS.prototype.populateInitialGraph = function() {
+		var self = this;
+		
+		vex.close(self.loadingView.data().vex.id);
+		self.log("closed load screen");
+		self.log("now will get site logo and do graph population");
+		jQuery.ajax({
+			url: self.myApiURL,
+			dataType: 'json',
+			data: {
+				action: 'getSiteLogo',
+				format: 'json'
+			},
+			success: function(data, textStatus, jqXHR) {
+
+				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
+				self.thisWikiData.logoURL = self.myLogoURL;
+				// do initial graph population
+				for(var i = 0; i < self.initialPageTitles.length; i++)
+					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
+					self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+
+				for(var i = 0; i < self.initialPageTitles.length; i++)
+					self.elaborateNode(self.Nodes[i]);
+
+				self.Force.nodes(self.Nodes);
+				self.Force.links(self.Links);
+
+				self.redraw(true);
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Unable to fetch list of wikis.");
+			}
+		});
+		
 	}
 
 	VikiJS.prototype.slide = function() {	
@@ -1334,7 +1453,7 @@ window.VikiJS = function() {
 	}\
 </style>\
 ";
-		vex.dialog.open({
+		content = vex.dialog.open({
 			message: "Search For Nodes",
 			contentCSS: {
 				"width" : "750px"
@@ -1355,6 +1474,8 @@ window.VikiJS = function() {
 			}
 
 		});
+
+		// setTimeout(function() { vex.close(content.data().vex.id) }, 3000);
 
 	}
 
@@ -1382,7 +1503,6 @@ window.VikiJS = function() {
 					window[ self.Hooks[hookName][i] ](self, parameters);
 				}
 				self.log("Done with hooks for "+hookName);
-				self.redraw(true);
 			}
 		}
 		else {

@@ -56,6 +56,7 @@ $wgResourceModules['ext.VikiJS'] = array(
 	'scripts' => array(
 		'd3.v3.min.js',
 		'vex.combined.min.js',
+		'spin.min.js',
 		'VikiJS.js'
 	)
 );

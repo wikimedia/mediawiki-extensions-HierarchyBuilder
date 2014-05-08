@@ -1,12 +1,36 @@
 // Hook functions
 
+window.MITRE_VIKI = function() {
+	this.searchableCount = 0;
+	this.contentNamespacesFetched = 0;
+}
+
 window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 // parameters = []
 	apiURL = vikiObject.myApiURL;
 	searchableWikisArray = vikiObject.searchableWikis;
+	
+	// for(var i = 0; i < 100; i ++) {
+	// 	jQuery.ajax({
+	// 		url: apiURL,
+	// 		async: false,
+	// 		dataType: 'json',
+	// 		data: {
+	// 			action: 'getSearchableWikis',
+	// 			format: 'json'
+	// 		},
+	// 		success: function(data, textStatus, jqXHR) {
+	// 			hook_log("success fetching another request..");
+	// 		},
+	// 		error: function(jqXHR, textStatus, errorThrown) {
+	// 			alert("Unable to fetch list of wikis.");
+	// 		}
+	// 	});
+	// }
+	
 	jQuery.ajax({
 		url: apiURL,
-		async: false,
+		// async: false,
 		dataType: 'json',
 		data: {
 			action: 'getSearchableWikis',
@@ -15,12 +39,58 @@ window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 		success: function(data, textStatus, jqXHR) {
 			parseSearchableWikisList(data, searchableWikisArray);
 			hook_log("success getting searchable wikis");
+			vikiObject.fetchContentNamespaces();
+			// vikiObject.populateInitialGraph();
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert("Unable to fetch list of wikis.");
 		}
 	});
 }
+/*
+window.getContentNamespace = function(vikiObject, searchableWikis, index, mitreVikiObject) {
+
+	var wiki = searchableWikis[index];
+	var wikiTitle = wiki.wikiTitle;
+
+	var sameServer = wiki.contentURL.indexOf(vikiObject.serverURL) > -1;
+	jQuery.ajax({
+		url : wiki.apiURL,
+		dataType : sameServer ? 'json' : 'jsonp',
+		data : {
+			action : 'getContentNamespaces',
+			format : 'json'
+		},
+		beforeSend: function (jqXHR, settings) {
+			url = settings.url;
+			hook_log("url of ajax call: "+url);
+		},
+		success: function(data, textStatus, jqXHR) {
+			hook_log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
+			if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
+				hook_log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
+				searchableWikis[index].contentNamespaces = [0];
+			}
+			else {
+				searchableWikis[index].contentNamespaces = data["getContentNamespaces"];
+			}
+			
+			mitreVikiObject.contentNamespacesFetched++;
+			hook_log("mitreVikiObject records " + mitreVikiObject.contentNamespacesFetched + " wikis' content namespaces fetched");
+			if(mitreVikiObject.contentNamespacesFetched == mitreVikiObject.searchableCount) {
+				hook_log("all namespaces fetched; now populating graph");
+				vikiObject.populateInitialGraph();				
+			}
+
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+		}
+	});
+	
+	hook_log("end of getContentNamespaces("+wikiTitle+")");
+}
+*/
 
 window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 //parameters = [ new external nodes ]
@@ -91,7 +161,7 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 
 window.queryPhonebook = function(vikiObject, node, employeeNum) {
 	jQuery.ajax({
-		async: false,
+		// async: false,
 		url: vikiObject.myApiURL,
 		dataType: 'json',
 		data: {
@@ -127,4 +197,14 @@ hook_log = function(text) {
 	if( (window['console'] !== undefined) )
 		console.log( text );
 }
-
+// 
+// window.sleep = function(milliseconds) {
+// 	var start = new Date().getTime();
+// 
+// 	var timer = true;
+// 	while (timer) {
+// 		if ((new Date().getTime() - start)> milliseconds) {
+// 			timer = false;
+// 		}
+// 	}
+// }
