@@ -54,9 +54,9 @@ $wgResourceModules['ext.ProjectGraph'] = array(
 	'scripts' => array(
 		'd3.v3.min.js',
 		'contextmenu.js',
-		'queries.js',
 		'ProjectGraph.js',
-		'proxy.php'
+		'queries.js'
+
 	)
 );
 

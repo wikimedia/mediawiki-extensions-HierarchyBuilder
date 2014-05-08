@@ -60,6 +60,15 @@ window.ProjectGraph = function() {
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
 		var self = this;
+		
+/***************************************************************************************/
+		// For now, hide the search bar because this section of code is untested.
+		// We want to prevent users from using the search bar until a future version
+		// of ProjectGraph where we're more comfortable with the tag search.
+		$("#searchbar").css("display", "none");		
+		
+/***************************************************************************************/		
+		
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
 		// regular expression to find the first numeric digit
@@ -215,6 +224,7 @@ window.ProjectGraph = function() {
 		for (var i = 0; i < chargeNumberArray.length; i++) {
 			this.addProjectNode(chargeNumberArray[i], chargeNumberArray[i]);
 		}
+				
 		for (var i = 0; i < employeeNumberArray.length; i++) {
 			this.addPersonNode(personNames[i], employeeNumberArray[i]);
 		}
@@ -223,6 +233,7 @@ window.ProjectGraph = function() {
 		for (var i = 0; i < this.Nodes.length; i++) {
 			nodes.push(this.Nodes[i]);
 		}
+		
 		for (var i = 0; i < nodes.length; i++) {
 			this.elaborateNode(nodes[i]);
 		}
@@ -611,7 +622,7 @@ window.ProjectGraph = function() {
 		node.info = this.formatNodeInfo(displayName);
 		node.type = this.PROJECT_TYPE;
 		node.imageURL = this.ImagePath + 'project.png';
-		node.tags = queryTags('project', node.chargeNumber);
+		node.tags = this.queryTags('project', node.chargeNumber);
 		node.uid = node.chargeNumber;
 		node.projectPagesURL =
 			"http://info.mitre.org/phonebook/project.do?projectNumber=" +
@@ -633,7 +644,7 @@ window.ProjectGraph = function() {
 		node.type = this.PERSON_TYPE;
 		node.imageURL = "http://info.mitre.org/phonebook/photos/big/" +
 			employeeNumber + ".jpg";
-		node.tags = queryTags('employee', node.employeeNumber);
+		node.tags = this.queryTags('employee', node.employeeNumber);
 		node.uid = node.employeeNumber;
 		node.personPagesURL =
 			"http://info.mitre.org/people/app/person/" + employeeNumber;
@@ -834,7 +845,7 @@ window.ProjectGraph = function() {
 		taskNode.elaborated = true;
 		taskNode.info = this.formatNodeInfo(taskNode.displayName);
 		this.displayNodeInfo(taskNode);
-		var delivery = queryTaskDelivery(taskNode.chargeNumber,
+		var delivery = this.queryTaskDelivery(taskNode.chargeNumber,
 			this.FiscalYear);
 		if (delivery == null) {
 			$("#projectgraph-errors-panel").css("visibility", "visible");
@@ -885,7 +896,7 @@ window.ProjectGraph = function() {
 		personNode.info =
 			this.formatNodeInfo(personNode.displayName);
 		this.displayNodeInfo(personNode);
-		var tasks = queryStaffTasks(personNode.employeeNumber,
+		var tasks = this.queryStaffTasks(personNode.employeeNumber,
 			this.FiscalYear);
 		if (tasks == null) {
 			alert("Error getting data for employee " + node.employeeNumber +
@@ -1244,4 +1255,123 @@ window.ProjectGraph = function() {
 		$("#"+this.SliderDiv).slider("value",this.Zoompos);
 		this.redraw(true);
 	}
+	
+	ProjectGraph.prototype.log = function(text) {
+		if( (window['console'] !== undefined) )
+			console.log( text );
+	}
+	
+	ProjectGraph.prototype.queryStaffTasks = function(employeeNumber, fiscalYear) {
+		var tasks = null;
+		var request =
+	'<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">' +
+	'	<soap12:Body>' +
+	'		<GetMyProjectCharges xmlns="http://Mitre.IWWeb.Data.Service.ProjectCharges">' +
+	'			<Employee>' + employeeNumber + '</Employee>' +
+	'			<FiscalYear>' + fiscalYear + '</FiscalYear>' +
+	'		</GetMyProjectCharges>' +
+	'	</soap12:Body>' +
+	'</soap12:Envelope>';
+		jQuery.ajax({
+			url: '/IWWebService/ProjectCharges.asmx?op=GetMyProjectCharges',
+			type: 'POST',
+			dataType: 'xml',
+			contentType: 'text/xml; charset="utf-8"',
+			async: false,
+			data: request,
+			success: function (data, textStatus, jqXHR) {
+				tasks = [];
+				var xml = jqXHR.responseText;
+				jQuery(xml).find('MyProjectCharges').each(function() {
+					var chargeNumber = $(this).find('ProjectNumber').text();
+					var taskName = $(this).find('ProjectName').text();
+					var hours = $(this).find('Hours').text();
+					var percent = $(this).find('Percent').text();
+					tasks.push({
+						chargeNumber: chargeNumber,
+						taskName: taskName,
+						hours: Number(hours),
+						percent: Number(percent)
+					});
+				});
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
+			}
+		});
+		return tasks;
+	}
+
+	ProjectGraph.prototype.queryTaskDelivery = function(chargeNumber, fiscalYear) {
+		var taskName = null;
+		var staff = null;
+		var request =
+	'<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">' +
+	'	<soap12:Body>' +
+	'		<GetTaskPhonebookInfo xmlns="http://Mitre.IWWeb.Data.Service.TaskInformation">' +
+	'			<TaskNo>' + chargeNumber + '</TaskNo>' +
+	'			<fiscalPeriod>' + fiscalYear + '</fiscalPeriod>' +
+	'		</GetTaskPhonebookInfo>' +
+	'	</soap12:Body>' +
+	'</soap12:Envelope>';
+		jQuery.ajax({
+			url: '/IWWebService/TaskInformation.asmx?op=GetTaskPhonebookInfo',
+			type: 'POST',
+			dataType: 'xml',
+			contentType: 'text/xml; charset="utf-8"',
+			async: false,
+			data: request,
+			success: function (data, textStatus, jqXHR) {
+				staff = [];
+				var xml = jqXHR.responseText;
+				taskName = jQuery(xml).find('ProjectName').text();
+				jQuery(xml).find('TotalStaffList StaffTI').each(function() {
+					var departmentNumber = $(this).find('DepartmentNumber').text();
+					var temp = $(this).find('Delivery');
+					delivery = temp.text();
+					var hours = $(this).find('Hours').text();
+					var FTEs = $(this).find('FTEs').text();
+					var personName = $(this).find('PersonName').text();
+					var expenditureCat = $(this).find('ExpenditureCat').text();
+					var employeeNumber = $(this).find('Empnum').text();
+					staff.push({
+						departmentNumber: departmentNumber,
+						delivery: Number(delivery),
+						hours: Number(hours),
+						FTEs: FTEs,
+						personName: personName,
+						expenditureCat: expenditureCat,
+						employeeNumber: employeeNumber
+					});
+				});
+			}
+		});
+		if (taskName == null || staff == null) {
+			return null;
+		}
+		return {
+			taskName: taskName,
+			staff: staff
+		};
+	}
+	
+	ProjectGraph.prototype.queryTags = function(type, uid) {
+		var tags = [];
+		// simple get request interfacing with proxy script
+		// proxy.php take in one parameter 'url' with the url you are trying to access
+		// both ajax request and proxy script is get requests
+		$.ajax({
+			// url: '../proxy.php?url=http://info.mitre.org/tags/entity/'+type+'/'+uid+'.json',
+			url: '/MITRETagInterface/entity/'+type+'/'+uid+'.json',
+			type: 'GET',
+			dataType: 'json',
+			async: false,// must be set to false otherwise tags do not get returned.
+			success: function(data){
+				tags = data.tags;
+			}		
+		});
+		return tags;
+	}
+	
+	
 }
