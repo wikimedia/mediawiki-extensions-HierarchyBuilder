@@ -5,10 +5,10 @@ window.MITRE_VIKI = function() {
 	this.contentNamespacesFetched = 0;
 }
 
-window.mitre_getSearchableWikis = function(vikiObject, parameters) {
+window.mitre_getAllWikis = function(vikiObject, parameters) {
 // parameters = []
 	apiURL = vikiObject.myApiURL;
-	searchableWikisArray = vikiObject.searchableWikis;
+	allWikisArray = vikiObject.allWikis;
 	
 	// for(var i = 0; i < 100; i ++) {
 	// 	jQuery.ajax({
@@ -16,7 +16,7 @@ window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 	// 		async: false,
 	// 		dataType: 'json',
 	// 		data: {
-	// 			action: 'getSearchableWikis',
+	// 			action: 'getAllWikis',
 	// 			format: 'json'
 	// 		},
 	// 		success: function(data, textStatus, jqXHR) {
@@ -33,12 +33,12 @@ window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 		// async: false,
 		dataType: 'json',
 		data: {
-			action: 'getSearchableWikis',
+			action: 'getAllWikis',
 			format: 'json'
 		},
 		success: function(data, textStatus, jqXHR) {
-			parseSearchableWikisList(data, searchableWikisArray);
-			hook_log("success getting searchable wikis");
+			parseAllWikisList(data, allWikisArray);
+			hook_log("success getting all wikis");
 			vikiObject.fetchContentNamespaces();
 			// vikiObject.populateInitialGraph();
 		},
@@ -48,9 +48,9 @@ window.mitre_getSearchableWikis = function(vikiObject, parameters) {
 	});
 }
 /*
-window.getContentNamespace = function(vikiObject, searchableWikis, index, mitreVikiObject) {
+window.getContentNamespace = function(vikiObject, allWikis, index, mitreVikiObject) {
 
-	var wiki = searchableWikis[index];
+	var wiki = allWikis[index];
 	var wikiTitle = wiki.wikiTitle;
 
 	var sameServer = wiki.contentURL.indexOf(vikiObject.serverURL) > -1;
@@ -69,10 +69,10 @@ window.getContentNamespace = function(vikiObject, searchableWikis, index, mitreV
 			hook_log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
 			if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
 				hook_log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
-				searchableWikis[index].contentNamespaces = [0];
+				allWikis[index].contentNamespaces = [0];
 			}
 			else {
-				searchableWikis[index].contentNamespaces = data["getContentNamespaces"];
+				allWikis[index].contentNamespaces = data["getContentNamespaces"];
 			}
 			
 			mitreVikiObject.contentNamespacesFetched++;
@@ -124,9 +124,9 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 
 // Helper functions
 
-window.parseSearchableWikisList = function(data, searchableWikisArray) {
-	hook_log("Retrieved searchableWikisList");
-	allWikis = data["getSearchableWikis"]["results"];
+window.parseAllWikisList = function(data, allWikisArray) {
+	hook_log("Retrieved allWikisList");
+	allWikis = data["getAllWikis"]["results"];
 
 	for(var i in allWikis) {
 		var title = allWikis[i]["fulltext"];
@@ -141,7 +141,7 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 			   else
 				   wiki.searchableWiki = false;
 			   
-		searchableWikisArray.push(wiki);
+		allWikisArray.push(wiki);
 
 	}
 
@@ -154,9 +154,9 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 	// 	
 	// }
 	// 
-	// searchableWikisArray.push(testWiki);
+	// allWikisArray.push(testWiki);
 	// 
-	hook_log("searchableWikisArray.length = "+searchableWikisArray.length);
+	hook_log("allWikisArray.length = "+allWikisArray.length);
 }
 
 window.queryPhonebook = function(vikiObject, node, employeeNum) {

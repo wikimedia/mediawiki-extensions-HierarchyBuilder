@@ -103,7 +103,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			url: self.apiurl,
 			dataType: 'json',
 			data: {
-				action: "getSearchableWikis",
+				action: "getAllWikis",
 				format: "json"
 			},
 			success: function(data, textStatus, jqXHR) {
@@ -134,7 +134,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	MultiWikiSearch.prototype.parseInitialData = function(data) {
 		var self = this;
 
-		allWikis = data["getSearchableWikis"]["results"];
+		allWikis = data["getAllWikis"]["results"];
 
 		$(document).ready(function() {
 			for(var i in allWikis) {
