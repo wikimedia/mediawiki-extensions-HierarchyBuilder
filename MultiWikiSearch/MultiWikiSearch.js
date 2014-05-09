@@ -140,10 +140,12 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			for(var i in allWikis) {
 				var title = allWikis[i]["fulltext"];
 				self.log(allWikis[i]);
-
-				$("#excludedWikis").append("<option class=\"excludedOption\" value=\""+title+"\" id=\""+title+"\" >"+title+"</option>");
-				self.excludedWikis[title] = allWikis[i];
-				self.allWikisList.push(allWikis[i]);
+				
+				if(allWikis[i]["printouts"]["Gestalt Community Searchable"].length > 0 && allWikis[i]["printouts"]["Gestalt Community Searchable"][0] === 't') {
+					$("#excludedWikis").append("<option class=\"excludedOption\" value=\""+title+"\" id=\""+title+"\" >"+title+"</option>");
+					self.excludedWikis[title] = allWikis[i];
+					self.allWikisList.push(allWikis[i]);
+				}
 			}
 			$("#includedWikis").attr("size", 10);
 			$("#includedWikis").change(function() { self.namespaceHandler(); });
