@@ -66,9 +66,9 @@ window.ProjectGraph = function() {
 		// We want to prevent users from using the search bar until a future version
 		// of ProjectGraph where we're more comfortable with the tag search.
 		$("#searchbar").css("display", "none");		
-		
+
 /***************************************************************************************/		
-		
+				
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
 		// regular expression to find the first numeric digit

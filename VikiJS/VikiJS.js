@@ -1209,11 +1209,13 @@ window.VikiJS = function() {
 			
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode || intraNode.apiURL !== originNode.apiURL) {
+				if(!intraNode || (intraNode.apiURL !== originNode.apiURL)) {
 					// add the node to the graph immediately if it is within the wiki's content namespaces.
 					
 					if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
 						intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
+					else
+						continue;
 
 				}
 				if(intraNode) {
@@ -1251,12 +1253,13 @@ window.VikiJS = function() {
 			
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
-				if(!intraNode  || intraNode.apiURL !== originNode.apiURL) {					
+				if(!intraNode  || (intraNode.apiURL !== originNode.apiURL)) {					
 					// add the node to the graph immediately if it is within the wiki's content namespaces.
 					
 					if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
 						intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);					
-
+					else
+						continue;
 
 				}
 				if(intraNode) {
@@ -1503,6 +1506,8 @@ window.VikiJS = function() {
 					window[ self.Hooks[hookName][i] ](self, parameters);
 				}
 				self.log("Done with hooks for "+hookName);
+				
+				self.redraw(true);
 			}
 		}
 		else {
