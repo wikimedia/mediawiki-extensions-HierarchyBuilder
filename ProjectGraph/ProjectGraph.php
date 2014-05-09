@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.6.0',
+	'version' => '1.6.1',
 	'author' => array("Cindy Cicalese", "Jason Ji", "Austin Vecchio"),
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -52,7 +52,7 @@ $wgResourceModules['ext.ProjectGraph'] = array(
 		'ProjectGraph.css'
 	),
 	'scripts' => array(
-		'd3.v3.min.js',
+		'd3.v3.js',
 		'contextmenu.js',
 		'ProjectGraph.js',
 		'queries.js'
