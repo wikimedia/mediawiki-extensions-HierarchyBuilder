@@ -63,10 +63,17 @@
 
 }
 
-.ui-progressbar-value.ui-widget-header {
+#MultiWikiSearch .ui-progressbar-value.ui-widget-header {
+	margin: 0px;
   background: blue;
+  height: 106% !important;
 }
 
+#progressbar {
+	border-radius:4px;
+	overflow:hidden;
+	height:2.5em;
+}
 
 #searchResultsDiv {
   display: none;

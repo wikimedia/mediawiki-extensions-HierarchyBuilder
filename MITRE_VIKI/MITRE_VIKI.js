@@ -6,27 +6,9 @@ window.MITRE_VIKI = function() {
 }
 
 window.mitre_getAllWikis = function(vikiObject, parameters) {
-// parameters = []
+
 	apiURL = vikiObject.myApiURL;
 	allWikisArray = vikiObject.allWikis;
-	
-	// for(var i = 0; i < 100; i ++) {
-	// 	jQuery.ajax({
-	// 		url: apiURL,
-	// 		async: false,
-	// 		dataType: 'json',
-	// 		data: {
-	// 			action: 'getAllWikis',
-	// 			format: 'json'
-	// 		},
-	// 		success: function(data, textStatus, jqXHR) {
-	// 			hook_log("success fetching another request..");
-	// 		},
-	// 		error: function(jqXHR, textStatus, errorThrown) {
-	// 			alert("Unable to fetch list of wikis.");
-	// 		}
-	// 	});
-	// }
 	
 	jQuery.ajax({
 		url: apiURL,
@@ -47,50 +29,6 @@ window.mitre_getAllWikis = function(vikiObject, parameters) {
 		}
 	});
 }
-/*
-window.getContentNamespace = function(vikiObject, allWikis, index, mitreVikiObject) {
-
-	var wiki = allWikis[index];
-	var wikiTitle = wiki.wikiTitle;
-
-	var sameServer = wiki.contentURL.indexOf(vikiObject.serverURL) > -1;
-	jQuery.ajax({
-		url : wiki.apiURL,
-		dataType : sameServer ? 'json' : 'jsonp',
-		data : {
-			action : 'getContentNamespaces',
-			format : 'json'
-		},
-		beforeSend: function (jqXHR, settings) {
-			url = settings.url;
-			hook_log("url of ajax call: "+url);
-		},
-		success: function(data, textStatus, jqXHR) {
-			hook_log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
-			if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-				hook_log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
-				allWikis[index].contentNamespaces = [0];
-			}
-			else {
-				allWikis[index].contentNamespaces = data["getContentNamespaces"];
-			}
-			
-			mitreVikiObject.contentNamespacesFetched++;
-			hook_log("mitreVikiObject records " + mitreVikiObject.contentNamespacesFetched + " wikis' content namespaces fetched");
-			if(mitreVikiObject.contentNamespacesFetched == mitreVikiObject.searchableCount) {
-				hook_log("all namespaces fetched; now populating graph");
-				vikiObject.populateInitialGraph();				
-			}
-
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-		}
-	});
-	
-	hook_log("end of getContentNamespaces("+wikiTitle+")");
-}
-*/
 
 window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 //parameters = [ new external nodes ]
@@ -120,6 +58,8 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 			hook_log("setting hookIconURL to "+node.hookIconURL);
 		}
 	}
+	
+	vikiObject.redraw(true);
 }
 
 // Helper functions

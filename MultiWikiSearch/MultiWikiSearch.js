@@ -32,6 +32,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		div = $(""+divID);
 
 		html = "\
+<div id=\"MultiWikiSearch\">\
 	<div id=\"searchTermsDiv\">\
 		<fieldset>\
 			<legend>Search Parameters</legend>\
@@ -69,7 +70,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 						<div id=\"namespacesDiv\"></div>\
 					</fieldset>\
 				</td></tr>\
-				<tr><td><button type=\"button\" id=\"searchButton\">Search</button></td></tr>\
+				<tr><td><button type=\"button\" id=\"MWS_searchButton\">Search</button></td></tr>\
 			</tbody></table>\
 		</fieldset>\
 	</div>\
@@ -90,11 +91,13 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			<legend>Diff Results</legend>\
 			<div id=\"diffResultsSection\"></div>\
 		</fieldset>\
+	</div>\
+</div>\
 ";
 		}
-//		else {
-//			html+="</div>";
-//		}
+		else {
+			html+="</div>";
+		}
 
 		div.append(html);
 
@@ -123,11 +126,13 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 				self.beginSearch();	// triggers the start to the search
 			}
 		});
-		$("#scope").change(self.scopeHandler);
-		$("#moveLeft").click(function() { self.moveOptionsLeft(); });
-		$("#moveRight").click(function() { self.moveOptionsRight(); });
-		$("#searchButton").click(function() { self.beginSearch(); });
+		$("#scope").change(self.scopeHandler);		
 		$("#diffButton").click(function() { self.beginDiff(); });
+		$("#moveLeft").click(function() { console.log("#moveLeft clicked"); self.moveOptionsLeft(); });
+		$("#moveRight").click(function() { console.log("#moveRight clicked"); self.moveOptionsRight(); });
+		$("#MWS_searchButton").click(function() { console.log("#MWS_searchButton"); self.beginSearch(); });
+		
+
 
 	}
 
@@ -418,7 +423,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		self.totalWikiSearchCount = (self.searchText && self.searchTitle ? includedWikis.length*2 : includedWikis.length);
 		self.log("total searches to execute = "+self.totalWikiSearchCount);
 		self.searchedWikiCount = 0;
-		$("#progressbar").progressbar({ max: self.totalWikiSearchCount, value:0});
+		$("#progressbar").progressbar({ max:self.totalWikiSearchCount, value:0 });
 
 		var html = '<table id="searchResultsTable"><thead><tr><th>Wiki</th><th>Page Name</th>';
 
