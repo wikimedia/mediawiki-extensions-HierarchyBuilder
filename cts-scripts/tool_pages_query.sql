@@ -1,0 +1,1 @@
+SELECT page_title FROM categorylinks, page, revision, text WHERE categorylinks.cl_to="CTS-Tool-Reviews" AND categorylinks.cl_from=page.page_id AND page.page_latest=revision.rev_id AND revision.rev_text_id=text.old_id AND text.old_text LIKE '%downloadpage=%';
