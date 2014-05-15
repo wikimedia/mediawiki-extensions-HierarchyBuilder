@@ -4,13 +4,13 @@ from subprocess import Popen, PIPE
 # For running maintenance scripts
 PHP = '/usr/bin/php'
 
-SCRIPT_PATH = '/var/www/wiki/maintenance/'
+SCRIPT_PATH = '/GESTALT/MEDIAWIKI/mediawiki-1.22/maintenance/'
 
 SQL_SCRIPT = 'sql.php'
 GET_TEXT_SCRIPT = 'getText.php'
 EDIT_SCRIPT = 'edit.php'
 
-HOME_DIR = '/home/rpersaud/cts/'
+SCRIPT_DIR = '/home/cicalese/mgf_extensions/cts-scripts/'
 SQL_FILE = 'tool_pages_query.sql'
 
 
@@ -20,7 +20,8 @@ def run_command(command, shell=True):
     return stderr, stdout
 
 def get_pages():
-    command = '%s %s%s %s%s' % (PHP, SCRIPT_PATH, SQL_SCRIPT, HOME_DIR,SQL_FILE)
+    command = '%s %s%s %s%s' % (PHP, SCRIPT_PATH, SQL_SCRIPT, SCRIPT_DIR,SQL_FILE)
+    print(command)
     (stderr, stdout) = run_command(command)
     lines = stdout.split('\n')
 

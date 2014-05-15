@@ -24,7 +24,7 @@ NEW_VERSION_STRING = '(CTS has detected a possible update)'
 # Proxy information
 HTTP_PROXY = 'gatekeeper-w.mitre.org:80'
 
-USE_PROXY = False 
+USE_PROXY = True 
 
 HEADERS = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0' }
 
@@ -33,13 +33,13 @@ COMMASPACE = ', '
 
 FROM_ADDRESS = 'cts@mitre.org'
 
-TO_ADDRESS = ['rpersaud@mitre.org']
+TO_ADDRESS = ['cicalese@mitre.org']
 
 EMAIL_SUBJECT = 'Possible updated CTS tools'
 
 SMTP_SERVER = 'smtp-mclean.mitre.org'
 
-CTS_PREFIX = 'https://cts.mitre.org/index.php/'
+CTS_PREFIX = 'http://gestalt-ed.mitre.org/cts/index.php/'
 
 
 # Really just want a C-like struct to store info about a tool
@@ -102,18 +102,36 @@ def check_page(page_content):
                 blank_hash = current_save_data == ""
                 page_content = update_save_data(page_content, hash_field, new_save_data)
                 p = ToolData(page_content, urlparse(url).hostname, blank_hash)
-                return p
+                return False, p
+            else:
+                return False, None
         except urllib2.HTTPError as e:
-           print "Error %s while trying to retrieve %s" % (e, url)
+            error = "Error %s while trying to retrieve %s" % (e, url)
+            return True, error
         except urllib2.URLError as e:
-           print "Error %s while trying to retrieve %s" % (e, url)
-    return None
+            error = "Error %s while trying to retrieve %s" % (e, url)
+            return True, error
+    return True, None
 
-def email_updated_tools(tool_data):
+def email_updated_tools(tool_data, errors, missing):
     text = ""
+
+    if tool_data != {}:
+        text += "\n\nThe following tools may have been updated:\n\n"
     for tool in tool_data.keys():
         if tool_data[tool].updated_version:
             text += '%s (%s%s)\n' % (tool, CTS_PREFIX, tool) 
+
+    if errors != {}:
+        text += "\n\nThere were errors when attempting to update these tools:\n\n"
+    for tool in errors.keys():
+        text += '%s (%s%s):\n' % (tool, CTS_PREFIX, tool) 
+        text += '%s\n\n' % (errors[tool])
+
+    if missing != {}:
+        text += "\n\nThese tool pages have missing or malformed update information:\n"
+    for tool in missing.keys():
+        text += '%s (%s%s):\n' % (tool, CTS_PREFIX, tool) 
 
     if text is not "":  
         msg = MIMEText(text)
@@ -126,6 +144,7 @@ def email_updated_tools(tool_data):
         s.quit()
 
 def initialize():
+    os.environ["WIKI_NAME"] = "cts"
     if USE_PROXY:
         proxy = urllib2.ProxyHandler({'http': HTTP_PROXY, 'https': HTTP_PROXY})
         opener = urllib2.build_opener(proxy)
@@ -137,22 +156,30 @@ def main():
     tool_list = maintenance.get_pages()
     tool_data = {}
     host_count = {}
+    errors = {}
+    missing = {}
 
     # Build dict of possibly updated tools, indexed by tool name
     for tool in tool_list :
         print tool
         page = maintenance.get_page(tool)
-        tool_page_content = check_page(page)
-        if tool_page_content:
-            tool_data[tool] = tool_page_content
-            host_count[tool_page_content.hostname] = 1 if tool_page_content.hostname not in host_count else host_count[tool_page_content.hostname] + 1
+        (error, tool_page_content) = check_page(page)
+        if error:
+            if tool_page_content is not None:
+                errors[tool] = tool_page_content
+            else:
+                missing[tool] = tool_page_content
+        else:
+            if tool_page_content is not None:
+                tool_data[tool] = tool_page_content
+                host_count[tool_page_content.hostname] = 1 if tool_page_content.hostname not in host_count else host_count[tool_page_content.hostname] + 1
 
     # Update pages for possibly updated tools
     for tool in tool_data.keys():
         tool_data[tool] = update_version(host_count,tool_data[tool])
         maintenance.update_page(tool,tool_data[tool].page_content)
         #print "Updated: %s\n" % tool
-    email_updated_tools(tool_data)
+    email_updated_tools(tool_data, errors, missing)
 
 if __name__ == "__main__":
     main()
