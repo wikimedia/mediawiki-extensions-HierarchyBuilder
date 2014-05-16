@@ -403,18 +403,15 @@ window.VikiJS = function() {
 			return wiki.searchableWiki;
 		});
 		
-		self.log("actually searchable wikis: "+actuallySearchableWikis.length);
 		self.searchableCount = actuallySearchableWikis.length;
 		
 		for(var i = 0; i < actuallySearchableWikis.length; i++) {
-			self.log("wiki: "+actuallySearchableWikis[i].wikiTitle+" is searchable, getting content namespaces now");
 			self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
 		}
 	}
 	
 	VikiJS.prototype.getContentNamespaceForWikiAtIndex = function(actuallySearchableWikis, index) {
 		var self = this;
-		self.log("in getContentNamespaceForWikiAtIndex: "+index+" which is wiki "+actuallySearchableWikis[index].wikiTitle);
 		var wiki = actuallySearchableWikis[index];
 		var wikiTitle = wiki.wikiTitle;
 
@@ -707,6 +704,14 @@ window.VikiJS = function() {
 
 		var texts = self.NodeSelection.select("text");
 		texts.text(function(d) { return d.displayName });
+		
+		texts.each(function() {
+			var textbox = this.getBBox();
+			var node = d3.select(this.parentNode).datum();
+			node.nodeWidth = textbox.width + self.UNSELECTED_IMAGE_DIMENSION + 10;
+			node.nodeHeight = Math.max(textbox.height, self.UNSELECTED_IMAGE_DIMENSION) + 5;
+		});
+		
 		texts.attr("font-weight", function(d) {
 			return d.index == self.SelectedNode ? "bold" : "normal";
 		});
@@ -917,7 +922,8 @@ window.VikiJS = function() {
 		var self = this;
 
 		node = self.newNode();
-		node.displayName = (url.length < 15 ? url : url.substring(0,15)+"...");
+		shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
+		node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,15)+"...");
 		node.fullDisplayName = url;
 		node.info = self.formatNodeInfo(node.fullDisplayName);
 		node.type = self.EXTERNAL_PAGE_TYPE;
@@ -1416,36 +1422,7 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.showNewNodesWindow = function() {
 		var self = this;
-/*		
-		self.log("show new nodes window pressed");
-		var height = 300;
-		var width = 800;
-		var top = screen.height/2 - height/2;
-		var left = screen.width/2 - width/2;
-		self.newNodesWindow = window.open(self.ImagePath+"newNodesWindow.html", "VikiJS New Window", "width="+width+", height="+height+", top="+top+", left="+left);
-		self.newNodesWindow.mwConfigObject = mw.config;
-		self.newNodesWindow.delegate = self;
-*/
-/*
-		vex.dialog.confirm({
-			message: 'Are you absolutely sure you want to destroy the alien planet?',
-			callback: function(value) {
-				if(value) {
-					self.closeNewNodesWindow(
-						[
-							{ 'pageTitle' : 'Robotics' },
-							{ 'pageTitle' : 'Hard Impact New Devices' }
-						]
-					);
-				}
-				else {
-					alert("Ok then.");
-				}
-				//return;
-			}
-		});
-	
-*/
+
 
 		var style = "\
 <style>\
@@ -1456,24 +1433,23 @@ window.VikiJS = function() {
 	}\
 </style>\
 ";
+
+		var mws;
+
 		content = vex.dialog.open({
 			message: "Search For Nodes",
 			contentCSS: {
 				"width" : "750px"
 			},
 			afterOpen: function($vexContent) {
-				var m = new MultiWikiSearch("addNodes", self.myApiURL);
-				m.showSnippets(false);
-				m.initializeMWS(".vex-dialog-input");
+				mws = new MultiWikiSearch("addNodes", self.myApiURL);
+				mws.showSnippets(false);
+				mws.initializeMWS(".vex-dialog-input");
 				$vexContent.append(style);
 			},
 			input: null,
 			callback: function(data) {
-				if(!data)
-					return console.log("Canceled");
-				else
-					return console.log(data);
-
+				self.closeNewNodesWindowCallback(mws.searchResultNodes);
 			}
 
 		});
@@ -1483,7 +1459,7 @@ window.VikiJS = function() {
 	}
 
 	
-	VikiJS.prototype.closeNewNodesWindow = function(returnArgs) {
+	VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
 		// self.log("close new nodes window pressed");
 		// 
 		// for(var i = 0; i < returnArgs.length; i++) {
@@ -1493,6 +1469,15 @@ window.VikiJS = function() {
 		// 		self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL, true);
 		// }
 		// self.redraw(true);
+		
+		for(var i = 0; i < nodes.length; i++)
+			if(nodes[i].checked) {
+				self.log(nodes[i].pageTitle+" from wiki "+nodes[i].wikiTitle+" should be added to graph");
+				self.addWikiNodeFromWiki(nodes[i].pageTitle, nodes[i].wikiTitle);
+			}
+			
+		self.redraw(true);
+		
 	}
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);

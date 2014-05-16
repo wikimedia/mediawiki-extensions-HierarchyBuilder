@@ -12,6 +12,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	this.apiurl= apiURL;
 	this.maxWidth = -1;
 	this.snippets = true;
+	
+	this.searchResultNodes = [];
 
 	if(purpose === "diff" || purpose === "addNodes")
 		this.searchPurpose = purpose;
@@ -417,6 +419,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		}
 		// clear out any tables that might already be there.
 		self.clearSearchResultsDiv();
+		
+		self.searchResultNodes = [];
 
 		// construct a table for the search results.
 		$("#searchResultsDiv").css("display", "block");
@@ -540,15 +544,40 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 
 			if(self.searchPurpose === 'diff')
 				html += "<td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>";
-			else
-				html += "<td><input type='checkbox'></td></tr>";
+			else {
+				html += "<td><input type='checkbox' class='addNodeCheckbox' id='"+pageTitle+"' data-wiki='" +title+ "'></td></tr>";
+				self.searchResultNodes.push(
+					{
+						wikiTitle:title,
+						pageTitle:pageTitle,
+						checked:false
+					});
+			}
 
 			row.append(html);
 
 //			row.append("<tr><td>"+title+"</td><td><a href=\""+pageURL+"\">"+pageTitle+"</a></td><td>"+snippet+"</td><td><input type='radio' name='firstPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td><td><input type='radio' name='secondPage' data-wiki='"+title+"' data-pageName='"+pageTitle+"'></td></tr>");
 		}
-	}
+		
+		$(".addNodeCheckbox").each(function(i) {
+			var checkbox = $(this);
 
+			checkbox.click(function() { self.searchCheckboxHandler(this, i); });
+		});
+	}
+	MultiWikiSearch.prototype.searchCheckboxHandler = function(checkbox, index) {
+		var self = this;
+		
+		if($(checkbox).prop('checked')) {
+			self.log($(checkbox).prop('id')+" from wiki "+$(checkbox).attr('data-wiki')+": checked");
+			self.searchResultNodes[index].checked = true;
+		}
+		else {
+			self.log($(checkbox).prop('id')+" from wiki "+$(checkbox).attr('data-wiki')+": not checked");			
+			self.searchResultNodes[index].checked = false;
+		}
+
+	}
 	MultiWikiSearch.prototype.beginDiff = function() {
 		var self = this;
 

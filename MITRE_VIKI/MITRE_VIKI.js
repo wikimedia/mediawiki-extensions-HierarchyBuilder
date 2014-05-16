@@ -131,6 +131,7 @@ window.parsePhonebookData = function(vikiObject, data, node) {
 
 	node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
 	hook_log(node.hookIconURL);
+	vikiObject.redraw(true);
 }
 
 hook_log = function(text) {
