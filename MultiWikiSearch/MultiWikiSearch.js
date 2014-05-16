@@ -76,6 +76,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			</tbody></table>\
 		</fieldset>\
 	</div>\
+	<div id=\"errorDiv\">\
+	</div>\
 	<div id=\"searchResultsDiv\">\
 		<fieldset>\
 			<legend>Search Results</legend>\
@@ -225,12 +227,9 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 
 		for(i = 0; i < newItems.length; i++) {
 			title = $(newItems[i]).text();
-			self.log("about to attempt to get namespace for "+title);
 			if(self.namespacesList[title] === undefined)
 				self.getNamespacesForWiki(title, function(title) {
-					self.log("in callback method for "+title);
 					if(!("searchable" in self.namespacesList[title]["0"])) {
-						self.log("searchable not found for "+title+", "+self.namespacesList[title]["0"]["*"]);
 						self.namespacesList[title]["0"]["searchable"] = true;
 					}
 
@@ -254,7 +253,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 				excludedWikiIndex = self.indexOfObject($(excludedWikis[j]).text());
 				self.log("\t"+$(excludedWikis[j]).text()+" at "+excludedWikiIndex);
 				if(parseInt(newItemIndex) < parseInt(excludedWikiIndex)) {
-					self.log("newItemIndex "+newItemIndex+" is less than excludedWikiIndex "+excludedWikiIndex);
 					$(newItems[i]).detach();
 					$(excludedWikis[j]).before($(newItems[i]));
 
@@ -297,7 +295,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		
 		var selectedItems = $("#includedWikis option:selected");
 		if(selectedItems.length == 1) {
-			self.log("only one selected item, so show namespaces");
 			var title = $(selectedItems[0]).text();
 			self.log(title);
 			var x = self.namespacesList[title];
@@ -321,7 +318,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	MultiWikiSearch.prototype.loadNamespacesDiv = function(title) {
 		var self = this;
 
-		self.log("loading namespaces div...");
 		var namespaces = self.namespacesList[title];
 		var html = "<table><tbody><tr>";
 		var count = 0;
@@ -352,13 +348,10 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			if(namespaceTitle === "") namespaceTitle = "Main";
 
 			if(!("searchable" in self.namespacesList[title][item])) {
-				self.log("searchable not found for "+title+", "+namespaceTitle);
 				self.namespacesList[title][item]["searchable"] = (parseInt(item)==0? true : false);
-				//self.log("searchable is now "+self.namespacesList[title][item]["searchable"]);
 				$('.namespaceCheckbox#'+namespaceTitle).prop('checked', self.namespacesList[title][item]["searchable"]);
 			}
 			else {
-				self.log("searchable found for "+title+", "+namespaceTitle+" and it was "+self.namespacesList[title][item]["searchable"]);
 				$('.namespaceCheckbox#'+namespaceTitle).prop('checked', self.namespacesList[title][item]["searchable"]);
 			}
 		}
@@ -368,7 +361,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	MultiWikiSearch.prototype.getNamespacesForWiki = function(title, callback) {
 		var self = this;
 
-		self.log("getting namespaces for wiki: "+title);
 		apiurl = self.includedWikis[title]["printouts"]["Wiki API URL"];
 		apiurl = apiurl + "?action=query&meta=siteinfo&siprop=namespaces&format=json&callback=callback";
 		self.log("api url = "+apiurl);
@@ -377,8 +369,17 @@ window.MultiWikiSearch = function(purpose, apiURL) {
                         dataType: 'jsonp',
                         success: function(data, textStatus, jqXHR) {
                                 self.log("success fetching");
-                                self.namespacesList[title] = data["query"]["namespaces"];
-				callback(title);
+								if(data["error"]) {
+									$("#errorDiv").css("visibility", "visible");
+									var html = "<p><strong>Error: Unable to fetch namespaces for "+title;
+									if(data["error"]["code"] === "readapidenied")
+										html += " (error = readapidenied).</strong></p>";
+									else
+										html += ".</strong></p>";
+									$("#errorDiv").html(html);
+								}
+								else
+	                                self.namespacesList[title] = data["query"]["namespaces"];
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                                 alert("Unable to fetch list of namespaces for "+title+".");
@@ -403,7 +404,6 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 	MultiWikiSearch.prototype.beginSearch = function() {
 		var self = this;
 
-		self.log("begin search!");
 		var includedWikis = $("#includedWikis option");
 
 		self.searchTerms = $("#searchTerms").val();
@@ -417,9 +417,13 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 			alert("You must select a wiki to search.");
 			return;
 		}
-		// clear out any tables that might already be there.
+		// clear out any tables that might already be in search results.
 		self.clearSearchResultsDiv();
 		
+		// clear the error div.
+		$("#errorDiv").empty();
+		$("#errorDiv").css("visibility", "hidden");
+		// clear the search result nodes list.
 		self.searchResultNodes = [];
 
 		// construct a table for the search results.
@@ -522,13 +526,29 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 
 		self.log("in searchResultHandler("+title+", "+jsonData+")");
 		self.log("the content URL is "+contentURL);
-		results = jsonData["query"]["search"];
+
 		self.searchedWikiCount++;
 
 		$("#progressbar").progressbar("value", self.searchedWikiCount);
 		self.log("updating progress bar, value = "+self.searchedWikiCount);
 		var row = $(".searchResults#"+title);
 		self.log("row = "+row);
+
+		if(jsonData["error"]) {
+			$("#errorDiv").css("visibility", "visible");
+			
+			html = "<p><strong>Error: unable to search wiki "+title;
+			if(jsonData["error"]["code"] === "readapidenied")
+				html += " (error = readapidenied).</strong></p>";
+			else
+				html += ".</strong></p>";
+			
+			$("#errorDiv").append(html);
+			return;
+		}
+		else
+			results = jsonData["query"]["search"];
+
 		for(i = 0; i < results.length; i++) {
 			var pageTitle = results[i]["title"];
 			var pageURL = contentURL + pageTitle.split(' ').join('_');
