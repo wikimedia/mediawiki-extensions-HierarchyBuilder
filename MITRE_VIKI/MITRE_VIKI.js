@@ -1,20 +1,28 @@
 // Hook functions
 
-window.mitre_getSearchableWikis = function(vikiObject, parameters) {
-// parameters = []
+window.MITRE_VIKI = function() {
+	this.searchableCount = 0;
+	this.contentNamespacesFetched = 0;
+}
+
+window.mitre_getAllWikis = function(vikiObject, parameters) {
+
 	apiURL = vikiObject.myApiURL;
-	searchableWikisArray = vikiObject.searchableWikis;
+	allWikisArray = vikiObject.allWikis;
+	
 	jQuery.ajax({
 		url: apiURL,
-		async: false,
+		// async: false,
 		dataType: 'json',
 		data: {
-			action: 'getSearchableWikis',
+			action: 'getAllWikis',
 			format: 'json'
 		},
 		success: function(data, textStatus, jqXHR) {
-			parseSearchableWikisList(data, searchableWikisArray);
-			hook_log("success getting searchable wikis");
+			parseAllWikisList(data, allWikisArray);
+			hook_log("success getting all wikis");
+			vikiObject.fetchContentNamespaces();
+			// vikiObject.populateInitialGraph();
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert("Unable to fetch list of wikis.");
@@ -50,13 +58,15 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 			hook_log("setting hookIconURL to "+node.hookIconURL);
 		}
 	}
+	
+	vikiObject.redraw(true);
 }
 
 // Helper functions
 
-window.parseSearchableWikisList = function(data, searchableWikisArray) {
-	hook_log("Retrieved searchableWikisList");
-	allWikis = data["getSearchableWikis"]["results"];
+window.parseAllWikisList = function(data, allWikisArray) {
+	hook_log("Retrieved allWikisList");
+	allWikis = data["getAllWikis"]["results"];
 
 	for(var i in allWikis) {
 		var title = allWikis[i]["fulltext"];
@@ -71,7 +81,7 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 			   else
 				   wiki.searchableWiki = false;
 			   
-		searchableWikisArray.push(wiki);
+		allWikisArray.push(wiki);
 
 	}
 
@@ -84,14 +94,14 @@ window.parseSearchableWikisList = function(data, searchableWikisArray) {
 	// 	
 	// }
 	// 
-	// searchableWikisArray.push(testWiki);
+	// allWikisArray.push(testWiki);
 	// 
-	hook_log("searchableWikisArray.length = "+searchableWikisArray.length);
+	hook_log("allWikisArray.length = "+allWikisArray.length);
 }
 
 window.queryPhonebook = function(vikiObject, node, employeeNum) {
 	jQuery.ajax({
-		async: false,
+		// async: false,
 		url: vikiObject.myApiURL,
 		dataType: 'json',
 		data: {
@@ -121,10 +131,21 @@ window.parsePhonebookData = function(vikiObject, data, node) {
 
 	node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
 	hook_log(node.hookIconURL);
+	vikiObject.redraw(true);
 }
 
 hook_log = function(text) {
 	if( (window['console'] !== undefined) )
 		console.log( text );
 }
-
+// 
+// window.sleep = function(milliseconds) {
+// 	var start = new Date().getTime();
+// 
+// 	var timer = true;
+// 	while (timer) {
+// 		if ((new Date().getTime() - start)> milliseconds) {
+// 			timer = false;
+// 		}
+// 	}
+// }

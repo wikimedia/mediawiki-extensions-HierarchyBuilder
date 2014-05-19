@@ -14,8 +14,8 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of Collection is only compatible with MediaWiki 1.21 or above.');
 }
 
-if(!defined('GET_SEARCHABLE_WIKIS_VERSION')) {
-	die('<b>Error:</b> This extension requires the extension GetSearchableWikis to be included first.');
+if(!defined('GET_ALL_WIKIS_VERSION')) {
+	die('<b>Error:</b> This extension requires the extension GetAllWikis to be included first.');
 }
 
 $wgExtensionCredits[ 'specialpage' ][] = array(

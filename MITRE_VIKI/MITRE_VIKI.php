@@ -52,7 +52,7 @@ $wgResourceModules['ext.MITRE_VIKI'] = array(
 global $VikiJS_Function_Hooks;
 
 $VikiJS_Function_Hooks = array();
-$VikiJS_Function_Hooks['GetSearchableWikisHook'] = array('mitre_getSearchableWikis');
+$VikiJS_Function_Hooks['GetAllWikisHook'] = array('mitre_getAllWikis');
 $VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchMIIPhonebook');
 
 global $wgViki_TitleIconVarName;

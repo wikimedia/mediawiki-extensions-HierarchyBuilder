@@ -63,10 +63,17 @@
 
 }
 
-.ui-progressbar-value.ui-widget-header {
+#MultiWikiSearch .ui-progressbar-value.ui-widget-header {
+	margin: 0px;
   background: blue;
+  height: 106% !important;
 }
 
+#progressbar {
+	border-radius:4px;
+	overflow:hidden;
+	height:2.5em;
+}
 
 #searchResultsDiv {
   display: none;
@@ -134,4 +141,14 @@ table#diffTable tr td {
 div#namespacesDiv table td {
   padding-left: 1.5em;
   padding-right: 1.5em;
+}
+
+div#errorDiv {
+    border:1px solid red;
+    border-radius: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    visibility: hidden;
+    font-size: 1.2em;
+	color: red;
 }
