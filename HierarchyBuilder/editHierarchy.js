@@ -43,7 +43,9 @@
 				}
 				var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 					params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-			
+
+				alert(hierarchy);
+
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";
@@ -182,24 +184,6 @@
 					"plugins" : plugins
 				});
 			},
-
-			parseToWikiText: function(uListRoot, depth) {
-				var that = this;
-				var returnString = "";
-				
-				var cur = uListRoot[0];
-				$(cur).children($("li")).each(function() {
-					var $children = $(this).children();
-
-					returnString += depth + $children.first().text() + "\n";
-
-					var $sublist = $children.filter("ul");
-					if ($sublist.size() > 0) {
-						returnString += that.parseToWikiText($sublist, depth+"*");	// recurse on the sublist				
-					}
-				});
-				return returnString;
-			},
 			
 			saveList: function(input_id, divId) {
 				var list = $(divId + " .hierarchy_root > ul").clone();
@@ -211,17 +195,32 @@
 				list.find("a").replaceWith(function() {
 					return "<a>" + $(this).find("span").first().text() + "</a>";
 				});
-				
-				// remove this line when the rest of the redesign is complete
 				document.getElementById(input_id).value = "<ul>" + list.html() +
 					"</ul>";
 
-				// enable these lines when the rest of the redesign is complete.
-				// var wikiText = this.parseToWikiText(list, "*");
-				// document.getElementById(input_id).value = wikiText;
-				// console.log(wikiText);
-			}
+				var wikiText = this.parseHtmlToWikiText(list, "*");
+				//document.getElementById(input_id).value = wikiText;
+				console.log(wikiText);
+			},
 			
+			parseHtmlToWikiText: function(uListRoot, depth) {
+				var that = this;
+				var returnString = "";
+				
+				var cur = uListRoot[0];
+				$(cur).children($("li")).each(function() {
+					var $children = $(this).children();
+
+					returnString += depth + $children.first().text() + "\n";
+
+					var $sublist = $children.filter("ul");
+					if ($sublist.size() > 0) {
+						returnString += that.parseHtmlToWikiText($sublist, depth+"*");	// recurse on the sublist				
+					}
+				});
+				return returnString;
+			}
+
 		}).init(input_id, params);
 	}
 }(jQuery));
