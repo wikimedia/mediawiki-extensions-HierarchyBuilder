@@ -4,6 +4,11 @@ window.WikiTreeMap = function() {
 }
 
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
+
+	if (wiki !== ""){
+		$('#selectAWiki').hide();						
+	}
+
       var wikis = ["cnsdtm", "darpapedia", "dstc", "dstc-devel","enable", "eseteam", "examples", "experipedia",  "geopedia", "gestalt",  "gestaltd", "healthcareanalytics", "international", "j850mip", "j85d",  "jcrew-connect",  "languapedia","map",  "mitrepedia","mobilepedia", "mooc", "odp", "phatwiki", "reading",  "robopedia","socialmedia","tge", "tools","viki"];     
       fillAppropriateDropdown('#wikis', wikis);
 
@@ -68,7 +73,7 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
   		  return "<strong>Category:</strong> <span style='color:red'>" + d.name + "</span>" +
 				 "</br>" +
 				 "<strong>Subcategories:</strong> <span style='color:yellow'>"+d.subcats+"</span>" + "</br>" +
-				 "<strong>Pages:</strong> <span style='color:blue'>" + d.pages + "</span>";
+				 "<strong>Pages:</strong> <span style='color:green'>" + d.pages + "</span>";
 	  })
 
 
