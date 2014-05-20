@@ -41,10 +41,11 @@
 				if (hierarchy.length < 1) {
 					return;
 				}
+
+				//var html = this.parseWikiTextToHtml(hierarchy);
+
 				var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 					params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-
-				alert(hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -198,11 +199,19 @@
 				document.getElementById(input_id).value = "<ul>" + list.html() +
 					"</ul>";
 
+				console.log(list.html());
+
 				var wikiText = this.parseHtmlToWikiText(list, "*");
 				//document.getElementById(input_id).value = wikiText;
 				console.log(wikiText);
 			},
 			
+			/**
+			 * uListRoot is a jquery object, representing the <ul> element of a list.
+			 * depth is a string composed of * characters denoting the current depth 
+			 *     within the hierarchy. (ex: "*" is the hierarchy root, "**" is direct 
+			 *     children of the root)
+			 */
 			parseHtmlToWikiText: function(uListRoot, depth) {
 				var that = this;
 				var returnString = "";
@@ -219,6 +228,52 @@
 					}
 				});
 				return returnString;
+			},
+
+			/**
+			 * wikiTextHierarchy is a string containing a hierarchy in WikiText format.
+			 * Note: the given hierarchy must be well-formed.
+			 */
+			parseWikiTextToHtml: function(hierarchyRoot, wikiTextHierarchy) {
+				// make sure to remove the leading * from the root node before starting the process
+				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper(wikiTextHierarchy.substring(1), "*") + "</ul>";
+				return "<ul><li class='hierarchy_root'><a>" + hierarchyRoot + "</a>" + hierarchyHtml + "</li></ul>";
+			},
+
+			/**
+			 * wikiTextHierarchy is a string containing a hierarchy in modified
+			 *     WikiText format. Specifically, the root node has no leading *s.
+			 * depth is a string composed of * characters denoting the current depth 
+			 *     within the hierarchy.
+			 */
+			parseWikiTextToHtmlHelper: function(wikiTextHierarchy, depth) {
+				// split the hierarchy into a list with the root and each child hierarchy in a list
+				// this constructs a regular expression to search for lines with exactly depth+1 leading *s
+				var nextDepth = "\n" + depth + "*";
+				var r1 = new RegExp("\\*", "g");
+				var regex = nextDepth.replace(r1, "\\*") + "(?!\\*)";
+				var r2 = new RegExp(regex);
+				// actually split the hierarchy into root and children
+				var rootAndChildren = wikiTextHierarchy.split(r2);
+				
+				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
+				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
+				
+				// take the root element and make a list item for it
+				var html = "<li>" + root + "</li>";
+
+				// if there are children, add an unordered-list element to contain them and recurse on each child
+				if (children.length > 0) {
+					html += "<ul>"
+					// add the html for each child to our string
+					for (var i = 0; i < children.length; i++) {
+						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
+					}
+					html += "</ul>"
+				}				
+				
+				// now that our html has the root and the list with the children in html format we can finally return it.
+				return html;
 			}
 
 		}).init(input_id, params);
