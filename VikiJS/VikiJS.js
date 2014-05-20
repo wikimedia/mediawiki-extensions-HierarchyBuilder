@@ -28,7 +28,6 @@ window.VikiJS = function() {
 	this.EXTERNAL_PAGE_TYPE = 1;
 	this.MAX_BAR_WIDTH = 60;
 	this.BAR_HEIGHT = 6;
-//	this.SELECTED_IMAGE_DIMENSION = 30;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
 
@@ -450,7 +449,6 @@ window.VikiJS = function() {
 			}
 		});
 	
-		// self.log("end of getContentNamespaces("+wikiTitle+")");
 	}
 	
 	VikiJS.prototype.populateInitialGraph = function() {
@@ -643,41 +641,6 @@ window.VikiJS = function() {
 		allToolTips.text(function(d) {
 			return d.displayName;
 		});
-		
-/*		var newImages = newNodes.append("svg:image");
-		newImages.attr("class", "icon");
-		newImages.attr("xlink:href", function(d) {
-			return d.imageURL;
-		});
-		newImages.attr("onerror", "window.VikiJS.setDefaultImage(this);");
-
-		//var allImages = d3.selectAll(".icon");
-		var allImages = VikiJS.NodeSelection.selectAll(".icon");
-		allImages.attr("x", function(d) {
-			return d.index == VikiJS.SelectedNode ? -1*VikiJS.SELECTED_IMAGE_DIMENSION/2: -1*VikiJS.UNSELECTED_IMAGE_DIMENSION/2;
-		});
-		allImages.attr("y", function(d) {
-			return d.index == VikiJS.SelectedNode ? -1*VikiJS.SELECTED_IMAGE_DIMENSION/2 : -1*VikiJS.UNSELECTED_IMAGE_DIMENSION/2;
-		});
-
-		allImages.attr("width", function(d) {
-			return d.index == VikiJS.SelectedNode ? VikiJS.SELECTED_IMAGE_DIMENSION : VikiJS.UNSELECTED_IMAGE_DIMENSION;
-		});
-		allImages.attr("height", function(d) {
-			return d.index == VikiJS.SelectedNode ? VikiJS.SELECTED_IMAGE_DIMENSION : VikiJS.UNSELECTED_IMAGE_DIMENSION;
-		});
-
-		allImages.style("opacity", function(d) {
-			if (d.index == VikiJS.SelectedNode) {
-				return 1;
-			} else if (VikiJS.findLink(VikiJS.SelectedNode,
-				d.index) != null) {
-				return 1;
-			} else {
-				return VikiJS.LINK_OPACITY;
-			}
-		});
-*/
 
 		var newLabels = newNodes.append("svg:text");
 		newLabels.text(function(d) { return d.displayName })
@@ -688,14 +651,6 @@ window.VikiJS = function() {
 			.each(function() {
 				var textbox = this.getBBox();
 
-/*				d3.select(this.parentNode).insert("svg:rect", "text")
-				   .attr("class", "whiteBackgroundRect")
-				   .attr("x", textbox.x)
-				   .attr("y", textbox.y)
-				   .attr("width", textbox.width)
-				   .attr("height", textbox.height)
-				   .style("fill", "white");
-*/
 				var node = d3.select(this.parentNode).datum();
 				node.nodeWidth = textbox.width + self.UNSELECTED_IMAGE_DIMENSION + 10;	// the 2 is a magic number to improve appearance
 				node.nodeHeight = Math.max(textbox.height, self.UNSELECTED_IMAGE_DIMENSION) + 5;
@@ -752,96 +707,6 @@ window.VikiJS = function() {
 		   .attr("width", self.UNSELECTED_IMAGE_DIMENSION)
 		   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 
-		/*
-		// dx, dy: magic numbers that help make pretty positioning!
-		newLabels.attr("dy", function(d) {
-			return d.type == VikiJS.PROJECT_TYPE ? 20 : -2;
-		});
-		newLabels.attr("dx", function(d) {
-			if(d.type == VikiJS.PROJECT_TYPE)
-				return 0;
-			else
-				return d.index == VikiJS.SelectedNode ? 25 : 15;
-		});
-		newLabels.attr("text-anchor", function(d) {
-			return (d.type == VikiJS.PROJECT_TYPE ? "middle" : "right");
-		});
-		
-		var newHourBarBacks = newNodes.append("svg:rect");
-		var newHourBarFills = newNodes.append("svg:rect");
-		newHourBarBacks.attr("class", "hourbarback");
-		newHourBarFills.attr("class", "hourbarfill");
-		var x = function(d) {
-			if (d.type == VikiJS.PROJECT_TYPE) {
-				return -1*VikiJS.MAX_BAR_WIDTH/2;		// center bar under folder
-			} else {
-				return 15;					// magic number - put bar to right of image 
-			}
-		}
-		newHourBarBacks.attr("x", x);
-		newHourBarFills.attr("x", x);
-
-		var y = function(d) {
-			return d.type == VikiJS.PROJECT_TYPE ? 25 : 3;	// another magic number
-		}
-		newHourBarBacks.attr("y", y);
-		newHourBarFills.attr("y", y);
-		newHourBarBacks.attr("height", VikiJS.BAR_HEIGHT);
-		newHourBarFills.attr("height", VikiJS.BAR_HEIGHT);
-		newHourBarBacks.attr("width", VikiJS.MAX_BAR_WIDTH);
-		newHourBarBacks.style("stroke", "none");
-		newHourBarFills.style("stroke", "none");
-
-		var allHourBarBacks = d3.selectAll(".hourbarback");
-		var allHourBarFills = d3.selectAll(".hourbarfill");
-		var backcolor = function(d) {
-			var link = VikiJS.findLink(d.index,
-				VikiJS.SelectedNode);
-			if (link == null) {
-				return "none";
-			}
-			return "#CCCCCC";
-		}
-		allHourBarBacks.style("fill", backcolor);
-		var fillcolor = function(d) {
-			var link = VikiJS.findLink(d.index,
-				VikiJS.SelectedNode);
-			if (link == null) {
-				return "none";
-			}
-			return "#0000FF";
-		}
-		allHourBarFills.style("fill", fillcolor);
-
-		var width = function(d) {
-			var link = VikiJS.findLink(d.index,
-				VikiJS.SelectedNode);
-			if (link == null) {
-				return "none";
-			}
-			var selectedNode = VikiJS.Nodes[VikiJS.SelectedNode];
-			var scaledHoursPct = 0;
-			if (d.type == VikiJS.PROJECT_TYPE) {
-				if (typeof link.personHoursPct === 'undefined' ||
-					typeof selectedNode.maxHoursPct === 'undefined') {
-					return 0;
-				}
-				scaledHoursPct = link.personHoursPct /
-					selectedNode.maxHoursPct * 100.0;
-			} else if (d.type == VikiJS.PERSON_TYPE) {
-				if (typeof link.taskHoursPct === 'undefined' ||
-					typeof selectedNode.maxHoursPct === 'undefined') {
-					return 0;
-				}
-				scaledHoursPct = link.taskHoursPct /
-					selectedNode.maxHoursPct * 100.0;
-			} else {
-				return 0;
-			}
-			return scaledHoursPct * VikiJS.MAX_BAR_WIDTH / 100.0;
-		}
-		allHourBarFills.attr("width", width);
-*/
 		if (restartGraph) {
 			self.Force.start();
 		}
@@ -1451,24 +1316,11 @@ window.VikiJS = function() {
 			callback: function(data) {
 				self.closeNewNodesWindowCallback(mws.searchResultNodes);
 			}
-
 		});
 
-		// setTimeout(function() { vex.close(content.data().vex.id) }, 3000);
-
 	}
-
 	
 	VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
-		// self.log("close new nodes window pressed");
-		// 
-		// for(var i = 0; i < returnArgs.length; i++) {
-		// 	self.log(returnArgs[i]["pageTitle"]);
-		// 	wikiNode = self.findNode("pageTitle", returnArgs[i]["pageTitle"]);
-		// 	if(!wikiNode)
-		// 		self.addWikiNode(returnArgs[i]["pageTitle"], self.myApiURL, null, self.myLogoURL, true);
-		// }
-		// self.redraw(true);
 		
 		for(var i = 0; i < nodes.length; i++)
 			if(nodes[i].checked) {
@@ -1476,9 +1328,9 @@ window.VikiJS = function() {
 				self.addWikiNodeFromWiki(nodes[i].pageTitle, nodes[i].wikiTitle);
 			}
 			
-		self.redraw(true);
-		
+		self.redraw(true);		
 	}
+	
 	VikiJS.prototype.replaceAt = function(string, index, character) {
 		return string.substr(0, index) + character + string.substr(index+character.length);
 	}

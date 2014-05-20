@@ -4,6 +4,11 @@ window.WikiTreeMap = function() {
 }
 
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
+
+	if (wiki !== ""){
+		$('#selectAWiki').hide();						
+	}
+
       var wikis = ["cnsdtm", "darpapedia", "dstc", "dstc-devel","enable", "eseteam", "examples", "experipedia",  "geopedia", "gestalt",  "gestaltd", "healthcareanalytics", "international", "j850mip", "j85d",  "jcrew-connect",  "languapedia","map",  "mitrepedia","mobilepedia", "mooc", "odp", "phatwiki", "reading",  "robopedia","socialmedia","tge", "tools","viki"];     
       fillAppropriateDropdown('#wikis', wikis);
 
@@ -60,6 +65,20 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
                   .size([(width),(height)])
                   .nodes(data)
 
+
+	  var tip = d3.tip()
+  		.attr('class', 'd3-tip')
+  		.offset([-10, 0])
+  		.html(function(d) {
+  		  return "<strong>Category:</strong> <span style='color:red'>" + d.name + "</span>" +
+				 "</br>" +
+				 "<strong>Subcategories:</strong> <span style='color:yellow'>"+d.subcats+"</span>" + "</br>" +
+				 "<strong>Pages:</strong> <span style='color:green'>" + d.pages + "</span>";
+	  })
+
+
+
+
           var canvas = d3.select("#" + graphDiv).append("svg")
                       .style("position", "relative")
                       .style("width", width + margin.left + margin.right + "px")
@@ -72,7 +91,7 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
                   // .attr("width", width)  // width
                   // .attr("height", height) // height
 
-	  
+	  canvas.call(tip);	  
 	  canvas.selectAll("svg").append("h2")
 
 //	  canvas.append("h2");
@@ -96,6 +115,8 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
               .attr("height", function (d) {return d.dy; })
               .attr("fill", function (d) {return d.children ? null : color(d.parent.name);})
               .attr("stroke", "white")
+			  .on('mouseover', tip.show)
+			  .on('mouseout', tip.hide);
 //	      .call(wrap, 10);
 //	      .text(function(d) { return d.children ? null : d.name; });
 
@@ -114,6 +135,8 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 		.attr("dy", "0.9em")
 		.each(fontSize)
 		.each(wordWrap);
+
+
 
 
 //	   d3.selectAll("input").on("change", function change() {
