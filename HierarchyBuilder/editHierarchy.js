@@ -220,7 +220,7 @@
 				$(cur).children($("li")).each(function() {
 					var $children = $(this).children();
 
-					returnString += depth + $children.first().text() + "\n";
+					returnString += depth + $children.first()[0].outerHTML.replace("<a>","[[").replace("</a>","]]") + "\n";
 
 					var $sublist = $children.filter("ul");
 					if ($sublist.size() > 0) {
@@ -260,7 +260,7 @@
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
 				// take the root element and make a list item for it
-				var html = "<li>" + root + "</li>";
+				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>") + "</li>";
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
