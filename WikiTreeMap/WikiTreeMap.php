@@ -53,7 +53,8 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 	),
 	'scripts' => array(
 		'd3.v3.min.js',
-		'WikiTreeMap.js'
+		'WikiTreeMap.js',
+		'd3.tip.v0.6.3.js'
 	)
 );
 
@@ -115,9 +116,11 @@ class WikiTreeMap {
 		$div = "WikiTreeMap_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
-<select id="wikis" style="width:500px;"></select>
-<p><button id="loadData" type="button">Load Data</button></p>	
-<p><button id="clearData" type="button">clear</button></p>	
+<div id="selectAWiki">
+	<select id="wikis" style="width:500px;"></select>
+	<p><button id="loadData" type="button">Load Data</button></p>	
+	<p><button id="clearData" type="button">clear</button></p>	
+</div>
 <h1></h1>	
 <table>
 <tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">

@@ -899,8 +899,9 @@ window.ProjectGraph = function() {
 		var tasks = this.queryStaffTasks(personNode.employeeNumber,
 			this.FiscalYear);
 		if (tasks == null) {
-			alert("Error getting data for employee " + node.employeeNumber +
-				" for fiscal year " + this.FiscalYear);
+			// alert("Error getting data for employee " + node.employeeNumber + " for fiscal year " + this.FiscalYear);
+			$("#projectgraph-errors-panel").css("visibility", "visible");
+			$("#projectgraph-errors-panel").html("<p>Error getting data for employee "+node.employeeNumber+" for fiscal year "+this.FiscalYear+"</p>");
 		} else {
 			this.parseStaffTasks(personNode, tasks);
 		}
@@ -1296,7 +1297,9 @@ window.ProjectGraph = function() {
 				});
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
+				// alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
+				$("#projectgraph-errors-panel").css("visibility", "visible");
+				$("#projectgraph-errors-panel").html("<p>Error: Unable to fetch project charges. This is typically due to an MII data stream outage.</p>");
 			}
 		});
 		return tasks;
