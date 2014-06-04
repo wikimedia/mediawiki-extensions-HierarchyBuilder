@@ -42,10 +42,11 @@
 					return;
 				}
 
-				//var html = this.parseWikiTextToHtml(hierarchy);
-
-				var hierarchy = "<ul><li class='hierarchy_root'><a>" +
-					params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
+				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
+				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
+				console.log("[init] input hierarchy = \n" + hierarchy);
+				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
+				console.log("[init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -188,22 +189,28 @@
 			
 			saveList: function(input_id, divId) {
 				var list = $(divId + " .hierarchy_root > ul").clone();
+
+				console.log("[saveList]: input hierarchy = \n" + list.html());
+
 				list.find("ins").remove();
 				list.find("li").removeAttr("class");
 				list.find("li").removeAttr("style");
 				list.find("ul").removeAttr("class");
 				list.find("ul").removeAttr("style");
 				list.find("a").replaceWith(function() {
-					return "<a>" + $(this).find("span").first().text() + "</a>";
+					return "[[" + $(this).find("span").first().text() + "]]";
 				});
-				document.getElementById(input_id).value = "<ul>" + list.html() +
-					"</ul>";
+				//document.getElementById(input_id).value = "<ul>" + list.html() +
+				//	"</ul>";
 
 				console.log(list.html());
 
+
 				var wikiText = this.parseHtmlToWikiText(list, "*");
-				//document.getElementById(input_id).value = wikiText;
-				console.log(wikiText);
+				console.log("[saveList]: output hierarchy = \n" + wikiText);
+
+				document.getElementById(input_id).value = wikiText;
+				//console.log(wikiText);
 			},
 			
 			/**
@@ -218,9 +225,9 @@
 				
 				var cur = uListRoot[0];
 				$(cur).children($("li")).each(function() {
-					var $children = $(this).children();
+					var $children = $(this).contents();
 
-					returnString += depth + $children.first()[0].outerHTML.replace("<a>","[[").replace("</a>","]]") + "\n";
+					returnString += depth + $children.first().text() + "\n";
 
 					var $sublist = $children.filter("ul");
 					if ($sublist.size() > 0) {
@@ -259,8 +266,8 @@
 				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
-				// take the root element and make a list item for it
-				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>") + "</li>";
+				// take the root element and make a list item for it but don't close the list item yet incase there are nested kids
+				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
@@ -269,8 +276,10 @@
 					for (var i = 0; i < children.length; i++) {
 						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
 					}
-					html += "</ul>"
-				}				
+					html += "</ul>";
+				}
+
+				html +=  "</li>";			
 				
 				// now that our html has the root and the list with the children in html format we can finally return it.
 				return html;
