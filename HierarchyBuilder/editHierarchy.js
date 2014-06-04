@@ -198,7 +198,7 @@
 				list.find("ul").removeAttr("class");
 				list.find("ul").removeAttr("style");
 				list.find("a").replaceWith(function() {
-					return "[[" + $(this).find("span").first().text() + "]]";
+					return "[[" + $(this).first().text() + "]]";
 				});
 				//document.getElementById(input_id).value = "<ul>" + list.html() +
 				//	"</ul>";
