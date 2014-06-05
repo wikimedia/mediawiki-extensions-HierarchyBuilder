@@ -205,7 +205,9 @@ window.VikiJS = function() {
 		// get this wiki's own logo URL,
 		// and do initial graph population.
 
-		this.callHooks("GetAllWikisHook", []);
+		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
+		if(!calledGetAllWikisHook)
+			self.hookCompletion("GetAllWikisHook");
 
 		function initializeGraph() {
 			var padding = 20;
@@ -403,9 +405,11 @@ window.VikiJS = function() {
 		});
 		
 		self.searchableCount = actuallySearchableWikis.length;
-		
-		for(var i = 0; i < actuallySearchableWikis.length; i++) {
-			self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
+		if(self.searchableCount ==0)
+			self.populateInitialGraph();
+		else
+			for(var i = 0; i < actuallySearchableWikis.length; i++) {
+				self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
 		}
 	}
 	
@@ -1336,19 +1340,27 @@ window.VikiJS = function() {
 	}
 
 	VikiJS.prototype.callHooks = function(hookName, parameters) {
+		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
 				self.log("About to call hooks for "+hookName+"...");
 				for(var i = 0; i < self.Hooks[hookName].length; i++) {
-					window[ self.Hooks[hookName][i] ](self, parameters);
+					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
 				}
 				self.log("Done with hooks for "+hookName);
 				
 				self.redraw(true);
+				return true;
 			}
 		}
-		else {
-			self.log("No hooks for GetAllWikis.");
+		return false;
+	}
+
+	VikiJS.prototype.hookCompletion = function(hookName, parameters) {
+		var self = this;
+		// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
+		if(hookName === "GetAllWikisHook") {
+			self.fetchContentNamespaces();
 		}
 	}
 
