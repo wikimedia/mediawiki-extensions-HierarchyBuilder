@@ -1436,10 +1436,13 @@ window.VikiJS = function() {
 		
 		// if the node has been fixed, then display "unfreeze" as a menu
 		// option and if unfreeze is selected, unfreeze the node
+		// note: the weird syntax here is due to some strange issue with
+		// node.fixed taking on integer values instead of true/false
+		// after they have been moused over at some point.
 
-		freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
 		freeze.fix = node.fix ? false : true;
-		
+		freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
+
 		// set the title of the menu to the name
 		$('#name-'+this.ID).html(node.displayName);
 		// toggle the menu option between freeze and unfreeze
@@ -1450,8 +1453,11 @@ window.VikiJS = function() {
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
         	// activate before the menu shows
         	onShowMenu: function(e, menu) {
-		        if (node.elaborated) {
+		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
 		          $('.elaborate-'+self.ID, menu).remove();
+		        }
+		        if(node.nonexistentPage) {
+		        	$('#getinfo', menu).remove();
 		        }
 		        return menu;
 	      	},
@@ -1468,17 +1474,18 @@ window.VikiJS = function() {
 		        'freeze': function(t) {
 		        	self.log("freeze() clicked");
 		        	// freeze/unfreeze the node
-					// node.fixed = freeze.fix;
+					node.fixed = freeze.fix;
 					// store these settings in the metadata
-					// node.fix = freeze.fix;
+					node.fix = freeze.fix;
 		        },
 		        'getinfo': function(t) {
 		        	self.log("getInfo() clicked");
+		        	window.open(node.URL, "_blank");
 		        },
 		        'elaborate': function(t) {
 
 		        	self.log("elaborate() clicked");
-
+					self.elaborateNodeAtIndex(self.SelectedNode);
 					// self.elaborateNode(node);
 					// self.indexReset();
 					// self.redraw(true);
