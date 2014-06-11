@@ -1300,6 +1300,8 @@ window.ProjectGraph = function() {
 				// alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
 				$("#projectgraph-errors-panel").css("visibility", "visible");
 				$("#projectgraph-errors-panel").html("<p>Error: Unable to fetch project charges. This is typically due to an MII data stream outage.</p>");
+
+				tasks = [];
 			}
 		});
 		return tasks;

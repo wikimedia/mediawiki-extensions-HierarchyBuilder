@@ -88,8 +88,7 @@ window.VikiJS = function() {
 		self.log("very start of drawGraph");
 		// CSS option for the Vex modal dialog library
 		vex.defaultOptions.className = 'vex-theme-default';
-		// vex.showLoading();
-		
+
 		var loadingContent = '\
 <div id="loadingDiv">\
 	<div id="textDiv">Loading...</div>\
@@ -405,6 +404,7 @@ window.VikiJS = function() {
 		});
 		
 		self.searchableCount = actuallySearchableWikis.length;
+		self.log("searchableCount = "+self.searchableCount);
 		if(self.searchableCount ==0)
 			self.populateInitialGraph();
 		else
@@ -461,6 +461,9 @@ window.VikiJS = function() {
 		vex.close(self.loadingView.data().vex.id);
 		self.log("closed load screen");
 		self.log("now will get site logo and do graph population");
+
+		//visit self node to get categories
+
 		jQuery.ajax({
 			url: self.myApiURL,
 			dataType: 'json',
@@ -473,9 +476,11 @@ window.VikiJS = function() {
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
 				self.thisWikiData.logoURL = self.myLogoURL;
 				// do initial graph population
-				for(var i = 0; i < self.initialPageTitles.length; i++)
+				for(var i = 0; i < self.initialPageTitles.length; i++) {
 					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
-					self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+					self.visitNode(node);
+				}
 
 				for(var i = 0; i < self.initialPageTitles.length; i++)
 					self.elaborateNode(self.Nodes[i]);
@@ -1203,6 +1208,7 @@ window.VikiJS = function() {
 			dataType: intraNode.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
+				prop: 'categories',
 				titles: intraNode.pageTitle,
 				format: 'json'
 			},
@@ -1221,12 +1227,30 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.wikiPageCheckHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
+
 		if(data.query.pages["-1"]) {
+			// check if the page is nonexistent
 			originNode.nonexistentPage = true;
 			originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 			self.redraw(true);	
+		}
+		else {
+			// get the categories
+			page = data.query.pages[ Object.keys(data.query.pages)[0] ];
+			if(page.categories) {
+				// if originNode doesn't already have a categories array, make one
+				if(!originNode.categories)
+						originNode.categories = new Array();
 
-		}		
+				for(var i = 0; i < page.categories.length; i++) {
+					categoryTitle = page.categories[i].title;
+					// the category title is of the form "Category:Foo" so must remove the "Category:" part
+					categoryTitle = categoryTitle.replace("Category:", "");
+					self.log("Found the category called: " +categoryTitle);
+					originNode.categories.push(categoryTitle);
+				}
+			}
+		}
 	}
 	
 	VikiJS.prototype.indexOfWiki = function(url) {
