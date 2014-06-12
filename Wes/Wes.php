@@ -1,10 +1,17 @@
+#!/usr/bin/php
+
 <?php
 
+fclose(STDOUT);
+$STDOUT = fopen('/tmp/wes_application.log', 'wb');
+
+echo ("Start of Wes log..." . "\n");
+
 //Set path to your MediaWiki installation
-$install_path = '/usr/share/mediawiki-1.21.1';
+$install_path = '/GESTALT/MEDIAWIKI/mediawiki-1.22';
 chdir( $install_path );
-require_once( 'maintenance/wes/MimeMailParser.class.php');
-require_once( 'maintenance/wes/attachment.class.php');
+require_once( '/GESTALT/WES/wes/MimeMailParser.class.php');
+require_once( '/GESTALT/WES/wes/attachment.class.php');
 
 //Grab the Email Content from STDIN
 $parser = new MimeMailParser();
@@ -21,19 +28,26 @@ $attachments = $parser->getAttachments();
 $wikiuser = getWikiUser($from);
 $originalSender = getOriginalSender($from);
 $serverName = getServerName($to, $cc);
-$wesEmail = "wes@" . $serverName;
+
+$wesEmail = getReturnEmail($to, $cc, $serverName);
 $date = date("M j Y g:i:s A");
 $isPost = isPostOrRequest($subject);
 $overwrite = getOverwrite($subject);
 $title = removeKeywords($subject);
 
+echo ("ServerName: " . $serverName . "\n");
+echo ("wesEmail: " . $wesEmail . "\n");
 
 //Load Mediawiki Stuff
 # Define us as being in MediaWiki
-$_SERVER['SERVER_NAME']="$serverName";
-$wgServerName="$serverName";
+$_SERVER['WIKI_NAME']="$serverName";
+//$wgServerName="$serverName";
+echo ("Hi Kevin\n");
+
 require_once( 'maintenance/commandLine.inc');
 require_once( 'maintenance/importImages.inc' );
+
+echo ("Hi Kevin2\n");
 
 $user = User::newFromName( $wikiuser );
 if( is_object( $user ) ) {
@@ -98,12 +112,15 @@ if(count($attachments) > 0) {
   $text .= $attachmentResults;
 }
 
+echo("isPost: " . $isPost . "\n");
+
 //Handle Posts and Requests
 if($isPost) {
+
   //Handle Posts
   $foo = createTempFile($text, $wikiuser, $date);
 
-  $title = Title::newFromUrl( $title );
+  $title = Title::newFromText( $title, 0 );
   global $wgTitle;
   $wgTitle = $title;
 
@@ -115,28 +132,38 @@ if($isPost) {
     if( is_object( $user ) ) {
       $wgUser =& $user;
       $article = new WikiPage( $title );
-      
-      if( $title->exists() && !$overwrite) {
+    
+      echo("Text: " . $text . "\n");
+      echo("Title: " . $title . "\n");
+      echo("SERVER: " . $serverName . "\n");
+      echo("Title->exists(): " . $title->exists() . "\n");
+ 
+      if( $title->isKnown() && !$overwrite) {
         $oldText = $article->getRawText();
         $text = $oldText . "\n----\n" . $text;
       }
       
-      echo ("text: " . $text);    
+      //echo ("text: " . $text . "\n");    
       
-      echo ("comment: " . $comment);    
+      //echo ("comment: " . $comment . "\n");    
       $article->doEdit( $text, $comment, $flags );
       
-      echo ("title: " . $article->getRawText());    
+      //echo ("title: " . $article->getRawText());    
       $url = $title->getFullURL();
+      $url = str_replace("localhost", gethostname() . ".mitre.org", $url);
+      echo("URL: " . $url . "\n");
+
+
       emailResponse($originalSender, $wesEmail, $url);    
       
     } else {
       echo( "invalid user.\n" );
     }
+    
   } else {
     echo( "invalid title.\n" );
   }
-  
+
   exec( "rm " . $foo );
 
 } else { 
@@ -165,7 +192,7 @@ if($isPost) {
            $template = grabTemplate( $text, $wesEmail, "Email Wes" );
            if($template != "") {
               $links .= "<TR>\n";
-              $links .= "<TD>" . makeLink($title->getFullURL(), $title->getText()) . "</td>\n";
+              $links .= "<TD>".makeLink ($title->getFullURL (), $title->getText ())."</td>\n";
               $links .= "<TD>" . $template . "</td>\n</tr>\n";
            }
         }
@@ -198,7 +225,62 @@ function getOriginalSender($from) {
   return $sender;
 }
 
-function getServerName($to, $cc) {
+function getReturnEmail($to, $cc, $serverName ) {
+   $temp = $to;
+   $idx1 = strpos($to, "\"wes@");
+   $idx2 = strpos($cc, "\"wes@");
+  
+   if(($idx1 === false) && ($idx2 === false)) {
+
+      return $serverName . "@" . gethostname() . ".mitre.org";
+
+   } else {
+      return "wes@gestalt.mitre.org";
+   }
+
+}
+
+function getServerName($to, $cc ) {
+   $temp = $to;
+   $idx1 = strpos($to, "\"wes@");
+   $idx2 = strpos($cc, "\"wes@");
+  
+ 
+   if(($idx1 === false) && ($idx2 === false)) {
+       return getServerNameUsingWiki($to, $cc);
+   } else {
+       return getServerNameOrig($to, $cc);
+   }
+}
+
+function getServerNameUsingWiki($to, $cc) {
+   $filename = "/GESTALT/WES/wikis.txt";
+   $listOfWikis = file($filename, FILE_IGNORE_NEW_LINES);
+
+   foreach($listOfWikis as $wikiname) {
+     
+      $address = strtolower("\"$wikiname@");
+      
+      $idx1 = strpos($to, $address);
+      $idx2 = strpos($cc, $address);
+      if(!(($idx1 === false) && ($idx2 === false))) {
+        return $wikiname;
+      } 
+   } 
+  
+   return null;
+ 
+   /*$idx1 = strpos($to, "\"robopedia@");
+   $idx2 = strpos($cc, "\"robopedia@");
+   if(($idx1 === false) && ($idx2 === false)) {
+     return null;
+   } else {
+     return "robopedia";
+   } 
+   */
+}
+
+function getServerNameOrig($to, $cc) {
   $temp = $to;
   $idx = strpos($temp, "\"wes@");
 
