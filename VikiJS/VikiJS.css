@@ -57,3 +57,7 @@ float:right;
  */
 top:-23px;
 }
+
+.contextMenu {
+  display: none;
+}

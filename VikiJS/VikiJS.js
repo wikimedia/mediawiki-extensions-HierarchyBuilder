@@ -86,10 +86,54 @@ window.VikiJS = function() {
 	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
 		var self = this;
 		self.log("very start of drawGraph");
-		// CSS option for the Vex modal dialog library
+
+		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
+		var dig = new RegExp("[0-9]", 'g');
+		this.ID = graphDiv.match(dig)[0];
+
+		// parse passed in parameters and initialize div settings.
+
+		this.GraphDiv = graphDiv;
+		this.DetailsDiv = detailsDiv + "_data";
+		this.SliderDiv = detailsDiv + "_zoom_slider";
+		this.ImagePath = imagePath;
+
+		this.INITIAL_HEIGHT = initialHeight;
+		this.INITIAL_WIDTH = initialWidth;
+		this.height = self.INITIAL_HEIGHT;
+		this.width = self.INITIAL_WIDTH;
+
+		// to set the widths of the details divider and the horizontal zoom slider
+		// the margin is a value used to accumulate all maring, padding and other
+		// space that the .detail-panel class uses.
+		var margin = 10;
+		// the details divider will get 3/5 of the space
+		$("#"+self.DetailsDiv).width((self.width - margin)* 3/5);
+		// the slider will get 2/5 of the space
+		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
+		// set the entire detail-panel to the width of the input minus the size of
+		// the paddings, margins and other values to align with the graph.
+		$(".vikijs-detail-panel").width(self.width - margin);
+		// create a new zoom slider
+		var zoom_slider = $("#"+self.SliderDiv).slider(
+		{
+		  orientation: "horizontal",//make the slider horizontal
+		  min: this.MIN_SCALE , // set the lowest value
+		  max: this.MAX_SCALE, // set the highest value
+		  step: .001, // set the value for each individual increment
+		  value: this.Zoompos, // set the starting value
+		  slide: function( event, ui ) {
+			// set the zoom scale equal to the current value of the slider
+			// which is the current position
+		        self.Zoompos = ui.value;
+			// call the slide function to zoom/pan using the slider
+		        self.slide();
+		  }
+		});
+
+		// Set up the loading spinner
 		vex.defaultOptions.className = 'vex-theme-default';
-		// vex.showLoading();
-		
+
 		var loadingContent = '\
 <div id="loadingDiv">\
 	<div id="textDiv">Loading...</div>\
@@ -137,10 +181,31 @@ window.VikiJS = function() {
 			},
 			showCloseButton: false
 		});
+
+		// Set up the context menu
+
+		// ensure the entire graph div doesn't trigger context menu - only nodes
+		foo = $('#'+this.GraphDiv);
+		$('#'+this.GraphDiv).on('contextmenu', function() {
+			return false;
+		});
+
+		$('body').append(
+			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			// the dynamic menu title (node name)
+			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			// actual navigable menu
+			"<div class=\"options\" >"+
+			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
+        	"<li id=\"getinfo\" >Get Info</li>"+
+			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
+			"<li id=\"hide\">Hide</li>"+
+			"<hr>"+// separator
+        	"<li id=\"showall\">Show All</li>"+
+	    	"</ul></div></div>"
+			);
 		
-		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
-		var dig = new RegExp("[0-9]", 'g');
-		this.ID = graphDiv.match(dig)[0];
+		$("#name").css("text-align", "center");
 
 		// get hooks available
 		this.Hooks = jQuery.parseJSON(hooks);
@@ -152,46 +217,8 @@ window.VikiJS = function() {
 			alert("You must supply a page title.");
 			return;
 		}
-
-		// initialize graph settings.
-
-		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv + "_data";
-		this.SliderDiv = detailsDiv + "_zoom_slider";
-		this.ImagePath = imagePath;
-
-		this.INITIAL_HEIGHT = initialHeight;
-		this.INITIAL_WIDTH = initialWidth;
-		this.height = self.INITIAL_HEIGHT;
-		this.width = self.INITIAL_WIDTH;
 		
-		// to set the widths of the details divider and the horizontal zoom slider
-		// the margin is a value used to accumulate all maring, padding and other
-		// space that the .detail-panel class uses.
-		var margin = 10;
-		// the details divider will get 3/5 of the space
-		$("#"+self.DetailsDiv).width((self.width - margin)* 3/5);
-		// the slider will get 2/5 of the space
-		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
-		// set the entire detail-panel to the width of the input minus the size of
-		// the paddings, margins and other values to align with the graph.
-		$(".vikijs-detail-panel").width(self.width - margin);
-		// create a new zoom slider
-		var zoom_slider = $("#"+self.SliderDiv).slider(
-		{
-		  orientation: "horizontal",//make the slider horizontal
-		  min: this.MIN_SCALE , // set the lowest value
-		  max: this.MAX_SCALE, // set the highest value
-		  step: .001, // set the value for each individual increment
-		  value: this.Zoompos, // set the starting value
-		  slide: function( event, ui ) {
-			// set the zoom scale equal to the current value of the slider
-			// which is the current position
-		        self.Zoompos = ui.value;
-			// call the slide function to zoom/pan using the slider
-		        self.slide();
-		  }
-		});
+
 
 		$("#addNodesButton").click(function() {
 			setTimeout(function() {
@@ -205,7 +232,9 @@ window.VikiJS = function() {
 		// get this wiki's own logo URL,
 		// and do initial graph population.
 
-		this.callHooks("GetAllWikisHook", []);
+		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
+		if(!calledGetAllWikisHook)
+			self.hookCompletion("GetAllWikisHook");
 
 		function initializeGraph() {
 			var padding = 20;
@@ -403,9 +432,12 @@ window.VikiJS = function() {
 		});
 		
 		self.searchableCount = actuallySearchableWikis.length;
-		
-		for(var i = 0; i < actuallySearchableWikis.length; i++) {
-			self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
+		self.log("searchableCount = "+self.searchableCount);
+		if(self.searchableCount ==0)
+			self.populateInitialGraph();
+		else
+			for(var i = 0; i < actuallySearchableWikis.length; i++) {
+				self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
 		}
 	}
 	
@@ -457,6 +489,9 @@ window.VikiJS = function() {
 		vex.close(self.loadingView.data().vex.id);
 		self.log("closed load screen");
 		self.log("now will get site logo and do graph population");
+
+		//visit self node to get categories
+
 		jQuery.ajax({
 			url: self.myApiURL,
 			dataType: 'json',
@@ -469,9 +504,11 @@ window.VikiJS = function() {
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
 				self.thisWikiData.logoURL = self.myLogoURL;
 				// do initial graph population
-				for(var i = 0; i < self.initialPageTitles.length; i++)
+				for(var i = 0; i < self.initialPageTitles.length; i++) {
 					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
-					self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+					self.visitNode(node);
+				}
 
 				for(var i = 0; i < self.initialPageTitles.length; i++)
 					self.elaborateNode(self.Nodes[i]);
@@ -563,7 +600,7 @@ window.VikiJS = function() {
 			self.LinkSelection.data(self.Links);
 
 		var newLinks = self.LinkSelection.enter().append("svg:line");
-		newLinks.attr("class", "link");
+		newLinks.attr("class", "link-"+this.ID);
 		self.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
 				return d.source.index == self.SelectedNode ||
@@ -620,7 +657,7 @@ window.VikiJS = function() {
 
 		var newNodes = self.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "node");
+		newNodes.attr("class", "node-"+this.ID);
 		newNodes.on("click", function(d) {
 			self.SelectedNode = d.index;
 			self.displayNodeInfo(d);
@@ -628,6 +665,12 @@ window.VikiJS = function() {
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
+		});
+
+		newNodes.on("contextmenu", function(d) {
+			self.SelectedNode = d.index;
+			self.redraw(false);
+			self.menu();
 		});
 
 		var drag = self.Force.drag()
@@ -1199,6 +1242,7 @@ window.VikiJS = function() {
 			dataType: intraNode.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
+				prop: 'categories',
 				titles: intraNode.pageTitle,
 				format: 'json'
 			},
@@ -1217,12 +1261,30 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.wikiPageCheckHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
+
 		if(data.query.pages["-1"]) {
+			// check if the page is nonexistent
 			originNode.nonexistentPage = true;
 			originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 			self.redraw(true);	
+		}
+		else {
+			// get the categories
+			page = data.query.pages[ Object.keys(data.query.pages)[0] ];
+			if(page.categories) {
+				// if originNode doesn't already have a categories array, make one
+				if(!originNode.categories)
+						originNode.categories = new Array();
 
-		}		
+				for(var i = 0; i < page.categories.length; i++) {
+					categoryTitle = page.categories[i].title;
+					// the category title is of the form "Category:Foo" so must remove the "Category:" part
+					categoryTitle = categoryTitle.replace("Category:", "");
+					self.log("Found the category called: " +categoryTitle);
+					originNode.categories.push(categoryTitle);
+				}
+			}
+		}
 	}
 	
 	VikiJS.prototype.indexOfWiki = function(url) {
@@ -1336,20 +1398,110 @@ window.VikiJS = function() {
 	}
 
 	VikiJS.prototype.callHooks = function(hookName, parameters) {
+		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
 				self.log("About to call hooks for "+hookName+"...");
 				for(var i = 0; i < self.Hooks[hookName].length; i++) {
-					window[ self.Hooks[hookName][i] ](self, parameters);
+					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
 				}
 				self.log("Done with hooks for "+hookName);
 				
 				self.redraw(true);
+				return true;
 			}
 		}
-		else {
-			self.log("No hooks for GetAllWikis.");
+		return false;
+	}
+
+	VikiJS.prototype.hookCompletion = function(hookName, parameters) {
+		var self = this;
+		// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
+		if(hookName === "GetAllWikisHook") {
+			self.fetchContentNamespaces();
 		}
+	}
+
+	VikiJS.prototype.menu = function() {
+		var self = this;
+		self.Force.stop();
+		// find the node according to the index and set it locally
+		var node = self.findNode('index', this.SelectedNode);
+		//var node = this.findNode('index',this.SelectedNode, this);
+		// create a json object to store the variable settings
+		var freeze = {
+			toggle : "",
+			fix : false
+		};
+		
+		// if the node has been fixed, then display "unfreeze" as a menu
+		// option and if unfreeze is selected, unfreeze the node
+		// note: the weird syntax here is due to some strange issue with
+		// node.fixed taking on integer values instead of true/false
+		// after they have been moused over at some point.
+
+		freeze.fix = node.fix ? false : true;
+		freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
+
+		// set the title of the menu to the name
+		$('#name-'+this.ID).html(node.displayName);
+		// toggle the menu option between freeze and unfreeze
+		$('.freeze-'+this.ID).html(freeze.toggle);
+		// toggle the project on staff and projects 
+		$('.elaborate-'+this.ID).html("Elaborate");
+		// the actual menu code
+        $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
+        	// activate before the menu shows
+        	onShowMenu: function(e, menu) {
+		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
+		          $('.elaborate-'+self.ID, menu).remove();
+		        }
+		        if(node.nonexistentPage) {
+		        	$('#getinfo', menu).remove();
+		        }
+		        return menu;
+	      	},
+	      	// activate after the menu shows
+	      	onExitMenu: function(e,menu) {
+	      		self.Force.start();
+	      	},
+	      	// style the menu
+	      	itemStyle: {
+		        fontFamily : 'Trebuchet MS',
+		        backgroundColor : '#EEEEEE',
+	        },
+			bindings: {
+		        'freeze': function(t) {
+		        	self.log("freeze() clicked");
+		        	// freeze/unfreeze the node
+					node.fixed = freeze.fix;
+					// store these settings in the metadata
+					node.fix = freeze.fix;
+		        },
+		        'getinfo': function(t) {
+		        	self.log("getInfo() clicked");
+		        	window.open(node.URL, "_blank");
+		        },
+		        'elaborate': function(t) {
+
+		        	self.log("elaborate() clicked");
+					self.elaborateNodeAtIndex(self.SelectedNode);
+					// self.elaborateNode(node);
+					// self.indexReset();
+					// self.redraw(true);
+		        },
+		        'hide': function(t) {
+		        	// when hide is selected, call the hide function
+					//self.hide(node);
+					self.log("hide() clicked");
+		        },
+		        'showall': function(t) {
+		        	// when Show All is selcted, call the showAll function
+					//self.showAll();
+					self.log("showAll() clicked");
+		        }
+	        }
+		});
 	}
 
 	VikiJS.prototype.log = function(text) {
