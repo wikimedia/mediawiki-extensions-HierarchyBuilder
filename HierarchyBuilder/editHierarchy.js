@@ -37,6 +37,10 @@
 	window.EditHierarchy_init = function (input_id, params) {
 		({
 			init: function(input_id, params) {
+
+				console.log("[editHierarchy.js][init] ");
+				console.log(params);
+
 				var hierarchy = params.hierarchy;
 				if (hierarchy.length < 1) {
 					return;
@@ -122,9 +126,9 @@
 				var pagelist = "<ul><li class='hierarchy_root'><a>" +
 					params.unusedpages + "</a><ul>";
 				for (var pagename in params.pages) {
-					pagelist += "<li><a>" + params.pages[pagename] +
-						"<span style='display:none'>" + pagename +
-						"</span></a></li>";
+					pagelist += "<li><a>" + params.pages[pagename] + "</a></li>";
+						//"<span style='display:none'>" + pagename +
+						//"</span></a></li>";
 				}
 				pagelist += "</ul></li></ul>";
 			
@@ -139,6 +143,7 @@
 					$(pageListDivId).jstree("open_all");
 				});
 				$(pageListDivId).bind("move_node.jstree", function (event, data) {
+					console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
 					var mylist = $(pageListDivId + " .hierarchy_root > ul");
 					var listitems = mylist.find("li").get();
 					mylist.children().detach();
