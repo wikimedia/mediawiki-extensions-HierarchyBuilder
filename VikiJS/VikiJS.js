@@ -52,7 +52,8 @@ window.VikiJS = function() {
 	this.Hooks = null;
 	this.hasHooks = false;
 	this.GraphDiv = null;
-	this.DetailsDiv = null;
+	this.SubDetailsDiv = null;
+	this.ErrorsDiv = null;
 	this.SliderDiv = null;
 	this.SelectedNode = null;
 	this.Nodes = new Array();
@@ -83,7 +84,7 @@ window.VikiJS = function() {
 
 	var self = this;
 
-	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
+	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, subdetailsDiv, sliderDiv, errorsDiv, imagePath, initialWidth, initialHeight, hooks) {
 		var self = this;
 		self.log("very start of drawGraph");
 
@@ -94,8 +95,9 @@ window.VikiJS = function() {
 		// parse passed in parameters and initialize div settings.
 
 		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv + "_data";
-		this.SliderDiv = detailsDiv + "_zoom_slider";
+		this.SubDetailsDiv = subdetailsDiv;
+		this.SliderDiv = sliderDiv;
+		this.ErrorsDiv = errorsDiv;
 		this.ImagePath = imagePath;
 
 		this.INITIAL_HEIGHT = initialHeight;
@@ -108,7 +110,7 @@ window.VikiJS = function() {
 		// space that the .detail-panel class uses.
 		var margin = 10;
 		// the details divider will get 3/5 of the space
-		$("#"+self.DetailsDiv).width((self.width - margin)* 3/5);
+		$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
 		// the slider will get 2/5 of the space
 		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
 		// set the entire detail-panel to the width of the input minus the size of
@@ -193,12 +195,14 @@ window.VikiJS = function() {
 		$('body').append(
 			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
 			// the dynamic menu title (node name)
-			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+			"<hr>"+ // separator
 			// actual navigable menu
 			"<div class=\"options\" >"+
 			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
         	"<li id=\"getinfo\" >Get Info</li>"+
 			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
+			"<li id=\"categories\">Show Categories</li>"+
 			"<li id=\"hide\">Hide</li>"+
 			"<hr>"+// separator
         	"<li id=\"showall\">Show All</li>"+
@@ -454,6 +458,7 @@ window.VikiJS = function() {
 				action : 'getContentNamespaces',
 				format : 'json'
 			},
+			timeout: 5000,
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
 				self.log("url of ajax call: "+url);
@@ -477,7 +482,22 @@ window.VikiJS = function() {
 
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				if(errorThrown === 'timeout') {
+					// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
+					// default to just NS 0 (main).
+					self.log("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
+					$("#"+self.ErrorsDiv).css("visibility", "visible");
+					$("#"+self.ErrorsDiv).append("<p>Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).</p>");
+					actuallySearchableWikis[index].contentNamespaces = [0];
+					self.contentNamespacesFetched++;
+					if(self.contentNamespacesFetched == self.searchableCount) {
+						self.log("all namespaces fetched; now populating graph");
+						self.populateInitialGraph();				
+					}
+				}
+				else {
+					self.log("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				}
 			}
 		});
 	
@@ -489,8 +509,6 @@ window.VikiJS = function() {
 		vex.close(self.loadingView.data().vex.id);
 		self.log("closed load screen");
 		self.log("now will get site logo and do graph population");
-
-		//visit self node to get categories
 
 		jQuery.ajax({
 			url: self.myApiURL,
@@ -1181,6 +1199,8 @@ window.VikiJS = function() {
 					if(!link)
 						link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
 				}
+
+				self.visitNode(intraNode);
 			}
 		}
 		self.redraw(true);
@@ -1269,12 +1289,14 @@ window.VikiJS = function() {
 			self.redraw(true);	
 		}
 		else {
+			// if originNode doesn't already have a categories array, make one
+			if(!originNode.categories)
+					originNode.categories = new Array();
 			// get the categories
+
+			self.log("In visitNode() handler for "+originNode.displayName);
 			page = data.query.pages[ Object.keys(data.query.pages)[0] ];
 			if(page.categories) {
-				// if originNode doesn't already have a categories array, make one
-				if(!originNode.categories)
-						originNode.categories = new Array();
 
 				for(var i = 0; i < page.categories.length; i++) {
 					categoryTitle = page.categories[i].title;
@@ -1321,7 +1343,7 @@ window.VikiJS = function() {
 		if (self.SelectedNode !== node.index) {
 			return;
 		}
-		jQuery("#" + self.DetailsDiv).html(node.info);
+		jQuery("#" + self.SubDetailsDiv).html(node.info);
 		if(node.nonexistentPage)
 			return;
 		if (node.type == self.WIKI_PAGE_TYPE) {
@@ -1338,7 +1360,7 @@ window.VikiJS = function() {
 			var buttons = " <a href='" + node.URL +
 				"' target='_blank'><img src='" + self.ImagePath +
 				"info.png' /></a>";
-			var h4 = jQuery("#" + self.DetailsDiv + " h4");
+			var h4 = jQuery("#" + self.SubDetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		}
 		$(".elaborate").click(function() {
@@ -1455,9 +1477,11 @@ window.VikiJS = function() {
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
 		          $('.elaborate-'+self.ID, menu).remove();
+		          $('#categories', menu).remove();
 		        }
 		        if(node.nonexistentPage) {
 		        	$('#getinfo', menu).remove();
+		        	$('#categories', menu).remove();
 		        }
 		        return menu;
 	      	},
@@ -1467,8 +1491,9 @@ window.VikiJS = function() {
 	      	},
 	      	// style the menu
 	      	itemStyle: {
-		        fontFamily : 'Trebuchet MS',
-		        backgroundColor : '#EEEEEE',
+		        fontFamily : 'sans serif',
+		        fontSize: '13px',
+		        backgroundColor : '#FFFFFF',
 	        },
 			bindings: {
 		        'freeze': function(t) {
@@ -1489,6 +1514,19 @@ window.VikiJS = function() {
 					// self.elaborateNode(node);
 					// self.indexReset();
 					// self.redraw(true);
+		        },
+		        'categories': function(t) {
+		        	var categories = "Categories: ";
+		        	for(var i = 0; i < node.categories.length; i++) {
+		        		categories+= node.categories[i]+", ";
+		        	}
+		        	if(node.categories.length == 0) {
+		        		categories += "No categories";
+		        	}
+		        	else {
+			        	categories = categories.substring(0, categories.length-2);
+			        }
+		        	alert(categories);
 		        },
 		        'hide': function(t) {
 		        	// when hide is selected, call the hide function

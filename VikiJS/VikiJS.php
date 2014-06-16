@@ -129,17 +129,19 @@ class VikiJS {
 		$div = "VikiJS_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
-		$detailssubdiv = $detailsdiv . "_data";
+		$subdetailsdiv = $div . "_details_data";
+		$errorsdiv = $div . "_errors";
 		$sliderdiv = $detailsdiv . "_zoom_slider";
+		
 		$output = <<<EOT
 <table>
 <tr><td><div class="vikijs-graph-container" id="$graphdiv">
 </div></td></tr>
 <tr><td><div class="vikijs-detail-panel" id="$detailsdiv">
-<div id="$detailssubdiv"></div>
+<div class="vikijs-subdetail-panel" id="$subdetailsdiv"></div>
 <div class="vikijs-zoom-slider" id="$sliderdiv"></div>
 </div></td></tr>
-<tr><td><div id="vikijs-errors-panel">
+<tr><td><div class="vikijs-errors-panel" id="$errorsdiv">
 </div></td></tr>
 <tr><td><div id="vikijs-add-nodes-panel"><button id="addNodesButton">Add Nodes</button>
 </div></td></tr>
@@ -167,7 +169,7 @@ modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
 		var g = new VikiJS();
-		g.drawGraph("$pageTitles_json", "$graphdiv", "$detailsdiv", "$imagePath", "$width", "$height", "$hooks");
+		g.drawGraph("$pageTitles_json", "$graphdiv", "$detailsdiv", "$subdetailsdiv", "$sliderdiv", "$errorsdiv", "$imagePath", "$width", "$height", "$hooks");
 	});
 });
 END;
@@ -176,6 +178,7 @@ END;
 
 		global $wgOut;
 		$wgOut->addScript($script);
+
 		return $output;
 	}
 }
@@ -213,13 +216,8 @@ class ApiGetTitleIcons extends ApiBase {
 
 		$pageTitle = $this->getMain()->getVal('pageTitle');
 
-		global $wgViki_TitleIconVarName;
-		$myTitleIconName = "";
-
-		if(!$wgViki_TitleIconVarName)
-			$myTitleIconName = "Title+Icon";
-		else
-			$myTitleIconName = $wgViki_TitleIconVarName;
+		global $TitleIcon_TitleIconPropertyName;
+ 		$myTitleIconName = $TitleIcon_TitleIconPropertyName;
 
 		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
 		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
@@ -241,6 +239,15 @@ class ApiGetTitleIcons extends ApiBase {
 		
 		$api->execute();
 		$data = $api->getResultData();
+
+		if(is_array($data["query"]["results"]) && count($data["query"]["results"]) == 0) {
+			$this->getResult()->addValue(null, $this->getModuleName(),
+				array('pageTitle' => $pageTitle,
+					'titleIcons' => array()
+						));
+
+			return true;
+		}
 
 		$titleIconNames = $data["query"]["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
 		$titleIconURLs = array();
@@ -277,79 +284,6 @@ class ApiGetTitleIcons extends ApiBase {
 		return true;
 		
 	}
-/*	public function execute() {
-
-		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon.out");
-
-		$pageTitle = $this->getMain()->getVal('pageTitle');
-		$encodedURL = $this->getMain()->getVal('apiURL');
-
-		global $wgViki_TitleIconVarName;
-		$myTitleIconName = "";
-
-		if(!$wgViki_TitleIconVarName)
-			$myTitleIconName = "Title+Icon";
-		else
-			$myTitleIconName = $wgViki_TitleIconVarName;
-
-		// wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon.out");
-
-		$apiURL = urldecode($encodedURL);
-		$indexURL = str_replace('api', 'index', $apiURL);
-
-		wfErrorLog("pageTitle = $pageTitle\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		// wfErrorLog("apiURL = $apiURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		// wfErrorLog("indexURL = $indexURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-
-		// make Special:Ask query on the passed-in URL and page title.
-		$askQueryURL = $indexURL . '?title=Special:Ask&q=[[' . $pageTitle . ']]&po=?' . $myTitleIconName . '&p[format]=json';
-		// wfErrorLog("query URL: $askQueryURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		$askQueryResult = json_decode(file_get_contents($askQueryURL), true);
-//		$json = file_get_contents("http://examples.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Title_Icon_Example_1]]&po=?Logo+Link&p[format]=json");
-//		$askQueryResult = json_decode($json, true);
-//		wfErrorLog("query result:\n$json\n", "/var/www/html/DEBUG_getTitleIcon.out");
-
-		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
-		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
-		// wfErrorLog("pageTitle with spaces: $pageNameWithSpaces\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		$logoLinkArray = $askQueryResult["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
-
-		foreach($logoLinkArray as $key => $value) {
-			wfErrorLog("$key => $value\n", "/var/www/html/DEBUG_getTitleIcon.out");
-		}
-
-		if(count($logoLinkArray) == 0) {
-			// wfErrorLog("result array is empty.\n", "/var/www/html/DEBUG_getTitleIcon.out");
-			$this->getResult()->addValue(null, $this->getModuleName(),
-				array('pageTitle' => $pageTitle,
-					'apiURL' => $apiURL,
-					'titleIcon' => array()));
-		}
-		else {
-			
-			$titleIconURLs = array();
-			
-			foreach($logoLinkArray as $imgSrc) {
-				$logoQueryURL = $apiURL . '?action=query&titles=File:' . $imgSrc . '&prop=imageinfo&iiprop=url&format=json';
-				wfErrorLog("logo query URL: $logoQueryURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-				$logoQueryResult = json_decode(file_get_contents($logoQueryURL), true);
-				wfErrorLog("logo query result: " . file_get_contents($logoQueryURL) . "\n", "/var/www/html/DEBUG_getTitleIcon.out");
-				$key = array_shift(array_keys($logoQueryResult["query"]["pages"]));
-				// wfErrorLog("key: $key\n", "/var/www/html/DEBUG_getTitleIcon.out");
-				$imgURL = $logoQueryResult["query"]["pages"][$key]["imageinfo"][0]["url"];
-				// wfErrorLog("got image url: $imgURL\n", "/var/www/html/DEBUG_getTitleIcon.out");
-				$titleIconURLs[] = $imgURL;
-			}
-			$this->getResult()->addValue(null, $this->getModuleName(),
-				array('pageTitle' => $pageTitle,
-						'apiURL' => $apiURL,
-						'titleIcon' => $titleIconURLs));
-			
-		}
-		return true;
-
-	}
-	*/
 	public function getDescription() {
 		return "Get the URLs of all Title Icons for the page, if any exist.
 			
