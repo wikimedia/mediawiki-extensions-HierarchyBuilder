@@ -39,10 +39,11 @@ $wgExtensionCredits['semantic'][] = array (
 	'description' => 'Allows EditOwn Namespaces to be set by inclusion rather than exclusion'
 );
 
-$wgHooks['ParserFirstCallInit'][] = 'setupEditOwnNamespaces';
+$wgHooks['userCan'][] = 'setupEditOwnNamespaces';
 
-function setupEditOwnNamespaces(& $parser) {
 
+function setupEditOwnNamespaces($title, $user, $action, &$result)
+{
   global $wgEditOwnIncludedNamespaces;
   if (!isset($wgEditOwnIncludedNamespaces) ||
     !is_array($wgEditOwnIncludedNamespaces)) {
