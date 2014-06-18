@@ -420,7 +420,13 @@ class EditHierarchy extends SFFormInput {
 				$displayNameProperty);
 		}
 
-		wikiLog("EditHierarchy", "setupJsInitAttribs", print_r($pages, true));
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", print_r($pages, true));
+		// This loop will removed pages from the unselected pages list if we can find it in the hierarchy already.		
+		foreach ($pages as $key => $value) {
+			if (strpos("[[".$this->mCurrentValue."]]", $key) !== false) { 
+				unset($pages[$key]);
+			}
+		}
 
 		$hierarchy = $this->mCurrentValue; // I don't use the call below anymore because now we have wikiText, not HTML
 		/*$hierarchy = HierarchyBuilder::parseHierarchy($this->mCurrentValue,
