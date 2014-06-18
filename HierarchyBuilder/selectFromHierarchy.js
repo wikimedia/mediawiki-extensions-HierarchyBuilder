@@ -36,22 +36,35 @@
 	window.SelectFromHierarchy_init = function(input_id, params) {
 		({
 			init: function(input_id, params) {
+				//console.log("[selectFromHierarchy.js][init] " + input_id);
+				//console.log("[selectFromHierarchy.js][init] ");
+				//console.log(params);
+				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
+				//console.log(params.selected_items);
+
 				if (params.hierarchy.length < 1) {
 					return;
 				}
 			
 				var selected_components =
 					this.getSelectedHierarchyComponents(input_id);
+				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
 			
 				var hierarchy = $(params.hierarchy);
 				var html = hierarchy.html();
 				var ulId = params.div_id + "ul";
-				html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
-					"</ul>";
-			
+				//console.log("[selectFromHierarchy][init]" + ulId);
+				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
+				//	"</ul>";
+				html = html.replace(/&nbsp;/gi, " ");
 				var jqDivId = "#" + params.div_id;
+				//console.log("[selectFromHierarchy][init]" + jqDivId);
 				$(jqDivId).html(html);
+				//console.log("[selectFromHierarchy][init]" + $(jqDivId).html());
 				$(jqDivId + " * li").css("list-style-image", "none");
+								//alert("after css on jqDivId");
+				//console.log("[selectFromHierarchy][init]");
+				//console.log($(jqDivId + " * li"));
 				var updated_selected_components = new Array();
 				var obj = this;
 				$(jqDivId + "* li").each(function() {
@@ -65,16 +78,24 @@
 						}
 					});
 				});
+								//alert("after updated components");
 				selected_components = updated_selected_components;
+				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
 			 	$("#" + input_id).val(selected_components.join(","));
 				$(jqDivId).bind("loaded.jstree", function (event, data) {
+								//alert("in loaded.jstree binding" + $(jqDivId).html());
 					obj.initializeTree(jqDivId, params.is_disabled,
 						selected_components, true, input_id, params.collapsed);
+					$(jqDivId).jstree("open_all");
 				});
+								//alert("after loaded.jstree binding");
 				$(jqDivId).bind("refresh.jstree", function (event, data) {
+								//alert("in refresh.jstree binding" + $(jqDivId).html());
 					obj.initializeTree(jqDivId, params.is_disabled,
 						selected_components, false, input_id, params.collapsed);
 				});
+								//alert("after refresh.jstree binding");
+
 				$(jqDivId).jstree({
 					"themes" : {
 						"theme": "apple",
@@ -94,9 +115,12 @@
 					},
 					"plugins" : [ "themes", "html_data", "checkbox", "types" ]
 				});
+
+								//alert("end of init" + $(jqDivId).html());
 			},
 			
 			getSelectedHierarchyComponents: function(input_id) {
+				//alert("getSelectedHierarchyComponents");
 				var cur_value = $("#" + input_id).val();
 				cur_value = $.trim(cur_value);
 				if (cur_value.length > 0) {
@@ -108,6 +132,7 @@
 			
 			initializeTree: function(jqDivId, is_disabled, selected_components,
 				init, input_id, collapsed) {
+				//alert("initializeTree");
 				var obj = this;
 				if (collapsed) {
 					$(jqDivId).jstree("close_all");
@@ -150,6 +175,7 @@
 			
 			isSelectedHierarchyComponent: function(element_name,
 				selected_components) {
+				//alert("isSelectedHierarchyComponent");
 				if (selected_components && selected_components.length > 0) {
 					var page_name = "[[" + element_name + "]]";
 					var index = $.inArray(page_name, selected_components);
@@ -161,6 +187,7 @@
 			},
 			
 			checkNode: function(element_name, input_id) {
+				//alert("checkNode");
 				var selected_components =
 					this.getSelectedHierarchyComponents(input_id);
 				var page_name = "[[" + element_name + "]]";
@@ -177,6 +204,7 @@
 			},
 			
 			uncheckNode: function(element_name, input_id) {
+				//alert("uncheckNode");				
 				var selected_components =
 					this.getSelectedHierarchyComponents(input_id);
 				var page_name = "[[" + element_name + "]]";
