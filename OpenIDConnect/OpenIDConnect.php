@@ -47,18 +47,20 @@ $wgAutoloadClasses['OpenIDConnectClient'] =
 $wgExtensionMessagesFiles['OpenIDConnect'] =
 	__DIR__ . '/OpenIDConnect.i18n.php';
 
-$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
-$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
-	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
 
+$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
+$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
 $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
-$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
 $wgExtensionMessagesFiles['OpenIDConnectSpecialAliases'] =
 	__DIR__ . '/OpenIDConnect.aliases.php';
+
 $wgAutoloadClasses['OpenIDConnectLogin'] =
 	__DIR__ . '/OpenIDConnectLogin.class.php';
 $wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
+
+$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
+$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
+	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';

@@ -29,21 +29,30 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 	}
 
 	function execute($param) {
-		if (!$this->getContext()->getUser()->isLoggedIn()) {
-			if (session_id() == '') {
-				wfSetupSession();
-			}
-			$session_variable = wfWikiID() . "_returnto";
+		if (session_id() == '') {
+			wfSetupSession();
+		}
+		$session_variable = wfWikiID() . "_returnto";
+		if ($this->getContext()->getUser()->isLoggedIn()) {
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
-
+				$returnto = Title::newMainPage()->getFullURL();
+			} else {
+				$returnto = $_SESSION[$session_variable];
+				unset($_SESSION[$session_variable]);
+			}
+			OpenIDConnect::redirect($returnto);
+		} else {
+			if (!array_key_exists($session_variable, $_SESSION) ||
+				$_SESSION[$session_variable] === null) {
 				$returnto = htmlentities(
 					$this->getRequest()->getVal('returnto',''),
 					ENT_QUOTES);
 				$title = Title::newFromText($returnto);
-				if (!is_null($title)) {
-					$_SESSION[$session_variable] = $title->getPrefixedText();
+				if (is_null($title)) {
+					$title = Title::newMainPage();
 				}
+				$_SESSION[$session_variable] = $title->getFullURL();
 			}
 			$user = new User;
 			OpenIDConnect::login($user);
