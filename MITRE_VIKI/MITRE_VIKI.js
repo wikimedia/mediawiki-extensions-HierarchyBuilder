@@ -25,7 +25,7 @@ window.queryForAllWikis = function(vikiObject, offset) {
       },
       beforeSend: function (jqXHR, settings) {
          url = settings.url;
-         hook_log("url of ajax call: "+url);
+         // hook_log("url of ajax call: "+url);
       },
       success: function(data, textStatus, jqXHR) {
          parseAllWikisResults(data, vikiObject);
@@ -71,6 +71,7 @@ window.parseAllWikisResults = function(data, vikiObject) {
 window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 //parameters = [ new external nodes ]
 	nodes = parameters[0];
+   needsRedraw = false;
 
 	for(var i = 0; i < nodes.length; i++) {
 		node = nodes[i];
@@ -80,6 +81,7 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 			hook_log("found employeeNum "+employeeNum);
 
 			self.queryPhonebook(vikiObject, node, employeeNum);
+         needsRedraw = true;
 		}
 		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
 			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
@@ -90,14 +92,18 @@ window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
 			
 			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
 			hook_log("setting hookIconURL to "+node.hookIconURL);
+         needsRedraw = true;
 		}
 		else if(node.URL.indexOf("mitre.org") != -1) {
 			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
 			hook_log("setting hookIconURL to "+node.hookIconURL);
+         needsRedraw = true;
 		}
 	}
 	
-	vikiObject.redraw(true);
+   if(needsRedraw)
+      vikiObject.redraw(true);
+	
 }
 
 window.queryPhonebook = function(vikiObject, node, employeeNum) {
@@ -111,7 +117,7 @@ window.queryPhonebook = function(vikiObject, node, employeeNum) {
          empNum: employeeNum
       },
       beforeSend: function(jqXHR, settings) {
-         hook_log("url of phonebook lookup: "+settings.url);
+         // hook_log("url of phonebook lookup: "+settings.url);
       },
       success: function(data, textStatus, jqXHR) {
          parsePhonebookData(vikiObject, data, node);
