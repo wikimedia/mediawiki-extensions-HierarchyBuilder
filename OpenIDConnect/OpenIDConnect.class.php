@@ -25,37 +25,40 @@
 class OpenIDConnect {
 
 	public static function userLoadFromSession($user, &$result) {
-		$result = self::loadUser($user);
-		global $OpenIDConnect_AutoLogin;
-		if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
-			if (!$result) {
-				if (session_id() == '') {
-					wfSetupSession();
-				}
-				$session_variable = wfWikiID() . "_returnto";
-				if ((!array_key_exists($session_variable, $_SESSION) ||
-					$_SESSION[$session_variable] === null) &&
-					array_key_exists('title', $_REQUEST)) {
-					$_SESSION[$session_variable] = $_REQUEST['title'];
-				}
-				$result = self::login($user);
-			}
-		}
-		return false;
-	}
 
-	private static function loadUser($user) {
-		if ( session_id() == '' ) {
+		if (session_id() == '') {
 			wfSetupSession();
 		}
+
 		$session_variable = wfWikiID() . "_userid";
 		if (array_key_exists($session_variable, $_SESSION)) {
 			$user->mId = $_SESSION[$session_variable];
 			if ($user->loadFromDatabase()) {
 				$user->saveToCache();
-				return true;
+				$result = true;
+				return false;
 			}
 		}
+
+		global $OpenIDConnect_AutoLogin;
+		if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
+
+			if (array_key_exists('title', $_REQUEST) &&
+				$_REQUEST['title'] === 'Special:OpenIDConnectNotAuthorized') {
+				return false;
+			}
+
+			$session_variable = wfWikiID() . "_returnto";
+			if ((!array_key_exists($session_variable, $_SESSION) ||
+				$_SESSION[$session_variable] === null) &&
+				array_key_exists('REQUEST_URI', $_SERVER)) {
+				$_SESSION[$session_variable] = $_SERVER['REQUEST_URI'];
+			}
+
+			self::redirect(Title::newFromText(
+				'Special:OpenIDConnectLogin')->getFullURL());
+		}
+
 		return false;
 	}
 
@@ -88,7 +91,8 @@ class OpenIDConnect {
 					$id = User::idFromName($username);
 					global $OpenIDConnect_MigrateUsers;
 					if ($id && isset($OpenIDConnect_MigrateUsers) &&
-						$OpenIDConnect_MigrateUsers) {
+						$OpenIDConnect_MigrateUsers &&
+						self::missingExtraProperties($id)) {
 						$user->mId = $id;
 						$user->loadFromDatabase();
 						self::updateUser($user, $realname, $email);
@@ -129,19 +133,13 @@ class OpenIDConnect {
 			}
 			$session_variable = wfWikiID() . "_userid";
 			$_SESSION[$session_variable] = $user->mId;
-			$session_variable = wfWikiID() . "_returnto";
-			if (array_key_exists($session_variable, $_SESSION)) {
-				$returnto = $_SESSION[$session_variable];
-				unset($_SESSION[$session_variable]);
-			}
-			wfRunHooks( 'UserLoginComplete', array( &$user, &$injected_html ) );
+			self::redirect(Title::newFromText(
+				'Special:OpenIDConnectLogin')->getFullURL());
 		} else {
-			$returnto = 'Special:OpenIDConnectNotAuthorized';
-			$params = array('name' => $user->mName);
+			self::redirect(Title::newFromText(
+				'Special:OpenIDConnectNotAuthorized')->
+				getFullURL() . '?name=' . $user->mName);
 		}
-		global $wgOut;
-		session_regenerate_id(true); 
-		self::redirect($returnto, $wgOut, $params);
 		return $authorized;
 	}
 
@@ -152,25 +150,13 @@ class OpenIDConnect {
 		return true;
 	}
 
-	public static function redirect($returnto, $oidc, $params = null) {
-		$redirectTitle = Title::newFromText($returnto);
-		if (is_null($redirectTitle)) {
-			$redirectTitle = Title::newMainPage();
+	public static function redirect($returnto) {
+		session_regenerate_id(true); 
+		if (is_null($returnto)) {
+			$returnto = Title::newMainPage()->getFullURL();
 		}
-		$redirectURL = $redirectTitle->getFullURL();
-		if (is_array($params) && count($params) > 0) {
-			$first = true;
-			foreach ($params as $key => $value) {
-				if ($first) {
-					$first = false;
-					$redirectURL .= '?';
-				} else {
-					$redirectURL .= '&';
-				}
-				$redirectURL .= $key . '=' . $value;
-			}
-		}
-		$oidc->redirect($redirectURL);
+		global $wgOut;
+		$wgOut->redirect($returnto);
 	}	
 
 	private static function getId($subject, $provider) {
@@ -189,7 +175,28 @@ class OpenIDConnect {
 		}
 	}
 
+	private static function missingExtraProperties($id) {
+		$dbr = wfGetDB(DB_SLAVE);
+		$row = $dbr->selectRow('user',
+			array(
+				'subject',
+				'provider'
+			),
+			array(
+				'user_id' => $id
+			), __METHOD__
+		);
+		if ($row === false) {
+			return true;
+		}
+		if (is_null($row->subject) && is_null($row->provider)) {
+			return true;
+		}
+		return false;
+	}
+
 	public static function getAvailableUsername($name) {
+		$name = ucfirst($name);
 		$nt = Title::makeTitleSafe(NS_USER, $name);
 		if (is_null($nt)) {
 			$name = "User";
@@ -273,7 +280,8 @@ class OpenIDConnect {
 				$href = Title::newFromText('Special:OpenIDConnectLogin')->
 					getFullURL();
 				$returnto = $title->getPrefixedText();
-				if ($returnto != "Special:Badtitle" && $returnto != "Special:UserLogout") {
+				if ($returnto != "Special:Badtitle" &&
+					$returnto != "Special:UserLogout") {
 					$href .= '?returnto=' . $returnto;
 				}
 				$personal_urls['openidconnectlogin'] = array(
