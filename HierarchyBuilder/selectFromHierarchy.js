@@ -36,41 +36,39 @@
 	window.SelectFromHierarchy_init = function(input_id, params) {
 		({
 			init: function(input_id, params) {
-				//console.log("[selectFromHierarchy.js][init] " + input_id);
-				//console.log("[selectFromHierarchy.js][init] ");
-				//console.log(params);
-				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
-				//console.log(params.selected_items);
+				console.log("[selectFromHierarchy.js][init] " + input_id);
+				console.log("[selectFromHierarchy.js][init] ");
+				console.log(params);
+				console.log("[selectFromHierarchy.js][init] " + "selected = ");
+				console.log(params.selected_items);
 
 				if (params.hierarchy.length < 1) {
 					return;
 				}
 			
-				var selected_components =
-					this.getSelectedHierarchyComponents(input_id);
-				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
+				var selected_components = params.selected_items;
+					//this.getSelectedHierarchyComponents(input_id);
+				console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
 			
 				var hierarchy = $(params.hierarchy);
 				var html = hierarchy.html();
 				var ulId = params.div_id + "ul";
-				//console.log("[selectFromHierarchy][init]" + ulId);
+				console.log("[selectFromHierarchy][init]" + params.hierarchy);
 				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
 				//	"</ul>";
 				html = html.replace(/&nbsp;/gi, " ");
+				html = html.replace(/&amp;#160;/gi, " ");
 				var jqDivId = "#" + params.div_id;
-				//console.log("[selectFromHierarchy][init]" + jqDivId);
 				$(jqDivId).html(html);
-				//console.log("[selectFromHierarchy][init]" + $(jqDivId).html());
 				$(jqDivId + " * li").css("list-style-image", "none");
 								//alert("after css on jqDivId");
-				//console.log("[selectFromHierarchy][init]");
-				//console.log($(jqDivId + " * li"));
 				var updated_selected_components = new Array();
 				var obj = this;
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
 						var element_name = $(this).children("span:first").text();
+						console.log("[selectFromHierarchy.js][init] " + element_name);
 						if (obj.isSelectedHierarchyComponent(element_name,
 							selected_components)) {
 							updated_selected_components.push(
@@ -178,6 +176,7 @@
 				//alert("isSelectedHierarchyComponent");
 				if (selected_components && selected_components.length > 0) {
 					var page_name = "[[" + element_name + "]]";
+					console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name);
 					var index = $.inArray(page_name, selected_components);
 					if (index != -1) {
 						return true;
