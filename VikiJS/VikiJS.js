@@ -30,6 +30,7 @@ window.VikiJS = function() {
 	this.BAR_HEIGHT = 6;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
+	this.CURRENT_IDENTIFIER = 0;
 
 	this.searchableCount = 0;
 	this.contentNamespacesFetched = 0;
@@ -47,6 +48,7 @@ window.VikiJS = function() {
 	// Cindy's original light blue = #23a4ff
 	this.INCOMING_LINK_COLOR = "#3498db";
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
+	this.BIDIRECTIONAL_LINK_COLOR = "#2ecc71";
 
 	this.initialPageTitles = null;
 	this.Hooks = null;
@@ -55,7 +57,7 @@ window.VikiJS = function() {
 	this.SubDetailsDiv = null;
 	this.ErrorsDiv = null;
 	this.SliderDiv = null;
-	this.SelectedNode = null;
+	this.SelectedNodeIndex = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
 	this.LinkMap = {};
@@ -269,7 +271,7 @@ window.VikiJS = function() {
 			defs = svg.append("defs");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead")
+			   .attr("id", "arrowHeadOutgoing")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -283,7 +285,7 @@ window.VikiJS = function() {
 			   .attr("d", "M0,-8L20,0L0,8");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead2")
+			   .attr("id", "arrowHeadIncoming")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -297,7 +299,21 @@ window.VikiJS = function() {
 			   .attr("d", "M0,-8L20,0L0,8");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead3")
+			   .attr("id", "arrowHeadBidirectional")
+			   .attr("viewBox", "0 -8 20 20")
+			   .attr("refX", 16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.BIDIRECTIONAL_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "arrowHeadBlack")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -309,6 +325,62 @@ window.VikiJS = function() {
 			   .attr("stroke-width", "2")
 			.append("path")
 			   .attr("d", "M0,-8L20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadOutgoing")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.OUTGOING_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadIncoming")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.INCOMING_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadBidirectional")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.BIDIRECTIONAL_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadBlack")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", "black")
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
 
 			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "links-"+self.ID);
 			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
@@ -539,6 +611,11 @@ window.VikiJS = function() {
 
 				self.redraw(true);
 
+				// after initial population, by default select the first node.
+				self.SelectedNodeIndex = 0;
+				self.displayNodeInfo(self.Nodes[0]);
+				self.redraw(false);
+
 				// self.log("Done with initial graph population");
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -628,7 +705,7 @@ window.VikiJS = function() {
 		
 		newNodes.attr("class", "node-"+this.ID);
 		newNodes.on("click", function(d) {
-			self.SelectedNode = d.index;
+			self.SelectedNodeIndex = d.index;
 			self.displayNodeInfo(d);
 			self.redraw(false);
 		});
@@ -637,7 +714,7 @@ window.VikiJS = function() {
 		});
 
 		newNodes.on("contextmenu", function(d) {
-			self.SelectedNode = d.index;
+			self.SelectedNodeIndex = d.index;
 			self.redraw(false);
 			self.menu();
 		});
@@ -680,7 +757,7 @@ window.VikiJS = function() {
 		});
 		
 		texts.attr("font-weight", function(d) {
-			return d.index == self.SelectedNode ? "bold" : "normal";
+			return d.index == self.SelectedNodeIndex ? "bold" : "normal";
 		});
 		texts.attr("fill", function(d) {
 			return d.nonexistentPage ? "red" : "black";
@@ -723,53 +800,82 @@ window.VikiJS = function() {
 		newLinks.attr("class", "link-"+this.ID);
 		self.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == self.SelectedNode ||
-					d.target.index == self.SelectedNode ? 2 : 1;
+				return d.source.index == self.SelectedNodeIndex ||
+					d.target.index == self.SelectedNodeIndex ? 2 : 1;
 			} else {
-				return d.source == self.SelectedNode ||
-					d.target == self.SelectedNode ? 2 : 1;
+				return d.source == self.Nodes[self.SelectedNodeIndex] ||
+					d.target == self.Nodes[self.SelectedNodeIndex] ? 2 : 1;
 			}
 		});
 		self.LinkSelection.style("opacity", function(d) {
 			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == self.SelectedNode ||
-					d.target.index == self.SelectedNode ? 1 : self.LINK_OPACITY;
+				return d.source.index == self.SelectedNodeIndex ||
+					d.target.index == self.SelectedNodeIndex ? 1 : self.LINK_OPACITY;
 			} else {
-				return d.source == self.SelectedNode ||
-					d.target == self.SelectedNode ? 1 : self.LINK_OPACITY;
+				return d.source == self.Nodes[self.SelectedNodeIndex] ||
+					d.target == self.Nodes[self.SelectedNodeIndex] ? 1 : self.LINK_OPACITY;
 			}
 		});
 		self.LinkSelection.style("stroke", function(d) {
-			if(typeof d.source.index !== 'undefined') {
-				if(d.source.index == self.SelectedNode)
-					return self.OUTGOING_LINK_COLOR;
-				else if(d.target.index == self.SelectedNode)
-					return self.INCOMING_LINK_COLOR;
-				else return "black";
-			}
-			else {
-				if(d.source == self.SelectedNode)
-					return self.OUTGOING_LINK_COLOR;
-				else if(d.target == self.SelectedNode)
-					return self.INCOMING_LINK_COLOR;
-				else return "black";
+			if(d.bidirectional)
+				return self.BIDIRECTIONAL_LINK_COLOR;
+			else { 
+				if(typeof d.source.index !== 'undefined') {
+					if(d.source.index == self.SelectedNodeIndex)
+						return self.OUTGOING_LINK_COLOR;
+					else if(d.target.index == self.SelectedNodeIndex)
+						return self.INCOMING_LINK_COLOR;
+					else return "black";
+				}
+				else {
+					if(d.source == self.Nodes[self.SelectedNodeIndex])
+						return self.OUTGOING_LINK_COLOR;
+					else if(d.target == self.Nodes[self.SelectedNodeIndex])
+						return self.INCOMING_LINK_COLOR;
+					else return "black";
+				}
 			}
 		});
 		self.LinkSelection.attr("marker-end", function(d) {
-			if(typeof d.source.index !== 'undefined') {
-				if(d.source.index == self.SelectedNode)
-					return "url(#arrowHead)";
-				else if(d.target.index == self.SelectedNode)
-					return "url(#arrowHead2)";
-				else return "url(#arrowHead3)";
+			if(d.bidirectional) {
+				return "url(#arrowHeadBidirectional)";
 			}
 			else {
-				if(d.source == self.SelectedNode)
-					return "url(#arrowHead)";
-				else if(d.target == self.SelectedNode)
-					return "url(#arrowHead2)";
-				else return "url(#arrowHead3)";
+				if(typeof d.source.index !== 'undefined') {
+					if(d.source.index == self.SelectedNodeIndex)
+						return "url(#arrowHeadOutgoing)";
+					else if(d.target.index == self.SelectedNodeIndex)
+						return "url(#arrowHeadIncoming)";
+					else return "url(#arrowHeadBlack)";
+				}
+				else {
+					if(d.source == self.Nodes[self.SelectedNodeIndex])
+						return "url(#arrowHeadOutgoing)";
+					else if(d.target == self.Nodes[self.SelectedNodeIndex])
+						return "url(#arrowHeadIncoming)";
+					else return "url(#arrowHeadBlack)";
+				}
 			}
+		});
+
+		self.LinkSelection.attr("marker-start", function(d) {
+			if(d.bidirectional) {
+				return "url(#backArrowHeadBidirectional)";
+			}
+			// if(typeof d.source.index !== 'undefined') {
+			// 	if(d.source.index == self.SelectedNodeIndex)
+			// 		return "url(#backArrowHead)";
+			// 	else if(d.target.index == self.SelectedNodeIndex)
+			// 		return "url(#backArrowHead2)";
+			// 	else return "url(#backArrowHead3)";
+			// }
+			// else {
+			// 	if(d.source == self.Nodes[self.SelectedNodeIndex])
+			// 		return "url(#backArrowHead)";
+			// 	else if(d.target == self.Nodes[self.SelectedNodeIndex])
+			// 		return "url(#backArrowHead2)";
+			// 	else return "url(#backArrowHead3)";
+			// }
 		});
 
 		if (restartGraph) {
@@ -778,6 +884,10 @@ window.VikiJS = function() {
 			}
 			self.Force.start();
 		}
+
+		self.log("=====================================");
+		self.log("redraw() called from the following stack:");
+		console.trace();
 
 		self.log("Nodes:");
 		console.log(self.Nodes);
@@ -972,36 +1082,39 @@ window.VikiJS = function() {
 	VikiJS.prototype.addNode = function(node) {
 		var self = this;
 
-		// node.index = self.Nodes.push(node) - 1;
+		node.identifier = self.CURRENT_IDENTIFIER;
+		self.CURRENT_IDENTIFIER++;
 		self.Nodes.push(node);
-		if (node.index == 0) {
-			self.SelectedNode = 0;
+		if (self.Nodes.length == 1) {
+			self.SelectedNodeIndex = 0;
 		}
 	}
 
-	VikiJS.prototype.addLink = function(node1, node2) {
-		var self = this;
+	// VikiJS.prototype.addLink = function(node1, node2) {
+	// 	var self = this;
 
-		var link = {
-			source: node1,
-			target: node2
-		};
-		self.Links.push(link);
-		self.LinkMap[node1 + "," + node2] = link;
-		self.LinkMap[node2 + "," + node1] = link;
-		return link;
-	}
+	// 	var link = {
+	// 		source: node1,
+	// 		target: node2,
+	// 		bidirectional: false
+	// 	};
+	// 	self.Links.push(link);
+	// 	self.LinkMap[node1 + "," + node2] = link;
+	// 	self.LinkMap[node2 + "," + node1] = link;
+	// 	return link;
+	// }
 
 	VikiJS.prototype.addLinkFromNodeObjects = function(node1, node2) {
 		var self = this;
 
 		var link = {
 			source: node1,
-			target: node2
+			target: node2,
+			bidirectional: false
 		};
 		self.Links.push(link);
-		self.LinkMap[node1 + "," + node2] = link;
-		self.LinkMap[node2 + "," + node1] = link;
+		self.LinkMap[node1.identifier + "," + node2.identifier] = link;
+		self.LinkMap[node2.identifier + "," + node1.identifier] = link;
 		return link;
 	}
 
@@ -1121,9 +1234,14 @@ window.VikiJS = function() {
 							externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);	
 					}
 						
-					var link = self.findLink(originNode.index, externalWikiNode.index);
+					var link = self.findLink(originNode.identifier, externalWikiNode.identifier);
 					if(!link)
-						link = self.addLink(originNode.index, externalWikiNode.index);
+						link = self.addLinkFromNodeObjects(originNode, externalWikiNode);
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 					
 					self.visitNode(externalWikiNode);
 
@@ -1133,10 +1251,14 @@ window.VikiJS = function() {
 					if(!externalNode)
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
 					
-					var link = self.findLink(originNode.index, externalNode.index);
+					var link = self.findLink(originNode.identifier, externalNode.identifier);
 					if(!link)
-						link = self.addLink(originNode.index, externalNode.index);
-
+						link = self.addLinkFromNodeObjects(originNode, externalNode);
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 					newExternalNodes.push(externalNode);
 					
 				}
@@ -1177,9 +1299,14 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
-					var link = self.findLink(originNode.index, intraNode.index);
+					var link = self.findLink(originNode.identifier, intraNode.identifier);
 					if(!link) {
-						link = self.addLink(originNode.index, intraNode.index);
+						link = self.addLinkFromNodeObjects(originNode, intraNode);
+					}
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
 					}
 					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 					self.visitNode(intraNode);
@@ -1221,9 +1348,14 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
-					var link = self.findLink(intraNode.index, originNode.index);
+					var link = self.findLink(intraNode.identifier, originNode.identifier);
 					if(!link)
-						link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
+						link = self.addLinkFromNodeObjects(intraNode, originNode);	// opposite order because these are pages coming IN
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 				}
 
 				self.visitNode(intraNode);
@@ -1366,7 +1498,7 @@ window.VikiJS = function() {
 	VikiJS.prototype.displayNodeInfo = function(node) {
 		var self = this;
 		
-		if (self.SelectedNode !== node.index) {
+		if (self.SelectedNodeIndex !== node.index) {
 			return;
 		}
 		jQuery("#" + self.SubDetailsDiv).html(node.info);
@@ -1389,10 +1521,10 @@ window.VikiJS = function() {
 			var h4 = jQuery("#" + self.SubDetailsDiv + " h4");
 			h4.html(h4.html() + buttons);
 		}
-		$(".elaborate").click(function() {
-			self.elaborateNodeAtIndex(this.id);
-			self.redraw(true);
-		});
+		// $(".elaborate").click(function() {
+		// 	self.elaborateNodeAtIndex(this.id);
+		// 	self.redraw(true);
+		// });
 	}
 	
 	VikiJS.prototype.showNewNodesWindow = function() {
@@ -1474,8 +1606,8 @@ window.VikiJS = function() {
 		var self = this;
 		self.Force.stop();
 		// find the node according to the index and set it locally
-		var node = self.findNode('index', this.SelectedNode);
-		//var node = this.findNode('index',this.SelectedNode, this);
+		var node = self.findNode('index', this.SelectedNodeIndex);
+		//var node = this.findNode('index',this.SelectedNodeIndex, this);
 		// create a json object to store the variable settings
 		var freeze = {
 			toggle : "",
@@ -1535,7 +1667,7 @@ window.VikiJS = function() {
 		        'elaborate': function(t) {
 
 		        	self.log("elaborate() clicked");
-					self.elaborateNodeAtIndex(self.SelectedNode);
+					self.elaborateNodeAtIndex(self.SelectedNodeIndex);
 					// self.elaborateNode(node);
 					// self.indexReset();
 					// self.redraw(true);
