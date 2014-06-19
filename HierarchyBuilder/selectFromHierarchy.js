@@ -42,6 +42,9 @@
 				console.log("[selectFromHierarchy.js][init] " + "selected = ");
 				console.log(params.selected_items);
 
+				//var wikiText = "\*[[My University]]\n\*\*[[School of Arts and Sciences]]\n\*\*\*[[English Department]]\n\*\*\*[[Art Department]]\n\*\*\*[[Math Department]]\n\*\*[[School of Engineering]]\n\*\*\*[[Computer Engineering]]\n\*\*\*[[Electrical Engineering]]\n\*\*\*[[Mechanical Engineering]]";
+				//console.log(this.parseWikiTextToHtml(wikiText));
+
 				if (params.hierarchy.length < 1) {
 					return;
 				}
@@ -53,22 +56,27 @@
 				var hierarchy = $(params.hierarchy);
 				var html = hierarchy.html();
 				var ulId = params.div_id + "ul";
-				console.log("[selectFromHierarchy][init]" + params.hierarchy);
+				console.log("[selectFromHierarchy][init]" + html);
 				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
 				//	"</ul>";
 				html = html.replace(/&nbsp;/gi, " ");
-				html = html.replace(/&amp;#160;/gi, " ");
+				//html = html.replace(/&amp;#160;/gi, " ");
+				html = this.parseWikiTextToHtml(html);
 				var jqDivId = "#" + params.div_id;
 				$(jqDivId).html(html);
 				$(jqDivId + " * li").css("list-style-image", "none");
 								//alert("after css on jqDivId");
+
+				console.log($(jqDivId).html());
+
 				var updated_selected_components = new Array();
 				var obj = this;
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
-						var element_name = $(this).children("span:first").text();
-						console.log("[selectFromHierarchy.js][init] " + element_name);
+						//console.log("[selectFromHierarchy.js][init] anchor text " + $(this).text());
+						var element_name = $(this).text().trim();// $(this).children("span:first").text();
+						//console.log("[selectFromHierarchy.js][init] " + element_name);
 						if (obj.isSelectedHierarchyComponent(element_name,
 							selected_components)) {
 							updated_selected_components.push(
@@ -140,7 +148,7 @@
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
-						var element_name = $(this).children("span:first").text();
+						var element_name = $(this).text().trim();//$(this).children("span:first").text();
 						if (obj.isSelectedHierarchyComponent(element_name,
 							selected_components)) {
 							$(jqDivId).jstree("check_node", parent);
@@ -157,14 +165,14 @@
 					$(jqDivId).bind("check_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
 							var element_name =
-								$(this).children("span:first").text();
+								$(this).text().trim();//$(this).children("span:first").text();
 							obj.checkNode(element_name, input_id);
 						});
 					});
 					$(jqDivId).bind("uncheck_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
 							var element_name =
-								$(this).children("span:first").text();
+								$(this).text().trim();//$(this).children("span:first").text();
 							obj.uncheckNode(element_name, input_id);
 						});
 					});
@@ -176,7 +184,8 @@
 				//alert("isSelectedHierarchyComponent");
 				if (selected_components && selected_components.length > 0) {
 					var page_name = "[[" + element_name + "]]";
-					console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name);
+					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name + "\t" + JSON.stringify(selected_components));
+					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(page_name, selected_components));
 					var index = $.inArray(page_name, selected_components);
 					if (index != -1) {
 						return true;
@@ -216,6 +225,54 @@
 					cur_value = selected_components.join(",");
 				}
 				$("#" + input_id).val(cur_value);
+			},
+
+			/**
+			 * wikiTextHierarchy is a string containing a hierarchy in WikiText format.
+			 * Note: the given hierarchy must be well-formed.
+			 */
+			parseWikiTextToHtml: function(wikiTextHierarchy) {
+				// make sure to remove the leading * from the root node before starting the process
+				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper(wikiTextHierarchy.substring(1), "*") + "</ul>";
+				return hierarchyHtml;
+			},
+
+			/**
+			 * wikiTextHierarchy is a string containing a hierarchy in modified
+			 *     WikiText format. Specifically, the root node has no leading *s.
+			 * depth is a string composed of * characters denoting the current depth 
+			 *     within the hierarchy.
+			 */
+			parseWikiTextToHtmlHelper: function(wikiTextHierarchy, depth) {
+				// split the hierarchy into a list with the root and each child hierarchy in a list
+				// this constructs a regular expression to search for lines with exactly depth+1 leading *s
+				var nextDepth = "\n" + depth + "*";
+				var r1 = new RegExp("\\*", "g");
+				var regex = nextDepth.replace(r1, "\\*") + "(?!\\*)";
+				var r2 = new RegExp(regex);
+				// actually split the hierarchy into root and children
+				var rootAndChildren = wikiTextHierarchy.split(r2);
+				
+				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
+				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
+				
+				// take the root element and make a list item for it but don't close the list item yet incase there are nested kids
+				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+
+				// if there are children, add an unordered-list element to contain them and recurse on each child
+				if (children.length > 0) {
+					html += "<ul>"
+					// add the html for each child to our string
+					for (var i = 0; i < children.length; i++) {
+						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
+					}
+					html += "</ul>";
+				}
+
+				html +=  "</li>";			
+				
+				// now that our html has the root and the list with the children in html format we can finally return it.
+				return html;
 			}
 		}).init(input_id, params);
 	}

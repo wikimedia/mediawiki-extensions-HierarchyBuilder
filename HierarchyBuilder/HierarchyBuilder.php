@@ -567,7 +567,8 @@ class SelectFromHierarchy extends SFFormInput {
 		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPropertyName: " . var_export($this->mPropertyName, true));
 		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mCurrentValue: " . var_export($this->mCurrentValue, true));
 
-		$hierarchy = HierarchyBuilder::parseHierarchy(trim($output),
+		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", print_r(trim($output), true));
+		/*$hierarchy = HierarchyBuilder::parseHierarchy(trim($output),
 			$displaynameproperty, $dummy,
 			function ($pageName, $displayNameProperty, $data) {
 				$title = Title::newFromText($pageName);
@@ -585,7 +586,8 @@ class SelectFromHierarchy extends SFFormInput {
 				return Html::openElement('a', $pageLinkArray) . $displayName .
 					Html::element('span', array('style' => 'display:none'),
 					$pageName) .  Html::closeElement('a');
-			});
+			});*/
+		$hierarchy = str_replace("<br />", "\n", trim($output));
 
 		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . var_export($hierarchy, true));
 
