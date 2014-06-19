@@ -327,34 +327,6 @@ window.VikiJS = function() {
 			   .attr("d", "M0,-8L20,0L0,8");
 
 			defs.append("marker")
-			   .attr("id", "backArrowHeadOutgoing")
-			   .attr("viewBox", "-20 -8 20 20")
-			   .attr("refX", -16)
-			   .attr("refY", 0)
-			   .attr("markerWidth", 12)
-			   .attr("markerHeight", 12)
-			   .attr("markerUnits", "userSpaceOnUse")
-			   .attr("orient", "auto")
-			   .attr("fill", self.OUTGOING_LINK_COLOR)
-			   .attr("stroke-width", "2")
-			.append("path")
-			   .attr("d", "M0,-8L-20,0L0,8");
-
-			defs.append("marker")
-			   .attr("id", "backArrowHeadIncoming")
-			   .attr("viewBox", "-20 -8 20 20")
-			   .attr("refX", -16)
-			   .attr("refY", 0)
-			   .attr("markerWidth", 12)
-			   .attr("markerHeight", 12)
-			   .attr("markerUnits", "userSpaceOnUse")
-			   .attr("orient", "auto")
-			   .attr("fill", self.INCOMING_LINK_COLOR)
-			   .attr("stroke-width", "2")
-			.append("path")
-			   .attr("d", "M0,-8L-20,0L0,8");
-
-			defs.append("marker")
 			   .attr("id", "backArrowHeadBidirectional")
 			   .attr("viewBox", "-20 -8 20 20")
 			   .attr("refX", -16)
@@ -817,50 +789,47 @@ window.VikiJS = function() {
 			}
 		});
 		self.LinkSelection.style("stroke", function(d) {
-			if(d.bidirectional)
-				return self.BIDIRECTIONAL_LINK_COLOR;
-			else { 
-				if(typeof d.source.index !== 'undefined') {
-					if(d.source.index == self.SelectedNodeIndex)
-						return self.OUTGOING_LINK_COLOR;
-					else if(d.target.index == self.SelectedNodeIndex)
-						return self.INCOMING_LINK_COLOR;
-					else return "black";
-				}
-				else {
-					if(d.source == self.Nodes[self.SelectedNodeIndex])
-						return self.OUTGOING_LINK_COLOR;
-					else if(d.target == self.Nodes[self.SelectedNodeIndex])
-						return self.INCOMING_LINK_COLOR;
-					else return "black";
-				}
-			}
-		});
-		self.LinkSelection.attr("marker-end", function(d) {
-			if(d.bidirectional) {
-				return "url(#arrowHeadBidirectional)";
+			if(typeof d.source.index !== 'undefined') {
+				if(d.source.index == self.SelectedNodeIndex)
+					return d.bidirectional? self.BIDIRECTIONAL_LINK_COLOR : self.OUTGOING_LINK_COLOR;
+				else if(d.target.index == self.SelectedNodeIndex)
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.INCOMING_LINK_COLOR;
+				else return "black";
 			}
 			else {
-				if(typeof d.source.index !== 'undefined') {
-					if(d.source.index == self.SelectedNodeIndex)
-						return "url(#arrowHeadOutgoing)";
-					else if(d.target.index == self.SelectedNodeIndex)
-						return "url(#arrowHeadIncoming)";
-					else return "url(#arrowHeadBlack)";
-				}
-				else {
-					if(d.source == self.Nodes[self.SelectedNodeIndex])
-						return "url(#arrowHeadOutgoing)";
-					else if(d.target == self.Nodes[self.SelectedNodeIndex])
-						return "url(#arrowHeadIncoming)";
-					else return "url(#arrowHeadBlack)";
-				}
+				if(d.source == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.OUTGOING_LINK_COLOR;
+				else if(d.target == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.INCOMING_LINK_COLOR;
+				else return "black";
+			}
+			
+		});
+		self.LinkSelection.attr("marker-end", function(d) {
+			if(typeof d.source.index !== 'undefined') {
+				if(d.source.index == self.SelectedNodeIndex)
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadOutgoing)";
+				else if(d.target.index == self.SelectedNodeIndex)
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadIncoming)";
+				else return "url(#arrowHeadBlack)";
+			}
+			else {
+				if(d.source == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadOutgoing)";
+				else if(d.target == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadIncoming)";
+				else return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadBlack)";
 			}
 		});
 
 		self.LinkSelection.attr("marker-start", function(d) {
 			if(d.bidirectional) {
-				return "url(#backArrowHeadBidirectional)";
+				if(typeof d.source.index !== 'undefined') {
+					return d.source.index == self.SelectedNodeIndex || d.target.index == self.SelectedNodeIndex ? "url(#backArrowHeadBidirectional)" : "url(#backArrowHeadBlack)";
+				}
+				else {
+					return d.source == self.Nodes[self.SelectedNodeIndex] || d.target == self.Nodes[self.SelectedNodeIndex] ? "url(#backArrowHeadBidirectional)" : "url(#backArrowHeadBlack)";
+				}
 			}
 			// if(typeof d.source.index !== 'undefined') {
 			// 	if(d.source.index == self.SelectedNodeIndex)
