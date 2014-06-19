@@ -179,7 +179,7 @@ class OpenIDConnect {
 		$dbr = wfGetDB(DB_SLAVE);
 		$row = $dbr->selectRow('user',
 			array(
-				'subect',
+				'subject',
 				'provider'
 			),
 			array(
@@ -188,19 +188,16 @@ class OpenIDConnect {
 		);
 		if ($row === false) {
 			return true;
-		} else {
-			if (!isset($row['subject']) || !isset($row['provider'])) {
-				return true;
-			}
-			if (is_null($row['subject']) || is_null($row['provider'])) {
-				return true;
-			}
-			return false;
 		}
+		if (is_null($row->subject) && is_null($row->provider)) {
+			return true;
+		}
+		return false;
 	}
 
 	public static function getAvailableUsername($name) {
-		$nt = Title::makeTitleSafe(NS_USER, ucfirst($name));
+		$name = ucfirst($name);
+		$nt = Title::makeTitleSafe(NS_USER, $name);
 		if (is_null($nt)) {
 			$name = "User";
 		} else if (is_null(User::idFromName($name))) {
