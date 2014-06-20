@@ -210,7 +210,8 @@ window.VikiJS = function() {
         	"<li id=\"getinfo\" >Visit Page</li>"+
 			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"categories\">Show Categories</li>"+
-			"<li id=\"hide\">Hide</li>"+
+			"<li id=\"hide\">Hide Node</li>"+
+			"<li id=\"hideHub\">Hide Hub</li>"+
 			"<hr>"+// separator
         	"<li id=\"showall\">Show All</li>"+
 	    	"</ul></div></div>"
@@ -485,7 +486,6 @@ window.VikiJS = function() {
 		});
 		
 		self.searchableCount = actuallySearchableWikis.length;
-		// self.log("searchableCount = "+self.searchableCount);
 
 		self.getContentNamespaces(self.THIS_WIKI);
 		if(self.searchableCount ==0) {
@@ -516,9 +516,7 @@ window.VikiJS = function() {
 				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				// self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					// self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
 					actuallySearchableWikis[index].contentNamespaces = [0];
 				}
 				else {
@@ -526,9 +524,7 @@ window.VikiJS = function() {
 				}
 			
 				self.contentNamespacesFetched++;
-				// self.log("" + self.contentNamespacesFetched + " wikis' content namespaces fetched");
 				if(self.contentNamespacesFetched == self.searchableCount) {
-					// self.log("all namespaces fetched; now populating graph");
 					self.populateInitialGraph();				
 				}
 
@@ -537,13 +533,11 @@ window.VikiJS = function() {
 				if(errorThrown === 'timeout') {
 					// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
 					// default to just NS 0 (main).
-					// self.log("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
 					$("#"+self.ErrorsDiv).css("visibility", "visible");
 					$("#"+self.ErrorsDiv).append("<p>Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).</p>");
 					actuallySearchableWikis[index].contentNamespaces = [0];
 					self.contentNamespacesFetched++;
 					if(self.contentNamespacesFetched == self.searchableCount) {
-						// self.log("all namespaces fetched; now populating graph");
 						self.populateInitialGraph();				
 					}
 				}
@@ -559,8 +553,6 @@ window.VikiJS = function() {
 		var self = this;
 		
 		vex.close(self.loadingView.data().vex.id);
-		// self.log("closed load screen");
-		// self.log("now will get site logo and do graph population");
 
 		jQuery.ajax({
 			url: self.myApiURL,
@@ -575,7 +567,6 @@ window.VikiJS = function() {
 				self.thisWikiData.logoURL = self.myLogoURL;
 				// do initial graph population
 				for(var i = 0; i < self.initialPageTitles.length; i++) {
-					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
 					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
 					self.visitNode(node);
 				}
@@ -593,7 +584,6 @@ window.VikiJS = function() {
 				self.displayNodeInfo(self.Nodes[0]);
 				self.redraw(false);
 
-				// self.log("Done with initial graph population");
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert("Unable to fetch list of wikis.");
@@ -717,7 +707,6 @@ window.VikiJS = function() {
 			.attr("text-anchor", "middle")
 			.attr("dy", ".25em")	// see bost.ocks.org/mike/d3/workshop/#114
 			.attr("dx", 1*self.UNSELECTED_IMAGE_DIMENSION/2)
-			//.attr("x", 20)
 			.each(function() {
 				var textbox = this.getBBox();
 
@@ -840,20 +829,6 @@ window.VikiJS = function() {
 					return d.source == self.Nodes[self.SelectedNodeIndex] || d.target == self.Nodes[self.SelectedNodeIndex] ? "url(#backArrowHeadBidirectional)" : "url(#backArrowHeadBlack)";
 				}
 			}
-			// if(typeof d.source.index !== 'undefined') {
-			// 	if(d.source.index == self.SelectedNodeIndex)
-			// 		return "url(#backArrowHead)";
-			// 	else if(d.target.index == self.SelectedNodeIndex)
-			// 		return "url(#backArrowHead2)";
-			// 	else return "url(#backArrowHead3)";
-			// }
-			// else {
-			// 	if(d.source == self.Nodes[self.SelectedNodeIndex])
-			// 		return "url(#backArrowHead)";
-			// 	else if(d.target == self.Nodes[self.SelectedNodeIndex])
-			// 		return "url(#backArrowHead2)";
-			// 	else return "url(#backArrowHead3)";
-			// }
 		});
 
 		if (restartGraph) {
@@ -862,17 +837,6 @@ window.VikiJS = function() {
 			}
 			self.Force.start();
 		}
-
-		self.log("=====================================");
-		self.log("redraw() called from the following stack:");
-		console.trace();
-
-		self.log("Nodes:");
-		console.log(self.Nodes);
-		self.log("Links:");
-		console.log(self.Links);
-		self.log("LinkMap:");
-		console.log(self.LinkMap);
 
 	}
 	
@@ -912,17 +876,7 @@ window.VikiJS = function() {
 			wiki = self.thisWikiData;
 		else
 			wiki = self.allWikis[ self.searchableWikiIndexForName(wikiTitle) ];	
-			
-		// for(var i = 0; i < self.allWikis.length; i++)
-		// if(self.allWikis[i].wikiTitle === wikiTitle) {
-		// 	wiki = self.allWikis[i];
-		// 	break;
-		// }
-		// 
-		// if(wikiTitle === self.THIS_WIKI) {
-		// 	wiki = self.thisWikiData;
-		// }
-		
+
 		if(!wiki)		// should never happen...
 			return null;
 			
@@ -1011,7 +965,6 @@ window.VikiJS = function() {
 	}
 	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
 		if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-			// self.log("WARNING: The wiki for page "+node.pageTitle+" did not support getTitleIcons. Likely an older production wiki.");
 			return;
 		}
 
@@ -1068,20 +1021,6 @@ window.VikiJS = function() {
 		}
 	}
 
-	// VikiJS.prototype.addLink = function(node1, node2) {
-	// 	var self = this;
-
-	// 	var link = {
-	// 		source: node1,
-	// 		target: node2,
-	// 		bidirectional: false
-	// 	};
-	// 	self.Links.push(link);
-	// 	self.LinkMap[node1 + "," + node2] = link;
-	// 	self.LinkMap[node2 + "," + node1] = link;
-	// 	return link;
-	// }
-
 	VikiJS.prototype.addLinkFromNodeObjects = function(node1, node2) {
 		var self = this;
 
@@ -1118,9 +1057,8 @@ window.VikiJS = function() {
 	}
 	VikiJS.prototype.elaborateWikiNode = function(node) {
 		var self = this;
-		//var apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
 
-		// get external links OUT from page	
+		// 1. Get external links OUT from page.
 
 		jQuery.ajax({
 			url: node.apiURL,
@@ -1144,7 +1082,7 @@ window.VikiJS = function() {
 			}
 		});
 		
-		// get intra-wiki links OUT from page
+		// 2. Get intra-wiki links OUT from page.
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: node.sameServer ? 'json' : 'jsonp',
@@ -1166,7 +1104,7 @@ window.VikiJS = function() {
 				alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
-		// get intra-wiki links IN to this page
+		// 3. Get intra-wiki links IN to this page.
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: node.sameServer ? 'json' : 'jsonp',
@@ -1192,6 +1130,7 @@ window.VikiJS = function() {
 		node.info = self.formatNodeInfo(node.displayName);
 		self.displayNodeInfo(node);
 	}
+
 	VikiJS.prototype.externalLinksSuccessHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
 
@@ -1366,9 +1305,7 @@ window.VikiJS = function() {
 				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				// self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					// self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
 					if(wikiTitle === self.THIS_WIKI)
 						self.thisWikiData.contentNamespaces = [0];
 					else
@@ -1386,7 +1323,6 @@ window.VikiJS = function() {
 			}
 		});
 		
-		// self.log("end of getContentNamespaces("+wikiTitle+")");
 	}
 	
 	VikiJS.prototype.visitNode = function(intraNode) {
@@ -1402,11 +1338,11 @@ window.VikiJS = function() {
 				titles: intraNode.pageTitle,
 				format: 'json'
 			},
-/*			beforeSend: function (jqXHR, settings) {
+			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
-*/			success: function(data, textStatus, jqXHR) {
+			success: function(data, textStatus, jqXHR) {
 				self.wikiPageCheckHandler(data, textStatus, jqXHR, intraNode);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -1428,9 +1364,8 @@ window.VikiJS = function() {
 			// if originNode doesn't already have a categories array, make one
 			if(!originNode.categories)
 					originNode.categories = new Array();
-			// get the categories
 
-			// self.log("In visitNode() handler for "+originNode.displayName);
+			// get the categories
 			page = data.query.pages[ Object.keys(data.query.pages)[0] ];
 			if(page.categories) {
 
@@ -1438,7 +1373,6 @@ window.VikiJS = function() {
 					categoryTitle = page.categories[i].title;
 					// the category title is of the form "Category:Foo" so must remove the "Category:" part
 					categoryTitle = categoryTitle.replace("Category:", "");
-					// self.log("Found the category called: " +categoryTitle);
 					originNode.categories.push(categoryTitle);
 				}
 			}
@@ -1480,29 +1414,6 @@ window.VikiJS = function() {
 			return;
 		}
 		jQuery("#" + self.SubDetailsDiv).html(node.info);
-		if(node.nonexistentPage)
-			return;
-		if (node.type == self.WIKI_PAGE_TYPE) {
-			var buttons = " <a href='" + node.URL +
-				"' target='_blank'><img src='" + self.ImagePath +
-				"info.png' /></a>";
-			if (!node.elaborated && node.searchable)	// only show the + for searchable nodes
-				buttons += " <a id = "+node.index+" class='icon elaborate'><img src= '"+ self.ImagePath+"plus.png' /></a>";
-			var h4 = jQuery("#" + self.DetailsDiv + " h4");
-			h4.html(h4.html() + buttons);
-
-		} 
-		else if(node.type == self.EXTERNAL_PAGE_TYPE) {
-			var buttons = " <a href='" + node.URL +
-				"' target='_blank'><img src='" + self.ImagePath +
-				"info.png' /></a>";
-			var h4 = jQuery("#" + self.SubDetailsDiv + " h4");
-			h4.html(h4.html() + buttons);
-		}
-		// $(".elaborate").click(function() {
-		// 	self.elaborateNodeAtIndex(this.id);
-		// 	self.redraw(true);
-		// });
 	}
 	
 	VikiJS.prototype.showNewNodesWindow = function() {
@@ -1543,10 +1454,8 @@ window.VikiJS = function() {
 	VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
 		
 		for(var i = 0; i < nodes.length; i++)
-			if(nodes[i].checked) {
-				// self.log(nodes[i].pageTitle+" from wiki "+nodes[i].wikiTitle+" should be added to graph");
+			if(nodes[i].checked)
 				self.addWikiNodeFromWiki(nodes[i].pageTitle, nodes[i].wikiTitle);
-			}
 			
 		self.redraw(true);		
 	}
@@ -1559,11 +1468,8 @@ window.VikiJS = function() {
 		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
-				// self.log("About to call hooks for "+hookName+"...");
-				for(var i = 0; i < self.Hooks[hookName].length; i++) {
+				for(var i = 0; i < self.Hooks[hookName].length; i++)
 					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
-				}
-				// self.log("Done with hooks for "+hookName);
 				
 				self.redraw(true);
 				return true;
@@ -1615,10 +1521,15 @@ window.VikiJS = function() {
 		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
 		          $('.elaborate-'+self.ID, menu).remove();
 		        }
+		        if(!node.elaborated)
+		        	$('#hideHub', menu).remove();
 		        if(node.nonexistentPage) {
 		        	$('#getinfo', menu).remove();
 		        	$('#categories', menu).remove();
 		        }
+		        if(node.type == self.EXTERNAL_PAGE_TYPE)
+		        	$('#categories', menu).remove();
+
 		        return menu;
 	      	},
 	      	// activate after the menu shows
@@ -1635,9 +1546,6 @@ window.VikiJS = function() {
 		        'freeze': function(t) {
 		        	self.log("freeze() clicked");
 		        	node = d3.select(t).datum();
-
-					// node.fixed = freeze.fix;
-					// node.fix = freeze.fix;
 
 					if(typeof node.fix === 'undefined')
 						node.fix = false;
@@ -1675,6 +1583,12 @@ window.VikiJS = function() {
 
 					self.hideNode(node);
 		        },
+		        'hideHub': function(t) {
+		        	self.log("hideHub() clicked");
+		        	node = d3.select(t).datum();
+
+		        	self.hideHub(node);
+		        },
 		        'showall': function(t) {
 					self.log("showAll() clicked");
 					self.showAllNodes();
@@ -1687,11 +1601,11 @@ window.VikiJS = function() {
 	VikiJS.prototype.hideNode = function(node) {
 		var recentHiddenLinks = Array();
 
-		// 1. remove node from Nodes array and store into hidden nodes array.
+		// 1. Remove node from Nodes array and store into hidden nodes array.
 		self.HiddenNodes.push(node);
 		self.Nodes.splice(node.index, 1);
 
-		// 2. remove any associated links from Links array and store into hidden links array.
+		// 2. Remove any associated links from Links array and store into hidden links array.
 		// Also store into recentHiddenLinks so we can remove them from LinkMap.
 		for(var i = self.Links.length-1; i >= 0; i--) {
 			var link = self.Links[i];
@@ -1702,7 +1616,7 @@ window.VikiJS = function() {
 			}
 		}
 
-		// 3. remove links from LinkMap.
+		// 3. Remove links from LinkMap.
 		var linkMapKeys = Object.keys(self.LinkMap);
 
 		for(var i = 0; i < linkMapKeys.length; i++) {
@@ -1719,6 +1633,10 @@ window.VikiJS = function() {
 		self.displayNodeInfo(self.SelectedNodeIndex);
 
 		self.redraw(true);
+	}
+
+	VikiJS.prototype.hideHub = function(node) {
+
 	}
 
 	VikiJS.prototype.showAllNodes = function() {
