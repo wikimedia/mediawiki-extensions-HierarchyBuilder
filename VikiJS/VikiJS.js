@@ -61,11 +61,16 @@ window.VikiJS = function() {
 	this.Nodes = new Array();
 	this.Links = new Array();
 	this.LinkMap = {};
+	this.HiddenNodes = new Array();
+	this.HiddenLinks = new Array();
+
 	this.Force = null;
 	this.LinkSelection = null;
 	this.NodeSelection = null;
+
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
+	
 	this.serverURL = mw.config.get("wgServer");;
 	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
 	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
@@ -82,7 +87,7 @@ window.VikiJS = function() {
 				searchableWiki : true
 			}
 	
-	this.namespaceIds = mw.config.get("wgNamespaceIds");
+	this.namespaceIds = mw.config.get("wgNamespaceIds");	// only of any use in MW 1.23+
 
 	var self = this;
 
@@ -668,13 +673,16 @@ window.VikiJS = function() {
 		var self = this;
 
 		self.NodeSelection =
-			self.NodeSelection.data(self.Nodes);
+			self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
 		self.LinkSelection =
 			self.LinkSelection.data(self.Links);
 
 
 		var newNodes = self.NodeSelection.enter().append("svg:g");
-		
+
+		self.NodeSelection.exit().remove();
+		self.LinkSelection.exit().remove();
+
 		newNodes.attr("class", "node-"+this.ID);
 		newNodes.on("click", function(d) {
 			self.SelectedNodeIndex = d.index;
@@ -1596,8 +1604,6 @@ window.VikiJS = function() {
 		$('#name-'+this.ID).html(node.displayName);
 		// toggle the menu option between freeze and unfreeze
 		$('.freeze-'+this.ID).html(freeze.toggle);
-		// toggle the project on staff and projects 
-		$('.elaborate-'+this.ID).html("Elaborate");
 		// the actual menu code
         $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
         	// activate before the menu shows
@@ -1658,14 +1664,76 @@ window.VikiJS = function() {
 		        	// when hide is selected, call the hide function
 					//self.hide(node);
 					self.log("hide() clicked");
+					self.hideNode(node);
 		        },
 		        'showall': function(t) {
 		        	// when Show All is selcted, call the showAll function
 					//self.showAll();
 					self.log("showAll() clicked");
+					self.showAllNodes();
 		        }
 	        }
 		});
+	}
+
+	VikiJS.prototype.hideNode = function(node) {
+		var recentHiddenLinks = Array();
+
+		// 1. remove node from Nodes array and store into hidden nodes array.
+		self.HiddenNodes.push(node);
+		self.Nodes.splice(node.index, 1);
+
+		// 2. remove any associated links from Links array and store into hidden links array.
+		// Also store into recentHiddenLinks so we can remove them from LinkMap.
+		for(var i = self.Links.length-1; i >= 0; i--) {
+			var link = self.Links[i];
+			if(link.source == node || link.target == node) {
+				self.HiddenLinks.push(link);
+				recentHiddenLinks.push(link);
+				self.Links.splice(i, 1);
+			}
+		}
+
+		// 3. remove links from LinkMap.
+		var linkMapKeys = Object.keys(self.LinkMap);
+
+		for(var i = 0; i < linkMapKeys.length; i++) {
+			var linkMapKey = linkMapKeys[i].split(",");
+			for(var j = 0; j < recentHiddenLinks.length; j++) {
+				if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
+					delete self.LinkMap[linkMapKeys[i]];
+				}
+			}
+		}
+
+		// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
+		self.SelectedNodeIndex = 0;
+		self.displayNodeInfo(self.SelectedNodeIndex);
+
+		self.redraw(true);
+	}
+
+	VikiJS.prototype.showAllNodes = function() {
+		// 1. Add all hidden nodes back into main Nodes array, then destroy hidden nodes array.
+
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			self.Nodes.push(self.HiddenNodes[i]);
+		}
+		self.HiddenNodes = new Array();
+
+		// 2. Add all hidden links back into main Links array. Also add all hidden links back into the LinkMap.
+		// Then destroy hidden links array.
+		for(var i = 0; i < self.HiddenLinks.length; i++) {
+			link = self.HiddenLinks[i];
+			self.Links.push(link);
+			self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+			self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+		}
+
+		self.HiddenLinks = new Array();
+
+		self.redraw(true);
+
 	}
 
 	VikiJS.prototype.log = function(text) {
