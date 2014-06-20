@@ -1329,6 +1329,9 @@ window.VikiJS = function() {
 		var self = this;
 		// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
 
+		if(intraNode.visited)
+			return;
+
 		jQuery.ajax({
 			url: intraNode.apiURL,
 			dataType: intraNode.sameServer ? 'json' : 'jsonp',
@@ -1377,6 +1380,8 @@ window.VikiJS = function() {
 				}
 			}
 		}
+
+		originNode.visited = true;
 	}
 	
 	VikiJS.prototype.indexOfWiki = function(url) {
