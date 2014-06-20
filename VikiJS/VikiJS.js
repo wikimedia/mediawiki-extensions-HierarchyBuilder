@@ -39,7 +39,7 @@ window.VikiJS = function() {
 	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
 	this.HUB_LINK_LENGTH = 400;
-	this.LEAF_LINK_LENGTH = 100;
+	this.LEAF_LINK_LENGTH = 150;
 	// NOTE = all these colors are from flatuicolors.com
 	// amethyst = #9b59b6
 	// peter river = #3498db
@@ -1586,7 +1586,7 @@ window.VikiJS = function() {
 					self.log("hide() clicked");
 		        	node = d3.select(t).datum();
 
-					self.hideNode(node);
+					self.hideNodeAndRedraw(node);
 		        },
 		        'hideHub': function(t) {
 		        	self.log("hideHub() clicked");
@@ -1601,6 +1601,12 @@ window.VikiJS = function() {
 	        }
 		});
 
+	}
+
+	VikiJS.prototype.hideNodeAndRedraw = function(node) {
+		self.hideNode(node);
+
+		self.redraw(true);
 	}
 
 	VikiJS.prototype.hideNode = function(node) {
@@ -1637,11 +1643,41 @@ window.VikiJS = function() {
 		self.SelectedNodeIndex = 0;
 		self.displayNodeInfo(self.SelectedNodeIndex);
 
-		self.redraw(true);
 	}
 
 	VikiJS.prototype.hideHub = function(node) {
+		if(!node.elaborated)
+			return;
 
+		// Iterate Links to identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+
+		var nodesToRemove = new Array();
+		nodesToRemove.push(node);
+
+		for(var i = 0; i < self.Links.length; i++) {
+			link = self.Links[i];
+			if(link.source === node) {
+				if(self.numberOfConnections(link.target) == 1)
+					nodesToRemove.push(link.target);
+			}
+			else if(link.target === node) {
+				if(self.numberOfConnections(link.source) == 1)
+					nodesToRemove.push(link.source);
+			}
+		}
+
+		for(var i = 0; i < nodesToRemove.length; i++) {
+			self.hideNode(nodesToRemove[i]);
+			self.redraw(true);
+		}
+
+		self.redraw(true);
+	}
+
+	VikiJS.prototype.numberOfConnections = function(node) {
+		var connections = self.Links.filter(function(link) { return link.source.identifier == node.identifier || link.target.identifier == node.identifier});
+
+		return connections.length;
 	}
 
 	VikiJS.prototype.showAllNodes = function() {
