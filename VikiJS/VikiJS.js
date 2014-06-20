@@ -696,8 +696,9 @@ window.VikiJS = function() {
 		newNodes.on("contextmenu", function(d) {
 			self.SelectedNodeIndex = d.index;
 			self.redraw(false);
-			self.menu();
 		});
+
+		self.initializeContextMenu();
 
 		var drag = self.Force.drag()
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -1579,35 +1580,38 @@ window.VikiJS = function() {
 		}
 	}
 
-	VikiJS.prototype.menu = function() {
-		var self = this;
-		self.Force.stop();
-		// find the node according to the index and set it locally
-		var node = self.findNode('index', this.SelectedNodeIndex);
-		//var node = this.findNode('index',this.SelectedNodeIndex, this);
-		// create a json object to store the variable settings
-		var freeze = {
-			toggle : "",
-			fix : false
-		};
-		
-		// if the node has been fixed, then display "unfreeze" as a menu
-		// option and if unfreeze is selected, unfreeze the node
-		// note: the weird syntax here is due to some strange issue with
-		// node.fixed taking on integer values instead of true/false
-		// after they have been moused over at some point.
-
-		freeze.fix = node.fix ? false : true;
-		freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
-
-		// set the title of the menu to the name
-		$('#name-'+this.ID).html(node.displayName);
-		// toggle the menu option between freeze and unfreeze
-		$('.freeze-'+this.ID).html(freeze.toggle);
-		// the actual menu code
-        $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
+	VikiJS.prototype.initializeContextMenu = function() {
+        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
         	// activate before the menu shows
         	onShowMenu: function(e, menu) {
+				self.Force.stop();
+				// find the node according to the index and set it locally
+				var node = self.findNode('index', self.SelectedNodeIndex);
+				if(typeof node.fix === 'undefined')
+					node.fix = false;
+				//var node = this.findNode('index',this.SelectedNodeIndex, this);
+				// create a json object to store the variable settings
+				var freeze = {
+					toggle : "",
+					fix : false
+				};
+				
+				// if the node has been fixed, then display "unfreeze" as a menu
+				// option and if unfreeze is selected, unfreeze the node
+				// note: the weird syntax here is due to some strange issue with
+				// node.fixed taking on integer values instead of true/false
+				// after they have been moused over at some point.
+
+				freeze.fix = node.fix ? false : true;
+				freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
+
+				// set the title of the menu to the name
+				$('#name-'+self.ID).html(node.displayName);
+				// toggle the menu option between freeze and unfreeze
+				$('.freeze-'+self.ID).html(node.fix ? 'Unfreeze' : 'Freeze');
+				// the actual menu code
+
+
 		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
 		          $('.elaborate-'+self.ID, menu).remove();
 		        }
@@ -1630,24 +1634,29 @@ window.VikiJS = function() {
 			bindings: {
 		        'freeze': function(t) {
 		        	self.log("freeze() clicked");
-		        	// freeze/unfreeze the node
-					node.fixed = freeze.fix;
-					// store these settings in the metadata
-					node.fix = freeze.fix;
+		        	node = d3.select(t).datum();
+
+					// node.fixed = freeze.fix;
+					// node.fix = freeze.fix;
+
+					if(typeof node.fix === 'undefined')
+						node.fix = false;
+
+					node.fixed = !node.fix;
+					node.fix = !node.fix;
 		        },
 		        'getinfo': function(t) {
 		        	self.log("getInfo() clicked");
+		        	node = d3.select(t).datum();
 		        	window.open(node.URL, "_blank");
 		        },
 		        'elaborate': function(t) {
-
 		        	self.log("elaborate() clicked");
 					self.elaborateNodeAtIndex(self.SelectedNodeIndex);
-					// self.elaborateNode(node);
-					// self.indexReset();
-					// self.redraw(true);
 		        },
 		        'categories': function(t) {
+		        	node = d3.select(t).datum();
+
 		        	var categories = "Categories: ";
 		        	for(var i = 0; i < node.categories.length; i++) {
 		        		categories+= node.categories[i]+", ";
@@ -1661,19 +1670,18 @@ window.VikiJS = function() {
 		        	alert(categories);
 		        },
 		        'hide': function(t) {
-		        	// when hide is selected, call the hide function
-					//self.hide(node);
 					self.log("hide() clicked");
+		        	node = d3.select(t).datum();
+
 					self.hideNode(node);
 		        },
 		        'showall': function(t) {
-		        	// when Show All is selcted, call the showAll function
-					//self.showAll();
 					self.log("showAll() clicked");
 					self.showAllNodes();
 		        }
 	        }
 		});
+
 	}
 
 	VikiJS.prototype.hideNode = function(node) {
