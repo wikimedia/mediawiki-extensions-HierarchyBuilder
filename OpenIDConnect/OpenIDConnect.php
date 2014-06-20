@@ -30,7 +30,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
 }
 
-$wgExtensionCredits['semantic'][] = array (
+$wgExtensionCredits['other'][] = array (
 	'name' => 'OpenID Connect',
 	'version' => '1.2',
 	'author' => array(
