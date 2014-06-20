@@ -133,9 +133,11 @@ class OpenIDConnect {
 			}
 			$session_variable = wfWikiID() . "_userid";
 			$_SESSION[$session_variable] = $user->mId;
+			session_regenerate_id(true); 
 			self::redirect(Title::newFromText(
 				'Special:OpenIDConnectLogin')->getFullURL());
 		} else {
+			session_regenerate_id(true); 
 			self::redirect(Title::newFromText(
 				'Special:OpenIDConnectNotAuthorized')->
 				getFullURL() . '?name=' . $user->mName);
@@ -151,7 +153,6 @@ class OpenIDConnect {
 	}
 
 	public static function redirect($returnto) {
-		session_regenerate_id(true); 
 		if (is_null($returnto)) {
 			$returnto = Title::newMainPage()->getFullURL();
 		}
