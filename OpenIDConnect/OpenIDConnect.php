@@ -32,7 +32,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['other'][] = array (
 	'name' => 'OpenID Connect',
-	'version' => '1.2',
+	'version' => '1.3',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
 	),
