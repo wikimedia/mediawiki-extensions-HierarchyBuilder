@@ -232,8 +232,7 @@
 			 * Note: the given hierarchy must be well-formed.
 			 */
 			parseWikiTextToHtml: function(wikiTextHierarchy) {
-				// make sure to remove the leading * from the root node before starting the process
-				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper(wikiTextHierarchy.substring(1), "*") + "</ul>";
+				var hierarchyHtml = this.parseWikiTextToHtmlHelper(wikiTextHierarchy, "");
 				return hierarchyHtml;
 			},
 
@@ -246,18 +245,20 @@
 			parseWikiTextToHtmlHelper: function(wikiTextHierarchy, depth) {
 				// split the hierarchy into a list with the root and each child hierarchy in a list
 				// this constructs a regular expression to search for lines with exactly depth+1 leading *s
-				var nextDepth = "\n" + depth + "*";
+				var nextDepth = "^" + depth + "*";
 				var r1 = new RegExp("\\*", "g");
 				var regex = nextDepth.replace(r1, "\\*") + "(?!\\*)";
-				var r2 = new RegExp(regex);
+				var r2 = new RegExp(regex, "mi");
 				// actually split the hierarchy into root and children
 				var rootAndChildren = wikiTextHierarchy.split(r2);
 				
 				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
-				// take the root element and make a list item for it but don't close the list item yet incase there are nested kids
-				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
+				if (depth !== "") {
+					var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+				}
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
@@ -269,7 +270,9 @@
 					html += "</ul>";
 				}
 
-				html +=  "</li>";			
+				if (depth !== "") {
+					html +=  "</li>";			
+				}
 				
 				// now that our html has the root and the list with the children in html format we can finally return it.
 				return html;

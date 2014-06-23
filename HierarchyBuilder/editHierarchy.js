@@ -48,9 +48,9 @@
 
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-				console.log("[init] input hierarchy = \n" + hierarchy);
+				console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
 				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
-				console.log("[init] output hierarchy = \n" + hierarchy);
+				console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -195,7 +195,7 @@
 			saveList: function(input_id, divId) {
 				var list = $(divId + " .hierarchy_root > ul").clone();
 
-				console.log("[saveList]: input hierarchy = \n" + list.html());
+				console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
 
 				list.find("ins").remove();
 				list.find("li").removeAttr("class");
@@ -212,7 +212,7 @@
 
 
 				var wikiText = this.parseHtmlToWikiText(list, "*");
-				console.log("[saveList]: output hierarchy = \n" + wikiText);
+				console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
 				document.getElementById(input_id).value = wikiText;
 				//console.log(wikiText);
@@ -248,8 +248,8 @@
 			 */
 			parseWikiTextToHtml: function(hierarchyRoot, wikiTextHierarchy) {
 				// make sure to remove the leading * from the root node before starting the process
-				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper(wikiTextHierarchy.substring(1), "*") + "</ul>";
-				return "<ul><li class='hierarchy_root'><a>" + hierarchyRoot + "</a>" + hierarchyHtml + "</li></ul>";
+				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper("[["+hierarchyRoot+"]]" + "\n" + wikiTextHierarchy, "") + "</ul>";
+				return hierarchyHtml;
 			},
 
 			/**
@@ -271,8 +271,12 @@
 				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
-				// take the root element and make a list item for it but don't close the list item yet incase there are nested kids
-				var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
+				if (depth === "") {
+					var html = "<li class='hierarchy_root'>" + root.replace("[[","<a>").replace("]]","</a>");
+				} else {
+					var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+				}
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
