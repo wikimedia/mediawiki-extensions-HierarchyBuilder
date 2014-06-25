@@ -264,7 +264,7 @@ window.VikiJS = function() {
 			   .append("svg:g")
 			      .call(self.zoom)
 			      .on("dblclick.zoom", null)
-			self.SVG = svg
+
 			svg.append("svg:rect")
 			   .attr("id", self.ID)
 			   .attr("width", self.width)
@@ -596,17 +596,17 @@ window.VikiJS = function() {
 		var self = this;	
 		
 		// set target_zoom to the logged zoom position
-	        target_zoom = this.Zoompos,
+        target_zoom = this.Zoompos,
 		// calculate the center of the graph by dividing the width and height by two
-	        center = [this.width / 2, this.height / 2],
+        center = [this.width / 2, this.height / 2],
 		// set the scale extent
-	        extent = this.zoom.scaleExtent(),
+        extent = this.zoom.scaleExtent(),
 		// and the translation vectors
-	        translate = this.zoom.translate(),
-	        translation = [],
-	        l = [],
+        translate = this.zoom.translate(),
+        translation = [],
+        l = [],
 		// setup a json object with the translation x and y values with the zoom scale
-	        view = {
+        view = {
 			x: translate[0], 
 			y: translate[1], 
 			k: this.zoom.scale()
@@ -984,7 +984,8 @@ window.VikiJS = function() {
 
 		var node = {
 			elaborated: false,
-			fixed: false
+			fixed: false,
+			hidden: false
 		};
 		return node;
 	}
@@ -1005,6 +1006,22 @@ window.VikiJS = function() {
 			}
 			else if (typeof self.Nodes[i][property] !== 'undefined' && self.Nodes[i][property] === value) {
 				return self.Nodes[i];
+			}
+		}
+
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			if(property === 'pageTitle') {
+				// a specific check for page titles - the first letter is case insensitive
+				var oldString = self.HiddenNodes[i][property];
+				if(oldString) {
+					var newString = self.replaceAt(oldString, oldString.indexOf(":")+1, oldString.charAt(oldString.indexOf(":")+1).toLowerCase());
+					var newValue = self.replaceAt(value, value.indexOf(":")+1, value.charAt(value.indexOf(":")+1).toLowerCase());
+					if(newString === newValue)
+						return self.HiddenNodes[i];
+				}
+			}
+			else if (typeof self.HiddenNodes[i][property] !== 'undefined' && self.HiddenNodes[i][property] === value) {
+				return self.HiddenNodes[i];
 			}
 		}
 		return null;
@@ -1150,7 +1167,9 @@ window.VikiJS = function() {
 					if(!externalWikiNode) {
 							externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);	
 					}
-						
+					if(externalWikiNode.hidden) {
+						self.unhideNode(externalWikiNode.identifier);
+					}
 					var link = self.findLink(originNode.identifier, externalWikiNode.identifier);
 					if(!link)
 						link = self.addLinkFromNodeObjects(originNode, externalWikiNode);
@@ -1167,7 +1186,9 @@ window.VikiJS = function() {
 					externalNode = self.findNode("URL", externalLinks[i]["*"]);
 					if(!externalNode)
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
-					
+					if(externalNode.hidden) {
+						self.unhideNode(externalNode.identifier);
+					}
 					var link = self.findLink(originNode.identifier, externalNode.identifier);
 					if(!link)
 						link = self.addLinkFromNodeObjects(originNode, externalNode);
@@ -1177,7 +1198,7 @@ window.VikiJS = function() {
 						link.bidirectional = true;
 					}
 					newExternalNodes.push(externalNode);
-					
+
 				}
 			}
 			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
@@ -1216,6 +1237,8 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
+					if(intraNode.hidden)
+						self.unhideNode(intraNode.identifier);
 					var link = self.findLink(originNode.identifier, intraNode.identifier);
 					if(!link) {
 						link = self.addLinkFromNodeObjects(originNode, intraNode);
@@ -1265,6 +1288,8 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
+					if(intraNode.hidden)
+						self.unhideNode(intraNode.identifier);
 					var link = self.findLink(intraNode.identifier, originNode.identifier);
 					if(!link)
 						link = self.addLinkFromNodeObjects(intraNode, originNode);	// opposite order because these are pages coming IN
@@ -1613,6 +1638,7 @@ window.VikiJS = function() {
 		var recentHiddenLinks = Array();
 
 		// 1. Remove node from Nodes array and store into hidden nodes array.
+		node.hidden = true;
 		self.HiddenNodes.push(node);
 		self.Nodes.splice(node.index, 1);
 
@@ -1680,11 +1706,32 @@ window.VikiJS = function() {
 		return connections.length;
 	}
 
+	VikiJS.prototype.unhideNode = function(identifier) {
+
+		var index = -1;
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			if(self.HiddenNodes[i].identifier == identifier) {
+				index = i;
+				break;
+			}
+		}
+		
+		if(index == -1)
+			return;
+
+		self.Nodes.push(self.HiddenNodes[index]);
+		self.HiddenNodes.splice(index, 1);
+
+		self.redraw(true);
+
+	}
+
 	VikiJS.prototype.showAllNodes = function() {
 		// 1. Add all hidden nodes back into main Nodes array, then destroy hidden nodes array.
 
 		for(var i = 0; i < self.HiddenNodes.length; i++) {
 			self.Nodes.push(self.HiddenNodes[i]);
+			self.HiddenNodes[i].hidden = false;
 		}
 		self.HiddenNodes = new Array();
 
