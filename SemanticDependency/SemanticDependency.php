@@ -26,7 +26,7 @@ if( !defined( 'MEDIAWIKI' ) ) die( "This is an extension to the MediaWiki
 	package and cannot be run standalone." );
  
 # credits
-$wgExtensionCredits['parserhook'][] = array (
+$wgExtensionCredits['semantic'][] = array (
 	'name' => 'SemanticDependency',
 	'version' => '1.0',
 	'author' => "Cindy Cicalese",
