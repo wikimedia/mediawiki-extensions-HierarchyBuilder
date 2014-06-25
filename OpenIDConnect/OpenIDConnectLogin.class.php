@@ -33,7 +33,8 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 			wfSetupSession();
 		}
 		$session_variable = wfWikiID() . "_returnto";
-		if ($this->getContext()->getUser()->isLoggedIn()) {
+		$user = $this->getContext()->getUser();
+		if ($user->isLoggedIn()) {
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
 				$returnto = Title::newMainPage()->getFullURL();
@@ -41,6 +42,7 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
 			}
+			wfRunHooks('UserLoginComplete', array(&$user, &$injected_html));
 			OpenIDConnect::redirect($returnto);
 		} else {
 			if (!array_key_exists($session_variable, $_SESSION) ||
@@ -54,7 +56,6 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				}
 				$_SESSION[$session_variable] = $title->getFullURL();
 			}
-			$user = new User;
 			OpenIDConnect::login($user);
 		}
 	}
