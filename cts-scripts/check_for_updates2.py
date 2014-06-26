@@ -39,7 +39,7 @@ EMAIL_SUBJECT = 'Possible updated CTS tools'
 
 SMTP_SERVER = 'smtp-mclean.mitre.org'
 
-CTS_PREFIX = 'http://gestalt-ed.mitre.org/cts/index.php/'
+CTS_PREFIX = 'http://gestalt-cts.mitre.org/cts/index.php/'
 
 
 # Really just want a C-like struct to store info about a tool

@@ -30,6 +30,7 @@ window.VikiJS = function() {
 	this.BAR_HEIGHT = 6;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
+	this.CURRENT_IDENTIFIER = 0;
 
 	this.searchableCount = 0;
 	this.contentNamespacesFetched = 0;
@@ -38,7 +39,7 @@ window.VikiJS = function() {
 	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
 	this.HUB_LINK_LENGTH = 400;
-	this.LEAF_LINK_LENGTH = 100;
+	this.LEAF_LINK_LENGTH = 150;
 	// NOTE = all these colors are from flatuicolors.com
 	// amethyst = #9b59b6
 	// peter river = #3498db
@@ -47,22 +48,29 @@ window.VikiJS = function() {
 	// Cindy's original light blue = #23a4ff
 	this.INCOMING_LINK_COLOR = "#3498db";
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
+	this.BIDIRECTIONAL_LINK_COLOR = "#2ecc71";
 
 	this.initialPageTitles = null;
 	this.Hooks = null;
 	this.hasHooks = false;
 	this.GraphDiv = null;
-	this.DetailsDiv = null;
+	this.SubDetailsDiv = null;
+	this.ErrorsDiv = null;
 	this.SliderDiv = null;
-	this.SelectedNode = null;
+	this.SelectedNodeIndex = null;
 	this.Nodes = new Array();
 	this.Links = new Array();
-	this.LinkMap = new Array();
+	this.LinkMap = {};
+	this.HiddenNodes = new Array();
+	this.HiddenLinks = new Array();
+
 	this.Force = null;
 	this.LinkSelection = null;
 	this.NodeSelection = null;
+
 	this.ImagePath = null;
 	this.Zoompos = 1; // to store values for zoom scale
+	
 	this.serverURL = mw.config.get("wgServer");;
 	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
 	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
@@ -79,17 +87,62 @@ window.VikiJS = function() {
 				searchableWiki : true
 			}
 	
-	this.namespaceIds = mw.config.get("wgNamespaceIds");
+	this.namespaceIds = mw.config.get("wgNamespaceIds");	// only of any use in MW 1.23+
 
 	var self = this;
 
-	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, imagePath, initialWidth, initialHeight, hooks) {
+	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, subdetailsDiv, sliderDiv, errorsDiv, imagePath, initialWidth, initialHeight, hooks) {
 		var self = this;
-		self.log("very start of drawGraph");
-		// CSS option for the Vex modal dialog library
+		// self.log("very start of drawGraph");
+
+		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
+		var dig = new RegExp("[0-9]", 'g');
+		this.ID = graphDiv.match(dig)[0];
+
+		// parse passed in parameters and initialize div settings.
+
+		this.GraphDiv = graphDiv;
+		this.SubDetailsDiv = subdetailsDiv;
+		this.SliderDiv = sliderDiv;
+		this.ErrorsDiv = errorsDiv;
+		this.ImagePath = imagePath;
+
+		this.INITIAL_HEIGHT = initialHeight;
+		this.INITIAL_WIDTH = initialWidth;
+		this.height = self.INITIAL_HEIGHT;
+		this.width = self.INITIAL_WIDTH;
+
+		// to set the widths of the details divider and the horizontal zoom slider
+		// the margin is a value used to accumulate all maring, padding and other
+		// space that the .detail-panel class uses.
+		var margin = 10;
+		// the details divider will get 3/5 of the space
+		$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
+		// the slider will get 2/5 of the space
+		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
+		// set the entire detail-panel to the width of the input minus the size of
+		// the paddings, margins and other values to align with the graph.
+		$(".vikijs-detail-panel").width(self.width - margin);
+		// create a new zoom slider
+		var zoom_slider = $("#"+self.SliderDiv).slider(
+		{
+		  orientation: "horizontal",//make the slider horizontal
+		  min: this.MIN_SCALE , // set the lowest value
+		  max: this.MAX_SCALE, // set the highest value
+		  step: .001, // set the value for each individual increment
+		  value: this.Zoompos, // set the starting value
+		  slide: function( event, ui ) {
+			// set the zoom scale equal to the current value of the slider
+			// which is the current position
+		        self.Zoompos = ui.value;
+			// call the slide function to zoom/pan using the slider
+		        self.slide();
+		  }
+		});
+
+		// Set up the loading spinner
 		vex.defaultOptions.className = 'vex-theme-default';
-		// vex.showLoading();
-		
+
 		var loadingContent = '\
 <div id="loadingDiv">\
 	<div id="textDiv">Loading...</div>\
@@ -125,7 +178,7 @@ window.VikiJS = function() {
 		  left: '50%' // Left position relative to parent
 		};
 		
-		self.log("showing load screen");
+		// self.log("showing load screen");
 		self.loadingView = vex.open({
 			content: loadingContent,
 			contentCSS: {
@@ -137,10 +190,34 @@ window.VikiJS = function() {
 			},
 			showCloseButton: false
 		});
+
+		// Set up the context menu
+
+		// ensure the entire graph div doesn't trigger context menu - only nodes
+		foo = $('#'+this.GraphDiv);
+		$('#'+this.GraphDiv).on('contextmenu', function() {
+			return false;
+		});
+
+		$('body').append(
+			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			// the dynamic menu title (node name)
+			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+			"<hr>"+ // separator
+			// actual navigable menu
+			"<div class=\"options\" >"+
+			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
+        	"<li id=\"getinfo\" >Visit Page</li>"+
+			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
+			"<li id=\"categories\">Show Categories</li>"+
+			"<li id=\"hide\">Hide Node</li>"+
+			"<li id=\"hideHub\">Hide Hub</li>"+
+			"<hr>"+// separator
+        	"<li id=\"showall\">Show All</li>"+
+	    	"</ul></div></div>"
+			);
 		
-		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
-		var dig = new RegExp("[0-9]", 'g');
-		this.ID = graphDiv.match(dig)[0];
+		$("#name").css("text-align", "center");
 
 		// get hooks available
 		this.Hooks = jQuery.parseJSON(hooks);
@@ -152,46 +229,8 @@ window.VikiJS = function() {
 			alert("You must supply a page title.");
 			return;
 		}
-
-		// initialize graph settings.
-
-		this.GraphDiv = graphDiv;
-		this.DetailsDiv = detailsDiv + "_data";
-		this.SliderDiv = detailsDiv + "_zoom_slider";
-		this.ImagePath = imagePath;
-
-		this.INITIAL_HEIGHT = initialHeight;
-		this.INITIAL_WIDTH = initialWidth;
-		this.height = self.INITIAL_HEIGHT;
-		this.width = self.INITIAL_WIDTH;
 		
-		// to set the widths of the details divider and the horizontal zoom slider
-		// the margin is a value used to accumulate all maring, padding and other
-		// space that the .detail-panel class uses.
-		var margin = 10;
-		// the details divider will get 3/5 of the space
-		$("#"+self.DetailsDiv).width((self.width - margin)* 3/5);
-		// the slider will get 2/5 of the space
-		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
-		// set the entire detail-panel to the width of the input minus the size of
-		// the paddings, margins and other values to align with the graph.
-		$(".vikijs-detail-panel").width(self.width - margin);
-		// create a new zoom slider
-		var zoom_slider = $("#"+self.SliderDiv).slider(
-		{
-		  orientation: "horizontal",//make the slider horizontal
-		  min: this.MIN_SCALE , // set the lowest value
-		  max: this.MAX_SCALE, // set the highest value
-		  step: .001, // set the value for each individual increment
-		  value: this.Zoompos, // set the starting value
-		  slide: function( event, ui ) {
-			// set the zoom scale equal to the current value of the slider
-			// which is the current position
-		        self.Zoompos = ui.value;
-			// call the slide function to zoom/pan using the slider
-		        self.slide();
-		  }
-		});
+
 
 		$("#addNodesButton").click(function() {
 			setTimeout(function() {
@@ -205,7 +244,9 @@ window.VikiJS = function() {
 		// get this wiki's own logo URL,
 		// and do initial graph population.
 
-		this.callHooks("GetAllWikisHook", []);
+		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
+		if(!calledGetAllWikisHook)
+			self.hookCompletion("GetAllWikisHook");
 
 		function initializeGraph() {
 			var padding = 20;
@@ -223,7 +264,7 @@ window.VikiJS = function() {
 			   .append("svg:g")
 			      .call(self.zoom)
 			      .on("dblclick.zoom", null)
-			self.SVG = svg
+
 			svg.append("svg:rect")
 			   .attr("id", self.ID)
 			   .attr("width", self.width)
@@ -236,7 +277,7 @@ window.VikiJS = function() {
 			defs = svg.append("defs");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead")
+			   .attr("id", "arrowHeadOutgoing")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -250,7 +291,7 @@ window.VikiJS = function() {
 			   .attr("d", "M0,-8L20,0L0,8");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead2")
+			   .attr("id", "arrowHeadIncoming")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -264,7 +305,21 @@ window.VikiJS = function() {
 			   .attr("d", "M0,-8L20,0L0,8");
 
 			defs.append("marker")
-			   .attr("id", "arrowHead3")
+			   .attr("id", "arrowHeadBidirectional")
+			   .attr("viewBox", "0 -8 20 20")
+			   .attr("refX", 16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.BIDIRECTIONAL_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "arrowHeadBlack")
 			   .attr("viewBox", "0 -8 20 20")
 			   .attr("refX", 16)
 			   .attr("refY", 0)
@@ -276,6 +331,34 @@ window.VikiJS = function() {
 			   .attr("stroke-width", "2")
 			.append("path")
 			   .attr("d", "M0,-8L20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadBidirectional")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", self.BIDIRECTIONAL_LINK_COLOR)
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
+
+			defs.append("marker")
+			   .attr("id", "backArrowHeadBlack")
+			   .attr("viewBox", "-20 -8 20 20")
+			   .attr("refX", -16)
+			   .attr("refY", 0)
+			   .attr("markerWidth", 12)
+			   .attr("markerHeight", 12)
+			   .attr("markerUnits", "userSpaceOnUse")
+			   .attr("orient", "auto")
+			   .attr("fill", "black")
+			   .attr("stroke-width", "2")
+			.append("path")
+			   .attr("d", "M0,-8L-20,0L0,8");
 
 			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "links-"+self.ID);
 			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
@@ -403,9 +486,14 @@ window.VikiJS = function() {
 		});
 		
 		self.searchableCount = actuallySearchableWikis.length;
-		
-		for(var i = 0; i < actuallySearchableWikis.length; i++) {
-			self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
+
+		self.getContentNamespaces(self.THIS_WIKI);
+		if(self.searchableCount ==0) {
+			self.populateInitialGraph();
+		}
+		else
+			for(var i = 0; i < actuallySearchableWikis.length; i++) {
+				self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
 		}
 	}
 	
@@ -422,14 +510,13 @@ window.VikiJS = function() {
 				action : 'getContentNamespaces',
 				format : 'json'
 			},
+			timeout: 5000,
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
 					actuallySearchableWikis[index].contentNamespaces = [0];
 				}
 				else {
@@ -437,15 +524,26 @@ window.VikiJS = function() {
 				}
 			
 				self.contentNamespacesFetched++;
-				self.log("" + self.contentNamespacesFetched + " wikis' content namespaces fetched");
 				if(self.contentNamespacesFetched == self.searchableCount) {
-					self.log("all namespaces fetched; now populating graph");
 					self.populateInitialGraph();				
 				}
 
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				if(errorThrown === 'timeout') {
+					// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
+					// default to just NS 0 (main).
+					$("#"+self.ErrorsDiv).css("visibility", "visible");
+					$("#"+self.ErrorsDiv).append("<p>Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).</p>");
+					actuallySearchableWikis[index].contentNamespaces = [0];
+					self.contentNamespacesFetched++;
+					if(self.contentNamespacesFetched == self.searchableCount) {
+						self.populateInitialGraph();				
+					}
+				}
+				else {
+					self.log("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+				}
 			}
 		});
 	
@@ -455,8 +553,7 @@ window.VikiJS = function() {
 		var self = this;
 		
 		vex.close(self.loadingView.data().vex.id);
-		self.log("closed load screen");
-		self.log("now will get site logo and do graph population");
+
 		jQuery.ajax({
 			url: self.myApiURL,
 			dataType: 'json',
@@ -469,9 +566,10 @@ window.VikiJS = function() {
 				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
 				self.thisWikiData.logoURL = self.myLogoURL;
 				// do initial graph population
-				for(var i = 0; i < self.initialPageTitles.length; i++)
-					// self.addWikiNode(pageTitles[i], self.myApiURL, null, self.myLogoURL, true);
-					self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+				for(var i = 0; i < self.initialPageTitles.length; i++) {
+					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+					self.visitNode(node);
+				}
 
 				for(var i = 0; i < self.initialPageTitles.length; i++)
 					self.elaborateNode(self.Nodes[i]);
@@ -480,6 +578,11 @@ window.VikiJS = function() {
 				self.Force.links(self.Links);
 
 				self.redraw(true);
+
+				// after initial population, by default select the first node.
+				self.SelectedNodeIndex = 0;
+				self.displayNodeInfo(self.Nodes[0]);
+				self.redraw(false);
 
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -493,17 +596,17 @@ window.VikiJS = function() {
 		var self = this;	
 		
 		// set target_zoom to the logged zoom position
-	        target_zoom = this.Zoompos,
+        target_zoom = this.Zoompos,
 		// calculate the center of the graph by dividing the width and height by two
-	        center = [this.width / 2, this.height / 2],
+        center = [this.width / 2, this.height / 2],
 		// set the scale extent
-	        extent = this.zoom.scaleExtent(),
+        extent = this.zoom.scaleExtent(),
 		// and the translation vectors
-	        translate = this.zoom.translate(),
-	        translation = [],
-	        l = [],
+        translate = this.zoom.translate(),
+        translation = [],
+        l = [],
 		// setup a json object with the translation x and y values with the zoom scale
-	        view = {
+        view = {
 			x: translate[0], 
 			y: translate[1], 
 			k: this.zoom.scale()
@@ -559,76 +662,33 @@ window.VikiJS = function() {
 	VikiJS.prototype.redraw = function(restartGraph) {
 		var self = this;
 
+		self.NodeSelection =
+			self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
 		self.LinkSelection =
 			self.LinkSelection.data(self.Links);
 
-		var newLinks = self.LinkSelection.enter().append("svg:line");
-		newLinks.attr("class", "link");
-		self.LinkSelection.style("stroke-width", function(d) {
-			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == self.SelectedNode ||
-					d.target.index == self.SelectedNode ? 2 : 1;
-			} else {
-				return d.source == self.SelectedNode ||
-					d.target == self.SelectedNode ? 2 : 1;
-			}
-		});
-		self.LinkSelection.style("opacity", function(d) {
-			if (typeof d.source.index !== 'undefined') {
-				return d.source.index == self.SelectedNode ||
-					d.target.index == self.SelectedNode ? 1 : self.LINK_OPACITY;
-			} else {
-				return d.source == self.SelectedNode ||
-					d.target == self.SelectedNode ? 1 : self.LINK_OPACITY;
-			}
-		});
-		self.LinkSelection.style("stroke", function(d) {
-			if(typeof d.source.index !== 'undefined') {
-				if(d.source.index == self.SelectedNode)
-					return self.OUTGOING_LINK_COLOR;
-				else if(d.target.index == self.SelectedNode)
-					return self.INCOMING_LINK_COLOR;
-				else return "black";
-			}
-			else {
-				if(d.source == self.SelectedNode)
-					return self.OUTGOING_LINK_COLOR;
-				else if(d.target == self.SelectedNode)
-					return self.INCOMING_LINK_COLOR;
-				else return "black";
-			}
-		});
-		self.LinkSelection.attr("marker-end", function(d) {
-			if(typeof d.source.index !== 'undefined') {
-				if(d.source.index == self.SelectedNode)
-					return "url(#arrowHead)";
-				else if(d.target.index == self.SelectedNode)
-					return "url(#arrowHead2)";
-				else return "url(#arrowHead3)";
-			}
-			else {
-				if(d.source == self.SelectedNode)
-					return "url(#arrowHead)";
-				else if(d.target == self.SelectedNode)
-					return "url(#arrowHead2)";
-				else return "url(#arrowHead3)";
-			}
-		});
-
-		self.NodeSelection =
-			self.NodeSelection.data(self.Nodes);
 
 		var newNodes = self.NodeSelection.enter().append("svg:g");
-		
-		newNodes.attr("class", "node");
+
+		self.NodeSelection.exit().remove();
+		self.LinkSelection.exit().remove();
+
+		newNodes.attr("class", "node-"+this.ID);
 		newNodes.on("click", function(d) {
-			self.SelectedNode = d.index;
+			self.SelectedNodeIndex = d.index;
 			self.displayNodeInfo(d);
 			self.redraw(false);
 		});
 		newNodes.on("dblclick", function(d) {
 			d.fixed = !d.fixed;
 		});
+
+		newNodes.on("contextmenu", function(d) {
+			self.SelectedNodeIndex = d.index;
+			self.redraw(false);
+		});
+
+		self.initializeContextMenu();
 
 		var drag = self.Force.drag()
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -647,7 +707,6 @@ window.VikiJS = function() {
 			.attr("text-anchor", "middle")
 			.attr("dy", ".25em")	// see bost.ocks.org/mike/d3/workshop/#114
 			.attr("dx", 1*self.UNSELECTED_IMAGE_DIMENSION/2)
-			//.attr("x", 20)
 			.each(function() {
 				var textbox = this.getBBox();
 
@@ -668,7 +727,7 @@ window.VikiJS = function() {
 		});
 		
 		texts.attr("font-weight", function(d) {
-			return d.index == self.SelectedNode ? "bold" : "normal";
+			return d.index == self.SelectedNodeIndex ? "bold" : "normal";
 		});
 		texts.attr("fill", function(d) {
 			return d.nonexistentPage ? "red" : "black";
@@ -707,7 +766,75 @@ window.VikiJS = function() {
 		   .attr("width", self.UNSELECTED_IMAGE_DIMENSION)
 		   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 
+		var newLinks = self.LinkSelection.enter().append("svg:line");
+		newLinks.attr("class", "link-"+this.ID);
+		self.LinkSelection.style("stroke-width", function(d) {
+			if (typeof d.source.index !== 'undefined') {
+				return d.source.index == self.SelectedNodeIndex ||
+					d.target.index == self.SelectedNodeIndex ? 2 : 1;
+			} else {
+				return d.source == self.Nodes[self.SelectedNodeIndex] ||
+					d.target == self.Nodes[self.SelectedNodeIndex] ? 2 : 1;
+			}
+		});
+		self.LinkSelection.style("opacity", function(d) {
+			if (typeof d.source.index !== 'undefined') {
+				return d.source.index == self.SelectedNodeIndex ||
+					d.target.index == self.SelectedNodeIndex ? 1 : self.LINK_OPACITY;
+			} else {
+				return d.source == self.Nodes[self.SelectedNodeIndex] ||
+					d.target == self.Nodes[self.SelectedNodeIndex] ? 1 : self.LINK_OPACITY;
+			}
+		});
+		self.LinkSelection.style("stroke", function(d) {
+			if(typeof d.source.index !== 'undefined') {
+				if(d.source.index == self.SelectedNodeIndex)
+					return d.bidirectional? self.BIDIRECTIONAL_LINK_COLOR : self.OUTGOING_LINK_COLOR;
+				else if(d.target.index == self.SelectedNodeIndex)
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.INCOMING_LINK_COLOR;
+				else return "black";
+			}
+			else {
+				if(d.source == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.OUTGOING_LINK_COLOR;
+				else if(d.target == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? self.BIDIRECTIONAL_LINK_COLOR : self.INCOMING_LINK_COLOR;
+				else return "black";
+			}
+			
+		});
+		self.LinkSelection.attr("marker-end", function(d) {
+			if(typeof d.source.index !== 'undefined') {
+				if(d.source.index == self.SelectedNodeIndex)
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadOutgoing)";
+				else if(d.target.index == self.SelectedNodeIndex)
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadIncoming)";
+				else return "url(#arrowHeadBlack)";
+			}
+			else {
+				if(d.source == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadOutgoing)";
+				else if(d.target == self.Nodes[self.SelectedNodeIndex])
+					return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadIncoming)";
+				else return d.bidirectional ? "url(#arrowHeadBidirectional)" : "url(#arrowHeadBlack)";
+			}
+		});
+
+		self.LinkSelection.attr("marker-start", function(d) {
+			if(d.bidirectional) {
+				if(typeof d.source.index !== 'undefined') {
+					return d.source.index == self.SelectedNodeIndex || d.target.index == self.SelectedNodeIndex ? "url(#backArrowHeadBidirectional)" : "url(#backArrowHeadBlack)";
+				}
+				else {
+					return d.source == self.Nodes[self.SelectedNodeIndex] || d.target == self.Nodes[self.SelectedNodeIndex] ? "url(#backArrowHeadBidirectional)" : "url(#backArrowHeadBlack)";
+				}
+			}
+		});
+
 		if (restartGraph) {
+			if(self.Nodes.length > 1) {
+				self.log("nodes.length > 1");
+			}
 			self.Force.start();
 		}
 
@@ -749,17 +876,7 @@ window.VikiJS = function() {
 			wiki = self.thisWikiData;
 		else
 			wiki = self.allWikis[ self.searchableWikiIndexForName(wikiTitle) ];	
-			
-		// for(var i = 0; i < self.allWikis.length; i++)
-		// if(self.allWikis[i].wikiTitle === wikiTitle) {
-		// 	wiki = self.allWikis[i];
-		// 	break;
-		// }
-		// 
-		// if(wikiTitle === self.THIS_WIKI) {
-		// 	wiki = self.thisWikiData;
-		// }
-		
+
 		if(!wiki)		// should never happen...
 			return null;
 			
@@ -835,7 +952,7 @@ window.VikiJS = function() {
 				pageTitle: node.pageTitle
 			},
 			beforeSend: function(jqXHR, settings) {
-				self.log("url of TitleIcon lookup: "+settings.url);
+				// self.log("url of TitleIcon lookup: "+settings.url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.titleIconSuccessHandler(data, node);
@@ -848,7 +965,6 @@ window.VikiJS = function() {
 	}
 	VikiJS.prototype.titleIconSuccessHandler = function(data, node) {
 		if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-			self.log("WARNING: The wiki for page "+node.pageTitle+" did not support getTitleIcons. Likely an older production wiki.");
 			return;
 		}
 
@@ -868,7 +984,8 @@ window.VikiJS = function() {
 
 		var node = {
 			elaborated: false,
-			fixed: false
+			fixed: false,
+			hidden: false
 		};
 		return node;
 	}
@@ -891,28 +1008,47 @@ window.VikiJS = function() {
 				return self.Nodes[i];
 			}
 		}
+
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			if(property === 'pageTitle') {
+				// a specific check for page titles - the first letter is case insensitive
+				var oldString = self.HiddenNodes[i][property];
+				if(oldString) {
+					var newString = self.replaceAt(oldString, oldString.indexOf(":")+1, oldString.charAt(oldString.indexOf(":")+1).toLowerCase());
+					var newValue = self.replaceAt(value, value.indexOf(":")+1, value.charAt(value.indexOf(":")+1).toLowerCase());
+					if(newString === newValue)
+						return self.HiddenNodes[i];
+				}
+			}
+			else if (typeof self.HiddenNodes[i][property] !== 'undefined' && self.HiddenNodes[i][property] === value) {
+				return self.HiddenNodes[i];
+			}
+		}
 		return null;
 	}
 
 	VikiJS.prototype.addNode = function(node) {
 		var self = this;
 
-		node.index = self.Nodes.push(node) - 1;
-		if (node.index == 0) {
-			self.SelectedNode = 0;
+		node.identifier = self.CURRENT_IDENTIFIER;
+		self.CURRENT_IDENTIFIER++;
+		self.Nodes.push(node);
+		if (self.Nodes.length == 1) {
+			self.SelectedNodeIndex = 0;
 		}
 	}
 
-	VikiJS.prototype.addLink = function(node1, node2) {
+	VikiJS.prototype.addLinkFromNodeObjects = function(node1, node2) {
 		var self = this;
 
 		var link = {
 			source: node1,
-			target: node2
+			target: node2,
+			bidirectional: false
 		};
 		self.Links.push(link);
-		self.LinkMap[node1 + "," + node2] = link;
-		self.LinkMap[node2 + "," + node1] = link;
+		self.LinkMap[node1.identifier + "," + node2.identifier] = link;
+		self.LinkMap[node2.identifier + "," + node1.identifier] = link;
 		return link;
 	}
 
@@ -938,9 +1074,8 @@ window.VikiJS = function() {
 	}
 	VikiJS.prototype.elaborateWikiNode = function(node) {
 		var self = this;
-		//var apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/api.php";
 
-		// get external links OUT from page	
+		// 1. Get external links OUT from page.
 
 		jQuery.ajax({
 			url: node.apiURL,
@@ -954,7 +1089,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of extlinks ajax call: "+url);
+				// self.log("url of extlinks ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.externalLinksSuccessHandler(data, textStatus, jqXHR, node);
@@ -964,7 +1099,7 @@ window.VikiJS = function() {
 			}
 		});
 		
-		// get intra-wiki links OUT from page
+		// 2. Get intra-wiki links OUT from page.
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: node.sameServer ? 'json' : 'jsonp',
@@ -977,7 +1112,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of intrawiki OUT ajax call: "+url);
+				// self.log("url of intrawiki OUT ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
@@ -986,7 +1121,7 @@ window.VikiJS = function() {
 				alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 			}
 		});
-		// get intra-wiki links IN to this page
+		// 3. Get intra-wiki links IN to this page.
 		jQuery.ajax({
 			url: node.apiURL,
 			dataType: node.sameServer ? 'json' : 'jsonp',
@@ -999,7 +1134,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of intrawiki IN ajax call: "+url);
+				// self.log("url of intrawiki IN ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				self.intraWikiInSuccessHandler(data, textStatus, jqXHR, node);
@@ -1012,6 +1147,7 @@ window.VikiJS = function() {
 		node.info = self.formatNodeInfo(node.displayName);
 		self.displayNodeInfo(node);
 	}
+
 	VikiJS.prototype.externalLinksSuccessHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
 
@@ -1031,10 +1167,17 @@ window.VikiJS = function() {
 					if(!externalWikiNode) {
 							externalWikiNode = self.addExternalWikiNode(externalLinks[i]["*"], index);	
 					}
-						
-					var link = self.findLink(originNode.index, externalWikiNode.index);
+					if(externalWikiNode.hidden) {
+						self.unhideNode(externalWikiNode.identifier);
+					}
+					var link = self.findLink(originNode.identifier, externalWikiNode.identifier);
 					if(!link)
-						link = self.addLink(originNode.index, externalWikiNode.index);
+						link = self.addLinkFromNodeObjects(originNode, externalWikiNode);
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 					
 					self.visitNode(externalWikiNode);
 
@@ -1043,13 +1186,19 @@ window.VikiJS = function() {
 					externalNode = self.findNode("URL", externalLinks[i]["*"]);
 					if(!externalNode)
 						externalNode = self.addExternalNode(externalLinks[i]["*"]);		
-					
-					var link = self.findLink(originNode.index, externalNode.index);
+					if(externalNode.hidden) {
+						self.unhideNode(externalNode.identifier);
+					}
+					var link = self.findLink(originNode.identifier, externalNode.identifier);
 					if(!link)
-						link = self.addLink(originNode.index, externalNode.index);
-
+						link = self.addLinkFromNodeObjects(originNode, externalNode);
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 					newExternalNodes.push(externalNode);
-					
+
 				}
 			}
 			// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
@@ -1076,8 +1225,6 @@ window.VikiJS = function() {
 				
 			var contentNamespaces = wiki.contentNamespaces;
 			
-			self.log("contentNamespaces for "+originNode.wikiTitle+": "+ contentNamespaces);
-			
 			for(var i = 0; i < intraLinks.length; i++) {
 				intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 				if(!intraNode || (intraNode.apiURL !== originNode.apiURL)) {
@@ -1090,9 +1237,16 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
-					var link = self.findLink(originNode.index, intraNode.index);
+					if(intraNode.hidden)
+						self.unhideNode(intraNode.identifier);
+					var link = self.findLink(originNode.identifier, intraNode.identifier);
 					if(!link) {
-						link = self.addLink(originNode.index, intraNode.index);
+						link = self.addLinkFromNodeObjects(originNode, intraNode);
+					}
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
 					}
 					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 					self.visitNode(intraNode);
@@ -1134,10 +1288,19 @@ window.VikiJS = function() {
 
 				}
 				if(intraNode) {
-					var link = self.findLink(intraNode.index, originNode.index);
+					if(intraNode.hidden)
+						self.unhideNode(intraNode.identifier);
+					var link = self.findLink(intraNode.identifier, originNode.identifier);
 					if(!link)
-						link = self.addLink(intraNode.index, originNode.index);	// opposite order because these are pages coming IN
+						link = self.addLinkFromNodeObjects(intraNode, originNode);	// opposite order because these are pages coming IN
+					else {
+						self.log("Found link: ");
+						self.log(link);
+						link.bidirectional = true;
+					}
 				}
+
+				self.visitNode(intraNode);
 			}
 		}
 		self.redraw(true);
@@ -1164,12 +1327,10 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
-				self.log("success callback in AJAX call of getContentNamespaces("+wikiTitle+")");
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					self.log("WARNING: The wiki "+wikiTitle+" did not support getContentNamespaces. Likely an older production wiki. Defaulting to just NS 0 (main).");
 					if(wikiTitle === self.THIS_WIKI)
 						self.thisWikiData.contentNamespaces = [0];
 					else
@@ -1187,26 +1348,29 @@ window.VikiJS = function() {
 			}
 		});
 		
-		self.log("end of getContentNamespaces("+wikiTitle+")");
 	}
 	
 	VikiJS.prototype.visitNode = function(intraNode) {
 		var self = this;
 		// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
 
+		if(intraNode.visited)
+			return;
+
 		jQuery.ajax({
 			url: intraNode.apiURL,
 			dataType: intraNode.sameServer ? 'json' : 'jsonp',
 			data: {
 				action: 'query',
+				prop: 'categories',
 				titles: intraNode.pageTitle,
 				format: 'json'
 			},
-/*			beforeSend: function (jqXHR, settings) {
+			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
-*/			success: function(data, textStatus, jqXHR) {
+			success: function(data, textStatus, jqXHR) {
 				self.wikiPageCheckHandler(data, textStatus, jqXHR, intraNode);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -1217,12 +1381,32 @@ window.VikiJS = function() {
 	
 	VikiJS.prototype.wikiPageCheckHandler = function(data, textStatus, jqXHR, originNode) {
 		var self = this;
+
 		if(data.query.pages["-1"]) {
+			// check if the page is nonexistent
 			originNode.nonexistentPage = true;
 			originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 			self.redraw(true);	
+		}
+		else {
+			// if originNode doesn't already have a categories array, make one
+			if(!originNode.categories)
+					originNode.categories = new Array();
 
-		}		
+			// get the categories
+			page = data.query.pages[ Object.keys(data.query.pages)[0] ];
+			if(page.categories) {
+
+				for(var i = 0; i < page.categories.length; i++) {
+					categoryTitle = page.categories[i].title;
+					// the category title is of the form "Category:Foo" so must remove the "Category:" part
+					categoryTitle = categoryTitle.replace("Category:", "");
+					originNode.categories.push(categoryTitle);
+				}
+			}
+		}
+
+		originNode.visited = true;
 	}
 	
 	VikiJS.prototype.indexOfWiki = function(url) {
@@ -1256,33 +1440,10 @@ window.VikiJS = function() {
 	VikiJS.prototype.displayNodeInfo = function(node) {
 		var self = this;
 		
-		if (self.SelectedNode !== node.index) {
+		if (self.SelectedNodeIndex !== node.index) {
 			return;
 		}
-		jQuery("#" + self.DetailsDiv).html(node.info);
-		if(node.nonexistentPage)
-			return;
-		if (node.type == self.WIKI_PAGE_TYPE) {
-			var buttons = " <a href='" + node.URL +
-				"' target='_blank'><img src='" + self.ImagePath +
-				"info.png' /></a>";
-			if (!node.elaborated && node.searchable)	// only show the + for searchable nodes
-				buttons += " <a id = "+node.index+" class='icon elaborate'><img src= '"+ self.ImagePath+"plus.png' /></a>";
-			var h4 = jQuery("#" + self.DetailsDiv + " h4");
-			h4.html(h4.html() + buttons);
-
-		} 
-		else if(node.type == self.EXTERNAL_PAGE_TYPE) {
-			var buttons = " <a href='" + node.URL +
-				"' target='_blank'><img src='" + self.ImagePath +
-				"info.png' /></a>";
-			var h4 = jQuery("#" + self.DetailsDiv + " h4");
-			h4.html(h4.html() + buttons);
-		}
-		$(".elaborate").click(function() {
-			self.elaborateNodeAtIndex(this.id);
-			self.redraw(true);
-		});
+		jQuery("#" + self.SubDetailsDiv).html(node.info);
 	}
 	
 	VikiJS.prototype.showNewNodesWindow = function() {
@@ -1323,10 +1484,8 @@ window.VikiJS = function() {
 	VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
 		
 		for(var i = 0; i < nodes.length; i++)
-			if(nodes[i].checked) {
-				self.log(nodes[i].pageTitle+" from wiki "+nodes[i].wikiTitle+" should be added to graph");
+			if(nodes[i].checked)
 				self.addWikiNodeFromWiki(nodes[i].pageTitle, nodes[i].wikiTitle);
-			}
 			
 		self.redraw(true);		
 	}
@@ -1336,20 +1495,259 @@ window.VikiJS = function() {
 	}
 
 	VikiJS.prototype.callHooks = function(hookName, parameters) {
+		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
-				self.log("About to call hooks for "+hookName+"...");
-				for(var i = 0; i < self.Hooks[hookName].length; i++) {
-					window[ self.Hooks[hookName][i] ](self, parameters);
-				}
-				self.log("Done with hooks for "+hookName);
+				for(var i = 0; i < self.Hooks[hookName].length; i++)
+					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
 				
 				self.redraw(true);
+				return true;
 			}
 		}
-		else {
-			self.log("No hooks for GetAllWikis.");
+		return false;
+	}
+
+	VikiJS.prototype.hookCompletion = function(hookName, parameters) {
+		var self = this;
+		// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
+		if(hookName === "GetAllWikisHook") {
+			self.fetchContentNamespaces();
 		}
+	}
+
+	VikiJS.prototype.initializeContextMenu = function() {
+        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
+        	// activate before the menu shows
+        	onShowMenu: function(e, menu) {
+				self.Force.stop();
+				// find the node according to the index and set it locally
+				var node = self.findNode('index', self.SelectedNodeIndex);
+				if(typeof node.fix === 'undefined')
+					node.fix = false;
+				//var node = this.findNode('index',this.SelectedNodeIndex, this);
+				// create a json object to store the variable settings
+				var freeze = {
+					toggle : "",
+					fix : false
+				};
+				
+				// if the node has been fixed, then display "unfreeze" as a menu
+				// option and if unfreeze is selected, unfreeze the node
+				// note: the weird syntax here is due to some strange issue with
+				// node.fixed taking on integer values instead of true/false
+				// after they have been moused over at some point.
+
+				freeze.fix = node.fix ? false : true;
+				freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
+
+				// set the title of the menu to the name
+				$('#name-'+self.ID).html(node.displayName);
+				// toggle the menu option between freeze and unfreeze
+				$('.freeze-'+self.ID).html(node.fix ? 'Unfreeze' : 'Freeze');
+				// the actual menu code
+
+
+		        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
+		          $('.elaborate-'+self.ID, menu).remove();
+		        }
+		        if(!node.elaborated)
+		        	$('#hideHub', menu).remove();
+		        if(node.nonexistentPage) {
+		        	$('#getinfo', menu).remove();
+		        	$('#categories', menu).remove();
+		        }
+		        if(node.type == self.EXTERNAL_PAGE_TYPE)
+		        	$('#categories', menu).remove();
+
+		        return menu;
+	      	},
+	      	// activate after the menu shows
+	      	onExitMenu: function(e,menu) {
+	      		self.Force.start();
+	      	},
+	      	// style the menu
+	      	itemStyle: {
+		        fontFamily : 'sans serif',
+		        fontSize: '13px',
+		        backgroundColor : '#FFFFFF',
+	        },
+			bindings: {
+		        'freeze': function(t) {
+		        	self.log("freeze() clicked");
+		        	node = d3.select(t).datum();
+
+					if(typeof node.fix === 'undefined')
+						node.fix = false;
+
+					node.fixed = !node.fix;
+					node.fix = !node.fix;
+		        },
+		        'getinfo': function(t) {
+		        	self.log("getInfo() clicked");
+		        	node = d3.select(t).datum();
+		        	window.open(node.URL, "_blank");
+		        },
+		        'elaborate': function(t) {
+		        	self.log("elaborate() clicked");
+					self.elaborateNodeAtIndex(self.SelectedNodeIndex);
+		        },
+		        'categories': function(t) {
+		        	node = d3.select(t).datum();
+
+		        	var categories = "Categories: ";
+		        	for(var i = 0; i < node.categories.length; i++) {
+		        		categories+= node.categories[i]+", ";
+		        	}
+		        	if(node.categories.length == 0) {
+		        		categories += "No categories";
+		        	}
+		        	else {
+			        	categories = categories.substring(0, categories.length-2);
+			        }
+		        	alert(categories);
+		        },
+		        'hide': function(t) {
+					self.log("hide() clicked");
+		        	node = d3.select(t).datum();
+
+					self.hideNodeAndRedraw(node);
+		        },
+		        'hideHub': function(t) {
+		        	self.log("hideHub() clicked");
+		        	node = d3.select(t).datum();
+
+		        	self.hideHub(node);
+		        },
+		        'showall': function(t) {
+					self.log("showAll() clicked");
+					self.showAllNodes();
+		        }
+	        }
+		});
+
+	}
+
+	VikiJS.prototype.hideNodeAndRedraw = function(node) {
+		self.hideNode(node);
+
+		self.redraw(true);
+	}
+
+	VikiJS.prototype.hideNode = function(node) {
+		var recentHiddenLinks = Array();
+
+		// 1. Remove node from Nodes array and store into hidden nodes array.
+		node.hidden = true;
+		self.HiddenNodes.push(node);
+		self.Nodes.splice(node.index, 1);
+
+		// 2. Remove any associated links from Links array and store into hidden links array.
+		// Also store into recentHiddenLinks so we can remove them from LinkMap.
+		for(var i = self.Links.length-1; i >= 0; i--) {
+			var link = self.Links[i];
+			if(link.source == node || link.target == node) {
+				self.HiddenLinks.push(link);
+				recentHiddenLinks.push(link);
+				self.Links.splice(i, 1);
+			}
+		}
+
+		// 3. Remove links from LinkMap.
+		var linkMapKeys = Object.keys(self.LinkMap);
+
+		for(var i = 0; i < linkMapKeys.length; i++) {
+			var linkMapKey = linkMapKeys[i].split(",");
+			for(var j = 0; j < recentHiddenLinks.length; j++) {
+				if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
+					delete self.LinkMap[linkMapKeys[i]];
+				}
+			}
+		}
+
+		// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
+		self.SelectedNodeIndex = 0;
+		self.displayNodeInfo(self.SelectedNodeIndex);
+
+	}
+
+	VikiJS.prototype.hideHub = function(node) {
+		if(!node.elaborated)
+			return;
+
+		// Iterate Links to identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+
+		var nodesToRemove = new Array();
+		nodesToRemove.push(node);
+
+		for(var i = 0; i < self.Links.length; i++) {
+			link = self.Links[i];
+			if(link.source === node) {
+				if(self.numberOfConnections(link.target) == 1)
+					nodesToRemove.push(link.target);
+			}
+			else if(link.target === node) {
+				if(self.numberOfConnections(link.source) == 1)
+					nodesToRemove.push(link.source);
+			}
+		}
+
+		for(var i = 0; i < nodesToRemove.length; i++) {
+			self.hideNode(nodesToRemove[i]);
+			self.redraw(true);
+		}
+
+		self.redraw(true);
+	}
+
+	VikiJS.prototype.numberOfConnections = function(node) {
+		var connections = self.Links.filter(function(link) { return link.source.identifier == node.identifier || link.target.identifier == node.identifier});
+
+		return connections.length;
+	}
+
+	VikiJS.prototype.unhideNode = function(identifier) {
+
+		var index = -1;
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			if(self.HiddenNodes[i].identifier == identifier) {
+				index = i;
+				break;
+			}
+		}
+		
+		if(index == -1)
+			return;
+
+		self.Nodes.push(self.HiddenNodes[index]);
+		self.HiddenNodes.splice(index, 1);
+
+		self.redraw(true);
+
+	}
+
+	VikiJS.prototype.showAllNodes = function() {
+		// 1. Add all hidden nodes back into main Nodes array, then destroy hidden nodes array.
+
+		for(var i = 0; i < self.HiddenNodes.length; i++) {
+			self.Nodes.push(self.HiddenNodes[i]);
+			self.HiddenNodes[i].hidden = false;
+		}
+		self.HiddenNodes = new Array();
+
+		// 2. Add all hidden links back into main Links array. Also add all hidden links back into the LinkMap.
+		// Then destroy hidden links array.
+		for(var i = 0; i < self.HiddenLinks.length; i++) {
+			link = self.HiddenLinks[i];
+			self.Links.push(link);
+			self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+			self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+		}
+
+		self.HiddenLinks = new Array();
+
+		self.redraw(true);
+
 	}
 
 	VikiJS.prototype.log = function(text) {
