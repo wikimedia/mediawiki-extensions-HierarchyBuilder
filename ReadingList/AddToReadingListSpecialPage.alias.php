@@ -1,7 +1,8 @@
 <?php
-$aliases = array();
+$specialPageAliases = array();
  
 /** English */
-$aliases['en'] = array(
-	'AddToReadingListSpecialPage' => array( 'AddToReadingListSpecialPage' ),
+$specialPageAliases['en'] = array(
+	'AddToReadingListSpecialPage' => array(
+		'AddToReadingListSpecialPage', 'Add To Reading List Special Page' ),
 );

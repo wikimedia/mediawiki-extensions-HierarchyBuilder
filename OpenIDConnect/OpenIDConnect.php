@@ -30,9 +30,9 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
 }
 
-$wgExtensionCredits['semantic'][] = array (
+$wgExtensionCredits['other'][] = array (
 	'name' => 'OpenID Connect',
-	'version' => '1.0',
+	'version' => '1.3',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
 	),
@@ -47,18 +47,20 @@ $wgAutoloadClasses['OpenIDConnectClient'] =
 $wgExtensionMessagesFiles['OpenIDConnect'] =
 	__DIR__ . '/OpenIDConnect.i18n.php';
 
-$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
-$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
-	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
 
+$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
+$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
 $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
-$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
 $wgExtensionMessagesFiles['OpenIDConnectSpecialAliases'] =
 	__DIR__ . '/OpenIDConnect.aliases.php';
+
 $wgAutoloadClasses['OpenIDConnectLogin'] =
 	__DIR__ . '/OpenIDConnectLogin.class.php';
 $wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
+
+$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
+$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
+	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
