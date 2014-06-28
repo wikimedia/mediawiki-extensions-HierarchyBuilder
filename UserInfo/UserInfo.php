@@ -78,8 +78,8 @@ class UserInfo extends SpecialPage {
 			}
 		}
 
-		$this->getOutput()->addHtml("<table><tr><td>");
-		$wikitext .= '{| class="wikitable"' . PHP_EOL;
+		$this->getOutput()->addHtml("<table style='width:100%;'><tr><td>");
+		$wikitext .= '{| class="wikitable" style="width:100%;"' . PHP_EOL;
 		$wikitext .= "!Username" . PHP_EOL;
 		$wikitext .= "!Real Name" . PHP_EOL;
 		$wikitext .= "!Email" . PHP_EOL;
@@ -123,7 +123,7 @@ class UserInfo extends SpecialPage {
 
 			if ($more) {
 				$html = '<a href="' . $url . '?limit=' . $limit . '&offset=' .
-					($offest + $limit) .  '">Next</a>';
+					($offset + $limit) .  '">Next</a>';
 				$this->getOutput()->addHtml($html);
 			}
 
