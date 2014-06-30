@@ -28,18 +28,18 @@ if( !defined( 'MEDIAWIKI' ) ) die( "This is an extension to the MediaWiki
 # credits
 $wgExtensionCredits['special'][] = array (
 	'name' => 'UserInfo',
-	'version' => '3.0',
+	'version' => '1.0',
 	'author' => "Cindy Cicalese",
 	'description' => "List user information"
 );
  
-$wgGroupPermissions['sysop' ]['userinfo'] = true;
 $wgExtensionMessagesFiles['UserInfo'] = __DIR__ . '/UserInfo.i18n.php';
 $wgExtensionMessagesFiles['UserInfoAlias'] = __DIR__ . '/UserInfo.alias.php';
 
 $wgSpecialPages['UserInfo'] = 'UserInfo';
 
 class UserInfo extends SpecialPage {
+
 	function __construct() {
 		parent::__construct('UserInfo', 'userinfo');
 	}
