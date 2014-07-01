@@ -119,9 +119,14 @@ class VikiJS {
 
 	private static $pqnum = 0;
 	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar", "ext.MultiWikiSearch");
+	private static $functionHooks = array();
 
 	static function addResourceModule($moduleName) {
 		self::$modules[] = $moduleName;
+	}
+
+	static function addPHPHook($functionName) {
+		self::$functionHooks[] = $functionName;
 	}
 
 	function display($parser, $pageTitles, $width, $height) {
@@ -156,6 +161,11 @@ EOT;
 		foreach(self::$modules as $name) {
 			wfErrorLog("Adding module name: $name\n", "/var/www/html/DEBUG_VikiJS.out");
 			$outputObject->addModules($name);
+		}
+
+		foreach(self::$functionHooks as $hook) {
+			wfErrorLog("About to call hook: $hook\n", "/var/www/html/DEBUG_VikiJS.out");
+			call_user_func($hook);
 		}
 
 		$pageTitles_json = addslashes(json_encode(array_map('trim', explode(',', $pageTitles))));
