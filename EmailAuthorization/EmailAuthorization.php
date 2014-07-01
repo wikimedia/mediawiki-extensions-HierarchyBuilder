@@ -33,8 +33,6 @@ $wgExtensionCredits['special'][] = array (
 	'description' => "Configure authorization by email address"
 );
  
-$wgGroupPermissions['sysop' ]['configemailauthorization'] = true;
-
 $wgAutoloadClasses['EmailAuthorization'] =
 	__DIR__ . '/EmailAuthorization.class.php';
 $wgAutoloadClasses['ConfigEmailAuthorization'] =
