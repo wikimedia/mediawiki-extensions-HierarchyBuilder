@@ -38,8 +38,8 @@
 		({
 			init: function(input_id, params) {
 
-				console.log("[editHierarchy.js][init] ");
-				console.log(params);
+				//console.log("[editHierarchy.js][init] ");
+				//console.log(params);
 
 				var hierarchy = params.hierarchy;
 				if (hierarchy.length < 1) {
@@ -48,9 +48,9 @@
 
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-				console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
+				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
 				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
-				console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
+				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -143,7 +143,7 @@
 					$(pageListDivId).jstree("open_all");
 				});
 				$(pageListDivId).bind("move_node.jstree", function (event, data) {
-					console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
+					//console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
 					var mylist = $(pageListDivId + " .hierarchy_root > ul");
 					var listitems = mylist.find("li").get();
 					mylist.children().detach();
@@ -195,7 +195,7 @@
 			saveList: function(input_id, divId) {
 				var list = $(divId + " .hierarchy_root > ul").clone();
 
-				console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
+				//console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
 
 				list.find("ins").remove();
 				list.find("li").removeAttr("class");
@@ -208,11 +208,11 @@
 				//document.getElementById(input_id).value = "<ul>" + list.html() +
 				//	"</ul>";
 
-				console.log(list.html());
+				//console.log(list.html());
 
 
 				var wikiText = this.parseHtmlToWikiText(list, "*");
-				console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
+				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
 				document.getElementById(input_id).value = wikiText;
 				//console.log(wikiText);

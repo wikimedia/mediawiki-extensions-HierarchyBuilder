@@ -205,7 +205,7 @@ class HierarchyBuilder {
 	}
 
 	public function renderHierarchy($input, $attributes, $parser, $frame) {
-		wikiLog("HierarchyBuilder", "renderHierarchy", "starting");
+		//wikiLog("HierarchyBuilder", "renderHierarchy", "starting");
 
 		$hierarchyName = "HierarchyDiv" . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
@@ -299,7 +299,7 @@ END;
 				$hierarchy = str_replace("<a>$pageName</a>", $link, $hierarchy);
 			}
 		}
-		wikiLog("HierarchyBuilder", "parseHierarchy", "eating newlines");
+		//wikiLog("HierarchyBuilder", "parseHierarchy", "eating newlines");
 		return $hierarchy;
 	}
 
@@ -309,18 +309,18 @@ END;
 	 * I still need to format the output correctly.
 	 */
 	public function getPropertyFromPage($page, $property) { 
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Started");
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Started");
     	$store = smwfGetStore();
 		$title = Title::newFromText($page);
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Title: " . var_export($title, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Title: " . var_export($title, true));
     	$subject = SMWDIWikiPage::newFromTitle($title);
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Subject: " . var_export($subject, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Subject: " . var_export($subject, true));
     	$data = $store->getSemanticData($subject);
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Data: " . var_export($data, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Data: " . var_export($data, true));
     	$property = SMWDIProperty::newFromUserLabel($property);
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Property: " . var_export($property, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Property: " . var_export($property, true));
     	$values = $data->getPropertyValues($property);
-		wikiLog("HierarchyBuilder", "getPropertyFromPage", "Values: " . var_export($values, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Values: " . var_export($values, true));
     	$strings = array();
     	foreach ($values as $value) {
     	    if ($value->getDIType() == SMWDataItem::TYPE_STRING ||
@@ -348,7 +348,7 @@ END;
 		if (strlen($displayNameProperty) == 0) {
 			return $page;
 		}
-		wikiLog("HierarchyBuilder", "getPageDisplayName", "about to call getPropertyFromPage()");
+		//wikiLog("HierarchyBuilder", "getPageDisplayName", "about to call getPropertyFromPage()");
 		$output = self::getPropertyFromPage($page, $displayNameProperty);
 		if (strlen($output) > 0) {
 			return $output;
@@ -519,7 +519,7 @@ class SelectFromHierarchy extends SFFormInput {
 	}
 
 	protected function setupJsInitAttribs() {
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "starting");
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "starting");
 
 		if (array_key_exists('pagename',$this->mOtherArgs)) {
 			$this->mPageName = $this->mOtherArgs["pagename"];
@@ -562,12 +562,12 @@ class SelectFromHierarchy extends SFFormInput {
 			SMW_OUTPUT_WIKI); // maybe also call getPropertyFromPage
 		//$output = HierarchyBuilder::getPropertyFromPage($this->mPageName, $this->mPropertyName);
 
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "output: " . var_export($output, true));
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPageName: " . var_export($this->mPageName, true));
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPropertyName: " . var_export($this->mPropertyName, true));
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mCurrentValue: " . var_export($this->mCurrentValue, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "output: " . var_export($output, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPageName: " . var_export($this->mPageName, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPropertyName: " . var_export($this->mPropertyName, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mCurrentValue: " . var_export($this->mCurrentValue, true));
 
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", print_r(trim($output), true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", print_r(trim($output), true));
 		/*$hierarchy = HierarchyBuilder::parseHierarchy(trim($output),
 			$displaynameproperty, $dummy,
 			function ($pageName, $displayNameProperty, $data) {
@@ -589,7 +589,7 @@ class SelectFromHierarchy extends SFFormInput {
 			});*/
 		$hierarchy = str_replace("<br />", "\n", trim($output));
 
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . var_export($hierarchy, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . var_export($hierarchy, true));
 
 		$selected_items = array_map('trim', explode(",", $this->mCurrentValue));
 
@@ -667,6 +667,7 @@ class SelectFromHierarchy extends SFFormInput {
 	}
 }
 
-function wikiLog($className, $methodName, $message) {
+/*function wikiLog($className, $methodName, $message) {
 	wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
-}
+}*/
+
