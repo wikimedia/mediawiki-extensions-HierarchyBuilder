@@ -49,16 +49,16 @@ class ConfigEmailAuthorization extends SpecialPage {
 		self::showSearchForm($url);
 
 		if (is_null($search)) {
-			$defaultAddEmail = $request->getText('revokeemail');
+			$defaultAddEmail = trim($request->getText('revokeemail'));
 		} else if (!$search) {
-			$defaultAddEmail = $request->getText('searchemail');
+			$defaultAddEmail = trim($request->getText('searchemail'));
 		}
 		self::showAddForm($url, $defaultAddEmail);
 
 		if (is_null($search)) {
-			$defaultRevokeEmail = $request->getText('addemail');
+			$defaultRevokeEmail = trim($request->getText('addemail'));
 		} else if ($search) {
-			$defaultRevokeEmail = $request->getText('searchemail');
+			$defaultRevokeEmail = trim($request->getText('searchemail'));
 		}
 		self::showRevokeForm($url, $defaultRevokeEmail);
 
@@ -67,7 +67,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 
 	private function searchEmail($email) {
 		if (!is_null($email) && strlen($email) > 0) {
-			$email = mb_strtolower(htmlentities($email));
+			$email = mb_strtolower(htmlentities(trim($email)));
 			if (self::isEmailAuthorized($email)) {
 				$wikitext = $email . " is authorized.";
 				$this->getOutput()->addHTML($wikitext);
@@ -83,7 +83,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 
 	private function addEmail($email) {
 		if (!is_null($email) && strlen($email) > 0) {
-			$email = mb_strtolower(htmlentities($email));
+			$email = mb_strtolower(htmlentities(trim($email)));
 			if (self::insertEmail($email)) {
 				$wikitext = 'successfully added ' . $email;
 				$this->getOutput()->addHTML($wikitext);
@@ -98,7 +98,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 
 	private function revokeEmail($email) {
 		if (!is_null($email) && strlen($email) > 0) {
-			$email = mb_strtolower(htmlentities($email));
+			$email = mb_strtolower(htmlentities(trim($email)));
 			if (self::deleteEmail($email)) {
 				$wikitext = 'successfully revoked authorization from ' . $email;
 				$this->getOutput()->addHTML($wikitext);
