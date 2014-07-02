@@ -30,19 +30,24 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 	die('<b>Error:</b> This version of EditOwnIncludedNamespaces is only compatible with MediaWiki 1.21 or above.');
 }
 
-$wgExtensionCredits['semantic'][] = array (
+$wgExtensionCredits['other'][] = array (
 	'name' => 'EditOwnIncludedNamespaces',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
 	),
 	'description' => 'Allows EditOwn Namespaces to be set by inclusion rather than exclusion'
 );
 
-$wgHooks['ParserFirstCallInit'][] = 'setupEditOwnNamespaces';
+if (in_array('userCan', $wgHooks)) {
+	array_unshift($wgHooks['userCan'], 'setupEditOwnNamespaces');
+} else {
+	$wgHooks['userCan'][] = 'setupEditOwnNamespaces';
+}
 
-function setupEditOwnNamespaces(& $parser) {
 
+function setupEditOwnNamespaces($title, $user, $action, &$result)
+{
   global $wgEditOwnIncludedNamespaces;
   if (!isset($wgEditOwnIncludedNamespaces) ||
     !is_array($wgEditOwnIncludedNamespaces)) {

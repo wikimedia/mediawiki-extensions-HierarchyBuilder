@@ -44,7 +44,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 	die('<b>Error:</b> This version of SemanticFormsDisplayTitle is only compatible with Semantic Forms 2.5.2 or above.');
 }
 
-define('SFDT_VERSION', '1.1.1');
+define('SFDT_VERSION', '1.2');
 
 # credits
 $wgExtensionCredits['semantic'][] = array (
@@ -149,7 +149,8 @@ class SemanticFormsDisplayTitle extends SFFormInput {
 		}
 
 		if (array_key_exists('label_property', $this->mOtherArgs)) {
-			$label_property = $this->mOtherArgs["label_property"];
+			$label_property = str_replace(" ", "_",
+				$this->mOtherArgs["label_property"]);
 		} else {
 			$error_msg =
 				wfMessage('sfdisplaytitle-error-missinglabelproperty')->

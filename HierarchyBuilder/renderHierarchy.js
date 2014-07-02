@@ -29,6 +29,7 @@
 // collapsed is a Boolean that indicates if the tree should start collapsed
 (function($) {
 	window.renderHierarchy = function(divId, hierarchy, collapsed) {
+		//console.log("[renderHierarchy] " + hierarchy);
 		if (hierarchy.length < 1) {
 			return;
 		}
