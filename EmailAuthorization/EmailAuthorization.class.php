@@ -29,4 +29,26 @@ class EmailAuthorization {
 			__DIR__ . '/EmailAuthorization.sql', true);
 		return true;
 	}
+
+	public static function authorize($user, &$authorized) {
+		$authorized = self::isEmailAuthorized($user->mEmail);
+		return $authorized;
+	}
+
+	private static function isEmailAuthorized($email) {
+		$dbr = wfGetDB(DB_SLAVE);
+		$row = $dbr->selectRow('emailauth',
+			array(
+				'email'
+			),
+			array(
+				'email' => $email
+			), __METHOD__
+		);
+		if ($row == false) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 }

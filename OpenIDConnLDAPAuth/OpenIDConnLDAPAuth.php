@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Copyright (c) 2014 The MITRE Corporation
  * 
@@ -22,30 +22,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-if( !defined( 'MEDIAWIKI' ) ) die( "This is an extension to the MediaWiki 
-	package and cannot be run standalone." );
- 
-# credits
-$wgExtensionCredits['special'][] = array (
-	'name' => 'EmailAuthorization',
+if (!defined('MEDIAWIKI')) {
+	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
+}
+
+if (version_compare($wgVersion, '1.21', 'lt')) {
+	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
+}
+
+$wgExtensionCredits['other'][] = array (
+	'name' => 'OpenIDConnLDAPAuth',
 	'version' => '1.0',
-	'author' => "Cindy Cicalese",
-	'description' => "Configure authorization by email address"
+	'author' => 'Ian Campbell',
+	'descriptionmsg' => 'openidconnldapauth-desc',
+	'url' => 'http://gestalt.mitre.org/wiki/Extension:OpenIDConnLDAPAuth'
 );
- 
-$wgAutoloadClasses['EmailAuthorization'] =
-	__DIR__ . '/EmailAuthorization.class.php';
-$wgAutoloadClasses['ConfigEmailAuthorization'] =
-	__DIR__ . '/ConfigEmailAuthorization.class.php';
 
-$wgExtensionMessagesFiles['ConfigEmailAuthorization'] =
-	__DIR__ . '/ConfigEmailAuthorization.i18n.php';
-$wgExtensionMessagesFiles['ConfigEmailAuthorizationAlias'] =
-	__DIR__ . '/ConfigEmailAuthorization.alias.php';
+$wgAutoloadClasses['OpenIDConnLDAPAuth'] =
+	__DIR__ . '/OpenIDConnLDAPAuth.class.php';
 
-$wgHooks['LoadExtensionSchemaUpdates'][] =
-	'EmailAuthorization::loadExtensionSchemaUpdates';
+$wgExtensionMessagesFiles['OpenIDConnLDAPAuth'] =
+	__DIR__ . '/OpenIDConnLDAPAuth.i18n.php';
 
-$wgHooks['OpenIDConnectUserAuthorization'][] = 'EmailAuthorization::authorize';
+$wgHooks['OpenIDConnectUserAuthorization'][] = 'OpenIDConnLDAPAuth::authorize';
 
-$wgSpecialPages['ConfigEmailAuthorization'] = 'ConfigEmailAuthorization';
