@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '0.1',
+	'version' => '1.0',
 	'author' => 'Jason Ji'
 );
 
@@ -73,9 +73,10 @@ function efVikiIWLinks_AddResource (& $parser) {
 function addVikiTablesToDatabase($updater) {
 	wfErrorLog("addVikiTablesToDatabase called.\n", "/var/www/html/DEBUG_VikiIWLinks.out");
 	$updater->addExtensionField('interwiki', 'logo_url',
-			__DIR__ . '/AddLogoURL.sql');
+			__DIR__ . '/AddLogoURL.sql', true);
 	$updater->addExtensionField('interwiki', 'viki_searchable',
-			__DIR__ . '/AddVikiSearchable.sql');
+			__DIR__ . '/AddVikiSearchable.sql', true);
+
 	return true;
 }
 
@@ -85,39 +86,55 @@ function efVikiIWLinks_Setup($parser, &$text) {
 
 	// access database and get wikis from interwiki links table
 
-	// $dbr = wfGetDB( DB_SLAVE );
-	// $result = $dbr->select(
-	// 	'interwiki',
-	// 	array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable')
-
-	// );
-	// wfErrorLog("database result:\n", "var/www/html/DEBUG_VikiIWLinks.out");
-	// wfErrorLog(print_r($result, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-	// foreach($result as $row) {
-	// 	// wfErrorLog(print_r($row, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");		
-	// 	// wfErrorLog("iw_prefix: " . $row->iw_prefix . ", iw_url: " . $row->iw_url ."\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-	// }
+	$dbr = wfGetDB( DB_SLAVE );
+	$result = $dbr->select(
+		'interwiki',
+		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable'),
+		'viki_searchable = true OR viki_searchable = false'
+	);
+	wfErrorLog("database result:\n", "var/www/html/DEBUG_VikiIWLinks.out");
 
 
 	// turn into JSON
 
+	$wikiTestArray = array();
 
-	$wikiTestArray = array(
-		array(
-			"wikiTitle" => "mobilepedia", 
-			"apiURL" => "http://gestalt.mitre.org/mobilepedia/api.php", 
-			"contentURL" => "http://gestalt.mitre.org/mobilepedia/index.php/", 
-			"logoURL" => "http://gestalt.mitre.org/mobilepedia/branding/logo_small.png",
-			"searchableWiki" => "true"
-			),
-		array(
-			"wikiTitle" => "gestaltd", 
-			"apiURL" => "http://gestalt.mitre.org/gestaltd/api.php", 
-			"contentURL" => "http://gestalt.mitre.org/gestaltd/index.php/", 
-			"logoURL" => "http://gestalt.mitre.org/gestaltd/branding/logo_small.png",
-			"searchableWiki" => "true"
-			)
-	);
+	foreach($result as $row) {
+		wfErrorLog(print_r($row, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");		
+		// wfErrorLog("iw_prefix: " . $row->iw_prefix . ", iw_url: " . $row->iw_url ."\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+		$wikiTestArray[] = array(
+			"wikiTitle" => $row->iw_prefix,
+			"apiURL" => $row->iw_api,
+			"contentURL" => $row->iw_url,
+			"logoURL" => $row->logo_url,
+			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false")
+		);
+	}
+
+	wfErrorLog("wikiTestArray:\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+	wfErrorLog(print_r($wikiTestArray, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+
+	
+	// $wikiTestArray2 = array(
+	// 	array(
+	// 		"wikiTitle" => "mobilepedia", 
+	// 		"apiURL" => "http://gestalt.mitre.org/mobilepedia/api.php", 
+	// 		"contentURL" => "http://gestalt.mitre.org/mobilepedia/index.php/", 
+	// 		"logoURL" => "http://gestalt.mitre.org/mobilepedia/branding/logo_small.png",
+	// 		"searchableWiki" => "true"
+	// 		),
+	// 	array(
+	// 		"wikiTitle" => "gestaltd", 
+	// 		"apiURL" => "http://gestalt.mitre.org/gestaltd/api.php", 
+	// 		"contentURL" => "http://gestalt.mitre.org/gestaltd/index.php/", 
+	// 		"logoURL" => "http://gestalt.mitre.org/gestaltd/branding/logo_small.png",
+	// 		"searchableWiki" => "true"
+	// 		)
+	// );
+
+	// wfErrorLog("wikiTestArray2:\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+	// wfErrorLog(print_r($wikiTestArray2, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+
 
 	$wikiTestArrayJSON = addslashes(json_encode($wikiTestArray));
 	global $wgOut;
