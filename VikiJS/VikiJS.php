@@ -31,8 +31,8 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of VikiJS is only compatible with MediaWiki 1.21 or above.');
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of VikiJS is only compatible with MediaWiki 1.22 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
