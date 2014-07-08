@@ -46,17 +46,35 @@ class ApiAddBibTeXItem extends ApiBase {
 
 	public function getAllowedParams() {
 		return array(
-			'added-at' => null,
-			'author' => null,
-			'biburl' => null,
-			'interhash' => null,
-			'intrahash' => null,
-			'keywords' => null,
-			'overwrite' => null,
-			'timestamp' => null,
-			'title' => null,
-			'type' => null,
-			'year' => null
+			//'abbrev_source_title' => null,
+			//'abstract' => null,
+			//'added-at' => null,
+			//'author' => null,
+			//'author_keywords' => null,
+			'bibtexJSON' => null
+			//'biburl' => null,
+			//'chemicals_cas' => null,
+			//'correspondence_address1' => null,
+			//'document_type' => null,
+			//'doi' => null,
+			//'injurytype' => null,
+			//'interhash' => null,
+			//'intrahash' => null,
+			//'issn' => null,
+			//'journal' => null,
+			//'keywords' => null,
+			//'language' => null,
+			//'note' => null,
+			//'overwrite' => null,
+			//'pages' => null,
+			//'references' => null,
+			//'source' => null,
+			//'timestamp' => null,
+			//'title' => null,
+			//'type' => null,
+			//'url' => null,
+			//'volume' => null,
+			//'year' => null
 		);
 	}
 
@@ -354,7 +372,7 @@ class ApiAddBibTeXItem extends ApiBase {
 
 
     public function parseKeywords($keywords) {
-		$words = explode(",", $keywords);
+		$words = explode(";", $keywords);
 		$result = "";
 		foreach($words as $word) {
 			$result .= "{{Keyword|keyword=" . trim($word) . "}}";
@@ -365,6 +383,9 @@ class ApiAddBibTeXItem extends ApiBase {
 	public function execute() {
 
 		$params = $this->extractRequestParams();
+		//$params = $this->extractRequestParams();
+		$bibtexParams = json_decode($params['bibtexJSON'], true);
+
 
 		$overwrite = $params['overwrite'];
 		if ($overwrite == 'false') {
@@ -384,13 +405,13 @@ class ApiAddBibTeXItem extends ApiBase {
 		}
         */
 
-        if($params['title'] == null) {
-			$ret = array ($this->RETURN_ERROR_BAD_REQUEST, $params['title']);
+        if($bibtexParams['title'] == null) {
+			$ret = array ($this->RETURN_ERROR_BAD_REQUEST, $bibtexParams['title']);
 			$this->getResult()->addValue(null, 'add_bibtex', $ret);
 			return;
 
 		}
-		$title = $params['title'];
+		$title = $bibtexParams['title'];
 		$pagename = $this->findItem($title);
 
 		if ($pagename != false && !$overwrite) {
@@ -401,27 +422,28 @@ class ApiAddBibTeXItem extends ApiBase {
 		}
 
 		$wikitext = "{{Item" . $wikitext;
-		$wikitext .= "\n|title=" . $title;
-		$wikitext .= "\n|added-at=" . $params['added-at'];
-		$wikitext .= "\n|authors=" . $this->parseAuthors($params['author']);
-		$wikitext .= "\n|url=" . $params['biburl'];
-		$wikitext .= "\n|interhash=" . $params['interhash'];
-		$wikitext .= "\n|intrahash=" . $params['intrahash'];
-		$wikitext .= "\n|keywords=" . $this->parseKeywords($params['keywords']);
-		$wikitext .= "\n|timestamp=" . $params['timestamp'];
-		$wikitext .= "\n|type=" . $params['type'];
-		$wikitext .= "\n|year=" . $params['year'];
 
-		/*$author_list = $this->parseAuthors($authors);
-		if (strlen($author_list) > 0) {
-			$wikitext .= "|Authors=" . $author_list;
+		foreach ($bibtexParams as $key => $value) {
+			if($key == "author") {
+				$wikitext .= "\n|authors=" . $this->parseAuthors($value);
+			} else {
+				$wikitext .= "\n|" . $key . "=" . $value;
+			}
+		
 		}
 
-		$keyword_list = $this->parseKeywords($keywords);
-		if (strlen($keyword_list) > 0) {
-			$wikitext .= "|Keywords=" . $keyword_list;
-		}
- 		*/
+		/*$wikitext .= "\n|title=" . $title;
+		$wikitext .= "\n|added-at=" . $bibtexParams['added-at'];
+		$wikitext .= "\n|authors=" . $this->parseAuthors($bibtexParams['author']);
+		$wikitext .= "\n|url=" . $bibtexParams['biburl'];
+		$wikitext .= "\n|injurytypes=" . $bibtexParams['injurytypes'];
+		$wikitext .= "\n|interhash=" . $bibtexParams['interhash'];
+		$wikitext .= "\n|intrahash=" . $bibtexParams['intrahash'];
+		$wikitext .= "\n|keywords=" . $bibtexParams['keywords'];
+		$wikitext .= "\n|timestamp=" . $bibtexParams['timestamp'];
+		$wikitext .= "\n|type=" . $bibtexParams['type'];
+		$wikitext .= "\n|year=" . $bibtexParams['year'];
+*/
 
 		$wikitext .= "\n}}";
 		list($ret, $pagename) = $this->addPage(NS_COLLECTION_ITEM, $pagename,
@@ -475,16 +497,25 @@ class ImportBibTeX extends SpecialPage {
 			Html::openElement('fieldset') .
 			Html::hidden( 'title', $this->getTitle()->getPrefixedText() ) .
 			Html::hidden( 'phase', 2 ) .
+			//Html::hidden( 'overwrite', false ) .
 			Html::element('legend', null, 'Import from a list of BibTeX entries file:') .
 			'<table><tbody>';
 		list($label, $input) =
-			Xml::inputLabelSep('Filename:', 'fname', 'fname', 50, '',
+			Xml::inputLabelSep('Choose BibTeX file for upload:', 'fname', 'fname', 50, '',
 			array ('type' => 'file'));
 		$html .= '<tr><td>' . $label . '</td><td>' . $input . '</td></tr>';
+		$html .= '<tr><td valign="top"><label for="bibtexarea">or Copy/Paste BibTeX entry here:</label></td><td><textarea cols="80" rows="10" name="bibtexarea"></textarea></td></tr>';
+
+		list($label, $input) =
+			Xml::inputLabelSep('Injury Type:', 'injurytype',
+				'injurytype', 50, '', array ('type' => 'text'));
+		$html .= '<tr><td>' . $label . '</td><td>' . $input . '</td></tr>';
+		$html .= '<tr><td>(Semicolon seperated list of values) </td></tr>';
 		list($label, $input) =
 			Xml::inputLabelSep('Overwrite duplicate pages?:', 'overwrite',
 				'overwrite', 0, 'true', array ('type' => 'checkbox'));
 		$html .= '<tr><td>' . $label . '</td><td>' . $input . '</td></tr>';
+		
 		$html .=
 			'<tr><td>' . Xml::submitButton('Go') . '</td></tr>' .
 			'</tbody></table>' .
@@ -496,24 +527,31 @@ class ImportBibTeX extends SpecialPage {
 	private function importCollection() {
 
 		$output = $this->getOutput();
+		$request = $this->getRequest();
+		$injurytype = $request->getText('injurytype');
+		$bibtexFromArea = $request->getText('bibtexarea');
 
-		$output->addHTML("<br /> Importing BibTeX from file: <b>" .
-			$_FILES["fname"]["name"] . "</b><br /><br />");
 
-		if ($_FILES["fname"]["error"] > 0) {
-			$output->addHTML("Error " . $_FILES["fname"]["error"] .
-				" uploading file.<br /><br />" .
-				"Check /etc/php.ini to make sure:<br />" .
-				"<blockquote>" .
-				"post_max_size = <b>&lt;larger than file size&gt;</b><br />" .
-				"file_uploads = <b>On</b><br />" .
-				"upload_max_filesize = <b>&lt;larger than file size&gt;</b>" .
-				"</blockquote>");
-			return;
-		} /*else if ($_FILES["fname"]["type"] != "text/xml") {
-			$output->addHTML("Error: file does not contain XML");
-			return;
-		}*/
+		if (is_null($bibtexFromArea) || strlen($bibtexFromArea) == 0) {
+			$output->addHTML("<br /> Importing BibTeX from file: <b>" .
+				$_FILES["fname"]["name"] . "</b><br /><br />");
+
+			if ($_FILES["fname"]["error"] > 0) {
+				$output->addHTML("Error " . $_FILES["fname"]["error"] .
+					" uploading file.<br /><br />" .
+					"Check /etc/php.ini to make sure:<br />" .
+					"<blockquote>" .
+					"post_max_size = <b>&lt;larger than file size&gt;</b><br />" .
+					"file_uploads = <b>On</b><br />" .
+					"upload_max_filesize = <b>&lt;larger than file size&gt;</b>" .
+					"</blockquote>");
+				return;
+			}
+
+			$xml = json_encode(file_get_contents($_FILES["fname"]["tmp_name"]));
+		} else {
+			$xml = json_encode($bibtexFromArea);
+		} 
 
 		$output->addModules('ext.ImportBibTeX');
 	
@@ -526,7 +564,7 @@ EOT;
 		global $wgServer, $wgScriptPath;
 		$apiurl = $wgServer . $wgScriptPath .	'/api.php';
 
-		$xml = json_encode(file_get_contents($_FILES["fname"]["tmp_name"]));
+		//$xml = json_encode(file_get_contents($_FILES["fname"]["tmp_name"]));
 
 		//$output->addHTML("<br /> File Contents: <b>" . $xml . "</b><br /><br />");
 		//$output->addHTML("<br /> APIURL: <b>" . $apiurl . "</b><br /><br />");
@@ -537,7 +575,7 @@ EOT;
 		}
 		$script =<<<END
 mw.loader.using(['ext.ImportBibTeX'], function () {
-	importBibTeX('$divname', '$apiurl', $xml, $overwrite);
+	importBibTeX('$divname', '$apiurl', $xml, $overwrite, '$injurytype');
 });
 END;
 
