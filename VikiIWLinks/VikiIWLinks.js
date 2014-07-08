@@ -3,13 +3,12 @@ window.VikiIWLinks = {
 }
 
 window.viki_getAllWikisFromIWLinks = function(vikiObject, parameters, hookName) {
-	hook_log("viki_getAllWikisFromIWLinks called! allWikis = ");
 	hook_log(VikiIWLinks.allWikis);
 
-	// for(var i = 0; i < VikiIWLinks.allWikis.length; i++)
-	// 	vikiObject.allWikis.push(VikiIWLinks.allWikis[i]);
+	for(var i = 0; i < VikiIWLinks.allWikis.length; i++)
+		vikiObject.allWikis.push(VikiIWLinks.allWikis[i]);
 
-	// vikiObject.hookCompletion(hookName, null);
+	vikiObject.hookCompletion(hookName, null);
 }
 
 window.vikiIWLinks_parseWikiData = function(data) {
