@@ -336,7 +336,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 				'id' => 'ShowAuthorizedUsers')
 			) .
 			Html::hidden('authoffset', 0) .
-			Xml::submitButton('Show Authorized Users') .
+			Xml::submitButton('Show Authorized Email Addresses') .
 			Html::closeElement('form') .
 			Html::element('br');
 		$this->getOutput()->addHTML($html);
@@ -349,7 +349,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 				'id' => 'ShowAllUsers')
 			) .
 			Html::hidden('alloffset', 0) .
-			Xml::submitButton('Show All Users') .
+			Xml::submitButton('Show All Wiki Users') .
 			Html::closeElement('form');
 		$this->getOutput()->addHTML($html);
 	}
