@@ -4,7 +4,7 @@ if (!String.prototype.trim) {
   };
 }
 
-function importBibTeX(div, api_url, xml, overwrite) {
+function importBibTeX(div, api_url, xml, overwrite, injurytype) {
 
 	var div_progress = div + "_progress";
 	var div_duplicates = div + "_duplicates";
@@ -37,24 +37,28 @@ records.length + " (<span id='" + div_duplicates + "'>0</span>" +
 "<div id='" + div_details + "'></div>";
 	jQuery("#" + div).html(message);
 
-	importSet(div_progress, div_duplicates, div_errors, div_details, api_url, records, overwrite);
+	importSet(div_progress, div_duplicates, div_errors, div_details, api_url, records, overwrite, injurytype);
 }
 
 function importSet(div_progress, div_duplicates, div_errors, div_details,
-	api_url, records, overwrite) {
+	api_url, records, overwrite, injurytype) {
 	importOne(div_progress, div_duplicates, div_errors, div_details, api_url,
-		records, overwrite, 0, 0, 0);
+		records, overwrite, 0, 0, 0, injurytype);
 }
 
 function importOne(div_progress, div_duplicates, div_errors, div_details,
-	api_url, records, overwrite, index, duplicates, errors) {
+	api_url, records, overwrite, index, duplicates, errors, injurytype) {
 	if (index >= records.length) return;
 	var action = "add_bibtex";
 	//var data = getFields(records[index]);
-	var data = records[index];
+	var data2 = records[index];
+	var data = {};
+	
 	data.action = action;
 	data.overwrite = overwrite;
 	data.format = "json";
+	data2["injurytypes"] = injurytype;
+	data["bibtexJSON"] = JSON.stringify(data2);
 
     //console.log("Overwrite: " + overwrite);
 
@@ -88,7 +92,7 @@ function importOne(div_progress, div_duplicates, div_errors, div_details,
 			index++;
 			jQuery("#" + div_progress).html(index);
 			importOne(div_progress, div_duplicates, div_errors, div_details,
-				api_url, records, overwrite, index, duplicates, errors);
+				api_url, records, overwrite, index, duplicates, errors, injurytype);
 		}
 	});
 }

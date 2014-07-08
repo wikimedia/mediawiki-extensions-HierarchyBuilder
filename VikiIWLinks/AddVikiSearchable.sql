@@ -1,1 +1,1 @@
-ALTER TABLE interwiki ADD searchable BOOLEAN;
+ALTER TABLE interwiki ADD viki_searchable BOOLEAN;

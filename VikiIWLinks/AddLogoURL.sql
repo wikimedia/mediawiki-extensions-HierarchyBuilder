@@ -1,1 +1,1 @@
-ALTER TABLE iwlinks ADD logo_url BLOB;
+ALTER TABLE interwiki ADD logo_url BLOB;
