@@ -28,7 +28,7 @@ if( !defined( 'MEDIAWIKI' ) ) die( "This is an extension to the MediaWiki
 # credits
 $wgExtensionCredits['special'][] = array (
 	'name' => 'EmailAuthorization',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => "Cindy Cicalese",
 	'description' => "Configure authorization by email address"
 );
