@@ -39,9 +39,10 @@ class ConfigEmailAuthorization extends SpecialPage {
 		$this->setHeaders();
  
 		$search = self::searchemail($request->getText('searchemail'));
-		self::addemail($request->getText('addemail'));
-		self::revokeemail($request->getText('revokeemail'));
-		self::showall($request->getText('offset'));
+		self::addEmail($request->getText('addemail'));
+		self::revokeEmail($request->getText('revokeemail'));
+		self::showAuthorizedUsers($request->getText('authoffset'));
+		self::showAllUsers($request->getText('alloffset'));
 
 		$title = Title::newFromText("Special:ConfigEmailAuthorization");
 		$url = $title->getFullURL();
@@ -62,7 +63,8 @@ class ConfigEmailAuthorization extends SpecialPage {
 		}
 		self::showRevokeForm($url, $defaultRevokeEmail);
 
-		self::showAllForm($url);
+		self::showAuthorizedUsersForm($url);
+		self::showAllUsersForm($url);
 	}
 
 	private function searchEmail($email) {
@@ -111,22 +113,22 @@ class ConfigEmailAuthorization extends SpecialPage {
 		return false;
 	}
 
-	private function showAll($offset) {
+	private function showAuthorizedUsers($autoffset) {
 
 
-		if (is_null($offset) || strlen($offset) == 0 || !is_numeric($offset) ||
-			$offset < 0) {
+		if (is_null($autoffset) || strlen($autoffset) == 0 ||
+			!is_numeric($autoffset) || $autoffset < 0) {
 			return;
 		}
 
 		$limit = 20;
 
-		$emails = self::getAuthorizedEmails($limit + 1, $offset);
+		$emails = self::getAuthorizedEmails($limit + 1, $autoffset);
 		$next = false;
 
 		if (!$emails->valid()) {
-			$offset = 0;
-			$emails = self::getAuthorizedEmails($limit + 1, $offset);
+			$autoffset = 0;
+			$emails = self::getAuthorizedEmails($limit + 1, $autoffset);
 			if (!$emails->valid()) {
 				$wikitext = "no authorized email addresses found";
 				$this->getOutput()->addHTML($wikitext);
@@ -166,7 +168,7 @@ class ConfigEmailAuthorization extends SpecialPage {
 		$wikitext .= "|}" . PHP_EOL;
 		$this->getOutput()->addWikiText($wikitext);
 
-		if ($offset > 0 || $more) {
+		if ($autoffset > 0 || $more) {
 
 			$title = Title::newFromText("Special:ConfigEmailAuthorization");
 			$url = $title->getFullURL();
@@ -174,17 +176,99 @@ class ConfigEmailAuthorization extends SpecialPage {
 			$this->getOutput()->addHtml("</td></tr><tr><td>");
 			$this->getOutput()->addHtml("<table style='width:100%;'><tr><td>");
 
-			if ($offset > 0) {
+			if ($autoffset > 0) {
 				$html = '<a href="' . $url .
-					'?offset=' .  ($offset - $limit) .  '">Previous</a>';
+					'?autoffset=' .  ($autoffset - $limit) .  '">Previous</a>';
 				$this->getOutput()->addHtml($html);
 			}
 
 			$this->getOutput()->addHtml("</td><td style='text-align:right;'>");
 
 			if ($more) {
-				$html = '<a href="' . $url . '?offset=' .
-					($offset + $limit) .  '">Next</a>';
+				$html = '<a href="' . $url . '?autoffset=' .
+					($autoffset + $limit) .  '">Next</a>';
+				$this->getOutput()->addHtml($html);
+			}
+
+			$this->getOutput()->addHtml("</td></tr></table>");
+		}
+
+		$this->getOutput()->addHtml("</td></tr></table>");
+	}
+
+	private function showAllUsers($alloffset) {
+
+
+		if (is_null($alloffset) || strlen($alloffset) == 0 ||
+			!is_numeric($alloffset) || $alloffset < 0) {
+			return;
+		}
+
+		$limit = 20;
+
+		$users = self::getUsers($limit + 1, $alloffset);
+		$next = false;
+
+		if (!$users->valid()) {
+			$alloffset = 0;
+			$users = self::getUsers($limit + 1, $alloffset);
+			if (!$users->valid()) {
+				$wikitext = "no users found";
+				$this->getOutput()->addHTML($wikitext);
+				return;
+			}
+		}
+
+		$this->getOutput()->addHtml("<table style='width:100%;'><tr><td>");
+		$wikitext .= '{| class="wikitable" style="width:100%;"' . PHP_EOL;
+		$wikitext .= "!Email" . PHP_EOL;
+		$wikitext .= "!Username" . PHP_EOL;
+		$wikitext .= "!Real Name" . PHP_EOL;
+		$wikitext .= "!User Page" . PHP_EOL;
+		$wikitext .= "!Authorized" . PHP_EOL;
+
+		$index = 0;
+		$more = false;
+		foreach ($users as $user) {
+			if ($index < $limit) {
+				$wikitext .= "|-" . PHP_EOL;
+				$wikitext .= "|" . $user->user_email . PHP_EOL;
+				$wikitext .= "|" . $user->user_name . PHP_EOL;
+				$wikitext .= "|" . $user->user_real_name . PHP_EOL;
+				$wikitext .= "|[[User:" . $user->user_name . "]]" . PHP_EOL;
+				if (self::isEmailAuthorized($user->user_email)) {
+					$wikitext .= "| style='text-align:center;' | yes" . PHP_EOL;
+				} else {
+					$wikitext .= "| style='text-align:center;' | no" . PHP_EOL;
+				}
+				$index ++;
+			} else {
+				$more = true;
+			}
+		}
+
+		$wikitext .= "|}" . PHP_EOL;
+		$this->getOutput()->addWikiText($wikitext);
+
+		if ($alloffset > 0 || $more) {
+
+			$title = Title::newFromText("Special:ConfigEmailAuthorization");
+			$url = $title->getFullURL();
+
+			$this->getOutput()->addHtml("</td></tr><tr><td>");
+			$this->getOutput()->addHtml("<table style='width:100%;'><tr><td>");
+
+			if ($alloffset > 0) {
+				$html = '<a href="' . $url .
+					'?alloffset=' .  ($alloffset - $limit) .  '">Previous</a>';
+				$this->getOutput()->addHtml($html);
+			}
+
+			$this->getOutput()->addHtml("</td><td style='text-align:right;'>");
+
+			if ($more) {
+				$html = '<a href="' . $url . '?alloffset=' .
+					($alloffset + $limit) .  '">Next</a>';
 				$this->getOutput()->addHtml($html);
 			}
 
@@ -245,19 +329,32 @@ class ConfigEmailAuthorization extends SpecialPage {
 		$this->getOutput()->addHTML($html);
 	}
 
-	private function showAllForm($url) {
+	private function showAuthorizedUsersForm($url) {
 		$html = Html::openElement('form', array(
 				'method' => 'post',
 				'action' => $url,
-				'id' => 'ShowAll')
+				'id' => 'ShowAuthorizedUsers')
 			) .
-			Html::hidden('offset', 0) .
-			Xml::submitButton('Show All') .
+			Html::hidden('authoffset', 0) .
+			Xml::submitButton('Show Authorized Email Addresses') .
+			Html::closeElement('form') .
+			Html::element('br');
+		$this->getOutput()->addHTML($html);
+	}
+
+	private function showAllUsersForm($url) {
+		$html = Html::openElement('form', array(
+				'method' => 'post',
+				'action' => $url,
+				'id' => 'ShowAllUsers')
+			) .
+			Html::hidden('alloffset', 0) .
+			Xml::submitButton('Show All Wiki Users') .
 			Html::closeElement('form');
 		$this->getOutput()->addHTML($html);
 	}
 
-	private static function getAuthorizedEmails($limit, $offset) {
+	private static function getAuthorizedEmails($limit, $authoffset) {
 		$dbr = wfGetDB(DB_SLAVE);
 		$emails = $dbr->select('emailauth',
 			array(
@@ -267,10 +364,30 @@ class ConfigEmailAuthorization extends SpecialPage {
 			__METHOD__,
 			array ( // OPTIONS
 				'LIMIT' => $limit,
-				'OFFSET' => $offset
+				'OFFSET' => $authoffset
 			)
 		);
 		return $emails;
+	}
+
+	private static function getUsers($limit, $alloffset) {
+		$dbr = wfGetDB(DB_SLAVE);
+		$users = $dbr->select('user',
+			array(
+				'user_id',
+				'user_name',
+				'user_real_name',
+				'user_email'
+			),
+			'',
+			__METHOD__,
+			array ( // OPTIONS
+				'LIMIT' => $limit,
+				'OFFSET' => $alloffset,
+				'ORDER BY' => 'user_name'
+			)
+		);
+		return $users;
 	}
 
 	private static function isEmailAuthorized($email) {
