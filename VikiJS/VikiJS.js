@@ -22,6 +22,8 @@
 
 window.VikiJS = function() {
 
+	// constants
+
 	this.ID = null;
 	this.loadingView = null;
 	this.WIKI_PAGE_TYPE = 0;
@@ -30,11 +32,6 @@ window.VikiJS = function() {
 	this.BAR_HEIGHT = 6;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
-	this.CURRENT_IDENTIFIER = 0;
-
-	this.searchableCount = 0;
-	this.contentNamespacesFetched = 0;
-
 	this.MIN_SCALE = .2;
 	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
@@ -50,6 +47,13 @@ window.VikiJS = function() {
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
 	this.BIDIRECTIONAL_LINK_COLOR = "#2ecc71";
 
+
+	// mutable global variables
+	this.CURRENT_IDENTIFIER = 0;
+	this.searchableCount = 0;
+	this.contentNamespacesFetched = 0;
+
+	
 	this.initialPageTitles = null;
 	this.Hooks = null;
 	this.hasHooks = false;
@@ -63,22 +67,17 @@ window.VikiJS = function() {
 	this.LinkMap = {};
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
-
 	this.Force = null;
 	this.LinkSelection = null;
 	this.NodeSelection = null;
-
 	this.ImagePath = null;
-	this.Zoompos = 1; // to store values for zoom scale
-	
+	this.Zoompos = 1; // to store values for zoom scale	
 	this.serverURL = mw.config.get("wgServer");;
 	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
 	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
 	this.contentNamespaces = mw.config.get("wgContentNamespaces");
-
 	this.myLogoURL = null;
-	this.allWikis = new Array();
-	
+	this.allWikis = new Array();	
 	this.thisWikiData = {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
@@ -86,31 +85,42 @@ window.VikiJS = function() {
 				logoURL : this.myLogoURL,
 				searchableWiki : true
 			}
-	
 	this.namespaceIds = mw.config.get("wgNamespaceIds");	// only of any use in MW 1.23+
 
 	var self = this;
 
-	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, subdetailsDiv, sliderDiv, errorsDiv, imagePath, initialWidth, initialHeight, hooks) {
+	// VikiJS.prototype.drawGraph = function(pageTitles, divs, imagePath, initialWidth, initialHeight, hooks) {
+	VikiJS.prototype.drawGraph = function(pageTitles, divs, parameters) {
 		var self = this;
-		// self.log("very start of drawGraph");
-
-		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
-		var dig = new RegExp("[0-9]", 'g');
-		this.ID = graphDiv.match(dig)[0];
 
 		// parse passed in parameters and initialize div settings.
+		// this.ID = this graph div's ID (support for multiple VIKI graphs on one page in the future)
+		allDivs = jQuery.parseJSON(divs);
+		allParameters = jQuery.parseJSON(parameters);
 
-		this.GraphDiv = graphDiv;
-		this.SubDetailsDiv = subdetailsDiv;
-		this.SliderDiv = sliderDiv;
-		this.ErrorsDiv = errorsDiv;
-		this.ImagePath = imagePath;
-
-		this.INITIAL_HEIGHT = initialHeight;
-		this.INITIAL_WIDTH = initialWidth;
+		this.GraphDiv = allDivs[0];
+		this.SubDetailsDiv = allDivs[1];
+		this.SliderDiv = allDivs[2];
+		this.ErrorsDiv = allDivs[3];
+		this.ID = this.GraphDiv.match( new RegExp("[0-9]", 'g') )[0];
+		this.INITIAL_WIDTH = allParameters["width"];
+		this.INITIAL_HEIGHT = allParameters["height"];
 		this.height = self.INITIAL_HEIGHT;
 		this.width = self.INITIAL_WIDTH;
+		this.Hooks = allParameters["hooks"];
+		this.hasHooks = (self.Hooks != null);
+		this.serverURL = mw.config.get("wgServer");
+		this.myLogoURL = allParameters["logoURL"];
+		this.thisWikiData.logoURL = self.myLogoURL;
+		this.ImagePath = allParameters["imagePath"];
+
+		this.initialPageTitles = jQuery.parseJSON(pageTitles);
+
+		if(this.initialPageTitles === null) {
+			alert("You must supply a page title.");
+			return;
+		}
+		
 
 		// to set the widths of the details divider and the horizontal zoom slider
 		// the margin is a value used to accumulate all maring, padding and other
@@ -218,18 +228,6 @@ window.VikiJS = function() {
 			);
 		
 		$("#name").css("text-align", "center");
-
-		// get hooks available
-		this.Hooks = jQuery.parseJSON(hooks);
-		this.hasHooks = (self.Hooks != null);
-		this.serverURL = mw.config.get("wgServer");
-		this.initialPageTitles = eval("("+pageTitles+")");
-		
-		if(this.initialPageTitles === null) {
-			alert("You must supply a page title.");
-			return;
-		}
-		
 
 
 		$("#addNodesButton").click(function() {
@@ -542,7 +540,7 @@ window.VikiJS = function() {
 					}
 				}
 				else {
-					self.log("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.log("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			}
 		});
@@ -554,41 +552,23 @@ window.VikiJS = function() {
 		
 		vex.close(self.loadingView.data().vex.id);
 
-		jQuery.ajax({
-			url: self.myApiURL,
-			dataType: 'json',
-			data: {
-				action: 'getSiteLogo',
-				format: 'json'
-			},
-			success: function(data, textStatus, jqXHR) {
+		for(var i = 0; i < self.initialPageTitles.length; i++) {
+			node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+			self.visitNode(node);
+		}
 
-				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
-				self.thisWikiData.logoURL = self.myLogoURL;
-				// do initial graph population
-				for(var i = 0; i < self.initialPageTitles.length; i++) {
-					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
-					self.visitNode(node);
-				}
+		for(var i = 0; i < self.initialPageTitles.length; i++)
+			self.elaborateNode(self.Nodes[i]);
 
-				for(var i = 0; i < self.initialPageTitles.length; i++)
-					self.elaborateNode(self.Nodes[i]);
+		self.Force.nodes(self.Nodes);
+		self.Force.links(self.Links);
 
-				self.Force.nodes(self.Nodes);
-				self.Force.links(self.Links);
+		self.redraw(true);
 
-				self.redraw(true);
-
-				// after initial population, by default select the first node.
-				self.SelectedNodeIndex = 0;
-				self.displayNodeInfo(self.Nodes[0]);
-				self.redraw(false);
-
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch list of wikis.");
-			}
-		});
+		// after initial population, by default select the first node.
+		self.SelectedNodeIndex = 0;
+		self.displayNodeInfo(self.Nodes[0]);
+		self.redraw(false);
 		
 	}
 
@@ -1327,7 +1307,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
@@ -1498,8 +1478,22 @@ window.VikiJS = function() {
 		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
-				for(var i = 0; i < self.Hooks[hookName].length; i++)
-					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
+				for(var i = 0; i < self.Hooks[hookName].length; i++) {
+					// Determine appropriate scope and call function.
+					// http://stackoverflow.com/questions/912596/how-to-turn-a-string-into-a-javascript-function-call
+
+					hookFunction = self.Hooks[hookName][i];
+
+					var scope = window;
+					var scopeSplit = hookFunction.split('.');
+    				for (i = 0; i < scopeSplit.length - 1; i++) {
+        				scope = scope[scopeSplit[i]];
+
+        				if (scope == undefined) return;
+				    }
+
+    				return scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
+				}
 				
 				self.redraw(true);
 				return true;

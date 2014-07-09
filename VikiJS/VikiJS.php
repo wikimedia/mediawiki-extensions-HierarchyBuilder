@@ -131,6 +131,11 @@ class VikiJS {
 
 	function display($parser, $pageTitles, $width, $height) {
 
+		global $VikiJS_Function_Hooks;
+		global $wgServer;
+		global $wgScriptPath;
+		global $wgLogo;
+
 		$div = "VikiJS_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
@@ -152,10 +157,7 @@ class VikiJS {
 </div></td></tr>
 </table>
 EOT;
-
-		global $VikiJS_Function_Hooks;
-		$hooks = addslashes(json_encode($VikiJS_Function_Hooks));
-
+		
 		$outputObject = $parser->getOutput();
 
 		foreach(self::$modules as $name) {
@@ -170,16 +172,21 @@ EOT;
 
 		$pageTitles_json = addslashes(json_encode(array_map('trim', explode(',', $pageTitles))));
 		$modules_json = addslashes(json_encode(self::$modules));
+		$divs_json = addslashes(json_encode(array($graphdiv, $subdetailsdiv, $sliderdiv, $errorsdiv)));
+		$parameters_json = addslashes(json_encode(array(
+															"width" => $width, 
+															"height" => $height, 
+															"imagePath" => $wgServer . $wgScriptPath .  '/extensions/VikiJS/', 
+															"hooks" => $VikiJS_Function_Hooks,
+															"logoURL" => $wgLogo)));
 
-		global $wgServer;
-		global $wgScriptPath;
-		$imagePath = $wgServer . $wgScriptPath .  '/extensions/VikiJS/';
 		$script =<<<END
 modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
 		var g = new VikiJS();
-		g.drawGraph("$pageTitles_json", "$graphdiv", "$detailsdiv", "$subdetailsdiv", "$sliderdiv", "$errorsdiv", "$imagePath", "$width", "$height", "$hooks");
+		// g.drawGraph("$pageTitles_json", "$divs_json", "$imagePath", "$width", "$height", "$hooks");
+		g.drawGraph("$pageTitles_json", "$divs_json", "$parameters_json");
 	});
 });
 END;
