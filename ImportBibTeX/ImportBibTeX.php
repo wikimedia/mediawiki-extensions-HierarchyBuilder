@@ -500,11 +500,11 @@ class ImportBibTeX extends SpecialPage {
 			//Html::hidden( 'overwrite', false ) .
 			Html::element('legend', null, 'Import from a list of BibTeX entries file:') .
 			'<table><tbody>';
+		$html .= '<tr><td valign="top"><label for="bibtexarea">Copy/Paste BibTeX entry here:</label></td><td><textarea cols="80" rows="10" name="bibtexarea"></textarea></td></tr>';
 		list($label, $input) =
-			Xml::inputLabelSep('Choose BibTeX file for upload:', 'fname', 'fname', 50, '',
+			Xml::inputLabelSep('or Choose BibTeX file for upload:', 'fname', 'fname', 50, '',
 			array ('type' => 'file'));
 		$html .= '<tr><td>' . $label . '</td><td>' . $input . '</td></tr>';
-		$html .= '<tr><td valign="top"><label for="bibtexarea">or Copy/Paste BibTeX entry here:</label></td><td><textarea cols="80" rows="10" name="bibtexarea"></textarea></td></tr>';
 
 		list($label, $input) =
 			Xml::inputLabelSep('Injury Type:', 'injurytype',
