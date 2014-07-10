@@ -1,86 +1,88 @@
 // Hook functions
 
-window.MITRE_VIKI = {
+(function($) {
+   window.MITRE_VIKI = {
 
-   mitre_matchIcons : function(vikiObject, parameters) {
-   //parameters = [ new external nodes ]
-   	nodes = parameters[0];
-      needsRedraw = false;
+      mitre_matchIcons : function(vikiObject, parameters) {
+      //parameters = [ new external nodes ]
+      	nodes = parameters[0];
+         needsRedraw = false;
 
-   	for(var i = 0; i < nodes.length; i++) {
-   		node = nodes[i];
-   		if(node.URL.indexOf("info.mitre.org/people") != -1) {
-   			var pattern = /[0-9]+/;
-   			employeeNum = node.URL.match(pattern)[0];
-   			this.hook_log("found employeeNum "+employeeNum);
+      	for(var i = 0; i < nodes.length; i++) {
+      		node = nodes[i];
+      		if(node.URL.indexOf("info.mitre.org/people") != -1) {
+      			var pattern = /[0-9]+/;
+      			employeeNum = node.URL.match(pattern)[0];
+      			this.hook_log("found employeeNum "+employeeNum);
 
-   		   this.queryPhonebook(vikiObject, node, employeeNum);
-            needsRedraw = true;
-   		}
-   		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
-   			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
-   			node.pageTitle = deptNum;
-   			node.displayName = node.pageTitle;
-   			node.fullDisplayName = node.displayName;
-   			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
-   			
-   			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
-   			this.hook_log("setting hookIconURL to "+node.hookIconURL);
-            needsRedraw = true;
-   		}
-   		else if(node.URL.indexOf("mitre.org") != -1) {
-   			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
-   			this.hook_log("setting hookIconURL to "+node.hookIconURL);
-            needsRedraw = true;
-   		}
-   	}
-   	
-      if(needsRedraw)
+      		   this.queryPhonebook(vikiObject, node, employeeNum);
+               needsRedraw = true;
+      		}
+      		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
+      			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
+      			node.pageTitle = deptNum;
+      			node.displayName = node.pageTitle;
+      			node.fullDisplayName = node.displayName;
+      			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+      			
+      			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+      			this.hook_log("setting hookIconURL to "+node.hookIconURL);
+               needsRedraw = true;
+      		}
+      		else if(node.URL.indexOf("mitre.org") != -1) {
+      			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
+      			this.hook_log("setting hookIconURL to "+node.hookIconURL);
+               needsRedraw = true;
+      		}
+      	}
+      	
+         if(needsRedraw)
+            vikiObject.redraw(true);
+      	
+      },
+
+      queryPhonebook : function(vikiObject, node, employeeNum) {
+         var self = this;
+         jQuery.ajax({
+            // async: false,
+            url: vikiObject.myApiURL,
+            dataType: 'json',
+            data: {
+               action: 'mitrePhonebookAPILookup',
+               format: 'json',
+               empNum: employeeNum
+            },
+            beforeSend: function(jqXHR, settings) {
+               // this.hook_log("url of phonebook lookup: "+settings.url);
+            },
+            success: function(data, textStatus, jqXHR) {
+               self.parsePhonebookData(vikiObject, data, node);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+
+            }
+         });
+      },
+
+      parsePhonebookData : function(vikiObject, data, node) {
+         result = data["mitrePhonebookAPILookup"]["result"];
+         node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
+         node.displayName = node.pageTitle;
+         node.fullDisplayName = node.displayName;
+         node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+
+         node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
+         this.hook_log(node.hookIconURL);
          vikiObject.redraw(true);
-   	
-   },
+      },
 
-   queryPhonebook : function(vikiObject, node, employeeNum) {
-      var self = this;
-      jQuery.ajax({
-         // async: false,
-         url: vikiObject.myApiURL,
-         dataType: 'json',
-         data: {
-            action: 'mitrePhonebookAPILookup',
-            format: 'json',
-            empNum: employeeNum
-         },
-         beforeSend: function(jqXHR, settings) {
-            // this.hook_log("url of phonebook lookup: "+settings.url);
-         },
-         success: function(data, textStatus, jqXHR) {
-            self.parsePhonebookData(vikiObject, data, node);
-         },
-         error: function(jqXHR, textStatus, errorThrown) {
-            alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-
-         }
-      });
-   },
-
-   parsePhonebookData : function(vikiObject, data, node) {
-      result = data["mitrePhonebookAPILookup"]["result"];
-      node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
-      node.displayName = node.pageTitle;
-      node.fullDisplayName = node.displayName;
-      node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
-
-      node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-      this.hook_log(node.hookIconURL);
-      vikiObject.redraw(true);
-   },
-
-   hook_log : function(text) {
-      if( (window['console'] !== undefined) )
-         console.log( text );
-   }
-};
+      hook_log : function(text) {
+         if( (window['console'] !== undefined) )
+            console.log( text );
+      }
+   };
+}(jQuery));
 
 // window.mitre_getAllWikis = function(vikiObject, parameters, hookName) {
 //    MITRE_VIKI.hookName = hookName;

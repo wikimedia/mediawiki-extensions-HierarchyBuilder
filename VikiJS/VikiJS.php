@@ -185,8 +185,7 @@ modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
 		var g = new VikiJS();
-		// g.drawGraph("$pageTitles_json", "$divs_json", "$imagePath", "$width", "$height", "$hooks");
-		g.drawGraph("$pageTitles_json", "$divs_json", "$parameters_json");
+		g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
 	});
 });
 END;

@@ -47,13 +47,10 @@ window.VikiJS = function() {
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
 	this.BIDIRECTIONAL_LINK_COLOR = "#2ecc71";
 
-
 	// mutable global variables
 	this.CURRENT_IDENTIFIER = 0;
 	this.searchableCount = 0;
 	this.contentNamespacesFetched = 0;
-
-	
 	this.initialPageTitles = null;
 	this.Hooks = null;
 	this.hasHooks = false;
@@ -89,11 +86,10 @@ window.VikiJS = function() {
 
 	var self = this;
 
-	// VikiJS.prototype.drawGraph = function(pageTitles, divs, imagePath, initialWidth, initialHeight, hooks) {
-	VikiJS.prototype.drawGraph = function(pageTitles, divs, parameters) {
+	VikiJS.prototype.initialize = function(pageTitles, divs, parameters) {
 		var self = this;
 
-		// parse passed in parameters and initialize div settings.
+		// Parse passed in parameters and initialize div settings.
 		// this.ID = this graph div's ID (support for multiple VIKI graphs on one page in the future)
 		allDivs = jQuery.parseJSON(divs);
 		allParameters = jQuery.parseJSON(parameters);
@@ -120,46 +116,69 @@ window.VikiJS = function() {
 			alert("You must supply a page title.");
 			return;
 		}
-		
 
-		// to set the widths of the details divider and the horizontal zoom slider
-		// the margin is a value used to accumulate all maring, padding and other
-		// space that the .detail-panel class uses.
-		var margin = 10;
-		// the details divider will get 3/5 of the space
-		$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
-		// the slider will get 2/5 of the space
-		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
-		// set the entire detail-panel to the width of the input minus the size of
-		// the paddings, margins and other values to align with the graph.
-		$(".vikijs-detail-panel").width(self.width - margin);
-		// create a new zoom slider
-		var zoom_slider = $("#"+self.SliderDiv).slider(
-		{
-		  orientation: "horizontal",//make the slider horizontal
-		  min: this.MIN_SCALE , // set the lowest value
-		  max: this.MAX_SCALE, // set the highest value
-		  step: .001, // set the value for each individual increment
-		  value: this.Zoompos, // set the starting value
-		  slide: function( event, ui ) {
-			// set the zoom scale equal to the current value of the slider
-			// which is the current position
-		        self.Zoompos = ui.value;
-			// call the slide function to zoom/pan using the slider
-		        self.slide();
-		  }
-		});
+		// Set up the slider div.
+		initializeSliderDiv();
 
 		// Set up the loading spinner
-		vex.defaultOptions.className = 'vex-theme-default';
+		initializeLoadingSpinner();
 
-		var loadingContent = '\
+		// Set up the context menu.
+		initializeContextMenu();
+
+		// Set up the "Add Nodes" button to bring up the nodes modal view.
+		$("#addNodesButton").click(function() {
+			setTimeout(function() {
+				var newNodesWindow = self.showNewNodesWindow();
+			}, 0);
+		});
+
+		// Initialize the D3 graph.
+		initializeGraph();
+
+		// End of initialization; call the GetAllWikis hook at this point.
+
+		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
+		if(!calledGetAllWikisHook)
+			self.hookCompletion("GetAllWikisHook");
+
+		// Initialization functions
+
+		function initializeSliderDiv() {
+			// The details div gets 3/5 of the space, while the slider gets 2/5.
+			// The detail-panel width is equal to the input width - size of paddings.
+			var margin = 10;
+			$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
+			$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
+			$(".vikijs-detail-panel").width(self.width - margin);
+			// create a new zoom slider
+			var zoom_slider = $("#"+self.SliderDiv).slider(
+			{
+			  orientation: "horizontal",//make the slider horizontal
+			  min: self.MIN_SCALE , // set the lowest value
+			  max: self.MAX_SCALE, // set the highest value
+			  step: .001, // set the value for each individual increment
+			  value: self.Zoompos, // set the starting value
+			  slide: function( event, ui ) {
+				// set the zoom scale equal to the current value of the slider
+				// which is the current position
+			        self.Zoompos = ui.value;
+				// call the slide function to zoom/pan using the slider
+			        self.slide();
+			  }
+			});
+		}
+
+		function initializeLoadingSpinner() {
+			vex.defaultOptions.className = 'vex-theme-default';
+
+			var loadingContent = '\
 <div id="loadingDiv">\
 	<div id="textDiv">Loading...</div>\
 	<div id="spinnerDiv"></div>\
 </div>';
 
-		var loadingStyle = '\
+			var loadingStyle = '\
 <style>\
 	#textDiv {\
 		text-align: center;\
@@ -168,83 +187,67 @@ window.VikiJS = function() {
 		height: 75px;\
 	}\
 </style>';
-		
-		var opts = {
-		  lines: 11, // The number of lines to draw
-		  length: 8, // The length of each line
-		  width: 4, // The line thickness
-		  radius: 8, // The radius of the inner circle
-		  corners: 1, // Corner roundness (0..1)
-		  rotate: 0, // The rotation offset
-		  direction: 1, // 1: clockwise, -1: counterclockwise
-		  color: '#000', // #rgb or #rrggbb or array of colors
-		  speed: 1, // Rounds per second
-		  trail: 60, // Afterglow percentage
-		  shadow: false, // Whether to render a shadow
-		  hwaccel: false, // Whether to use hardware acceleration
-		  className: 'spinner', // The CSS class to assign to the spinner
-		  zIndex: 2e9, // The z-index (defaults to 2000000000)
-		  top: '60%', // Top position relative to parent
-		  left: '50%' // Left position relative to parent
-		};
-		
-		// self.log("showing load screen");
-		self.loadingView = vex.open({
-			content: loadingContent,
-			contentCSS: {
-				width : '150px'
-			},
-			afterOpen: function($vexContent) {
-				$vexContent.append(loadingStyle);
-				spinner = new Spinner(opts).spin(document.getElementById('spinnerDiv'));
-			},
-			showCloseButton: false
-		});
+			
+			var opts = {
+			  lines: 11, // The number of lines to draw
+			  length: 8, // The length of each line
+			  width: 4, // The line thickness
+			  radius: 8, // The radius of the inner circle
+			  corners: 1, // Corner roundness (0..1)
+			  rotate: 0, // The rotation offset
+			  direction: 1, // 1: clockwise, -1: counterclockwise
+			  color: '#000', // #rgb or #rrggbb or array of colors
+			  speed: 1, // Rounds per second
+			  trail: 60, // Afterglow percentage
+			  shadow: false, // Whether to render a shadow
+			  hwaccel: false, // Whether to use hardware acceleration
+			  className: 'spinner', // The CSS class to assign to the spinner
+			  zIndex: 2e9, // The z-index (defaults to 2000000000)
+			  top: '60%', // Top position relative to parent
+			  left: '50%' // Left position relative to parent
+			};
+			
+			// self.log("showing load screen");
+			self.loadingView = vex.open({
+				content: loadingContent,
+				contentCSS: {
+					width : '150px'
+				},
+				afterOpen: function($vexContent) {
+					$vexContent.append(loadingStyle);
+					spinner = new Spinner(opts).spin(document.getElementById('spinnerDiv'));
+				},
+				showCloseButton: false
+			});
+		}
 
-		// Set up the context menu
+		function initializeContextMenu() {
+			// Ensure the entire graph div doesn't trigger context menu - only nodes.
+			foo = $('#'+self.GraphDiv);
+			$('#'+self.GraphDiv).on('contextmenu', function() {
+				return false;
+			});
 
-		// ensure the entire graph div doesn't trigger context menu - only nodes
-		foo = $('#'+this.GraphDiv);
-		$('#'+this.GraphDiv).on('contextmenu', function() {
-			return false;
-		});
-
-		$('body').append(
-			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
-			// the dynamic menu title (node name)
-			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
-			"<hr>"+ // separator
-			// actual navigable menu
-			"<div class=\"options\" >"+
-			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
-        	"<li id=\"getinfo\" >Visit Page</li>"+
-			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
-			"<li id=\"categories\">Show Categories</li>"+
-			"<li id=\"hide\">Hide Node</li>"+
-			"<li id=\"hideHub\">Hide Hub</li>"+
-			"<hr>"+// separator
-        	"<li id=\"showall\">Show All</li>"+
-	    	"</ul></div></div>"
-			);
-		
-		$("#name").css("text-align", "center");
-
-
-		$("#addNodesButton").click(function() {
-			setTimeout(function() {
-				var newNodesWindow = self.showNewNodesWindow();
-			}, 0);
-		});
-
-		initializeGraph();
-
-		// initialize the list of searchable wikis,
-		// get this wiki's own logo URL,
-		// and do initial graph population.
-
-		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
-		if(!calledGetAllWikisHook)
-			self.hookCompletion("GetAllWikisHook");
+			$('body').append(
+				"<div class=\"contextMenu\" id=\"menu-"+self.ID+"\"><ul>"+
+				// the dynamic menu title (node name)
+				"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+				"<hr>"+ // separator
+				// actual navigable menu
+				"<div class=\"options\" >"+
+				"<li id=\"freeze\" class=\"freeze-"+self.ID+"\">Freeze</li>"+
+	        	"<li id=\"getinfo\" >Visit Page</li>"+
+				"<li id=\"elaborate\" class=\"elaborate-"+self.ID+"\">Elaborate</li>"+
+				"<li id=\"categories\">Show Categories</li>"+
+				"<li id=\"hide\">Hide Node</li>"+
+				"<li id=\"hideHub\">Hide Hub</li>"+
+				"<hr>"+// separator
+	        	"<li id=\"showall\">Show All</li>"+
+		    	"</ul></div></div>"
+				);
+			
+			$("#name").css("text-align", "center");
+		}
 
 		function initializeGraph() {
 			var padding = 20;
@@ -668,7 +671,7 @@ window.VikiJS = function() {
 			self.redraw(false);
 		});
 
-		self.initializeContextMenu();
+		self.prepareContextMenu();
 
 		var drag = self.Force.drag()
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -1510,7 +1513,7 @@ window.VikiJS = function() {
 		}
 	}
 
-	VikiJS.prototype.initializeContextMenu = function() {
+	VikiJS.prototype.prepareContextMenu = function() {
         $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
         	// activate before the menu shows
         	onShowMenu: function(e, menu) {
