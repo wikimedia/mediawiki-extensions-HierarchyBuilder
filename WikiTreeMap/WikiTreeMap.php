@@ -54,7 +54,8 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 	'scripts' => array(
 		'd3.v3.min.js',
 		'WikiTreeMap.js',
-		'd3.tip.v0.6.3.js'
+		'd3.tip.v0.6.3.js',
+		'getAllWikis.js'
 	)
 );
 
@@ -96,6 +97,9 @@ function wikitreemap($parser, $width, $height, $wiki) {
 		'noparse' => false);
 }
 
+
+
+
 function wikiTreeMap_parseParameters($params) {
 	$paramArray = array();
 	foreach ($params as $param) {
@@ -106,6 +110,12 @@ function wikiTreeMap_parseParameters($params) {
 	}
 	return $paramArray;
 }
+
+
+
+
+
+
 
 class WikiTreeMap {
 
@@ -150,3 +160,5 @@ END;
 		return $output;
 	}
 }
+
+

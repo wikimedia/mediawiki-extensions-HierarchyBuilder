@@ -1,10 +1,10 @@
 window.WikiTreeMap = function() {
     var jsonData = {"name":"allcategories", "children" : []};
     var elmData;
+//    mitre_getAllWikis(vikiObject)    
 }
 
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
-
 	if (wiki !== ""){
 		$('#selectAWiki').hide();						
 	}
@@ -22,6 +22,8 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 	    var unusedUrl = getUnusedUrl(elmData);
 		getWanted(wantedUrl, categoryUrl, graphDiv, divwidth, divheight);
 		getUnused(unusedUrl, categoryUrl, graphDiv, divwidth, divheight);
+	    var vikiObject = [];
+		mitre_getAllWikis(vikiObject) 
     }; 
     
 
