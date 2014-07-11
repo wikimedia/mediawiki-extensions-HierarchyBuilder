@@ -69,7 +69,7 @@ window.parseAllWikisResults = function(data, vikiObject) {
    }
 }
 
-window.mitre_matchMIIPhonebook = function(vikiObject, parameters) {
+window.mitre_matchIcons = function(vikiObject, parameters) {
 //parameters = [ new external nodes ]
 	nodes = parameters[0];
    needsRedraw = false;

@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'MITRE_VIKI',
-	'version' => '0.1',
+	'version' => '1.0',
 	'author' => 'Jason Ji'
 );
 
@@ -54,15 +54,15 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-if(array_key_exists('GetAllWikisHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'mitre_getAllWikis';
-else
-	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('mitre_getAllWikis');
+// if(array_key_exists('GetAllWikisHook', $VikiJS_Function_Hooks))
+// 	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'mitre_getAllWikis';
+// else
+// 	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('mitre_getAllWikis');
 
 if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'mitre_matchMIIPhonebook';
+	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'mitre_matchIcons';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchMIIPhonebook');
+	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchIcons');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 

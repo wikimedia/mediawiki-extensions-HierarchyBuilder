@@ -54,7 +54,7 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				if (is_null($title)) {
 					$title = Title::newMainPage();
 				}
-				$_SESSION[$session_variable] = $title->getFullURL();
+				$_SESSION[$session_variable] = $title->getPrefixedText();
 			}
 			OpenIDConnect::login($user);
 		}
