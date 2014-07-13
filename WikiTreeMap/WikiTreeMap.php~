@@ -57,7 +57,6 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
 		'src/getWikis.js',
-		'src/getWikiData.js',
 		'src/WikiTreeMap.js',
 		'src/makeTreemap.js',
 	)
