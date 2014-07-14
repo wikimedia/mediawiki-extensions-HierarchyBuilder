@@ -1,3 +1,8 @@
+// If you want the treemap to automatically dispalay the category structure
+// of a particular wiki, provide the URL of that wiki's API as the third argument in the wiki function call
+// example: http://gestalt.mitre.org/gestalt/api.php
+
+
 window.WikiTreeMap = function() {
     var jsonData = {"name":"allcategories", "children" : []};
     var elmData;
@@ -16,12 +21,19 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 			var elmDiv = wiki;
 			elmData = elmDiv;        
 			jsonData = {"name":"allcategories", "children" : []};
-				$('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
-			var categoryUrl = getCategoryUrl(elmData);
-			var	wantedUrl = getWantedUrl(elmData);
-			var unusedUrl = getUnusedUrl(elmData);
-			getWanted(wantedUrl, categoryUrl, graphDiv, divwidth, divheight);
-			getUnused(unusedUrl, categoryUrl, graphDiv, divwidth, divheight);
+
+//			$('div.wikitreemap-graph-container').append("<h2>" + elmData + "</h2>");
+
+			var vikiObject = [];
+				vikiObject.graphDiv = graphDiv;
+				vikiObject.divwidth = divwidth;
+				vikiObject.divheight = divheight;
+
+			vikiObject.wUrl = elmData + "?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
+			vikiObject.unusedUrl = elmData + "?action=query&list=querypage&qppage=Unusedcategories&format=json"
+			vikiObject.wantedUrl = elmData + "?action=query&list=querypage&qppage=Wantedcategories&format=json";
+			getWanted(vikiObject);
+			getUnused(vikiObject);
 		} else {
 			var vikiObject = [];
 				vikiObject.graphDiv = graphDiv;
@@ -57,7 +69,11 @@ function fillDropdown(dropdownName, vikiObject) {
 		}
     });
 	
-	$('#clearData').click(function(e){$('svg').remove(); $('h2').remove();})
+	$('#clearData').click(function(e){
+		$('svg').remove(); 
+		$('h2').remove();
+		$('.unusedTable').remove();		
+	})
 
 	$('#loadData').click(function(e){
 	    var elmDiv = $('#wikis');
