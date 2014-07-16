@@ -101,7 +101,7 @@ function efVikiIWLinks_Setup($parser, &$text) {
 
 	foreach($result as $row) {
 		wfErrorLog(print_r($row, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");		
-		// wfErrorLog("iw_prefix: " . $row->iw_prefix . ", iw_url: " . $row->iw_url ."\n", "/var/www/html/DEBUG_VikiIWLinks.out");
+
 		$wikiTestArray[] = array(
 			"wikiTitle" => $row->iw_prefix,
 			"apiURL" => $row->iw_api,
@@ -113,28 +113,6 @@ function efVikiIWLinks_Setup($parser, &$text) {
 
 	wfErrorLog("wikiTestArray:\n", "/var/www/html/DEBUG_VikiIWLinks.out");
 	wfErrorLog(print_r($wikiTestArray, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-
-	
-	// $wikiTestArray2 = array(
-	// 	array(
-	// 		"wikiTitle" => "mobilepedia", 
-	// 		"apiURL" => "http://gestalt.mitre.org/mobilepedia/api.php", 
-	// 		"contentURL" => "http://gestalt.mitre.org/mobilepedia/index.php/", 
-	// 		"logoURL" => "http://gestalt.mitre.org/mobilepedia/branding/logo_small.png",
-	// 		"searchableWiki" => "true"
-	// 		),
-	// 	array(
-	// 		"wikiTitle" => "gestaltd", 
-	// 		"apiURL" => "http://gestalt.mitre.org/gestaltd/api.php", 
-	// 		"contentURL" => "http://gestalt.mitre.org/gestaltd/index.php/", 
-	// 		"logoURL" => "http://gestalt.mitre.org/gestaltd/branding/logo_small.png",
-	// 		"searchableWiki" => "true"
-	// 		)
-	// );
-
-	// wfErrorLog("wikiTestArray2:\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-	// wfErrorLog(print_r($wikiTestArray2, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-
 
 	$wikiTestArrayJSON = addslashes(json_encode($wikiTestArray));
 	global $wgOut;

@@ -74,7 +74,7 @@ window.VikiJS = function() {
 	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
 	this.contentNamespaces = mw.config.get("wgContentNamespaces");
 	this.myLogoURL = null;
-	this.allWikis = new Array();	
+	this.allWikis = new Array();
 	this.thisWikiData = {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
@@ -135,6 +135,9 @@ window.VikiJS = function() {
 
 		// Initialize the D3 graph.
 		initializeGraph();
+
+		// Add this wiki's data to self.allWikis first.
+		self.allWikis.push(self.thisWikiData);
 
 		// End of initialization; call the GetAllWikis hook at this point.
 
@@ -494,11 +497,11 @@ window.VikiJS = function() {
 		}
 		else
 			for(var i = 0; i < actuallySearchableWikis.length; i++) {
-				self.getContentNamespaceForWikiAtIndex(actuallySearchableWikis, i);
+				self.getContentNamespacesForWikiAtIndex(actuallySearchableWikis, i);
 		}
 	}
 	
-	VikiJS.prototype.getContentNamespaceForWikiAtIndex = function(actuallySearchableWikis, index) {
+	VikiJS.prototype.getContentNamespacesForWikiAtIndex = function(actuallySearchableWikis, index) {
 		var self = this;
 		var wiki = actuallySearchableWikis[index];
 		var wikiTitle = wiki.wikiTitle;
@@ -514,7 +517,7 @@ window.VikiJS = function() {
 			timeout: 5000,
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				// self.log("url of ajax call: "+url);
+				self.log("url of ajax call for getContentNamespacesForWikiAtIndex: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
@@ -1202,9 +1205,7 @@ window.VikiJS = function() {
 			}
 			else {
 				wiki = self.allWikis[ self.searchableWikiIndexForName(originNode.wikiTitle) ];
-			}
-			if(!wiki.contentNamespaces)
-				self.getContentNamespaces(wiki.wikiTitle);						
+			}			
 				
 			var contentNamespaces = wiki.contentNamespaces;
 			
@@ -1251,9 +1252,7 @@ window.VikiJS = function() {
 			}
 			else {
 				wiki = self.allWikis[ self.searchableWikiIndexForName(originNode.wikiTitle) ];
-			}
-			if(!wiki.contentNamespaces)
-				self.getContentNamespaces(wiki.wikiTitle);						
+			}					
 				
 			var contentNamespaces = wiki.contentNamespaces;
 			
@@ -1310,7 +1309,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				// self.log("url of ajax call: "+url);
+				self.log("url of ajax call in getContentNamespaces: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
@@ -1492,10 +1491,10 @@ window.VikiJS = function() {
     				for (i = 0; i < scopeSplit.length - 1; i++) {
         				scope = scope[scopeSplit[i]];
 
-        				if (scope == undefined) return;
+        				if (scope == undefined) return false;
 				    }
 
-    				return scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
+    				scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
 				}
 				
 				self.redraw(true);
