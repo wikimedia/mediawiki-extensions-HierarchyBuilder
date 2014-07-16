@@ -41,7 +41,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 # credits
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'HierarchyBuilder',
-	'version' => '1.4',
+	'version' => '1.5',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'hierarchybuilder-desc'
 );
@@ -105,6 +105,7 @@ function hierarchyBreadcrumb($parser) {
 	if (count($params) < 4) {
 		$output = "";
 	} else {
+		//wikiLog("", "hierarchyBreadcrumb", print_r($params, true));
 		// $parser is always $params[0]
 		$currentPage = $params[1];
 		$hierarchyPage = $params[2];
@@ -325,10 +326,12 @@ END;
     	foreach ($values as $value) {
     	    if ($value->getDIType() == SMWDataItem::TYPE_STRING ||
             	$value->getDIType() == SMWDataItem::TYPE_BLOB) {
-            	$strings[] = trim($value->getString());
+            	//$strings[] = trim($value->getString());
+            	return trim($value->getString());
         	}
 		}
-		return $strings;
+		//return $strings;
+		return "";
 	}
 
 	/*public function getPropertyFromPage($page, $property) { // $page is used to construct a title now
