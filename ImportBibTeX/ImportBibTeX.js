@@ -251,13 +251,22 @@ window.BibtexParser = function() {
   this.key_value_list = function() {
     var kv = this.key_equals_value();
     this.entries[this.currentEntry][kv[0]] = kv[1];
+
     while (this.tryMatch(",")) {
       this.match(",");
       if (this.tryMatch("}")) {
         break;
       }
       kv = this.key_equals_value();
-      this.entries[this.currentEntry][kv[0]] = kv[1];
+	  if(kv[0] === "keywords") {
+		if(!this.entries[this.currentEntry][kv[0]]) {
+	      this.entries[this.currentEntry][kv[0]] = kv[1];
+	    } else {
+	      this.entries[this.currentEntry][kv[0]] += "," + kv[1];
+		}
+	  } else {
+    	this.entries[this.currentEntry][kv[0]] = kv[1];
+      }
     }
   }
 
