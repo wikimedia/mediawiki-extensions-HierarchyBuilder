@@ -2,7 +2,7 @@
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'BCard',
-	'version' => '1.6',
+	'version' => '1.7',
 	'author' => 'Cindy Cicalese',
 	'descriptionmsg' => 'bcard-desc',
 	'url' => 'http://gestalt.mitre.org/wiki/Extension:BCard'
@@ -35,7 +35,8 @@ function bcardfieldlist(&$parser) {
 	array_shift($params); // first is $parser; strip it
 	$bcardfieldlist = BCard::getBCardFieldList($params);
 	$parser->disableCache();
-	return $bcardfieldlist;
+	return array($parser->insertStripItem($bcardfieldlist,
+		$parser->mStripState), 'noparse' => false, 'isHTML' => true);
 }
 
 function bcard(&$parser) {
@@ -44,7 +45,8 @@ function bcard(&$parser) {
 	$bcard = BCard::getBCard($params);
 	$result = $parser->recursiveTagParse($bcard);
 	$parser->disableCache();
-	return $result;
+	return array($parser->insertStripItem($result, $parser->mStripState),
+		'noparse' => false, 'isHTML' => true);
 }
 
 class BCard {
