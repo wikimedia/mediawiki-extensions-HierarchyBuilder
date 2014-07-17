@@ -105,7 +105,6 @@ function hierarchyBreadcrumb($parser) {
 	if (count($params) < 4) {
 		$output = "";
 	} else {
-		//wikiLog("", "hierarchyBreadcrumb", print_r($params, true));
 		// $parser is always $params[0]
 		$currentPage = $params[1];
 		$hierarchyPage = $params[2];
@@ -115,10 +114,17 @@ function hierarchyBreadcrumb($parser) {
 		} else {
 			$displayNameProperty = $params[4];
 		}
+
+		//wikiLog("", "hierarchyBreadcrumb", "currentPage = ".var_export($currentPage, true));
+		//wikiLog("", "hierarchyBreadcrumb", "hierarchyPage = ".var_export($hierarchyPage, true));
+		//wikiLog("", "hierarchyBreadcrumb", "hierarchyProperty = ".var_export($hierarchyProperty, true));
+		//wikiLog("", "hierarchyBreadcrumb", "displayNameProperty = ".var_export($displayNameProperty, true));
+
 		$hierarchyBuilder = new HierarchyBuilder;
 		$output = $hierarchyBuilder->hierarchyBreadcrumb($currentPage,
 			$hierarchyPage, $hierarchyProperty, $displayNameProperty);
 		$output = $parser->recursiveTagParse($output);
+		wikiLog("", "hierarchyBreadcrumb", "output = ".var_export($output, true));
 	}
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
@@ -141,7 +147,47 @@ class HierarchyBuilder {
 	public function hierarchyBreadcrumb($currentPage, $hierarchyPage,
 		$hierarchyProperty, $displayNameProperty) {
 		$xmlstr = self::getPropertyFromPage($hierarchyPage, $hierarchyProperty);
-		try {
+		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "xmlstr = ".var_export($xmlstr, true));
+
+		$breadcrumb = "";
+
+		$hierarchy = self::getPropertyFromPage($hierarchyPage, $hierarchyProperty);
+		$hierarchyRows = preg_split("/\n/", $hierarchy);
+		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "currentPage = ".var_export($currentPage, true));
+		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "split xmlstr = ".print_r($hierarchyRows, true));
+		$pattern = "/\[\[".$currentPage."\]\]/";
+		$pageNamePattern = "/\[\[(.*)\]\]/";
+		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
+			$row = $hierarchyRows[$i];
+			$num_matches = preg_match_all($pattern, $row, $matches);
+			if ($num_matches > 0) {
+				$prev_i = $i-1;
+				$previous = ($prev_i >= 0 ? $hierarchyRows[$prev_i] : "");
+				$num_matches = preg_match_all($pageNamePattern, $previous, $matches);
+				$previous = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match
+
+				$next_i = $i+1;
+				$next = ($next_i < sizeof($hierarchyRows) ? $hierarchyRows[$next_i] : "");
+				$num_matches = preg_match_all($pageNamePattern, $next, $matches);
+				$next = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match
+
+				$parent = "this is harder";
+
+				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "previous = ".$previous);
+				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent = ".$$parent);
+				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "next = ".$next);
+
+				return self::breadcrumb($previous, $parent, $next, $displayNameProperty);
+
+			}
+			//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "row = ".$row);
+		}
+
+		//note that $currentPage is actually a page name of an existing page, so we need to find "[[$currentPage]]" in one of the lines of the hierarchy
+
+
+		return "";
+		/*try {
 			$xml = @new SimpleXMLElement($xmlstr);
 			$found = false;
 			$previous = null;
@@ -159,7 +205,7 @@ class HierarchyBuilder {
 			return self::breadcrumb($previous, $parent, null, $displayNameProperty);
 		} catch (Exception $e) {
 			return "";
-		}
+		}*/
 	}
 
 	private function getParent($page, $xml) {
@@ -317,16 +363,18 @@ END;
     	$subject = SMWDIWikiPage::newFromTitle($title);
 		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Subject: " . var_export($subject, true));
     	$data = $store->getSemanticData($subject);
-		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Data: " . var_export($data, true));
+		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Data: " . print_r($data, true));
     	$property = SMWDIProperty::newFromUserLabel($property);
 		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Property: " . var_export($property, true));
     	$values = $data->getPropertyValues($property);
 		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "Values: " . var_export($values, true));
     	$strings = array();
     	foreach ($values as $value) {
+    		//wikiLog("HierarchyBuilder", "getPropertyFromPage", "value = ".print_r($value->getDIType(),true));
     	    if ($value->getDIType() == SMWDataItem::TYPE_STRING ||
             	$value->getDIType() == SMWDataItem::TYPE_BLOB) {
             	//$strings[] = trim($value->getString());
+            	//wikiLog("HierarchyBuilder", "getPropertyFromPage", "value->getString() = ".print_r(trim($value->getString()),true));
             	return trim($value->getString());
         	}
 		}
@@ -670,7 +718,6 @@ class SelectFromHierarchy extends SFFormInput {
 	}
 }
 
-/*function wikiLog($className, $methodName, $message) {
+function wikiLog($className, $methodName, $message) {
 	wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
-}*/
-
+}
