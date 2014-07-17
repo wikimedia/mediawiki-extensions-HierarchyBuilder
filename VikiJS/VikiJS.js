@@ -491,8 +491,7 @@ window.VikiJS = function() {
 		
 		self.searchableCount = actuallySearchableWikis.length;
 
-		self.getContentNamespaces(self.THIS_WIKI);
-		if(self.searchableCount ==0) {
+		if(self.searchableCount == 0) {
 			self.populateInitialGraph();
 		}
 		else
@@ -525,6 +524,7 @@ window.VikiJS = function() {
 				}
 				else {
 					actuallySearchableWikis[index].contentNamespaces = data["getContentNamespaces"];
+					self.log("found namespaces: "+data["getContentNamespaces"]+"for wiki: "+wiki.wikiTitle);
 				}
 			
 				self.contentNamespacesFetched++;
@@ -1230,7 +1230,10 @@ window.VikiJS = function() {
 					else {
 						self.log("Found link: ");
 						self.log(link);
-						link.bidirectional = true;
+						// if the found link has this originNode as the SOURCE, this is an already known link OUT; disregard.
+						// if the found link has this originNode as the TARGET, this is a NEW link out; set as bidirectional.
+						if(!link.bidirectional && link.target.identifier == originNode.identifier)
+							link.bidirectional = true;
 					}
 					// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 					self.visitNode(intraNode);
@@ -1278,7 +1281,10 @@ window.VikiJS = function() {
 					else {
 						self.log("Found link: ");
 						self.log(link);
-						link.bidirectional = true;
+						// if the found link has this originNode as the TARGET, this is an already known link IN; disregard.
+						// if the found link has this originNode as the SOURCE, this is a NEW link in; set as bidirectional.
+						if(!link.bidirectional && link.source.identifier == originNode.identifier)
+							link.bidirectional = true;
 					}
 				}
 
@@ -1288,49 +1294,49 @@ window.VikiJS = function() {
 		self.redraw(true);
 	}
 	
-	VikiJS.prototype.getContentNamespaces = function(wikiTitle) {
-		var wiki = null;
-		var index = null;
-		if(wikiTitle == self.THIS_WIKI) {
-			wiki = self.thisWikiData;
-		}
-		else {
-			index = self.searchableWikiIndexForName(wikiTitle);
-			wiki = self.allWikis[index];			
-		}
-		var sameServer = wiki.contentURL.indexOf(self.serverURL) > -1;
-		jQuery.ajax({
-			url : wiki.apiURL,
-			async: false,
-			dataType : sameServer ? 'json' : 'jsonp',
-			data : {
-				action : 'getContentNamespaces',
-				format : 'json'
-			},
-			beforeSend: function (jqXHR, settings) {
-				url = settings.url;
-				self.log("url of ajax call in getContentNamespaces: "+url);
-			},
-			success: function(data, textStatus, jqXHR) {
-				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					if(wikiTitle === self.THIS_WIKI)
-						self.thisWikiData.contentNamespaces = [0];
-					else
-						self.allWikis[index].contentNamespaces = [0];
-				}
-				else {
-					if(wikiTitle === self.THIS_WIKI)
-						self.thisWikiData.contentNamespaces = data["getContentNamespaces"];
-					else
-						self.allWikis[index].contentNamespaces = data["getContentNamespaces"];
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-			}
-		});
+	// VikiJS.prototype.getContentNamespaces = function(wikiTitle) {
+	// 	var wiki = null;
+	// 	var index = null;
+	// 	if(wikiTitle == self.THIS_WIKI) {
+	// 		wiki = self.thisWikiData;
+	// 	}
+	// 	else {
+	// 		index = self.searchableWikiIndexForName(wikiTitle);
+	// 		wiki = self.allWikis[index];			
+	// 	}
+	// 	var sameServer = wiki.contentURL.indexOf(self.serverURL) > -1;
+	// 	jQuery.ajax({
+	// 		url : wiki.apiURL,
+	// 		async: false,
+	// 		dataType : sameServer ? 'json' : 'jsonp',
+	// 		data : {
+	// 			action : 'getContentNamespaces',
+	// 			format : 'json'
+	// 		},
+	// 		beforeSend: function (jqXHR, settings) {
+	// 			url = settings.url;
+	// 			self.log("url of ajax call in getContentNamespaces: "+url);
+	// 		},
+	// 		success: function(data, textStatus, jqXHR) {
+	// 			if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
+	// 				if(wikiTitle === self.THIS_WIKI)
+	// 					self.thisWikiData.contentNamespaces = [0];
+	// 				else
+	// 					self.allWikis[index].contentNamespaces = [0];
+	// 			}
+	// 			else {
+	// 				if(wikiTitle === self.THIS_WIKI)
+	// 					self.thisWikiData.contentNamespaces = data["getContentNamespaces"];
+	// 				else
+	// 					self.allWikis[index].contentNamespaces = data["getContentNamespaces"];
+	// 			}
+	// 		},
+	// 		error: function(jqXHR, textStatus, errorThrown) {
+	// 			alert("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+	// 		}
+	// 	});
 		
-	}
+	// }
 	
 	VikiJS.prototype.visitNode = function(intraNode) {
 		var self = this;
