@@ -124,7 +124,7 @@ function hierarchyBreadcrumb($parser) {
 		$output = $hierarchyBuilder->hierarchyBreadcrumb($currentPage,
 			$hierarchyPage, $hierarchyProperty, $displayNameProperty);
 		$output = $parser->recursiveTagParse($output);
-		wikiLog("", "hierarchyBreadcrumb", "output = ".var_export($output, true));
+		//wikiLog("", "hierarchyBreadcrumb", "output = ".var_export($output, true));
 	}
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
@@ -155,36 +155,55 @@ class HierarchyBuilder {
 		$hierarchyRows = preg_split("/\n/", $hierarchy);
 		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "currentPage = ".var_export($currentPage, true));
 		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "split xmlstr = ".print_r($hierarchyRows, true));
-		$pattern = "/\[\[".$currentPage."\]\]/";
+		$currentPagePattern = "/\[\[".$currentPage."\]\]/";
 		$pageNamePattern = "/\[\[(.*)\]\]/";
+		$depthPattern = "/^(\**)/";
 		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
-			$row = $hierarchyRows[$i];
-			$num_matches = preg_match_all($pattern, $row, $matches);
-			if ($num_matches > 0) {
+			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
+			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
+			if ($num_matches > 0) { // found the current page on this row of the hierarchy
 				$prev_i = $i-1;
 				$previous = ($prev_i >= 0 ? $hierarchyRows[$prev_i] : "");
 				$num_matches = preg_match_all($pageNamePattern, $previous, $matches);
-				$previous = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match
+				$previous = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match to be the name of the previous page
 
 				$next_i = $i+1;
 				$next = ($next_i < sizeof($hierarchyRows) ? $hierarchyRows[$next_i] : "");
 				$num_matches = preg_match_all($pageNamePattern, $next, $matches);
-				$next = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match
+				$next = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match to be the name of the next page
 
-				$parent = "this is harder";
+				// figure out what the depth of the current page is
+				preg_match_all($depthPattern, $row, $matches);
+				$currentDepth = strlen($matches[1][0]);
+				//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "currentDepth = ".$currentDepth);
 
-				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "previous = ".$previous);
-				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent = ".$$parent);
-				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "next = ".$next);
+				// figure out who the parent is based on depth being 1 less than the current depth
+				$parent = "";
+				for ($parent_i = $i-1; $parent_i >= 0; $parent_i--) { // run backwards through all the previous rows
+					//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent_i = ".$parent_i);
+					$parentRow = $hierarchyRows[$parent_i];
+					$num_matches = preg_match_all($depthPattern, $parentRow, $matches);
+					$parentDepth = strlen($matches[1][0]);
+					//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parentDepth = ".$parentDepth);
+
+					if ($num_matches > 0 && $parentDepth == $currentDepth-1) {
+						preg_match_all($pageNamePattern, $parentRow, $matches);
+						$parent = $matches[1][0];
+						//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "num_matches = ".$num_matches);
+						break;
+					}
+				}
+
+				/*wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "previous = ".$previous);
+				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent = ".$parent);
+				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "next = ".$next);*/
 
 				return self::breadcrumb($previous, $parent, $next, $displayNameProperty);
-
 			}
 			//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "row = ".$row);
 		}
 
 		//note that $currentPage is actually a page name of an existing page, so we need to find "[[$currentPage]]" in one of the lines of the hierarchy
-
 
 		return "";
 		/*try {
