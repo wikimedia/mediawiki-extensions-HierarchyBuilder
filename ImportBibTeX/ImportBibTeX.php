@@ -423,15 +423,20 @@ class ApiAddBibTeXItem extends ApiBase {
 
 		$wikitext = "{{Item" . $wikitext;
 
+		//$keywordsCache = "";
+
 		foreach ($bibtexParams as $key => $value) {
 			if($key == "author") {
 				$wikitext .= "\n|authors=" . $this->parseAuthors($value);
+			//} else if($key == "keywords") {
+			//	$keywordsCache .= "," .$value;
 			} else {
 				$wikitext .= "\n|" . $key . "=" . $value;
 			}
 		
 		}
 
+		//$wikitext .= "\n|keywords=" . substr($keywordsCache, 1);
 		/*$wikitext .= "\n|title=" . $title;
 		$wikitext .= "\n|added-at=" . $bibtexParams['added-at'];
 		$wikitext .= "\n|authors=" . $this->parseAuthors($bibtexParams['author']);

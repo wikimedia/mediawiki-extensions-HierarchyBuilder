@@ -22,6 +22,8 @@
 
 window.VikiJS = function() {
 
+	// constants
+
 	this.ID = null;
 	this.loadingView = null;
 	this.WIKI_PAGE_TYPE = 0;
@@ -30,11 +32,6 @@ window.VikiJS = function() {
 	this.BAR_HEIGHT = 6;
 	this.UNSELECTED_IMAGE_DIMENSION = 25;
 	this.THIS_WIKI = "THIS WIKI";
-	this.CURRENT_IDENTIFIER = 0;
-
-	this.searchableCount = 0;
-	this.contentNamespacesFetched = 0;
-
 	this.MIN_SCALE = .2;
 	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.2;
@@ -50,6 +47,10 @@ window.VikiJS = function() {
 	this.OUTGOING_LINK_COLOR = "#f1c40f";
 	this.BIDIRECTIONAL_LINK_COLOR = "#2ecc71";
 
+	// mutable global variables
+	this.CURRENT_IDENTIFIER = 0;
+	this.searchableCount = 0;
+	this.contentNamespacesFetched = 0;
 	this.initialPageTitles = null;
 	this.Hooks = null;
 	this.hasHooks = false;
@@ -63,22 +64,17 @@ window.VikiJS = function() {
 	this.LinkMap = {};
 	this.HiddenNodes = new Array();
 	this.HiddenLinks = new Array();
-
 	this.Force = null;
 	this.LinkSelection = null;
 	this.NodeSelection = null;
-
 	this.ImagePath = null;
-	this.Zoompos = 1; // to store values for zoom scale
-	
+	this.Zoompos = 1; // to store values for zoom scale	
 	this.serverURL = mw.config.get("wgServer");;
 	this.myApiURL = this.serverURL + mw.config.get("wgScriptPath")+"/api.php";
 	this.myContentURL = this.serverURL + mw.config.get("wgScript") + "/";
 	this.contentNamespaces = mw.config.get("wgContentNamespaces");
-
 	this.myLogoURL = null;
-	this.allWikis = new Array();
-	
+	this.allWikis = new Array();	
 	this.thisWikiData = {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
@@ -86,70 +82,103 @@ window.VikiJS = function() {
 				logoURL : this.myLogoURL,
 				searchableWiki : true
 			}
-	
 	this.namespaceIds = mw.config.get("wgNamespaceIds");	// only of any use in MW 1.23+
 
 	var self = this;
 
-	VikiJS.prototype.drawGraph = function(pageTitles, graphDiv, detailsDiv, subdetailsDiv, sliderDiv, errorsDiv, imagePath, initialWidth, initialHeight, hooks) {
+	VikiJS.prototype.initialize = function(pageTitles, divs, parameters) {
 		var self = this;
-		// self.log("very start of drawGraph");
 
-		// get this graph div's ID (support for multiple VIKI graphs on one page in the future)
-		var dig = new RegExp("[0-9]", 'g');
-		this.ID = graphDiv.match(dig)[0];
+		// Parse passed in parameters and initialize div settings.
+		// this.ID = this graph div's ID (support for multiple VIKI graphs on one page in the future)
+		allDivs = jQuery.parseJSON(divs);
+		allParameters = jQuery.parseJSON(parameters);
 
-		// parse passed in parameters and initialize div settings.
-
-		this.GraphDiv = graphDiv;
-		this.SubDetailsDiv = subdetailsDiv;
-		this.SliderDiv = sliderDiv;
-		this.ErrorsDiv = errorsDiv;
-		this.ImagePath = imagePath;
-
-		this.INITIAL_HEIGHT = initialHeight;
-		this.INITIAL_WIDTH = initialWidth;
+		this.GraphDiv = allDivs[0];
+		this.SubDetailsDiv = allDivs[1];
+		this.SliderDiv = allDivs[2];
+		this.ErrorsDiv = allDivs[3];
+		this.ID = this.GraphDiv.match( new RegExp("[0-9]", 'g') )[0];
+		this.INITIAL_WIDTH = allParameters["width"];
+		this.INITIAL_HEIGHT = allParameters["height"];
 		this.height = self.INITIAL_HEIGHT;
 		this.width = self.INITIAL_WIDTH;
+		this.Hooks = allParameters["hooks"];
+		this.hasHooks = (self.Hooks != null);
+		this.serverURL = mw.config.get("wgServer");
+		this.myLogoURL = allParameters["logoURL"];
+		this.thisWikiData.logoURL = self.myLogoURL;
+		this.ImagePath = allParameters["imagePath"];
 
-		// to set the widths of the details divider and the horizontal zoom slider
-		// the margin is a value used to accumulate all maring, padding and other
-		// space that the .detail-panel class uses.
-		var margin = 10;
-		// the details divider will get 3/5 of the space
-		$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
-		// the slider will get 2/5 of the space
-		$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
-		// set the entire detail-panel to the width of the input minus the size of
-		// the paddings, margins and other values to align with the graph.
-		$(".vikijs-detail-panel").width(self.width - margin);
-		// create a new zoom slider
-		var zoom_slider = $("#"+self.SliderDiv).slider(
-		{
-		  orientation: "horizontal",//make the slider horizontal
-		  min: this.MIN_SCALE , // set the lowest value
-		  max: this.MAX_SCALE, // set the highest value
-		  step: .001, // set the value for each individual increment
-		  value: this.Zoompos, // set the starting value
-		  slide: function( event, ui ) {
-			// set the zoom scale equal to the current value of the slider
-			// which is the current position
-		        self.Zoompos = ui.value;
-			// call the slide function to zoom/pan using the slider
-		        self.slide();
-		  }
-		});
+		this.initialPageTitles = jQuery.parseJSON(pageTitles);
+
+		if(this.initialPageTitles === null) {
+			alert("You must supply a page title.");
+			return;
+		}
+
+		// Set up the slider div.
+		initializeSliderDiv();
 
 		// Set up the loading spinner
-		vex.defaultOptions.className = 'vex-theme-default';
+		initializeLoadingSpinner();
 
-		var loadingContent = '\
+		// Set up the context menu.
+		initializeContextMenu();
+
+		// Set up the "Add Nodes" button to bring up the nodes modal view.
+		$("#addNodesButton").click(function() {
+			setTimeout(function() {
+				var newNodesWindow = self.showNewNodesWindow();
+			}, 0);
+		});
+
+		// Initialize the D3 graph.
+		initializeGraph();
+
+		// End of initialization; call the GetAllWikis hook at this point.
+
+		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
+		if(!calledGetAllWikisHook)
+			self.hookCompletion("GetAllWikisHook");
+
+		// Initialization functions
+
+		function initializeSliderDiv() {
+			// The details div gets 3/5 of the space, while the slider gets 2/5.
+			// The detail-panel width is equal to the input width - size of paddings.
+			var margin = 10;
+			$("#"+self.SubDetailsDiv).width((self.width - margin)* 3/5);
+			$("#"+self.SliderDiv).width((self.width - margin) * 2/5);
+			$(".vikijs-detail-panel").width(self.width - margin);
+			// create a new zoom slider
+			var zoom_slider = $("#"+self.SliderDiv).slider(
+			{
+			  orientation: "horizontal",//make the slider horizontal
+			  min: self.MIN_SCALE , // set the lowest value
+			  max: self.MAX_SCALE, // set the highest value
+			  step: .001, // set the value for each individual increment
+			  value: self.Zoompos, // set the starting value
+			  slide: function( event, ui ) {
+				// set the zoom scale equal to the current value of the slider
+				// which is the current position
+			        self.Zoompos = ui.value;
+				// call the slide function to zoom/pan using the slider
+			        self.slide();
+			  }
+			});
+		}
+
+		function initializeLoadingSpinner() {
+			vex.defaultOptions.className = 'vex-theme-default';
+
+			var loadingContent = '\
 <div id="loadingDiv">\
 	<div id="textDiv">Loading...</div>\
 	<div id="spinnerDiv"></div>\
 </div>';
 
-		var loadingStyle = '\
+			var loadingStyle = '\
 <style>\
 	#textDiv {\
 		text-align: center;\
@@ -158,95 +187,67 @@ window.VikiJS = function() {
 		height: 75px;\
 	}\
 </style>';
-		
-		var opts = {
-		  lines: 11, // The number of lines to draw
-		  length: 8, // The length of each line
-		  width: 4, // The line thickness
-		  radius: 8, // The radius of the inner circle
-		  corners: 1, // Corner roundness (0..1)
-		  rotate: 0, // The rotation offset
-		  direction: 1, // 1: clockwise, -1: counterclockwise
-		  color: '#000', // #rgb or #rrggbb or array of colors
-		  speed: 1, // Rounds per second
-		  trail: 60, // Afterglow percentage
-		  shadow: false, // Whether to render a shadow
-		  hwaccel: false, // Whether to use hardware acceleration
-		  className: 'spinner', // The CSS class to assign to the spinner
-		  zIndex: 2e9, // The z-index (defaults to 2000000000)
-		  top: '60%', // Top position relative to parent
-		  left: '50%' // Left position relative to parent
-		};
-		
-		// self.log("showing load screen");
-		self.loadingView = vex.open({
-			content: loadingContent,
-			contentCSS: {
-				width : '150px'
-			},
-			afterOpen: function($vexContent) {
-				$vexContent.append(loadingStyle);
-				spinner = new Spinner(opts).spin(document.getElementById('spinnerDiv'));
-			},
-			showCloseButton: false
-		});
-
-		// Set up the context menu
-
-		// ensure the entire graph div doesn't trigger context menu - only nodes
-		foo = $('#'+this.GraphDiv);
-		$('#'+this.GraphDiv).on('contextmenu', function() {
-			return false;
-		});
-
-		$('body').append(
-			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
-			// the dynamic menu title (node name)
-			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
-			"<hr>"+ // separator
-			// actual navigable menu
-			"<div class=\"options\" >"+
-			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
-        	"<li id=\"getinfo\" >Visit Page</li>"+
-			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
-			"<li id=\"categories\">Show Categories</li>"+
-			"<li id=\"hide\">Hide Node</li>"+
-			"<li id=\"hideHub\">Hide Hub</li>"+
-			"<hr>"+// separator
-        	"<li id=\"showall\">Show All</li>"+
-	    	"</ul></div></div>"
-			);
-		
-		$("#name").css("text-align", "center");
-
-		// get hooks available
-		this.Hooks = jQuery.parseJSON(hooks);
-		this.hasHooks = (self.Hooks != null);
-		this.serverURL = mw.config.get("wgServer");
-		this.initialPageTitles = eval("("+pageTitles+")");
-		
-		if(this.initialPageTitles === null) {
-			alert("You must supply a page title.");
-			return;
+			
+			var opts = {
+			  lines: 11, // The number of lines to draw
+			  length: 8, // The length of each line
+			  width: 4, // The line thickness
+			  radius: 8, // The radius of the inner circle
+			  corners: 1, // Corner roundness (0..1)
+			  rotate: 0, // The rotation offset
+			  direction: 1, // 1: clockwise, -1: counterclockwise
+			  color: '#000', // #rgb or #rrggbb or array of colors
+			  speed: 1, // Rounds per second
+			  trail: 60, // Afterglow percentage
+			  shadow: false, // Whether to render a shadow
+			  hwaccel: false, // Whether to use hardware acceleration
+			  className: 'spinner', // The CSS class to assign to the spinner
+			  zIndex: 2e9, // The z-index (defaults to 2000000000)
+			  top: '60%', // Top position relative to parent
+			  left: '50%' // Left position relative to parent
+			};
+			
+			// self.log("showing load screen");
+			self.loadingView = vex.open({
+				content: loadingContent,
+				contentCSS: {
+					width : '150px'
+				},
+				afterOpen: function($vexContent) {
+					$vexContent.append(loadingStyle);
+					spinner = new Spinner(opts).spin(document.getElementById('spinnerDiv'));
+				},
+				showCloseButton: false
+			});
 		}
-		
 
+		function initializeContextMenu() {
+			// Ensure the entire graph div doesn't trigger context menu - only nodes.
+			foo = $('#'+self.GraphDiv);
+			$('#'+self.GraphDiv).on('contextmenu', function() {
+				return false;
+			});
 
-		$("#addNodesButton").click(function() {
-			setTimeout(function() {
-				var newNodesWindow = self.showNewNodesWindow();
-			}, 0);
-		});
-
-		initializeGraph();
-
-		// initialize the list of searchable wikis,
-		// get this wiki's own logo URL,
-		// and do initial graph population.
-
-		calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
-		if(!calledGetAllWikisHook)
-			self.hookCompletion("GetAllWikisHook");
+			$('body').append(
+				"<div class=\"contextMenu\" id=\"menu-"+self.ID+"\"><ul>"+
+				// the dynamic menu title (node name)
+				"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+				"<hr>"+ // separator
+				// actual navigable menu
+				"<div class=\"options\" >"+
+				"<li id=\"freeze\" class=\"freeze-"+self.ID+"\">Freeze</li>"+
+	        	"<li id=\"getinfo\" >Visit Page</li>"+
+				"<li id=\"elaborate\" class=\"elaborate-"+self.ID+"\">Elaborate</li>"+
+				"<li id=\"categories\">Show Categories</li>"+
+				"<li id=\"hide\">Hide Node</li>"+
+				"<li id=\"hideHub\">Hide Hub</li>"+
+				"<hr>"+// separator
+	        	"<li id=\"showall\">Show All</li>"+
+		    	"</ul></div></div>"
+				);
+			
+			$("#name").css("text-align", "center");
+		}
 
 		function initializeGraph() {
 			var padding = 20;
@@ -542,7 +543,7 @@ window.VikiJS = function() {
 					}
 				}
 				else {
-					self.log("Error fetching inside getContentNamespaces for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.log("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			}
 		});
@@ -554,41 +555,23 @@ window.VikiJS = function() {
 		
 		vex.close(self.loadingView.data().vex.id);
 
-		jQuery.ajax({
-			url: self.myApiURL,
-			dataType: 'json',
-			data: {
-				action: 'getSiteLogo',
-				format: 'json'
-			},
-			success: function(data, textStatus, jqXHR) {
+		for(var i = 0; i < self.initialPageTitles.length; i++) {
+			node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+			self.visitNode(node);
+		}
 
-				self.myLogoURL = mw.config.get("wgServer") + data["getSiteLogo"];
-				self.thisWikiData.logoURL = self.myLogoURL;
-				// do initial graph population
-				for(var i = 0; i < self.initialPageTitles.length; i++) {
-					node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
-					self.visitNode(node);
-				}
+		for(var i = 0; i < self.initialPageTitles.length; i++)
+			self.elaborateNode(self.Nodes[i]);
 
-				for(var i = 0; i < self.initialPageTitles.length; i++)
-					self.elaborateNode(self.Nodes[i]);
+		self.Force.nodes(self.Nodes);
+		self.Force.links(self.Links);
 
-				self.Force.nodes(self.Nodes);
-				self.Force.links(self.Links);
+		self.redraw(true);
 
-				self.redraw(true);
-
-				// after initial population, by default select the first node.
-				self.SelectedNodeIndex = 0;
-				self.displayNodeInfo(self.Nodes[0]);
-				self.redraw(false);
-
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch list of wikis.");
-			}
-		});
+		// after initial population, by default select the first node.
+		self.SelectedNodeIndex = 0;
+		self.displayNodeInfo(self.Nodes[0]);
+		self.redraw(false);
 		
 	}
 
@@ -688,7 +671,7 @@ window.VikiJS = function() {
 			self.redraw(false);
 		});
 
-		self.initializeContextMenu();
+		self.prepareContextMenu();
 
 		var drag = self.Force.drag()
 		   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -1327,7 +1310,7 @@ window.VikiJS = function() {
 			},
 			beforeSend: function (jqXHR, settings) {
 				url = settings.url;
-				self.log("url of ajax call: "+url);
+				// self.log("url of ajax call: "+url);
 			},
 			success: function(data, textStatus, jqXHR) {
 				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
@@ -1498,8 +1481,22 @@ window.VikiJS = function() {
 		var self = this;
 		if(this.hasHooks) {
 			if(this.Hooks[hookName]) {
-				for(var i = 0; i < self.Hooks[hookName].length; i++)
-					window[ self.Hooks[hookName][i] ](self, parameters, hookName);
+				for(var i = 0; i < self.Hooks[hookName].length; i++) {
+					// Determine appropriate scope and call function.
+					// http://stackoverflow.com/questions/912596/how-to-turn-a-string-into-a-javascript-function-call
+
+					hookFunction = self.Hooks[hookName][i];
+
+					var scope = window;
+					var scopeSplit = hookFunction.split('.');
+    				for (i = 0; i < scopeSplit.length - 1; i++) {
+        				scope = scope[scopeSplit[i]];
+
+        				if (scope == undefined) return;
+				    }
+
+    				return scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
+				}
 				
 				self.redraw(true);
 				return true;
@@ -1516,7 +1513,7 @@ window.VikiJS = function() {
 		}
 	}
 
-	VikiJS.prototype.initializeContextMenu = function() {
+	VikiJS.prototype.prepareContextMenu = function() {
         $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
         	// activate before the menu shows
         	onShowMenu: function(e, menu) {
