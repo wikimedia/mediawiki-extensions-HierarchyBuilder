@@ -423,20 +423,21 @@ class ApiAddBibTeXItem extends ApiBase {
 
 		$wikitext = "{{Item" . $wikitext;
 
-		//$keywordsCache = "";
+		$keywordsCache = "";
 
 		foreach ($bibtexParams as $key => $value) {
 			if($key == "author") {
 				$wikitext .= "\n|authors=" . $this->parseAuthors($value);
-			//} else if($key == "keywords") {
-			//	$keywordsCache .= "," .$value;
+			} else if($key == "keywords") {
+				$keywordsCache .= "," .$value;
 			} else {
 				$wikitext .= "\n|" . $key . "=" . $value;
 			}
 		
 		}
+		$keywordsCache = str_replace(";", ",", $keywordsCache);
 
-		//$wikitext .= "\n|keywords=" . substr($keywordsCache, 1);
+		$wikitext .= "\n|keywords=" . substr($keywordsCache, 1);
 		/*$wikitext .= "\n|title=" . $title;
 		$wikitext .= "\n|added-at=" . $bibtexParams['added-at'];
 		$wikitext .= "\n|authors=" . $this->parseAuthors($bibtexParams['author']);
@@ -515,7 +516,7 @@ class ImportBibTeX extends SpecialPage {
 			Xml::inputLabelSep('Injury Type:', 'injurytype',
 				'injurytype', 50, '', array ('type' => 'text'));
 		$html .= '<tr><td>' . $label . '</td><td>' . $input . '</td></tr>';
-		$html .= '<tr><td>(Semicolon seperated list of values) </td></tr>';
+		$html .= '<tr><td>(Comma seperated list of values) </td></tr>';
 		list($label, $input) =
 			Xml::inputLabelSep('Overwrite duplicate pages?:', 'overwrite',
 				'overwrite', 0, 'true', array ('type' => 'checkbox'));
