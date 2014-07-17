@@ -56,7 +56,7 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
-		'src/getWikis.js',
+		'src/getWikis.js',   
 		'src/getWikiData.js',
 		'src/WikiTreeMap.js',
 		'src/makeTreemap.js',
@@ -140,6 +140,11 @@ class WikiTreeMap {
 </div>
 </td></tr>
 </table>
+<div id="tooltip" class="hidden">
+  <p><strong id="category"></strong></p>
+  <p><span id="subcategory"></span></p>
+  <p><span id="pages"></span></p>
+</div>
 
 EOT;
 
