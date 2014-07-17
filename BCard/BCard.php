@@ -5,7 +5,7 @@ $wgExtensionCredits['parserhook'][] = array (
 	'version' => '1.7',
 	'author' => 'Cindy Cicalese',
 	'descriptionmsg' => 'bcard-desc',
-	'url' => 'http://gestalt.mitre.org/wiki/Extension:BCard'
+	'url' => 'http://gestalt.mitre.org/gestaltd/index.php/BCard'
 );
 
 $wgHooks['ParserFirstCallInit'][] = 'wfExtensionBCard_Setup';
