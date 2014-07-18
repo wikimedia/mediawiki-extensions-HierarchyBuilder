@@ -144,91 +144,68 @@ class HierarchyBuilder {
 
 	static protected $m_hierarchy_num = 1;
 
+	const pageNamePattern = "/\[\[(.*)\]\]/"; // pattern to extract the pageName from a wikitext hierarchy row
+	const depthPattern = "/^(\**)/"; // pattern to extract the leading *s to determine the current row's depth in the wikitext hierarchy.
+
+	/**
+	 * $currentPage is the name of the page in the hierarchy we're currently viewing
+	 * $hierarchyPage is the name of the page that contains the hierarchy $currentPage belongs to
+	 * $hierarchyProperty is the name of the property on $hierarchyPage that actually stores the wikitext formatted hierarchy
+	 * $displayNameProperty is the value of the DislayName property (eg: "Description")
+	 */
 	public function hierarchyBreadcrumb($currentPage, $hierarchyPage,
 		$hierarchyProperty, $displayNameProperty) {
-		//$xmlstr = self::getPropertyFromPage($hierarchyPage, $hierarchyProperty);
-		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "xmlstr = ".var_export($xmlstr, true));
 
 		$hierarchy = self::getPropertyFromPage($hierarchyPage, $hierarchyProperty);
 		$hierarchyRows = preg_split("/\n/", $hierarchy);
-		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "currentPage = ".var_export($currentPage, true));
-		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "split xmlstr = ".print_r($hierarchyRows, true));
+		
 		$currentPagePattern = "/\[\[".$currentPage."\]\]/";
-		$pageNamePattern = "/\[\[(.*)\]\]/";
 		// loop through the hierarchyRows looking for the row containing the currentPage
 		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
 			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
 			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
 			if ($num_matches > 0) { // found the current page on this row of the hierarchy
-				// go to the previous row and extract the page name if any previous row exists. Otherwise the next page name is empty.
+				// go to the previous row and extract the page name if any previous row exists. Otherwise the previous page name is empty.
 				$prev_i = $i-1;
-				$previous = ($prev_i >= 0 ? $hierarchyRows[$prev_i] : "");
-				$num_matches = preg_match_all($pageNamePattern, $previous, $matches);
-				$previous = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match to be the name of the previous page
+				$previousRow = ($prev_i >= 0 ? $hierarchyRows[$prev_i] : "");
+				$previous = self::getPageNameFromHierarchyRow($previousRow);
+
 				// go to the next row and extract the page name if any next row exists. Otherwise the next page name is empty.
 				$next_i = $i+1;
-				$next = ($next_i < sizeof($hierarchyRows) ? $hierarchyRows[$next_i] : "");
-				$num_matches = preg_match_all($pageNamePattern, $next, $matches);
-				$next = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match to be the name of the next page
-
-				$parent = self::getParent($hierarchyRows, $row, $i);
+				$nextRow = ($next_i < sizeof($hierarchyRows) ? $hierarchyRows[$next_i] : "");
+				$next = self::getPageNameFromHierarchyRow($nextRow);
 				
-				/*wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "previous = ".$previous);
-				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent = ".$parent);
-				wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "next = ".$next);*/
+				// get the parent of the current row in the hierarchy. Note that if there is no hierarchical parent, then the parent will be empty.
+				$parent = self::getParent($hierarchyRows, $row, $i);
 
 				return self::breadcrumb($previous, $parent, $next, $displayNameProperty);
 			}
-			//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "row = ".$row);
 		}
 
-		//note that $currentPage is actually a page name of an existing page, so we need to find "[[$currentPage]]" in one of the lines of the hierarchy
-
 		return "";
-		/*try {
-			$xml = @new SimpleXMLElement($xmlstr);
-			$found = false;
-			$previous = null;
-			$parent = self::getParent($currentPage, $xml);
-			foreach ($xml->xpath('//a') as $element) {
-				if ($found) {
-					return self::breadcrumb($previous, $parent, $element,
-						$displayNameProperty);
-				} else if ($currentPage == $element) {
-					$found = true;
-				} else {
-					$previous = $element;
-				}
-			}
-			return self::breadcrumb($previous, $parent, null, $displayNameProperty);
-		} catch (Exception $e) {
-			return "";
-		}*/
 	}
 
+	/**
+	 * $hierarchyRows is an array representation of a wikitext hierarchy where each row in the hierarchy is a separate element of the array.
+	 * $row is a specific row of the hierarchy given by $hierarchyRows.
+	 * $row_i is the index of $row in $hierarchyRows.
+	 * 
+	 * This function will find the hierarchical parent of $row within $hierarchyRows and return the pageName of that parent.
+	 * The hierarchical parent is defined to be the first row of $hierarchyRows which preceeds $row and has a depth that is equal to one less than the depth of $row. 
+	 * Note: If no hierarchical parent of $row is found, then the empty string is returned;
+	 */
 	private function getParent($hierarchyRows, $row, $row_i) {
-		$depthPattern = "/^(\**)/"; // pattern to extract the leading *s to determine the current row's depth in the hierarchy.
-		$pageNamePattern = "/\[\[(.*)\]\]/"; // pattern to extract the pageName from a row
-
 		// figure out what the depth of the current page is. if we can't find any depth (leading *s) then set the depth to 0 indicating failure.
-		$num_matches = preg_match_all($depthPattern, $row, $matches);
-		$currentDepth = ($num_matches > 0 ? strlen($matches[1][0]) : 0);
-		//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "currentDepth = ".$currentDepth);
-
+		$currentDepth = self::getDepthOfHierarchyRow($row);
+		
 		// figure out who the parent is based on depth being 1 less than the current depth
 		$parent = "";
 		for ($parent_i = $row_i-1; $parent_i >= 0; $parent_i--) { // run backwards through all the previous rows
-			//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent_i = ".$parent_i);
 			$parentRow = $hierarchyRows[$parent_i];
-			$num_matches = preg_match_all($depthPattern, $parentRow, $matches);
-			$parentDepth = ($num_matches > 0 ? strlen($matches[1][0]) : 0);
-			//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parentDepth = ".$parentDepth);
+			$parentDepth = self::getDepthOfHierarchyRow($parentRow);
 
 			if ($parentDepth == $currentDepth-1) {
-				$num_matches = preg_match_all($pageNamePattern, $parentRow, $matches);
-				$parent = ($num_matches > 0 ? $matches[1][0] : "");
-				//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "num_matches = ".$num_matches);
-				//wikiLog("HierarchyBuilder", "hierarchyBreadcrumb", "parent = ".$parent);
+				$parent = self::getPageNameFromHierarchyRow($parentRow);
 				break;
 			}
 		}
@@ -236,21 +213,27 @@ class HierarchyBuilder {
 		return $parent;
 	}
 
-	/*private function getParent($page, $xml) {
-		foreach ($xml->xpath('//li') as $element) {
-			$parray = $element->xpath('a');
-			if ($parray == false || count($parray) == 0) {
-				return null;
-			}
-			$parent = (string) $parray[0];
-			foreach ($element->xpath('ul/li/a') as $child) {
-				if ($child == $page) {
-					return $parent;
-				}
-			}
-		}
-		return null;
-	}*/
+	/**
+	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format, which is to say, leading *s and a page name within [[]] delimiters.
+	 * 
+	 * This function will return the first pageName (link) found within $hierarchyRow
+	 */
+	private function getPageNameFromHierarchyRow($hierarchyRow) {
+		$num_matches = preg_match_all(self::pageNamePattern, $hierarchyRow, $matches);
+		$pageName = ($num_matches > 0 ? $matches[1][0] : ""); // give me the first subpattern match to be the name of the previous page
+		return $pageName;
+	}
+
+	/**
+	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format, which is to say, leading *s and a page name within [[]] delimiters.
+	 *
+	 * This function will return the number of leading *s as the depth of $hierarchyRow.
+	 */
+	private function getDepthOfHierarchyRow($hierarchyRow) {
+		$num_matches = preg_match_all(self::depthPattern, $hierarchyRow, $matches);
+		$depth = ($num_matches > 0 ? strlen($matches[1][0]) : 0);
+		return $depth;
+	}
 
 	private function breadcrumb($previous, $parent, $next, $displayNameProperty) {
 		$breadcrumb = "{| width='100%'" . PHP_EOL;
