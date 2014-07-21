@@ -25,7 +25,7 @@
 class OpenIDConnectLogin extends UnlistedSpecialPage {
 
 	function __construct() {
-		parent::__construct('OpenIDConnectLogin');
+		parent::__construct('Userlogin');
 	}
 
 	function execute($param) {

@@ -33,20 +33,24 @@ class OpenIDConnect {
 			$OpenIDConnect_Timeout = 1800;
 		}
 
-		$time = time();
+		if ($OpenIDConnect_Timeout > 0) {
 
-		if (isset($_SESSION['LAST_ACTIVITY']) &&
-			($time - $_SESSION['LAST_ACTIVITY'] > $OpenIDConnect_Timeout)) {
-			session_unset();
-			session_destroy();
-		}
-		$_SESSION['LAST_ACTIVITY'] = $time;
+			$time = time();
 
-		if (!isset($_SESSION['CREATED'])) {
-			$_SESSION['CREATED'] = $time;
-		} else if ($time - $_SESSION['CREATED'] > $OpenIDConnect_Timeout) {
-			session_regenerate_id(true);
-			$_SESSION['CREATED'] = $time;
+			if (isset($_SESSION['LAST_ACTIVITY']) &&
+				($time - $_SESSION['LAST_ACTIVITY'] > $OpenIDConnect_Timeout)) {
+				session_unset();
+				session_destroy();
+			}
+			$_SESSION['LAST_ACTIVITY'] = $time;
+
+			if (!isset($_SESSION['CREATED'])) {
+				$_SESSION['CREATED'] = $time;
+			} else if ($time - $_SESSION['CREATED'] > $OpenIDConnect_Timeout) {
+				session_regenerate_id(true);
+				$_SESSION['CREATED'] = $time;
+			}
+
 		}
 
 		$result = self::loadUser($user);
@@ -169,7 +173,7 @@ class OpenIDConnect {
 		return $authorized;
 	}
 
-	public static function logout() {
+	public static function logout(&$user) {
 		session_regenerate_id(true); 
 		session_destroy();
 		unset($_SESSION);
@@ -294,10 +298,11 @@ class OpenIDConnect {
 			global $wgOut;
 			$skin = $wgOut->getSkin();
 			if (!$skin->getUser()->isLoggedIn()) {
-				$href = Title::newFromText('Special:OpenIDConnectLogin')->
+				$href = Title::newFromText('Special:UserLogin')->
 					getFullURL();
 				$returnto = $title->getPrefixedText();
-				if ($returnto != "Special:Badtitle" && $returnto != "Special:UserLogout") {
+				if ($returnto != "Special:Badtitle" &&
+					$returnto != "Special:UserLogout") {
 					$href .= '?returnto=' . $returnto;
 				}
 				$personal_urls['openidconnectlogin'] = array(
@@ -313,7 +318,6 @@ class OpenIDConnect {
 
 	public static function modifyLoginSpecialPages(&$specialPagesList) {
 		$specialpages = array(
-			'Userlogin',
 			'CreateAccount'
 		);
 		foreach ($specialpages as $p) {

@@ -54,12 +54,10 @@ $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-$wgExtensionMessagesFiles['OpenIDConnectSpecialAliases'] =
-	__DIR__ . '/OpenIDConnect.aliases.php';
 
 $wgAutoloadClasses['OpenIDConnectLogin'] =
 	__DIR__ . '/OpenIDConnectLogin.class.php';
-$wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
+$wgSpecialPages['Userlogin'] = 'OpenIDConnectLogin';
 
 $wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
 $wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
