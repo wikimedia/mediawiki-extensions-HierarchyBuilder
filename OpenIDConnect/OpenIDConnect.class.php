@@ -293,22 +293,8 @@ class OpenIDConnect {
 				unset($personal_urls[$u]);
 			}
 		}
-		if (!isset($GLOBALS['OpenIDConnect_AutoLogin']) ||
-			!$GLOBALS['OpenIDConnect_AutoLogin']) {
-			if (!$skin->getUser()->isLoggedIn()) {
-				$href = Title::newFromText('Special:UserLogin')->
-					getFullURL();
-				$returnto = $title->getPrefixedText();
-				if ($returnto != "Special:Badtitle" &&
-					$returnto != "Special:UserLogout") {
-					$href .= '?returnto=' . $returnto;
-				}
-				$personal_urls['login'] = array(
-					'text' => wfMessage('openidconnectlogin')->text(),
-					'href' => $href
-				);
-			}
-		} else {
+		if (isset($GLOBALS['OpenIDConnect_AutoLogin']) &&
+			$GLOBALS['OpenIDConnect_AutoLogin']) {
 			unset($personal_urls['login']);
 			unset($personal_urls['logout']);
 		}
@@ -326,6 +312,7 @@ class OpenIDConnect {
 		}
 		if (isset($GLOBALS['OpenIDConnect_AutoLogin']) &&
 			$GLOBALS['OpenIDConnect_AutoLogin']) {
+			unset($specialPagesList['Userlogin']);
 			unset($specialPagesList['Userlogout']);
 		}
 		return true;

@@ -57,6 +57,8 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				$_SESSION[$session_variable] = $title->getPrefixedText();
 			}
 			$forceLogin = $this->getRequest()->getBool('forcelogin', false);
+			$title = Title::newFromText("Special:UserLogin");
+			$_SERVER['REQUEST_URI'] = $title->getLocalURL();
 			OpenIDConnect::login($user, $forceLogin);
 		}
 	}
