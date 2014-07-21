@@ -28,30 +28,35 @@ class OpenIDConnect {
 
 		// http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
 
-		global $OpenIDConnect_Timeout;
-		if (!isset($OpenIDConnect_Timeout)) {
-			$OpenIDConnect_Timeout = 1800;
+		if (!isset($GLOBALS['OpenIDConnect_Timetout'])) {
+			$GLOBALS['OpenIDConnect_Timetout'] = 1800;
 		}
 
-		$time = time();
+		if ($GLOBALS['OpenIDConnect_Timetout'] > 0) {
 
-		if (isset($_SESSION['LAST_ACTIVITY']) &&
-			($time - $_SESSION['LAST_ACTIVITY'] > $OpenIDConnect_Timeout)) {
-			session_unset();
-			session_destroy();
-		}
-		$_SESSION['LAST_ACTIVITY'] = $time;
+			$time = time();
 
-		if (!isset($_SESSION['CREATED'])) {
-			$_SESSION['CREATED'] = $time;
-		} else if ($time - $_SESSION['CREATED'] > $OpenIDConnect_Timeout) {
-			session_regenerate_id(true);
-			$_SESSION['CREATED'] = $time;
+			if (isset($_SESSION['LAST_ACTIVITY']) &&
+				($time - $_SESSION['LAST_ACTIVITY'] >
+					$GLOBALS['OpenIDConnect_Timetout'])) {
+				session_unset();
+				session_destroy();
+			}
+			$_SESSION['LAST_ACTIVITY'] = $time;
+
+			if (!isset($_SESSION['CREATED'])) {
+				$_SESSION['CREATED'] = $time;
+			} else if ($time - $_SESSION['CREATED'] >
+					$GLOBALS['OpenIDConnect_Timetout']) {
+				session_regenerate_id(true);
+				$_SESSION['CREATED'] = $time;
+			}
+
 		}
 
 		$result = self::loadUser($user);
-		global $OpenIDConnect_AutoLogin;
-		if (isset($OpenIDConnect_AutoLogin) && $OpenIDConnect_AutoLogin) {
+		if (isset($GLOBALS['OpenIDConnect_AutoLogin']) &&
+			$GLOBALS['OpenIDConnect_AutoLogin']) {
 			if (!$result) {
 				if (session_id() == '') {
 					wfSetupSession();
@@ -62,7 +67,7 @@ class OpenIDConnect {
 					array_key_exists('title', $_REQUEST)) {
 					$_SESSION[$session_variable] = $_REQUEST['title'];
 				}
-				$result = self::login($user);
+				$result = self::login($user, false);
 			}
 		}
 		return false;
@@ -83,25 +88,22 @@ class OpenIDConnect {
 		return false;
 	}
 
-	public static function login($user) {
+	public static function login($user, $forceLogin) {
 		if (!array_key_exists('SERVER_PORT', $_SERVER)) {
 			return false;
 		}
 
-		$oidc = null;
 		try {
-			global $OpenIDConnect_Provider, $OpenIDConnect_ClientID,
-				$OpenIDConnect_ClientSecret;
-			if (!isset($OpenIDConnect_Provider) ||
-				!isset($OpenIDConnect_ClientID) ||
-				!isset($OpenIDConnect_ClientSecret)) {
+			if (!isset($GLOBALS['OpenIDConnect_Provider']) ||
+				!isset($GLOBALS['OpenIDConnect_ClientID']) ||
+				!isset($GLOBALS['OpenIDConnect_ClientSecret'])) {
 				return false;
 			}
 			$oidc = new OpenIDConnectClient(
-				$OpenIDConnect_Provider,
-				$OpenIDConnect_ClientID,
-				$OpenIDConnect_ClientSecret);
-			if ($oidc->authenticate()) {
+				$GLOBALS['OpenIDConnect_Provider'],
+				$GLOBALS['OpenIDConnect_ClientID'],
+				$GLOBALS['OpenIDConnect_ClientSecret']);
+			if ($oidc->authenticate($forceLogin)) {
 				$subject = $oidc->requestUserInfo('sub');
 				$provider = $oidc->getProviderURL();
 				$realname = $oidc->requestUserInfo("name");
@@ -110,9 +112,8 @@ class OpenIDConnect {
 				if (is_null($user->mId)) {
 					$username = $oidc->requestUserInfo("preferred_username");
 					$id = User::idFromName($username);
-					global $OpenIDConnect_MigrateUsers;
-					if ($id && isset($OpenIDConnect_MigrateUsers) &&
-						$OpenIDConnect_MigrateUsers) {
+					if ($id && isset($GLOBALS['OpenIDConnect_MigrateUsers']) &&
+						$GLOBALS['OpenIDConnect_MigrateUsers']) {
 						$user->mId = $id;
 						$user->loadFromDatabase();
 						self::updateUser($user, $realname, $email);
@@ -163,38 +164,43 @@ class OpenIDConnect {
 			$returnto = 'Special:OpenIDConnectNotAuthorized';
 			$params = array('name' => $user->mName);
 		}
-		global $wgOut;
 		session_regenerate_id(true); 
-		self::redirect($returnto, $wgOut, $params);
+		self::redirect($returnto, $params);
 		return $authorized;
 	}
 
-	public static function logout() {
+	public static function logout(&$user) {
 		session_regenerate_id(true); 
 		session_destroy();
 		unset($_SESSION);
+		if (isset($GLOBALS['OpenIDConnect_ForceLogout']) &&
+			$GLOBALS['OpenIDConnect_ForceLogout']) {
+			$returnto = 'Special:UserLogin';
+			$params = array('forcelogin' => 'true');
+			self::redirect($returnto, $params);
+		}
 		return true;
 	}
 
-	public static function redirect($returnto, $oidc, $params = null) {
-		$redirectTitle = Title::newFromText($returnto);
-		if (is_null($redirectTitle)) {
-			$redirectTitle = Title::newMainPage();
+	public static function redirect($page, $params = null) {
+		$title = Title::newFromText($page);
+		if (is_null($title)) {
+			$title = Title::newMainPage();
 		}
-		$redirectURL = $redirectTitle->getFullURL();
+		$url = $title->getFullURL();
 		if (is_array($params) && count($params) > 0) {
 			$first = true;
 			foreach ($params as $key => $value) {
 				if ($first) {
 					$first = false;
-					$redirectURL .= '?';
+					$url .= '?';
 				} else {
-					$redirectURL .= '&';
+					$url .= '&';
 				}
-				$redirectURL .= $key . '=' . $value;
+				$url .= $key . '=' . $value;
 			}
 		}
-		$oidc->redirect($redirectURL);
+		$GLOBALS['wgOut']->redirect($url);
 	}	
 
 	private static function getId($subject, $provider) {
@@ -277,10 +283,9 @@ class OpenIDConnect {
 		return true;
 	}
 
-	public static function modifyLoginURLs(&$personal_urls, &$title) {
+	public static function modifyLoginURLs(&$personal_urls, $title, $skin) {
 		$urls = array(
 			'createaccount',
-			'login',
 			'anonlogin'
 		);
 		foreach ($urls as $u) {
@@ -288,24 +293,9 @@ class OpenIDConnect {
 				unset($personal_urls[$u]);
 			}
 		}
-		global $OpenIDConnect_AutoLogin;
-		if (!isset($OpenIDConnect_AutoLogin) || !$OpenIDConnect_AutoLogin) {
-			// replace with skin parameter in MW 1.23
-			global $wgOut;
-			$skin = $wgOut->getSkin();
-			if (!$skin->getUser()->isLoggedIn()) {
-				$href = Title::newFromText('Special:OpenIDConnectLogin')->
-					getFullURL();
-				$returnto = $title->getPrefixedText();
-				if ($returnto != "Special:Badtitle" && $returnto != "Special:UserLogout") {
-					$href .= '?returnto=' . $returnto;
-				}
-				$personal_urls['openidconnectlogin'] = array(
-					'text' => wfMessage('openidconnectlogin')->text(),
-					'href' => $href
-				);
-			}
-		} else {
+		if (isset($GLOBALS['OpenIDConnect_AutoLogin']) &&
+			$GLOBALS['OpenIDConnect_AutoLogin']) {
+			unset($personal_urls['login']);
 			unset($personal_urls['logout']);
 		}
 		return true;
@@ -313,13 +303,17 @@ class OpenIDConnect {
 
 	public static function modifyLoginSpecialPages(&$specialPagesList) {
 		$specialpages = array(
-			'Userlogin',
 			'CreateAccount'
 		);
 		foreach ($specialpages as $p) {
 			if (array_key_exists($p, $specialPagesList)) {
 				unset($specialPagesList[$p]);
 			}
+		}
+		if (isset($GLOBALS['OpenIDConnect_AutoLogin']) &&
+			$GLOBALS['OpenIDConnect_AutoLogin']) {
+			unset($specialPagesList['Userlogin']);
+			unset($specialPagesList['Userlogout']);
 		}
 		return true;
 	}

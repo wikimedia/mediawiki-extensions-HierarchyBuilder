@@ -26,8 +26,8 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
+if (version_compare($wgVersion, '1.23', 'lt')) {
+	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.23 or above.');
 }
 
 $wgExtensionCredits['other'][] = array (
@@ -54,12 +54,10 @@ $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-$wgExtensionMessagesFiles['OpenIDConnectSpecialAliases'] =
-	__DIR__ . '/OpenIDConnect.aliases.php';
 
 $wgAutoloadClasses['OpenIDConnectLogin'] =
 	__DIR__ . '/OpenIDConnectLogin.class.php';
-$wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
+$wgSpecialPages['Userlogin'] = 'OpenIDConnectLogin';
 
 $wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
 $wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
