@@ -37,7 +37,7 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 		if ($user->isLoggedIn()) {
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
-				$returnto = Title::newMainPage()->getFullURL();
+				$returnto = Title::newMainPage()->getPrefixedText();
 			} else {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
@@ -48,7 +48,7 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
 				$returnto = htmlentities(
-					$this->getRequest()->getVal('returnto',''),
+					$this->getRequest()->getVal('returnto', ''),
 					ENT_QUOTES);
 				$title = Title::newFromText($returnto);
 				if (is_null($title)) {
@@ -56,7 +56,8 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				}
 				$_SESSION[$session_variable] = $title->getPrefixedText();
 			}
-			OpenIDConnect::login($user);
+			$forceLogin = $this->getRequest()->getBool('forcelogin', false);
+			OpenIDConnect::login($user, $forceLogin);
 		}
 	}
 }

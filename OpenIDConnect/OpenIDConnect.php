@@ -26,8 +26,8 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
+if (version_compare($wgVersion, '1.23', 'lt')) {
+	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.23 or above.');
 }
 
 $wgExtensionCredits['other'][] = array (
