@@ -42,7 +42,6 @@ window.importOne = function (div_progress, div_duplicates, div_errors, div_detai
 	api_url, records, overwrite, index, duplicates, errors, injurytype) {
 	if (index >= records.length) return;
 	var action = "add_bibtex";
-	//var data = getFields(records[index]);
 	var data2 = records[index];
 	var data = {};
 	
@@ -51,8 +50,6 @@ window.importOne = function (div_progress, div_duplicates, div_errors, div_detai
 	data.format = "json";
 	data2["injurytypes"] = injurytype;
 	data["bibtexJSON"] = JSON.stringify(data2);
-
-    //console.log("Overwrite: " + overwrite);
 
 	jQuery.ajax({
 		type: "POST",
@@ -63,22 +60,27 @@ window.importOne = function (div_progress, div_duplicates, div_errors, div_detai
 		data: data,
 		dataType: "json",
 		success: function(data) {
-			//console.log("Hi Kevin2:" + data[action][0]);
 			if (data[action][0] > 0) {
 				duplicates++;
 				jQuery("#" + div_duplicates).html(duplicates);
 				jQuery("#" + div_details).append("<p>Duplicate title: " +
 					data[action][1] + "</p>");
 			} else if (data[action][0] < 0) {
-			    //console.log("Hi Kevin error but successful return:" + data[action][0]);
 				errors++;
 				jQuery("#" + div_errors).html(errors);
+				jQuery("#" + div_details).append("<p>Error with title: " + 
+					data[action][1] + "</p>");
+			} else {
+				jQuery("#" + div_details).append("<p>Created title: " + 
+					data[action][1] + "</p>");
+
 			}
 		},
 		error: function() {
-			//console.log("Hi Kevin error");
 			errors++;
 			jQuery("#" + div_errors).html(errors);
+				jQuery("#" + div_details).append("<p>Error with title: " + 
+					data[action][1] + "</p>");
 		},
 		complete: function() {
 			index++;

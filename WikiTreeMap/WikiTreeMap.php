@@ -56,7 +56,7 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
-		'src/getWikis.js',   
+		'src/getWikis.js',
 		'src/getWikiData.js',
 		'src/WikiTreeMap.js',
 		'src/makeTreemap.js',
@@ -130,8 +130,16 @@ class WikiTreeMap {
 		$div = "WikiTreeMap_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
-<div id="selectAWiki">
-</div>
+<div id="selectAWiki"></div>
+<div id="wiki1"></div>
+<div id="wiki2"></div>
+
+<div id="wiki1text"></div>
+<div id="wiki2text"></div>
+
+<div id="clearButton"></div>
+
+
 <h1></h1>	
 <table>
 <tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
@@ -145,7 +153,8 @@ class WikiTreeMap {
   <p><span id="subcategory"></span></p>
   <p><span id="pages"></span></p>
 </div>
-
+<div id="fullTable">
+</div>
 EOT;
 
 		global $wgServer;

@@ -8,7 +8,7 @@ $STDOUT = fopen('/tmp/wes_application.log', 'wb');
 echo ("Start of Wes log..." . "\n");
 
 //Set path to your MediaWiki installation
-$install_path = '/GESTALT/MEDIAWIKI/mediawiki-1.22';
+$install_path = '/GESTALT/MEDIAWIKI/mediawiki-1.23';
 chdir( $install_path );
 require_once( '/GESTALT/WES/wes/MimeMailParser.class.php');
 require_once( '/GESTALT/WES/wes/attachment.class.php');
@@ -21,7 +21,7 @@ $cc = $parser->getHeader('cc');
 $from = $parser->getHeader('from');
 $subject = $parser->getHeader('subject');
 $text = $parser->getMessageBody('text');
-$text = quoted_printable_decode($text);
+//$text = quoted_printable_decode($text);
 $attachments = $parser->getAttachments();
 
 //Parse Important Pieces from Email

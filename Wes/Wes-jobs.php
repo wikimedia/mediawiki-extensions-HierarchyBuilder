@@ -21,7 +21,7 @@ $cc = $parser->getHeader('cc');
 $from = $parser->getHeader('from');
 $subject = $parser->getHeader('subject');
 $text = $parser->getMessageBody('text');
-$text = quoted_printable_decode($text);
+//$text = quoted_printable_decode($text);
 $attachments = $parser->getAttachments();
 
 //Parse Important Pieces from Email

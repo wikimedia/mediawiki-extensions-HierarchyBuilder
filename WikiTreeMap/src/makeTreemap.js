@@ -48,11 +48,11 @@ var mousemove = function(d) {
  d3.select("#tooltip")
     .style("left", xPosition + "px")
     .style("top", yPosition + "px");
-  d3.select("#tooltip #category")
+ d3.select("#tooltip #category")
     .text("Category: " + d.name);
-  d3.select("#tooltip #subcategory")
+ d3.select("#tooltip #subcategory")
     .text("Subcategory: " + d.subcats);
-  d3.select("#tooltip #pages")
+ d3.select("#tooltip #pages")
     .text("Pages: " + d.pages);
   d3.select("#tooltip").classed("hidden", false);
 };
@@ -97,6 +97,8 @@ var mouseout = function() {
 	  .attr("stroke", "white")
 	  .on('mousemove', mousemove)
 	  .on('mouseout', mouseout);
+//	  .on('mouseover', tip.show)3
+//      .on('mouseout', tip.hide);
 
 	cells.append("svg:text")
 		.attr("x", function(d){return d.x})

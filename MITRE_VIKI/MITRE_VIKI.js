@@ -3,8 +3,9 @@
 (function($) {
    window.MITRE_VIKI = {
 
-      mitre_matchIcons : function(vikiObject, parameters) {
+      mitre_matchIcons : function(vikiObject, parameters, hookName) {
       //parameters = [ new external nodes ]
+         MITRE_VIKI.hookName = hookName;
       	nodes = parameters[0];
          needsRedraw = false;
 
@@ -75,6 +76,8 @@
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
          this.hook_log(node.hookIconURL);
          vikiObject.redraw(true);
+
+         vikiObject.hookCompletion(MITRE_VIKI.hookName);
       },
 
       hook_log : function(text) {
