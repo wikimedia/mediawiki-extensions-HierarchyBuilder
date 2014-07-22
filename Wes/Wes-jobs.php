@@ -3,7 +3,7 @@
 <?php
 
 fclose(STDOUT);
-$STDOUT = fopen('/tmp/wes_application.log', 'wb');
+$STDOUT = fopen('/tmp/wes_jobs_application.log', 'wb');
 
 echo ("Start of Wes log..." . "\n");
 
@@ -55,13 +55,16 @@ if( is_object( $user ) ) {
 }
 
 
+echo ("Hi Kevin3\n");
 //Handle attachments
 $save_dir = '/tmp/'; 
 $attachmentResults = "\n===Attachments:===\n";
 foreach($attachments as $attachment) { 
+echo ("Processing Attachment...");
   // get the attachment name 
   $filename = $attachment->filename; 
   $filetitle = Title::makeTitleSafe( NS_FILE, $filename );
+  echo ("filename: " . $filename);
 
   $content_type = $attachment->content_type;
   // write the file to the directory you want to save it in 
@@ -71,12 +74,14 @@ foreach($attachments as $attachment) {
     } 
     fclose($fp); 
   }
+  echo ("\nfile saved");
 
   if( !is_object( $filetitle ) ) {
     $attachmentResults .= "* Sorry there was an issue with attachment: $filename\n"; 
     exec( "rm " . $save_dir.$filename );
     continue;
   }
+  echo ("\nfile is object");
  
   $image = wfLocalFile( $filetitle );
   if( $image->exists() ) {
@@ -85,12 +90,10 @@ foreach($attachments as $attachment) {
     continue;
   }
 
+  echo ("\nimage does not exist");
+
   $archive = $image->publish( $save_dir.$filename );
-  //$archive = $image->publish( "/usr/share/mediawiki/maintenance/wes/Picture_1.jpg" );
-  if( WikiError::isError( $archive ) ) {
-    $attachmentResults .= "* Error posting: $filename. WikiError. Attachment not posted.\n";
-    continue;
-  }
+  echo ("\nimage post publish");
 
   if( !$archive->isGood() ) {
     $attachmentResults .= "* Archive: " . $archive->getWikiText();
@@ -99,12 +102,14 @@ foreach($attachments as $attachment) {
     continue;
   } 
 
+  echo ("\nimage is good");
+
   if(! $image->recordUpload( $archive->value, "WES Uploaded File.", '') ) {
     $attachmentResults .= "* Error in recording upload: $filename. \n";
   }
   exec( "rm " . $save_dir.$filename );
   $attachmentResults .= "* [[$filetitle]]\n"; 
-  //$foo2 = createTempFile($filename, $content_type, $filetitle);
+  echo ("\nimage upload complete\n");
 
 }
 
@@ -120,90 +125,139 @@ if($isPost) {
   //Handle Posts
   $foo = createTempFile($text, $wikiuser, $date);
 
-  $title = Title::newFromText( $title, 0 );
   global $wgTitle;
-  $wgTitle = $title;
 
-  if( is_object( $title ) ) {
+
+  $wgTitle = Title::newFromText( $title, 0 );
+
+  if( is_object( $wgTitle ) ) {
     $text = file_get_contents( $foo );
     $comment = 'Wiki post from MITRE Wiki Email Service (WES).';
     $flags = 0;
     $user = User::newFromName( $wikiuser );
     if( is_object( $user ) ) {
       $wgUser =& $user;
-      $article = new WikiPage( $title );
+      //$article = new WikiPage( $wgTitle );
     
       echo("Text: " . $text . "\n");
       echo("Title: " . $title . "\n");
       echo("SERVER: " . $serverName . "\n");
-      echo("Title->exists(): " . $title->exists() . "\n");
+      echo("Title->exists(): " . $wgTitle->exists() . "\n");
  
-      if( $title->isKnown() && !$overwrite) {
-        $oldText = $article->getRawText();
-        $text = $oldText . "\n----\n" . $text;
-      }
+      //if( $title->isKnown() && !$overwrite) {
+      //  $oldText = $article->getRawText();
+      //  $text = $oldText . "\n----\n" . $text;
+      //}
+     
+	  $text = getJobsTemplate($title, $wikiuser, $text) . "\n" . $text;
+ 
+      echo ("text: " . $text . "\n");    
       
-      //echo ("text: " . $text . "\n");    
-      
-      //echo ("comment: " . $comment . "\n");    
-      $article->doEdit( $text, $comment, $flags );
-      
-      //echo ("title: " . $article->getRawText());    
-      $url = $title->getFullURL();
-      $url = str_replace("localhost", gethostname() . ".mitre.org", $url);
-      echo("URL: " . $url . "\n");
+      //$article->doEdit( $text, $comment, $flags );
+      //$url = $title->getFullURL();
 
+	  $pagename = findItem($title);
+	  $url = addPage($pagename, $text);
+	  if($url != null) {
+      	$url = str_replace("localhost", gethostname() . ".mitre.org", $url);
+        emailResponse($originalSender, $wesEmail, $url);    
 
-      emailResponse($originalSender, $wesEmail, $url);    
+	  } else {
+        $wgTitle = Title::newFromText($pagename);
+      	$url = $wgTitle->getFullURL();
+      	$url = str_replace("localhost", gethostname() . ".mitre.org", $url);
+		
+        emailPageExistsResponse($originalSender, $wesEmail, $url);    
+
+	  }
       
     } else {
       echo( "invalid user.\n" );
     }
     
   } else {
-    echo( "invalid title.\n" );
+	echo( "invalid title.\n" );
   }
 
   exec( "rm " . $foo );
 
-} else { 
-  //Handle Requests
-  if( $title == "Templates" ) {
-     $page = SpecialPage::getPage( "Templates");
-     $name = $page->name;
-     $title = $page->getTitle();
-     $url = $title->getFullURL();
+} 
 
-     $dbr = wfGetDB( DB_SLAVE );
-     $sql = "SELECT page_title from page where page_namespace = '10';";
-     $res = $dbr->query( $sql );
-     $rows = $dbr->numRows( $res );
-
-     $links = "<TABLE border=\"1\" cellpadding=\"5\" cellspacing=\"10\">\n";
-     if( $dbr->numRows( $res ) != 0 ) {
-        while( $row = $dbr->fetchObject( $res ) ) {
-
-           $title = $row->page_title;
-           $title = Title::newFromText( $title, 10 );
-           $article = new Article( $title );
-           global $wgTitle;
-           $wgTitle = $title;
-           $text = $article->getRawText();
-           $template = grabTemplate( $text, $wesEmail, "Email Wes" );
-           if($template != "") {
-              $links .= "<TR>\n";
-              $links .= "<TD>".makeLink ($title->getFullURL (), $title->getText ())."</td>\n";
-              $links .= "<TD>" . $template . "</td>\n</tr>\n";
-           }
+function findPage($query) {
+        $params = array();
+        $params[] = $query;
+        $params[] = "headers=hide";
+        $params[] = "link=none";
+        $params[] = "searchlabel=";
+        $params[] = "limit=1";
+        $params[] = "default=";
+        $output = SMWQueryProcessor::getResultFromFunctionParams($params,
+            SMW_OUTPUT_WIKI);
+        $output = trim($output);
+        if (strlen($output) > 0) {
+                return $output;
         }
-     } else {
-        $links = "No Templates Found\n";
-     }
-     $dbr->freeResult($res);
-     $links .= "</TABLE><BR>\n";
-     emailRequestResponse($originalSender, $wesEmail, $url, $links);
-  }
+        return false;
+}
 
+
+function findItem($title) {
+        return findPage(
+            "[[Category:Jobs]][[Name::" . $title ."]]");
+}
+
+
+
+function addPage($pagename, $text) {
+        if ($pagename == false) {
+            $id = 0;
+            do {
+                $id++;
+                $pagename = "Job:" . $id;
+                $title = Title::newFromText($pagename);
+            } while ($title->exists());
+            $summary = 'Created Page.';
+            $flag = EDIT_NEW;
+        	$page = new WikiPage($title);
+        	$page->doEdit($text, $summary, $flag);
+      		$url = $title->getFullURL();
+			return $url;
+        }
+		return null;
+}
+
+
+function getJobsTemplate($subject, $wikiuser, $text) {
+	$template = "{{Job\n" .
+				"|Name=" . $subject . "\n" . 
+				"|Status=Open\n" . 
+				"|POC=" . $wikiuser . "\n" .
+				"|Expertise=" . getExpertise($text) . "\n}}\n";
+
+	return $template;
+}
+
+function getExpertise($text) {
+	$store = smwfGetStore();
+
+	$property = SMWDIProperty::newFromUserLabel("Expertise");
+
+	$values = $store->getPropertyValues(null, $property);
+
+	$lowerText = strtolower($text);
+	$expertise = "";
+
+	foreach($values as $value) {
+		$label = $value->getString();
+		$lowerLabel = strtolower($label);
+
+		if (strpos($lowerText, $lowerLabel) !== false) {
+			$expertise = $label . "," . $expertise;	
+		}
+	}
+
+	$length = strlen($expertise);
+	return substr($expertise, 0, $length-1);
 }
 
 
@@ -254,7 +308,7 @@ function getServerName($to, $cc ) {
 }
 
 function getServerNameUsingWiki($to, $cc) {
-   $filename = "/GESTALT/WES/wikis.txt";
+   $filename = "/GESTALT/WES/wes-jobs-wikis.txt";
    $listOfWikis = file($filename, FILE_IGNORE_NEW_LINES);
 
    foreach($listOfWikis as $wikiname) {
@@ -270,14 +324,6 @@ function getServerNameUsingWiki($to, $cc) {
   
    return null;
  
-   /*$idx1 = strpos($to, "\"robopedia@");
-   $idx2 = strpos($cc, "\"robopedia@");
-   if(($idx1 === false) && ($idx2 === false)) {
-     return null;
-   } else {
-     return "robopedia";
-   } 
-   */
 }
 
 function getServerNameOrig($to, $cc) {
@@ -356,6 +402,23 @@ function removeKeywords($subject) {
     }
   }
 
+  $idx = strpos($subject, "FW: ");
+  if($idx !== false) {
+    if($idx == 0) {
+      $temp = substr($subject, 4);
+      return $temp;
+    }
+  }
+
+  $idx = strpos($subject, "RE: ");
+  if($idx !== false) {
+    if($idx == 0) {
+      $temp = substr($subject, 4);
+      return $temp;
+    }
+  }
+
+
   return $subject;
 }
 
@@ -373,16 +436,31 @@ function emailResponse($mailTo, $mailFrom, $url) {
   mail($mailTo, $mailSubject, $mailBody, $mailHeaders, $replyTo);
 }
 
+function emailPageExistsResponse($mailTo, $mailFrom, $url) {
+  $mailSubject = "Wes Results: Wes says, 'Hmmm...'";
+
+  $mailBody = "This email is an auto-generated response from Wes.\n\n";
+  $mailBody .= "Wes received your last posting and it looks like your page already exists.";
+  $mailBody .= "Your update last email post was not processed, but the existing page can be found  found here:\n";
+  $mailBody .= $url;
+  $mailBody .= "\n\nThanks from Wes!";
+
+  $mailHeaders = "From: " . $mailFrom . "\n";
+  $replyTo = "'-f" . $mailFrom . "'";
+  mail($mailTo, $mailSubject, $mailBody, $mailHeaders, $replyTo);
+}
+
 function createTempFile($text, $user, $date) {
   $foo = exec('mktemp /tmp/wikimail.XXXXXX');
   $fw = fopen($foo, 'w');
 
   fwrite($fw, $text);
-  fwrite($fw, "\n{{Wes Signature\n|name=");
+  /*fwrite($fw, "\n{{Wes Signature\n|name=");
   fwrite($fw, $user);
   fwrite($fw, "\n|date=");
   fwrite($fw, $date);
   fwrite($fw, "\n}}\n");
+  */
   fclose($fw);
 
   return $foo;

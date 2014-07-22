@@ -54,15 +54,10 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-// if(array_key_exists('GetAllWikisHook', $VikiJS_Function_Hooks))
-// 	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'mitre_getAllWikis';
-// else
-// 	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('mitre_getAllWikis');
-
 if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'mitre_matchIcons';
+	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'MITRE_VIKI.mitre_matchIcons';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('mitre_matchIcons');
+	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('MITRE_VIKI.mitre_matchIcons');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 

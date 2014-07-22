@@ -130,8 +130,16 @@ class WikiTreeMap {
 		$div = "WikiTreeMap_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
-<div id="selectAWiki">
-</div>
+<div id="selectAWiki"></div>
+<div id="wiki1"></div>
+<div id="wiki2"></div>
+
+<div id="wiki1text"></div>
+<div id="wiki2text"></div>
+
+<div id="clearButton"></div>
+
+
 <h1></h1>	
 <table>
 <tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
@@ -140,7 +148,13 @@ class WikiTreeMap {
 </div>
 </td></tr>
 </table>
-
+<div id="tooltip" class="hidden">
+  <p><strong id="category"></strong></p>
+  <p><span id="subcategory"></span></p>
+  <p><span id="pages"></span></p>
+</div>
+<div id="fullTable">
+</div>
 EOT;
 
 		global $wgServer;

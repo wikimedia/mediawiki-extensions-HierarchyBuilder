@@ -53,26 +53,66 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 
 function fillDropdown(dropdownName, vikiObject) {
 	
-	// Creating the dropdown menu
+	// Creating the Treemap dropdown menu
     $('#selectAWiki').append('<select id="wikis" style="width:500px;"></select>');		
     $(dropdownName).prepend("<option value='0' selected='true'>" +"--Select a Wiki--"+ "</option>");
     $(dropdownName).find("option:first")[0].selected = true;
     $('#selectAWiki').append('<p><button id="loadData" type="button">Load Data</button></p>');		
-    $('#selectAWiki').append('<p><button id="clearData" type="button">clear</button></p>');		
     $(dropdownName).append('<option value="' + "http://mitrepedia.mitre.org/api.php" + '">' + "MITREpedia" + '</option>');
+
+	// Creating the Version Compare dropdown menu 1
+    $('#wiki1').append('<h2>Compare Wiki Versions</h2>');		
+    $('#wiki1').append('<h3>Choose from a Gestalt wiki</h3');		
+    $('#wiki1').append('<select id="wiki1s" style="width:500px;"></select>');		
+    $('#wiki1s').prepend("<option value='0' selected='true'>" +"--Compare Wiki 1--"+ "</option>");
+    $('#wiki1s').find("option:first")[0].selected = true;
+
+	// Creating the Version Compare dropdown menu 2
+    $('#wiki2').append('<select id="wiki2s" style="width:500px;"></select>');		
+    $('#wiki2s').prepend("<option value='0' selected='true'>" +"--Compare Wiki 2--"+ "</option>");
+    $('#wiki2s').find("option:first")[0].selected = true;
+//    $('#wiki2').append('<p><button id="loadVersionData" type="button">Load Version Data</button></p>');		
+    $('#wiki2').append('<p><button id="loadVersionData" type="button">Load Version Data</button></p>');		
+
+
+    $('#wiki1text').append('<h3>Or enter a wiki API URL</h3>');		
+    $('#wiki1text').append('<input type="text" name="wiki1URL" id="wiki1URL">');		
+    $('#wiki2text').append('<input type="text" name="wiki2URL" id="wiki2URL">');		
+    $('#wiki2text').append('<p><button id="loadVersionText" type="button">Load Version Data</button></p>');		
+
+
+    $('#clearButton').append('<p><button id="clearData" type="button">clear</button></p>');		
+
+	$('#loadVersionText').click(function(e){
+		$('#fullTable').append('<div class="datagrid"><div id="unusedTable"></div><div id="generalWikiInfo"></div><div id="wikiVersions"></div><div id="wikiVersionTable"></div></div>');	
+		var wikiVObject = [];
+		wikiVObject.wiki1 = $('#wiki1URL')[0].value;
+		wikiVObject.wiki2 = $('#wiki2URL')[0].value;
+		wikiVObject.wiki1Name = $('#wiki1URL')[0].value;
+		wikiVObject.wiki2Name = $('#wiki2URL')[0].value;
+	    getComparativeWikis(wikiVObject);	
+		getGeneralWikiInfo(wikiVObject);	
+	})	
+
+
+
+
+
 
   	vikiObject.activeWikis.forEach(function(d) {
 		if(d.wikiTitle==="CTS" ^ d.wikiTitle==="J85d-jobs" ^ d.wikiTitle==="Energy Tools"){
 			console.log(d.wikiTitle);
 		} else {
 	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
+	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
+	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
 		}
     });
 	
 	$('#clearData').click(function(e){
 		$('svg').remove(); 
 		$('h2').remove();
-		$('.unusedTable').remove();		
+		$('.datagrid').remove();		
 	})
 
 	$('#loadData').click(function(e){
@@ -93,7 +133,25 @@ function fillDropdown(dropdownName, vikiObject) {
 			getUnused(vikiObject);
 		  }
 	  });     
+
+	$('#loadVersionData').click(function(e){
+		$('#fullTable').append('<div class="datagrid"><div id="unusedTable"></div><div id="generalWikiInfo"></div><div id="wikiVersions"></div><div id="wikiVersionTable"></div></div>');	
+		var wikiVObject = [];
+		wikiVObject.wiki1 = $('#wiki1s')[0].value;
+		wikiVObject.wiki2 = $('#wiki2s')[0].value;
+		wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
+		wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
+		getGeneralWikiInfo(wikiVObject);	
+	    getComparativeWikis(wikiVObject);
+
+	});
+
+
+
+
+
+
+
+
 }
-
-
 

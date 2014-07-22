@@ -68,7 +68,7 @@ window.OrgChart = function() {
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
 
-		if(mwVersion === "1.22") {
+		if(mwVersion === "1.22" || mwVersion == "1.23") {
 
 			jQuery.ajax({
 				async: false,
@@ -149,7 +149,7 @@ window.OrgChart = function() {
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
 
-		if(mwVersion === "1.22") {
+		if(mwVersion === "1.22" || mwVersion == "1.23") {
 
 			jQuery.ajax({
 				async: false,
