@@ -34,6 +34,10 @@ class OpenIDConnect {
 
 		if ($GLOBALS['OpenIDConnect_Timetout'] > 0) {
 
+			if (session_id() == '') {
+				wfSetupSession();
+			}
+
 			$time = time();
 
 			if (isset($_SESSION['LAST_ACTIVITY']) &&
@@ -89,26 +93,90 @@ class OpenIDConnect {
 	}
 
 	public static function login($user, $forceLogin) {
+
 		if (!array_key_exists('SERVER_PORT', $_SERVER)) {
 			return false;
 		}
 
 		try {
-			if (!isset($GLOBALS['OpenIDConnect_Provider']) ||
-				!isset($GLOBALS['OpenIDConnect_ClientID']) ||
-				!isset($GLOBALS['OpenIDConnect_ClientSecret'])) {
-				return false;
+
+			if (session_id() == '') {
+				wfSetupSession();
 			}
-			$oidc = new OpenIDConnectClient(
-				$GLOBALS['OpenIDConnect_Provider'],
-				$GLOBALS['OpenIDConnect_ClientID'],
-				$GLOBALS['OpenIDConnect_ClientSecret']);
+
+			if (isset($_SESSION['iss'])) {
+				$iss = $_SESSION['iss'];
+
+				if (isset($_REQUEST['code']) && isset($_REQUEST['status'])) {
+					unset($_SESSION['iss']);
+				}
+	
+				if (isset($GLOBALS['OpenIDConnect_Config'][$iss])) {
+
+					$values = $GLOBALS['OpenIDConnect_Config'][$iss];
+
+					if (!isset($values['clientID']) ||
+						!isset($values['clientsecret'])) {
+						$params = array(
+							"uri" => urlencode($_SERVER['REQUEST_URI']),
+							"query" => urlencode($_SERVER['QUERY_STRING'])
+						);
+						self::redirect("Special:SelectOpenIDConnectIssuer",
+							$params);
+					}
+
+					$clientID = $values['clientID'];
+					$clientsecret = $values['clientsecret'];
+
+				}
+
+	
+			} else {
+
+				if (!isset($GLOBALS['OpenIDConnect_Config'])) {
+					return false;
+				}
+	
+				$iss_count = count($GLOBALS['OpenIDConnect_Config']);
+	
+				if ($iss_count < 1) {
+					return false;
+				}
+	
+				if ($iss_count == 1) {
+	
+					$iss = array_keys($GLOBALS['OpenIDConnect_Config']);
+					$iss = $iss[0];
+	
+					$values = array_values($GLOBALS['OpenIDConnect_Config']);
+					$values = $values[0];
+	
+					if (!isset($values['clientID']) ||
+						!isset($values['clientsecret'])) {
+						return false;
+					}
+					$clientID = $values['clientID'];
+					$clientsecret = $values['clientsecret'];
+	
+				} else {
+	
+					$params = array(
+						"uri" => urlencode($_SERVER['REQUEST_URI']),
+						"query" => urlencode($_SERVER['QUERY_STRING'])
+					);
+					self::redirect("Special:SelectOpenIDConnectIssuer",
+						$params);
+	
+				}
+			}
+
+			$oidc = new OpenIDConnectClient($iss, $clientID, $clientsecret);
 			if ($oidc->authenticate($forceLogin)) {
 				$subject = $oidc->requestUserInfo('sub');
-				$provider = $oidc->getProviderURL();
+				$issuer = $oidc->requestUserInfo('iss');
 				$realname = $oidc->requestUserInfo("name");
 				$email = $oidc->requestUserInfo("email");
-				$user->mId = self::getId($subject, $provider);
+				$user->mId = self::getId($subject, $issuer);
 				if (is_null($user->mId)) {
 					$username = $oidc->requestUserInfo("preferred_username");
 					$id = User::idFromName($username);
@@ -129,8 +197,7 @@ class OpenIDConnect {
 						self::updateName($user, $name);
 						self::updateUser($user, $realname, $email);
 					}
-					self::setExtraProperties($user->mId, $subject,
-						$provider);
+					self::setExtraProperties($user->mId, $subject, $issuer);
 				} else {
 					$user->loadFromDatabase();
 					self::updateUser($user, $realname, $email);
@@ -203,13 +270,13 @@ class OpenIDConnect {
 		$GLOBALS['wgOut']->redirect($url);
 	}	
 
-	private static function getId($subject, $provider) {
+	private static function getId($subject, $issuer) {
 		$dbr = wfGetDB(DB_SLAVE);
 		$row = $dbr->selectRow('user',
 			array('user_id'),
 			array(
 				'subject' => $subject,
-				'provider' => $provider
+				'issuer' => $issuer
 			), __METHOD__
 		);
 		if ($row === false) {
@@ -263,12 +330,12 @@ class OpenIDConnect {
 		}
 	}
 
-	private static function setExtraProperties($id, $subject, $provider) {
+	private static function setExtraProperties($id, $subject, $issuer) {
 		$dbw = wfGetDB(DB_MASTER);
 		$dbw->update('user',
 			array( // SET
 				'subject' => $subject,
-				'provider' => $provider
+				'issuer' => $issuer
 			), array( // WHERE
 				'user_id' => $id
 			), __METHOD__
@@ -278,8 +345,8 @@ class OpenIDConnect {
 	public static function loadExtensionSchemaUpdates($updater) {
 		$updater->addExtensionField('user', 'subject',
 			__DIR__ . '/AddSubject.sql');
-		$updater->addExtensionField('user', 'provider',
-			__DIR__ . '/AddProvider.sql');
+		$updater->addExtensionField('user', 'issuer',
+			__DIR__ . '/AddIssuer.sql');
 		return true;
 	}
 
