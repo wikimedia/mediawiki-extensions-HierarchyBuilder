@@ -1,11 +1,13 @@
 // Hook functions
 
-(function($) {
-   window.MITRE_VIKI = {
 
+window.MITRE_VIKI = (function($) {
+   var my = {
+
+      hookName : "",
       mitre_matchIcons : function(vikiObject, parameters, hookName) {
       //parameters = [ new external nodes ]
-         MITRE_VIKI.hookName = hookName;
+         this.hookName = hookName;
       	nodes = parameters[0];
          needsRedraw = false;
 
@@ -72,7 +74,7 @@
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
          vikiObject.redraw(true);
 
-         vikiObject.hookCompletion(MITRE_VIKI.hookName);
+         vikiObject.hookCompletion(this.hookName);
       },
 
       hook_log : function(text) {
@@ -80,6 +82,8 @@
             console.log( text );
       }
    };
+
+   return my;
 }(jQuery));
 
 // window.mitre_getAllWikis = function(vikiObject, parameters, hookName) {

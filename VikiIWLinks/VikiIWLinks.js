@@ -1,21 +1,25 @@
-window.VikiIWLinks = {
-	allWikis : new Array()
-}
+window.VikiIWLinks = (function($) {
+	var my = {
+		allWikis : new Array(),
 
-window.viki_getAllWikisFromIWLinks = function(vikiObject, parameters, hookName) {
+		viki_getAllWikisFromIWLinks : function(vikiObject, parameters, hookName) {
 
-	for(var i = 0; i < VikiIWLinks.allWikis.length; i++)
-		vikiObject.allWikis.push(VikiIWLinks.allWikis[i]);
+			for(var i = 0; i < allWikis.length; i++)
+				vikiObject.allWikis.push(allWikis[i]);
 
-	vikiObject.hookCompletion(hookName, null);
-}
+			vikiObject.hookCompletion(hookName, null);
+		},
 
-window.vikiIWLinks_parseWikiData = function(data) {
-	VikiIWLinks.allWikis = jQuery.parseJSON(data);
-	for(var i = 0; i < VikiIWLinks.allWikis.length; i++) {
-		if(VikiIWLinks.allWikis[i].searchableWiki === "true")
-			VikiIWLinks.allWikis[i].searchableWiki = true;
-		else
-			VikiIWLinks.allWikis[i].searchableWiki = false;
-	}
-}
+		viki_parseWikiData : function(data) {
+			allWikis = jQuery.parseJSON(data);
+			for(var i = 0; i < allWikis.length; i++) {
+				if(allWikis[i].searchableWiki === "true")
+					allWikis[i].searchableWiki = true;
+				else
+					allWikis[i].searchableWiki = false;
+			}
+		}
+	};
+
+	return my;
+}(jQuery));
