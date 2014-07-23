@@ -28,11 +28,11 @@ class OpenIDConnect {
 
 		// http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
 
-		if (!isset($GLOBALS['OpenIDConnect_Timetout'])) {
-			$GLOBALS['OpenIDConnect_Timetout'] = 1800;
+		if (!isset($GLOBALS['OpenIDConnect_Timeout'])) {
+			$GLOBALS['OpenIDConnect_Timeout'] = 1800;
 		}
 
-		if ($GLOBALS['OpenIDConnect_Timetout'] > 0) {
+		if ($GLOBALS['OpenIDConnect_Timeout'] > 0) {
 
 			if (session_id() == '') {
 				wfSetupSession();
@@ -42,7 +42,7 @@ class OpenIDConnect {
 
 			if (isset($_SESSION['LAST_ACTIVITY']) &&
 				($time - $_SESSION['LAST_ACTIVITY'] >
-					$GLOBALS['OpenIDConnect_Timetout'])) {
+					$GLOBALS['OpenIDConnect_Timeout'])) {
 				session_unset();
 				session_destroy();
 			}
@@ -51,7 +51,7 @@ class OpenIDConnect {
 			if (!isset($_SESSION['CREATED'])) {
 				$_SESSION['CREATED'] = $time;
 			} else if ($time - $_SESSION['CREATED'] >
-					$GLOBALS['OpenIDConnect_Timetout']) {
+					$GLOBALS['OpenIDConnect_Timeout']) {
 				session_regenerate_id(true);
 				$_SESSION['CREATED'] = $time;
 			}
