@@ -3,6 +3,9 @@
 // example: http://gestalt.mitre.org/gestalt/api.php
 
 
+// If a wiki is not previously specified, mitre_getAllWikis is called to get the list of wikis
+// mitre_getAllWikis calls fillDropdown, populating the dropdown menu
+
 window.WikiTreeMap = function() {
     var jsonData = {"name":"allcategories", "children" : []};
     var elmData;
@@ -60,61 +63,29 @@ function fillDropdown(dropdownName, vikiObject) {
     $('#selectAWiki').append('<p><button id="loadData" type="button">Load Data</button></p>');		
     $(dropdownName).append('<option value="' + "http://mitrepedia.mitre.org/api.php" + '">' + "MITREpedia" + '</option>');
 
-	// Creating the Version Compare dropdown menu 1
-    $('#wiki1').append('<h2>Compare Wiki Versions</h2>');		
-    $('#wiki1').append('<h3>Choose from a Gestalt wiki</h3');		
-    $('#wiki1').append('<select id="wiki1s" style="width:500px;"></select>');		
-    $('#wiki1s').prepend("<option value='0' selected='true'>" +"--Compare Wiki 1--"+ "</option>");
-    $('#wiki1s').find("option:first")[0].selected = true;
 
-	// Creating the Version Compare dropdown menu 2
-    $('#wiki2').append('<select id="wiki2s" style="width:500px;"></select>');		
-    $('#wiki2s').prepend("<option value='0' selected='true'>" +"--Compare Wiki 2--"+ "</option>");
-    $('#wiki2s').find("option:first")[0].selected = true;
-//    $('#wiki2').append('<p><button id="loadVersionData" type="button">Load Version Data</button></p>');		
-    $('#wiki2').append('<p><button id="loadVersionData" type="button">Load Version Data</button></p>');		
-
-
-    $('#wiki1text').append('<h3>Or enter a wiki API URL</h3>');		
-    $('#wiki1text').append('<input type="text" name="wiki1URL" id="wiki1URL">');		
-    $('#wiki2text').append('<input type="text" name="wiki2URL" id="wiki2URL">');		
-    $('#wiki2text').append('<p><button id="loadVersionText" type="button">Load Version Data</button></p>');		
-
-
-    $('#clearButton').append('<p><button id="clearData" type="button">clear</button></p>');		
-
-	$('#loadVersionText').click(function(e){
-		$('#fullTable').append('<div class="datagrid"><div id="unusedTable"></div><div id="generalWikiInfo"></div><div id="wikiVersions"></div><div id="wikiVersionTable"></div></div>');	
-		var wikiVObject = [];
-		wikiVObject.wiki1 = $('#wiki1URL')[0].value;
-		wikiVObject.wiki2 = $('#wiki2URL')[0].value;
-		wikiVObject.wiki1Name = $('#wiki1URL')[0].value;
-		wikiVObject.wiki2Name = $('#wiki2URL')[0].value;
-	    getComparativeWikis(wikiVObject);	
-		getGeneralWikiInfo(wikiVObject);	
-	})	
-
-
-
-
-
-
+	// populates the wiki dropdown menu for version comparisons, except for non-working wikis
   	vikiObject.activeWikis.forEach(function(d) {
-		if(d.wikiTitle==="CTS" ^ d.wikiTitle==="J85d-jobs" ^ d.wikiTitle==="Energy Tools"){
-			console.log(d.wikiTitle);
+		if(d.wikiTitle==="CTS" || d.wikiTitle==="J85d-jobs" || d.wikiTitle==="Energy Tools"){
 		} else {
 	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
-	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
-	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
 		}
     });
-	
+
+
+
+
+	// adds a 'clear' button to clear out previous chart
+    $('#clearButton').append('<p><button id="clearData" type="button">clear</button></p>');		
+
+	// provides functionality for the click data
 	$('#clearData').click(function(e){
 		$('svg').remove(); 
 		$('h2').remove();
 		$('.datagrid').remove();		
 	})
 
+	// once a wiki is selected and the user clicks 'Load Data', category data is queried	
 	$('#loadData').click(function(e){
 	    var elmDiv = $('#wikis');
 	    elmValue = elmDiv[0].value;        
@@ -122,7 +93,6 @@ function fillDropdown(dropdownName, vikiObject) {
 	    jsonData = {"name":"allcategories", "children" : []};
 		$('div.wikitreemap-graph-container').append("<h2>" + elmLabel + "</h2>");
 		vikiObject.elmLabel = elmLabel;
-//		console.log(elmValue);
 		vikiObject.wUrl = elmValue + "?action=query&list=allcategories&format=json&acprop=size&aclimit=500&acmin=1"
 		vikiObject.unusedUrl = elmValue + "?action=query&list=querypage&qppage=Unusedcategories&format=json"
 		vikiObject.wantedUrl = elmValue + "?action=query&list=querypage&qppage=Wantedcategories&format=json";
@@ -133,25 +103,5 @@ function fillDropdown(dropdownName, vikiObject) {
 			getUnused(vikiObject);
 		  }
 	  });     
-
-	$('#loadVersionData').click(function(e){
-		$('#fullTable').append('<div class="datagrid"><div id="unusedTable"></div><div id="generalWikiInfo"></div><div id="wikiVersions"></div><div id="wikiVersionTable"></div></div>');	
-		var wikiVObject = [];
-		wikiVObject.wiki1 = $('#wiki1s')[0].value;
-		wikiVObject.wiki2 = $('#wiki2s')[0].value;
-		wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
-		wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
-		getGeneralWikiInfo(wikiVObject);	
-	    getComparativeWikis(wikiVObject);
-
-	});
-
-
-
-
-
-
-
-
 }
 

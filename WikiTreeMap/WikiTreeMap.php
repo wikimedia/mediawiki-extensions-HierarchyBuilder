@@ -131,11 +131,6 @@ class WikiTreeMap {
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
 <div id="selectAWiki"></div>
-<div id="wiki1"></div>
-<div id="wiki2"></div>
-
-<div id="wiki1text"></div>
-<div id="wiki2text"></div>
 
 <div id="clearButton"></div>
 
@@ -143,8 +138,6 @@ class WikiTreeMap {
 <h1></h1>	
 <table>
 <tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
-	<svg style="width: $width;">
-	</svg>
 </div>
 </td></tr>
 </table>
