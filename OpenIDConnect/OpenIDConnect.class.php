@@ -123,6 +123,7 @@ class OpenIDConnect {
 						);
 						self::redirect("Special:SelectOpenIDConnectIssuer",
 							$params);
+						return false;
 					}
 
 					$clientID = $values['clientID'];
@@ -166,12 +167,16 @@ class OpenIDConnect {
 					);
 					self::redirect("Special:SelectOpenIDConnectIssuer",
 						$params);
+					return false;
 	
 				}
 			}
 
 			$oidc = new OpenIDConnectClient($iss, $clientID, $clientsecret);
-			if ($oidc->authenticate($forceLogin)) {
+			if ($forceLogin) {
+				$oidc->addAuthParam(array('prompt' => 'login'));
+			}
+			if ($oidc->authenticate()) {
 				$subject = $oidc->requestUserInfo('sub');
 				$issuer = $oidc->requestUserInfo('iss');
 				$realname = $oidc->requestUserInfo("name");
