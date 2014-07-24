@@ -4,6 +4,7 @@
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
 * include_once("$IP/extensions/ImportBibTeX/ImportBibTeX.php");
+* in your PostConfiguration.php file:
 */
 
 if (!defined('MEDIAWIKI')) {
@@ -24,6 +25,7 @@ $wgExtensionCredits[ 'specialpage' ][] = array(
 $wgSpecialPages['ImportBibTeX'] = 'ImportBibTeX'; 
 $wgSpecialPageGroups['ImportBibTeX'] = 'other';
 $wgExtensionMessagesFiles['ImportBibTeX'] = __DIR__ . '/ImportBibTeX.i18n.php';
+$wgExtensionMessagesFiles['ImportBibTeXAlias'] = __DIR__ . '/ImportBibTeX.alias.php';
 
 $wgResourceModules['ext.ImportBibTeX'] = array(
 	'localBasePath' => __DIR__,
@@ -46,35 +48,7 @@ class ApiAddBibTeXItem extends ApiBase {
 
 	public function getAllowedParams() {
 		return array(
-			//'abbrev_source_title' => null,
-			//'abstract' => null,
-			//'added-at' => null,
-			//'author' => null,
-			//'author_keywords' => null,
 			'bibtexJSON' => null
-			//'biburl' => null,
-			//'chemicals_cas' => null,
-			//'correspondence_address1' => null,
-			//'document_type' => null,
-			//'doi' => null,
-			//'injurytype' => null,
-			//'interhash' => null,
-			//'intrahash' => null,
-			//'issn' => null,
-			//'journal' => null,
-			//'keywords' => null,
-			//'language' => null,
-			//'note' => null,
-			//'overwrite' => null,
-			//'pages' => null,
-			//'references' => null,
-			//'source' => null,
-			//'timestamp' => null,
-			//'title' => null,
-			//'type' => null,
-			//'url' => null,
-			//'volume' => null,
-			//'year' => null
 		);
 	}
 
@@ -85,140 +59,6 @@ class ApiAddBibTeXItem extends ApiBase {
 	public function getDescription() {
 		return "add a bibtex item wiki page with the given fields";
 	}
-
-	/*private function parseItem($field_array) {
-
-		$call_number = null;
-
-		$authors = null;
-		$keywords = null;
-
-		$title = null;
-		$secondary_title = null;
-		$tertiary_title = null;
-		$full_title = null;
-		$titles = array();
-
-		$year = null;
-		$date = null;
-
-		$text = "";
-		foreach ($field_array as $field_name => $field_value) {
-
-			$value = preg_replace('/\s+/', ' ', $field_value);
-			$value = trim($value);
-
-			switch ($field_name) {
-			case "overwrite":
-				// do nothing
-				break;
-			case "authors":
-				$authors = $value;
-				break;
-			case "keywords":
-				$keywords = $value;
-				break;
-			case "ref-type":
-				$text .= '|Material_Type = ' . $value;
-				break;
-			case "title":
-				$title = $value;
-				break;
-			case "tertiary-title":
-				$tertiary_title = $value;
-				break;
-			case "full-title":
-				$full_title = $value;
-				break;
-			case "year":
-				$year = $value;
-				break;
-			case "date":
-				$date = $value;
-				break;
-			case "abstract":
-				$text .= '|Abstract = ' . $value;
-				break;
-			case "call-num":
-				$call_number = $value;
-				$text .= '|Call_Number = ' . $value;
-				break;
-			case "isbn":
-				$text .= '|ISSN_ISBN = ' . $value;
-				break;
-			case "language":
-				$text .= '|Language = ' . $value;
-				break;
-			case "notes":
-				$text .= '|Notes = ' . $value;
-				break;
-			case "pages":
-				$text .= '|Pages = ' . $value;
-				break;
-			case "publisher":
-				$text .= '|Publisher = ' . $value;
-				break;
-			case "pub-location":
-				$text .= '|Publication_Location = ' . $value;
-				break;
-			case "volume":
-				$text .= '|Volume = ' . $value;
-				break;
-			case "electronic-resource-num":
-				$text .= '|DOI = ' . $value;
-				break;
-			case "url":
-				$urls = explode(' ', $value);
-				$new_urls = array();
-				foreach ($urls as $url) {
-					$url = preg_replace('/\s+/', ' ', $url);
-					$url = trim($url);
-					if (strlen($url) > 0) {
-						$new_urls[] = $url;
-					}
-				}
-				if (count($new_urls) > 0) {
-					$text .= "|URLs=" . implode(' ', $new_urls);
-				}
-				break;
-			default:
-			}
-		}
-
-		if ($title != null) {
-			$titles[] = $title;
-		}
-		if ($full_title != null) {
-			$titles[] = $full_title;
-		}
-		if ($tertiary_title != null) {
-			$titles[] = $tertiary_title;
-		}
-		if (count($titles) > 0) {
-			$text .= "|Title=" . $titles[0];
-			array_shift($titles);
-		}
-		if (count($titles) > 0) {
-			$text .= "|Secondary_Title=" . $titles[0];
-			array_shift($titles);
-			while (count($titles) > 0) {
-				$text .= "; " . $titles[0];
-				array_shift($titles);
-			}
-		}
-
-		if ($year == null) {
-			if ($date != null) {
-				$year = $date;
-			} else {
-				$year = "----";
-			}
-		}
-		$text .= "|Year=" . $year;
-
-		return array($call_number, $text, $authors, $keywords);
-	}
-    */
 
 	private function findPage($query) {
 		$params = array();
@@ -242,25 +82,12 @@ class ApiAddBibTeXItem extends ApiBase {
 			"[[Category:Items]][[Full Title::" . $title ."]]");
 	}
 
-    /*
-	private function findAuthor($name) {
-		return $this->findPage(
-			"[[Category:Authors]][[Name::" . $name ."]]");
-	}
-
-	private function findKeyword($name) {
-		return $this->findPage(
-			"[[Category:Keywords]][[Name::" . $name ."]]");
-	}
-*/
-
-	private function addPage($namespace, $pagename, $text) {
+	private function addPage($pagename, $text) {
 		if ($pagename == false) {
 			$id = 0;
 			global $wgExtraNamespaces;
  			do {
 				$id++;
-				//$pagename = $wgExtraNamespaces[$namespace] . ":" .	 $id;
 				$pagename = "Item:" . $id;
 				$title = Title::newFromText($pagename);
 			} while ($title->exists());
@@ -277,81 +104,6 @@ class ApiAddBibTeXItem extends ApiBase {
 		$page->doEdit($text, $summary, $flag);
 		return array($ret, $pagename);
 	}
-/*
-	private function parseAuthors($authors) {
-
-		if (strlen($authors) == 0) {
-			return "";
-		}
-
-		$author_list = "";
-
-		$num_matches = preg_match_all("/<author>(.*)<\/author>/U", $authors,
-			$matches);
-		if ($num_matches == false || $num_matches == 0) {
-			return "";
-		}
-
-		foreach ($matches[1] as $author) {
-
-			$author = preg_replace('/\s+/', ' ', $author);
-			$author = trim($author);
-			$author = preg_replace('/[\s.,]*$/', ' ', $author);
-
-			if (strlen($author) > 0) {
-				$pagename = $this->findAuthor($author);
-				if ($pagename == false) {
-					list($ret, $pagename) =
-						$this->addPage(NS_COLLECTION_AUTHOR, $pagename,
-						"{{Author|Name=" . $author . "}}");
-				}
-				if (strlen($author_list) != 0) {
-					$author_list .= ",";
-				}
-				$author_list .= $pagename;
-			}
-		}
-
-		return $author_list;
-	}
-
-	private function parseKeywords($keywords) {
- 
-		if (strlen($keywords) == 0) {
-			return "";
-		}
-
-		$keyword_list = "";
-
-		$num_matches = preg_match_all("/<keyword>(.*)<\/keyword>/U", $keywords,
-			$matches);
-		if ($num_matches == false || $num_matches == 0) {
-			return "";
-		}
-
-		foreach ($matches[1] as $keyword) {
-
-			$keyword = preg_replace('/\s+/', ' ', $keyword);
-			$keyword = trim($keyword);
-			$keyword = preg_replace('/[\s.,]*$/', ' ', $keyword);
-
-			if (strlen($keyword) > 0) {
-				$pagename = $this->findKeyword($keyword);
-				if ($pagename == false) {
-					list($ret, $pagename) =
-						$this->addPage(NS_COLLECTION_KEYWORD, $pagename,
-						"{{Keyword|Name=" . $keyword . "}}", false);
-				}
-				if (strlen($keyword_list) != 0) {
-					$keyword_list .= ",";
-				}
-				$keyword_list .= $pagename;
-			}
-		}
-
-		return $keyword_list;
-	}
-*/
 
     public function parseAuthors($authors) {
 		$people = explode(" and ", $authors);
@@ -370,7 +122,6 @@ class ApiAddBibTeXItem extends ApiBase {
 		return $result;
 	}
 
-
     public function parseKeywords($keywords) {
 		$words = explode(";", $keywords);
 		$result = "";
@@ -381,29 +132,27 @@ class ApiAddBibTeXItem extends ApiBase {
     }
 
 	public function execute() {
+		$loggedInUser = $this->getUser();
+		if (!$loggedInUser->isLoggedIn()) {
+           $this->displayRestrictionError();
+           return;
+       }
 
 		$params = $this->extractRequestParams();
-		//$params = $this->extractRequestParams();
 		$bibtexParams = json_decode($params['bibtexJSON'], true);
 
-
-		$overwrite = $params['overwrite'];
-		if ($overwrite == 'false') {
-			$overwrite = false;
+		if(isset($params['overwrite'])) { 
+			$overwrite = $params['overwrite'];
 		} else {
-			$overwrite = true;
+			$overwrite = 'false';
 		}
 
-		/*list($call_number, $wikitext, $authors, $keywords) =
-			$this->parseItem($params);
-		if ($call_number == false) {
-			$ret = array ($this->RETURN_ERROR_BAD_REQUEST,
-				"missing call number");
-			$this->getResult()->addValue(null, 'add_item',
-				$ret);
-			return;
+
+		if ($overwrite == 'true') {
+			$overwrite = true;
+		} else {
+			$overwrite = false;
 		}
-        */
 
         if($bibtexParams['title'] == null) {
 			$ret = array ($this->RETURN_ERROR_BAD_REQUEST, $bibtexParams['title']);
@@ -415,13 +164,17 @@ class ApiAddBibTeXItem extends ApiBase {
 		$pagename = $this->findItem($title);
 
 		if ($pagename != false && !$overwrite) {
-				$ret = array ($this->RETURN_DUPLICATE_NOOP, $title);
+				$wgTitle = Title::newfromText($pagename, 10);
+				$url = $wgTitle->getFullURL();
+				$ret = array ($this->RETURN_DUPLICATE_NOOP, "<a href=\"$url\">" . $title . "</a>");
+
+
 				$this->getResult()->addValue(null, 'add_bibtex',
 					$ret);
 				return;
 		}
 
-		$wikitext = "{{Item" . $wikitext;
+		$wikitext = "{{Item";
 
 		$keywordsCache = "";
 
@@ -438,25 +191,15 @@ class ApiAddBibTeXItem extends ApiBase {
 		$keywordsCache = str_replace(";", ",", $keywordsCache);
 
 		$wikitext .= "\n|keywords=" . substr($keywordsCache, 1);
-		/*$wikitext .= "\n|title=" . $title;
-		$wikitext .= "\n|added-at=" . $bibtexParams['added-at'];
-		$wikitext .= "\n|authors=" . $this->parseAuthors($bibtexParams['author']);
-		$wikitext .= "\n|url=" . $bibtexParams['biburl'];
-		$wikitext .= "\n|injurytypes=" . $bibtexParams['injurytypes'];
-		$wikitext .= "\n|interhash=" . $bibtexParams['interhash'];
-		$wikitext .= "\n|intrahash=" . $bibtexParams['intrahash'];
-		$wikitext .= "\n|keywords=" . $bibtexParams['keywords'];
-		$wikitext .= "\n|timestamp=" . $bibtexParams['timestamp'];
-		$wikitext .= "\n|type=" . $bibtexParams['type'];
-		$wikitext .= "\n|year=" . $bibtexParams['year'];
-*/
 
 		$wikitext .= "\n}}";
-		list($ret, $pagename) = $this->addPage(NS_COLLECTION_ITEM, $pagename,
+		list($ret, $pagename) = $this->addPage($pagename,
 			$wikitext);
+		$wgTitle = Title::newfromText($pagename, 10);
+		$url = $wgTitle->getFullURL();
 
 		$this->getResult()->addValue(null, 'add_bibtex',
-			array ($ret, $title));
+			array ($ret, "<a href=\"$url\">" . $title . "</a>", $url));
         return;
 		
 	}
@@ -472,12 +215,13 @@ class ImportBibTeX extends SpecialPage {
 	}
 
 	public function execute($par) {
+		$loggedInUser = $this->getUser();
+		if (!$loggedInUser->isLoggedIn()) {
+           $this->displayRestrictionError();
+           return;
+       }
 
-		/*if (!$this->userCanExecute($this->getUser())) {
-			$this->displayRestrictionError();
-			return;
-		}
-                */
+
 
 		$request = $this->getRequest();
 		$this->setHeaders();
@@ -503,7 +247,6 @@ class ImportBibTeX extends SpecialPage {
 			Html::openElement('fieldset') .
 			Html::hidden( 'title', $this->getTitle()->getPrefixedText() ) .
 			Html::hidden( 'phase', 2 ) .
-			//Html::hidden( 'overwrite', false ) .
 			Html::element('legend', null, 'Import from a list of BibTeX entries file:') .
 			'<table><tbody>';
 		$html .= '<tr><td valign="top"><label for="bibtexarea">Copy/Paste BibTeX entry here:</label></td><td><textarea cols="80" rows="10" name="bibtexarea"></textarea></td></tr>';
@@ -570,10 +313,6 @@ EOT;
 		global $wgServer, $wgScriptPath;
 		$apiurl = $wgServer . $wgScriptPath .	'/api.php';
 
-		//$xml = json_encode(file_get_contents($_FILES["fname"]["tmp_name"]));
-
-		//$output->addHTML("<br /> File Contents: <b>" . $xml . "</b><br /><br />");
-		//$output->addHTML("<br /> APIURL: <b>" . $apiurl . "</b><br /><br />");
 		if ($this->overwrite) {
 			$overwrite = 'true';
 		} else {
