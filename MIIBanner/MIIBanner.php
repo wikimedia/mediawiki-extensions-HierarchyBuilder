@@ -25,26 +25,35 @@ class MIIBanner {
     global $MIIBanner_useEnterpriseBanner;
     if ($MIIBanner_useEnterpriseBanner === true) {
       $banner_text =<<<END
-<iframe src='http://info.mitre.org/.includes/iframeheader_ent/mii_header_ent_iframe.html'  scrolling='no' width='100%' height='30' name='mii_header_iframe' id='mii_header_iframe' marginheight='0' marginwidth='0' frameborder='0'></iframe>
+<iframe src='http://info.mitre.org/.includes/iframeheader_ent/mii_header_ent_iframe.html'  scrolling='no' width='100%' height='30' name='mii_header_iframe' id='mii_header_iframe' marginheight='0' marginwidth='0' frameborder='0' sandbox='allow-same-origin allow-top-navigation allow-forms allow-scripts'></iframe>
 END;
     } else {
       $banner_text =<<<END
-<iframe src='http://info.mitre.org/.includes/iframeheader/mii_header_iframe.html'  scrolling='no' width='100%' height='30' name='mii_header_iframe' id='mii_header_iframe' marginheight='0' marginwidth='0' frameborder='0'></iframe>
+<iframe src='http://info.mitre.org/.includes/iframeheader/mii_header_iframe.html'  scrolling='no' width='100%' height='30' name='mii_header_iframe' id='mii_header_iframe' marginheight='0' marginwidth='0' frameborder='0' sandbox='allow-same-origin allow-top-navigation allow-forms allow-scripts'></iframe>
 END;
     }
     $script =<<<END
       jQuery(document).ready(function() {
-        var banner = jQuery("$banner_text").insertBefore('#mw-page-base');
-        var height = parseInt(banner.height());
-        var top = parseInt(jQuery('#mw-head').css('top'));
-        var newTop = top + height;
-        jQuery('#mw-head').css('top', newTop + 'px');
-        top = parseInt(jQuery('#mw-panel').css('top'));
-        newTop = top + height;
-        jQuery('#mw-panel').css('top', newTop + 'px');
-        if (jQuery.browser.msie) {
-          jQuery('#bodyContent').css('position', 'relative');
-        }
+	if(skin === "vector") {
+		var banner = jQuery("$banner_text").insertBefore('#mw-page-base');
+		var height = parseInt(banner.height());
+		var top = parseInt(jQuery('#mw-head').css('top'));
+		var newTop = top + height;
+		jQuery('#mw-head').css('top', newTop + 'px');
+		top = parseInt(jQuery('#mw-panel').css('top'));
+		newTop = top + height;
+		jQuery('#mw-panel').css('top', newTop + 'px');
+		if (jQuery.browser.msie) {
+		  jQuery('#bodyContent').css('position', 'relative');
+		}
+	}
+	else {
+		var banner = jQuery('body').prepend("$banner_text");
+		var height = jQuery('#mii_header_iframe').height();
+		jQuery('body').css('padding-top', height);
+		jQuery('#mii_header_iframe').css('top', 0);
+		jQuery('#mii_header_iframe').css('position', 'absolute');
+	}
       });
 END;
     $script = '<script type="text/javascript">' . $script . "</script>";
