@@ -230,7 +230,7 @@ class ApiGetTitleIcons extends ApiBase {
 	public function execute() {
 		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon2.out");
 
-		$pageTitle = $this->getMain()->getVal('pageTitle');
+		$pageTitle = $this->getMain()->getVal('pageTitles');
 
 		global $TitleIcon_TitleIconPropertyName;
  		$myTitleIconName = $TitleIcon_TitleIconPropertyName;
