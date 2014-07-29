@@ -67,7 +67,6 @@ function efVikiIWLinks_AddResource (& $parser) {
 	VikiJS::addResourceModule("ext.VikiIWLinks");
 	VikiJS::addPHPHook("efVikiIWLinks_Setup");
 	return true;
-
 }
 
 function addVikiTablesToDatabase($updater) {

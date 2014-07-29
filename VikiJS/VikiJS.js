@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// window.VikiJS = (function(mw, $) {
 window.VIKI = (function(my) {
 	my.VikiJS = function() {
 
