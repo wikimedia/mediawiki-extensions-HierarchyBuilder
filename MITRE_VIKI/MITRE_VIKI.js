@@ -1,11 +1,32 @@
-// Hook functions
+/*
+ * Copyright (c) 2014 The MITRE Corporation
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 
-(function($) {
-   window.MITRE_VIKI = {
+window.VIKI = (function(my) {
+   my.MITRE_VIKI = {
 
+      hookName : "",
       mitre_matchIcons : function(vikiObject, parameters, hookName) {
       //parameters = [ new external nodes ]
-         MITRE_VIKI.hookName = hookName;
+         this.hookName = hookName;
       	nodes = parameters[0];
          needsRedraw = false;
 
@@ -14,7 +35,6 @@
       		if(node.URL.indexOf("info.mitre.org/people") != -1) {
       			var pattern = /[0-9]+/;
       			employeeNum = node.URL.match(pattern)[0];
-      			this.hook_log("found employeeNum "+employeeNum);
 
       		   this.queryPhonebook(vikiObject, node, employeeNum);
                needsRedraw = true;
@@ -27,12 +47,10 @@
       			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
       			
       			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
-      			this.hook_log("setting hookIconURL to "+node.hookIconURL);
                needsRedraw = true;
       		}
       		else if(node.URL.indexOf("mitre.org") != -1) {
       			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
-      			this.hook_log("setting hookIconURL to "+node.hookIconURL);
                needsRedraw = true;
       		}
       	}
@@ -54,7 +72,6 @@
                empNum: employeeNum
             },
             beforeSend: function(jqXHR, settings) {
-               // this.hook_log("url of phonebook lookup: "+settings.url);
             },
             success: function(data, textStatus, jqXHR) {
                self.parsePhonebookData(vikiObject, data, node);
@@ -74,10 +91,9 @@
          node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-         this.hook_log(node.hookIconURL);
          vikiObject.redraw(true);
 
-         vikiObject.hookCompletion(MITRE_VIKI.hookName);
+         vikiObject.hookCompletion(this.hookName);
       },
 
       hook_log : function(text) {
@@ -85,7 +101,9 @@
             console.log( text );
       }
    };
-}(jQuery));
+
+   return my;
+}(window.VIKI || {}));
 
 // window.mitre_getAllWikis = function(vikiObject, parameters, hookName) {
 //    MITRE_VIKI.hookName = hookName;

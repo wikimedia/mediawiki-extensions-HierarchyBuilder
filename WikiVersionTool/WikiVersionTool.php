@@ -24,7 +24,7 @@
 /**
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
-* include_once("$IP/extensions/WikiTreeMap/WikiTreeMap.php");
+* include_once("$IP/extensions/WikiVersionTool/WikiVersionTool.php");
 */
 
 if (!defined('MEDIAWIKI')) {
@@ -32,70 +32,69 @@ if (!defined('MEDIAWIKI')) {
 }
 
 if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of WikiTreeMap is only compatible with MediaWiki 1.21 or above.');
+	die('<b>Error:</b> This version of WikiVersionTool is only compatible with MediaWiki 1.21 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
-	'name' => 'WikiTreeMap',
+	'name' => 'WikiVersionTool',
 	'version' => '0.1',
 	'author' => 'Alex Lyte',
-	'descriptionmsg' => 'wikitreemap-desc'
+	'descriptionmsg' => 'wikiversiontool-desc'
 );
  
-$wgExtensionMessagesFiles['WikiTreeMap'] =
-	__DIR__ . '/WikiTreeMap.i18n.php';
+$wgExtensionMessagesFiles['WikiVersionTool'] =
+	__DIR__ . '/WikiVersionTool.i18n.php';
 
-$wgResourceModules['ext.WikiTreeMap'] = array(
+$wgResourceModules['ext.WikiVersionTool'] = array(
 	'localBasePath' => dirname(__FILE__),
-	'remoteExtPath' => 'WikiTreeMap',
+	'remoteExtPath' => 'WikiVersionTool',
 	'styles' => array(
-		'WikiTreeMap.css'
+		'WikiVersionTool.css'
 	),
 	'scripts' => array(
 		'lib/d3.v3.min.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
-		'src/getWikis.js',
-		'src/getWikiData.js',
-		'src/WikiTreeMap.js',
-		'src/makeTreemap.js',
+		'src/getVersions.js',
+		'src/getVersionData.js',
+		'src/makeDiffTables.js'
 	)
 );
 
-$wgHooks['LanguageGetMagic'][] = 'wfExtensionWikiTreeMap_Magic';
-$wgHooks['ParserFirstCallInit'][] = 'efWikiTreeMapParserFunction_Setup';
+$wgHooks['LanguageGetMagic'][] = 'wfExtensionWikiVersionTool_Magic';
+$wgHooks['ParserFirstCallInit'][] = 'efWikiVersionToolParserFunction_Setup';
 
-function efWikiTreeMapParserFunction_Setup (& $parser) {
-	$parser->setFunctionHook('wikitreemap', 'wikitreemap');
+function efWikiVersionToolParserFunction_Setup (& $parser) {
+	$parser->setFunctionHook('wikiversiontool', 'wikiversiontool');
 	return true;
 }
 
-function wfExtensionWikiTreeMap_Magic(& $magicWords, $langCode) {
-	$magicWords['wikitreemap'] = array (0, 'wikitreemap');
+function wfExtensionWikiVersionTool_Magic(& $magicWords, $langCode) {
+	$magicWords['wikiversiontool'] = array (0, 'wikiversiontool');
 	return true;
 }
 
-function wikitreemap($parser, $width, $height, $wiki) {
+function wikiversiontool($parser, $width, $height, $wiki) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
-		wfErrorLog("$value\n", "/var/www/html/DEBUG_WikiTreeMap.out");
-	wfErrorLog("$value\n", "/var/www/html/DEBUG_WikiTreeMap.out");
-	$paramDictionary = wikiTreeMap_parseParameters($myparams);
+		wfErrorLog("$value\n", "/var/www/html/DEBUG_WikiVersionTool.out");
+	wfErrorLog("$value\n", "/var/www/html/DEBUG_WikiVersionTool.out");
+	$paramDictionary = wikiVersionTool_parseParameters($myparams);
 
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
 	//$wiki = $paramDictionary["wiki"];
 
-	$wikiTreeMap = new WikiTreeMap;
+	$wikiVersionTool = new WikiVersionTool;
 
 	if(!$width)
 		$width = 1200;
 	if(!$height)
 		$height = 600;
 
-	$output = $wikiTreeMap->display($parser, $width, $height, $wiki);
+	$output = $wikiVersionTool->display($parser, $width, $height, $wiki);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -104,7 +103,7 @@ function wikitreemap($parser, $width, $height, $wiki) {
 
 
 
-function wikiTreeMap_parseParameters($params) {
+function wikiVersionTool_parseParameters($params) {
 	$paramArray = array();
 	foreach ($params as $param) {
 		$ret = preg_split('/=/', $param, 2);
@@ -121,23 +120,27 @@ function wikiTreeMap_parseParameters($params) {
 
 
 
-class WikiTreeMap {
+class WikiVersionTool {
 
 	private static $pqnum = 0;
 
 	function display($parser, $width, $height, $wiki) {
 
-		$div = "WikiTreeMap_" . self::$pqnum++;
+		$div = "WikiVersionTool_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
-<div id="selectAWiki"></div>
+<div id="wiki1"></div>
+<div id="wiki2"></div>
+
+<div id="wiki1text"></div>
+<div id="wiki2text"></div>
 
 <div id="clearButton"></div>
 
 
 <h1></h1>	
 <table>
-<tr><td width="100%" ><div class="wikitreemap-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
+<tr><td width="100%" ><div class="wikiversiontool-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
 </div>
 </td></tr>
 </table>
@@ -153,10 +156,10 @@ EOT;
 		global $wgServer;
 		global $wgScriptPath;
 		$script =<<<END
-mw.loader.using(['ext.WikiTreeMap'], function () {
+mw.loader.using(['ext.WikiVersionTool'], function () {
 	$(document).ready(function() {
 
-		var g = new WikiTreeMap();
+		var g = new WikiVersionTool();
 		g.drawChart("$graphdiv", "$width", "$height", "$wiki");
 	});
 });
