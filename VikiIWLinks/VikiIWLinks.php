@@ -55,9 +55,9 @@ if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
 if(array_key_exists('GetAllWikisHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'VikiIWLinks.viki_getAllWikisFromIWLinks';
+	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'VIKI.VikiIWLinks.viki_getAllWikisFromIWLinks';
 else
-	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('VikiIWLinks.viki_getAllWikisFromIWLinks');
+	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('VIKI.VikiIWLinks.viki_getAllWikisFromIWLinks');
 
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiIWLinks_AddResource';
@@ -119,7 +119,7 @@ function efVikiIWLinks_Setup($parser, &$text) {
 
 	$script = <<<END
 mw.loader.using('ext.VikiIWLinks', function() {
-	VikiIWLinks.viki_parseWikiData("$wikiTestArrayJSON");	
+	VIKI.VikiIWLinks.viki_parseWikiData("$wikiTestArrayJSON");	
 });
 END;
 

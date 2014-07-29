@@ -184,7 +184,7 @@ EOT;
 modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
-		var g = new VikiJS();
+		var g = new VIKI.VikiJS();
 		g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
 	});
 });

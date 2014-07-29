@@ -1,8 +1,8 @@
 // Hook functions
 
 
-window.MITRE_VIKI = (function($) {
-   var my = {
+window.VIKI = (function(my) {
+   my.MITRE_VIKI = {
 
       hookName : "",
       mitre_matchIcons : function(vikiObject, parameters, hookName) {
@@ -84,7 +84,7 @@ window.MITRE_VIKI = (function($) {
    };
 
    return my;
-}(jQuery));
+}(window.VIKI || {}));
 
 // window.mitre_getAllWikis = function(vikiObject, parameters, hookName) {
 //    MITRE_VIKI.hookName = hookName;

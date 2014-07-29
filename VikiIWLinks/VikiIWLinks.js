@@ -1,5 +1,5 @@
-window.VikiIWLinks = (function($) {
-	var my = {
+window.VIKI = (function(my) {
+	my.VikiIWLinks = {
 		allWikis : new Array(),
 
 		viki_getAllWikisFromIWLinks : function(vikiObject, parameters, hookName) {
@@ -22,4 +22,4 @@ window.VikiIWLinks = (function($) {
 	};
 
 	return my;
-}(jQuery));
+}(window.VIKI || {}));

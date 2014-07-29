@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,9 +55,9 @@ if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
 if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'MITRE_VIKI.mitre_matchIcons';
+	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'VIKI.MITRE_VIKI.mitre_matchIcons';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('MITRE_VIKI.mitre_matchIcons');
+	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('VIKI.MITRE_VIKI.mitre_matchIcons');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 
