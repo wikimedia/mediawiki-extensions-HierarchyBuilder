@@ -87,7 +87,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
-	$pageTitles = $paramDictionary["pageTitle"];
+	$pageTitles = $paramDictionary["pageTitles"];
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
 
@@ -230,7 +230,7 @@ class ApiGetTitleIcons extends ApiBase {
 	public function execute() {
 		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon2.out");
 
-		$pageTitle = $this->getMain()->getVal('pageTitles');
+		$pageTitle = $this->getMain()->getVal('pageTitle');
 
 		global $TitleIcon_TitleIconPropertyName;
  		$myTitleIconName = $TitleIcon_TitleIconPropertyName;
