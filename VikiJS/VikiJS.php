@@ -87,7 +87,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
-	$pageTitles = $paramDictionary["pageTitle"];
+	$pageTitles = $paramDictionary["pageTitles"];
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
 
