@@ -25,10 +25,48 @@ window.VIKI = (function(my) {
 		displayNames : {},
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
-
 			console.log("checkForSemanticTitle called!");
 
+			nodes = parameters[0];
+
+			for(var i = 0; i < nodes.length; i++) {
+
+				pageTitle = nodes[i].pageTitle;
+
+				jQuery.ajax({
+		            url: vikiObject.myApiURL,
+		            dataType: 'json',
+		            data: {
+		               action: 'getDisplayTitle',
+		               format: 'json',
+		               pageTitle: pageTitle
+		            },
+		            beforeSend: function(jqXHR, settings) {
+		            	console.log(settings.url);
+		            },
+		            success: function(data, textStatus, jqXHR) {
+		            	console.log(data);
+		            	processDisplayTitle(vikiObject, data, node);
+
+		            },
+		            error: function(jqXHR, textStatus, errorThrown) {
+		               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+		            }
+				});
+
+			}
+
 			vikiObject.hookCompletion(hookName, null);
+
+			function processDisplayTitle(vikiObject, data, node) {
+				displayTitle = data["getDisplayTitle"]["result"];
+
+				node.pageTitle = data["getDisplayTitle"]["result"];
+				node.displayName = node.pageTitle;
+				node.fullDisplayName = node.displayName;
+				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+
+			}
 		},
 
 		storeSemanticTitles : function(data) {

@@ -71,6 +71,8 @@ else
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiSemanticTitle_AddResource';
 
+$wgAPIModules['getDisplayTitle'] = 'ApiGetDisplayTitle';
+
 function efVikiSemanticTitle_AddResource (& $parser) {
 	VikiJS::addResourceModule("ext.VikiSemanticTitle");
 	VikiJS::addPHPHook("efVikiSemanticTitle_Setup");
@@ -81,48 +83,74 @@ function efVikiSemanticTitle_Setup($parser, &$text) {
 
 	wfErrorLog("efVikiSemanticTitle_Setup called \n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
 
-	// // access database and get wikis from interwiki links table
-
-	// $dbr = wfGetDB( DB_SLAVE );
-	// $result = $dbr->select(
-	// 	'interwiki',
-	// 	array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable'),
-	// 	'viki_searchable = true OR viki_searchable = false'
-	// );
-	// wfErrorLog("database result:\n", "var/www/html/DEBUG_VikiSemanticTitle.out");
-
-
-	// // turn into JSON
-
-	// $wikiTestArray = array();
-
-	// foreach($result as $row) {
-	// 	wfErrorLog(print_r($row, true) . "\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");		
-
-	// 	$wikiTestArray[] = array(
-	// 		"wikiTitle" => $row->iw_prefix,
-	// 		"apiURL" => $row->iw_api,
-	// 		"contentURL" => $row->iw_url,
-	// 		"logoURL" => $row->logo_url,
-	// 		"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false")
-	// 	);
-	// }
-
-	// wfErrorLog("wikiTestArray:\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
-	// wfErrorLog(print_r($wikiTestArray, true) . "\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
-
-	// $wikiTestArrayJSON = addslashes(json_encode($wikiTestArray));
-
-	$semanticTitles = addslashes(json_encode($wgSemanticTitles));
+	global $wgSemanticTitleProperties;
+	$semanticTitles = addslashes(json_encode($wgSemanticTitleProperties));
+	wfErrorLog(print_r($$semanticTitles, true)."\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
 
 	global $wgOut;
 
 	$script = <<<END
 mw.loader.using('ext.VikiSemanticTitle', function() {
-	VIKI.VikiSemanticTitle.storeSemanticTitles("$wgSemanticTitles");	
+	VIKI.VikiSemanticTitle.storeSemanticTitles("$semanticTitles");	
 });
 END;
 
 	$script = '<script type="text/javascript">' . $script . '</script>';
 	$wgOut->addScript($script);
+}
+
+class ApiGetDisplayTitle extends ApiBase {
+
+	public function __construct($main, $action) {
+		parent::__construct($main, $action);
+	}
+
+	public function execute() {
+		$pageTitle = $this->getMain()->getVal('pageTitle');
+
+		global $wgSemanticTitleProperties;
+
+		// Get namespace for this page title.
+
+
+		$displayName = $pageTitle;
+
+
+
+
+
+
+
+		// todo: if no namespace, result should just be the pageTitle
+
+
+		$this->getResult()->addValue(null, $this->getModuleName(), 
+			array( 'pageTitle' => $pageTitle,
+				'result' => $displayName )
+		);
+	}
+
+	public function getDescription() {
+		return 'Returns the semantic display title for a given page name, or empty string if it does not use content free page naming.';
+	}
+	public function getAllowedParams() {
+		return array(
+			'pageTitle' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			)
+		);
+	}
+	public function getParamDescription() {
+		return array(
+			'pageTitle' => 'page name of the page whose semantic title is to be looked up (e.g. Item:1)'
+		);
+	}
+
+	public function getExamples() {
+		return array('api.php?action=getDisplayTitle&pageTitle=Item:1&format=jsonfm');
+	}
+	public function getHelpUrls() {
+		return '';
+	}
 }
