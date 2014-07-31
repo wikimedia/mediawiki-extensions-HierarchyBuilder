@@ -23,40 +23,39 @@
 window.VIKI = (function(my) {
 	my.VikiSemanticTitle = {
 		displayNames : {},
+		hookName: "",
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
-			console.log("checkForSemanticTitle called!");
+			this.hookName = hookName;
 
 			nodes = parameters[0];
 
-			for(var i = 0; i < nodes.length; i++) {
+			for(var i = 0; i < nodes.length; i++)
+				this.queryForSemanticTitle(vikiObject, nodes[i]);
+		},
 
-				pageTitle = nodes[i].pageTitle;
+		queryForSemanticTitle : function(vikiObject, node) {
 
-				jQuery.ajax({
-		            url: vikiObject.myApiURL,
-		            dataType: 'json',
-		            data: {
-		               action: 'getDisplayTitle',
-		               format: 'json',
-		               pageTitle: pageTitle
-		            },
-		            beforeSend: function(jqXHR, settings) {
-		            	console.log(settings.url);
-		            },
-		            success: function(data, textStatus, jqXHR) {
-		            	console.log(data);
-		            	processDisplayTitle(vikiObject, data, node);
+			jQuery.ajax({
+	            url: vikiObject.myApiURL,
+	            dataType: 'json',
+	            data: {
+	               action: 'getDisplayTitle',
+	               format: 'json',
+	               pageTitle: node.pageTitle
+	            },
+	            beforeSend: function(jqXHR, settings) {
+	            	console.log(settings.url);
+	            },
+	            success: function(data, textStatus, jqXHR) {
+	            	console.log(data);
+	            	processDisplayTitle(vikiObject, data, node);
 
-		            },
-		            error: function(jqXHR, textStatus, errorThrown) {
-		               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-		            }
-				});
-
-			}
-
-			vikiObject.hookCompletion(hookName, null);
+	            },
+	            error: function(jqXHR, textStatus, errorThrown) {
+	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+	            }
+			});
 
 			function processDisplayTitle(vikiObject, data, node) {
 				displayTitle = data["getDisplayTitle"]["result"];
@@ -66,12 +65,9 @@ window.VIKI = (function(my) {
 				node.fullDisplayName = node.displayName;
 				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
+				vikiObject.redraw(true);
+				vikiObject.hookCompletion(this.hookName, null);
 			}
-		},
-
-		storeSemanticTitles : function(data) {
-			console.log("storeSemanticTitles called!");
-			displayNames = jQuery.parseJSON(data);
 		}
 	};
 

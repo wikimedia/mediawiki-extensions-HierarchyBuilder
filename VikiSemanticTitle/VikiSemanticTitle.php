@@ -70,34 +70,13 @@ else
 	$VikiJS_Function_Hooks['IntraOutNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiSemanticTitle_AddResource';
-
 $wgAPIModules['getDisplayTitle'] = 'ApiGetDisplayTitle';
 
 function efVikiSemanticTitle_AddResource (& $parser) {
 	VikiJS::addResourceModule("ext.VikiSemanticTitle");
-	VikiJS::addPHPHook("efVikiSemanticTitle_Setup");
 	return true;
 }
 
-function efVikiSemanticTitle_Setup($parser, &$text) {
-
-	wfErrorLog("efVikiSemanticTitle_Setup called \n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
-
-	global $wgSemanticTitleProperties;
-	$semanticTitles = addslashes(json_encode($wgSemanticTitleProperties));
-	wfErrorLog(print_r($$semanticTitles, true)."\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
-
-	global $wgOut;
-
-	$script = <<<END
-mw.loader.using('ext.VikiSemanticTitle', function() {
-	VIKI.VikiSemanticTitle.storeSemanticTitles("$semanticTitles");	
-});
-END;
-
-	$script = '<script type="text/javascript">' . $script . '</script>';
-	$wgOut->addScript($script);
-}
 
 class ApiGetDisplayTitle extends ApiBase {
 
@@ -106,28 +85,69 @@ class ApiGetDisplayTitle extends ApiBase {
 	}
 
 	public function execute() {
-		$pageTitle = $this->getMain()->getVal('pageTitle');
-
 		global $wgSemanticTitleProperties;
 
-		// Get namespace for this page title.
-
-
+		$pageTitle = $this->getMain()->getVal('pageTitle');
 		$displayName = $pageTitle;
+		
+		// Get namespace for this page title via MW API
 
+		$api = new ApiMain(
+			new DerivativeRequest(
+				$this->getRequest(),
+				array(
+					'action' => 'query',
+					'prop' => 'info',
+					'titles' => $pageTitle
+				)
+			),
+			false
+		);
+		
+		$api->execute();
+		$data = $api->getResultData();
 
+		$key = array_shift(array_keys($data["query"]["pages"]));
+		$namespace = $data["query"]["pages"][$key]["ns"];
 
+		// If the namespace is in $wgSemanticTitleProperties, extract the title property.
 
+		if(array_key_exists($namespace, $wgSemanticTitleProperties)) {
 
+			$displayNameProperty = $wgSemanticTitleProperties[$namespace];
 
+			// $params = array("[[$pageTitle]]", "?$displayNameProperty=");
+			// $result = SMWQueryProcessor::getResultFromFunctionParams( $params, SMW_OUTPUT_WIKI );
+			// wfErrorLog(print_r($result, true) . "\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
 
-		// todo: if no namespace, result should just be the pageTitle
+			// Get the semantic title from the title property via SMW API.
+			// (Any better way to do this?)
 
+			$api = new ApiMain(
+				new DerivativeRequest(
+					$this->getRequest(),
+					array(
+						'action' => 'askargs',
+						'conditions' => $pageTitle,
+						'printouts' => $displayNameProperty
+					)
+				),
+				false
+			);
+			
+			$api->execute();
+			$data = $api->getResultData();
+
+			$displayName = $data["query"]["results"][$pageTitle]["printouts"][$displayNameProperty][0];
+
+		}
 
 		$this->getResult()->addValue(null, $this->getModuleName(), 
 			array( 'pageTitle' => $pageTitle,
 				'result' => $displayName )
 		);
+
+		return true;
 	}
 
 	public function getDescription() {
