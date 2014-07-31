@@ -48,9 +48,9 @@
 
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
+				console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
 				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
-				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
+				console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -126,9 +126,9 @@
 				var pagelist = "<ul><li class='hierarchy_root'><a>" +
 					params.unusedpages + "</a><ul>";
 				for (var pagename in params.pages) {
-					pagelist += "<li><a>" + params.pages[pagename] + "</a></li>";
-						//"<span style='display:none'>" + pagename +
-						//"</span></a></li>";
+					pagelist += "<li><a>" + params.pages[pagename] + //+"</a></li>";
+						"<span style='display:none'>" + pagename +
+						"</span></a></li>";
 				}
 				pagelist += "</ul></li></ul>";
 			
@@ -203,7 +203,10 @@
 				list.find("ul").removeAttr("class");
 				list.find("ul").removeAttr("style");
 				list.find("a").replaceWith(function() {
-					return "[[" + $(this).first().text() + "]]";
+					//return "[[" + $(this).first().text() + "]]";
+					var pageName = $(this).children('span').first().text();
+					var pageLink = "[["+pageName+"]]";
+					return pageLink;
 				});
 				//document.getElementById(input_id).value = "<ul>" + list.html() +
 				//	"</ul>";
@@ -212,7 +215,7 @@
 
 
 				var wikiText = this.parseHtmlToWikiText(list, "*");
-				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
+				console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
 				document.getElementById(input_id).value = wikiText;
 				//console.log(wikiText);
@@ -248,7 +251,7 @@
 			 */
 			parseWikiTextToHtml: function(hierarchyRoot, wikiTextHierarchy) {
 				// make sure to remove the leading * from the root node before starting the process
-				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper("[["+hierarchyRoot+"]]" + "\n" + wikiTextHierarchy, "") + "</ul>";
+				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper("[["+hierarchyRoot+" | "+hierarchyRoot+"]]" + "\n" + wikiTextHierarchy, "") + "</ul>";
 				return hierarchyHtml;
 			},
 
@@ -273,10 +276,25 @@
 				
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
 				if (depth === "") {
-					var html = "<li class='hierarchy_root'>" + root.replace("[[","<a>").replace("]]","</a>");
+					var html = "<li class='hierarchy_root'>";
 				} else {
-					var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+					var html = "<li>";
 				}
+					
+					var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
+					var pageLinkMatches = pageLinkRegex.exec(root);
+					var pageLink = (pageLinkMatches.length > 0 ? pageLinkMatches[2] : "");
+					var pageName = pageLink.split(" | ")[0];
+					var displayName = pageLink.split(" | ")[1] ? pageLink.split(" | ")[1] : pageName;
+					var rootRow = "<a>" + 
+							displayName +
+							"<span style=display:none>" + pageName + "</span>" +
+							"</a>"; 
+					html += rootRow; 
+
+				//console.log("[editHierarchy.js][init] pageName = \n" + pageName);
+				//console.log("[editHierarchy.js][init] displayName = \n" + displayName);
+				//console.log("[editHierarchy.js][init] row = \n" + row);
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
