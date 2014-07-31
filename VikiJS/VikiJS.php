@@ -1,6 +1,6 @@
 <?php 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,11 @@
 /**
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
+* $wgRegisterInternalExternals = true;
 * include_once("$IP/extensions/VikiJS/VikiJS.php");
+* 
+* If $wgRegisterInternalExternals was not already true, you must run
+* refreshLinks.php after setting this flag.
 */
 
 if (!defined('MEDIAWIKI')) {
@@ -37,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
@@ -87,7 +91,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
-	$pageTitles = $paramDictionary["pageTitle"];
+	$pageTitles = $paramDictionary["pageTitles"];
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
 
@@ -184,7 +188,7 @@ EOT;
 modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
-		var g = new VikiJS();
+		var g = new VIKI.VikiJS();
 		g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
 	});
 });

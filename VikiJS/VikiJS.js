@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-window.VikiJS = (function(mw, $) {
-	return function() {
+window.VIKI = (function(my) {
+	my.VikiJS = function() {
 
 		/****************************************************************************************************************************
 		 * Global Constants. Note: all colors except "LIGHT_BLUE" are from flatuicolors.com
@@ -83,7 +83,7 @@ window.VikiJS = (function(mw, $) {
 		 * Initialization Functions
 		 ****************************************************************************************************************************/
 
-		VikiJS.prototype.initialize = function(pageTitles, divs, parameters) {
+		my.VikiJS.prototype.initialize = function(pageTitles, divs, parameters) {
 			var self = this;
 
 			// Parse passed in parameters and initialize div settings.
@@ -485,7 +485,7 @@ window.VikiJS = (function(mw, $) {
 			}
 		}
 		
-		VikiJS.prototype.fetchContentNamespaces = function() {
+		my.VikiJS.prototype.fetchContentNamespaces = function() {
 			var self = this;
 			
 			actuallySearchableWikis = self.allWikis.filter(function(wiki) {
@@ -503,7 +503,7 @@ window.VikiJS = (function(mw, $) {
 			}
 		}
 		
-		VikiJS.prototype.getContentNamespacesForWikiAtIndex = function(actuallySearchableWikis, index) {
+		my.VikiJS.prototype.getContentNamespacesForWikiAtIndex = function(actuallySearchableWikis, index) {
 			var self = this;
 			var wiki = actuallySearchableWikis[index];
 			var wikiTitle = wiki.wikiTitle;
@@ -554,7 +554,7 @@ window.VikiJS = (function(mw, $) {
 		
 		}
 		
-		VikiJS.prototype.populateInitialGraph = function() {
+		my.VikiJS.prototype.populateInitialGraph = function() {
 			var self = this;
 			
 			vex.close(self.loadingView.data().vex.id);
@@ -583,7 +583,7 @@ window.VikiJS = (function(mw, $) {
 		 * Graph Display and D3 Functions
 		 ****************************************************************************************************************************/
 
-		 VikiJS.prototype.redraw = function(restartGraph) {
+		 my.VikiJS.prototype.redraw = function(restartGraph) {
 			var self = this;
 
 			self.NodeSelection =
@@ -761,7 +761,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 
-		VikiJS.prototype.prepareContextMenu = function() {
+		my.VikiJS.prototype.prepareContextMenu = function() {
 	        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
 	        	// activate before the menu shows
 	        	onShowMenu: function(e, menu) {
@@ -867,7 +867,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 
-		VikiJS.prototype.slide = function() {	
+		my.VikiJS.prototype.slide = function() {	
 			var self = this;	
 			
 			// set target_zoom to the logged zoom position
@@ -903,7 +903,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 
-		VikiJS.prototype.interpolateZoom = function(translate, scale) {
+		my.VikiJS.prototype.interpolateZoom = function(translate, scale) {
 			var self = this;
 			// zoom with the set scale and translation values
 			return d3.transition().duration(50).tween("zoom", function () {
@@ -918,7 +918,7 @@ window.VikiJS = (function(mw, $) {
 		    });
 		}
 
-		VikiJS.prototype.zoomed = function() {
+		my.VikiJS.prototype.zoomed = function() {
 			var self = this;
 			// access the element movable and move to the scale and translation vectors
 			d3.select("#moveable-"+this.ID).attr("transform",
@@ -927,14 +927,14 @@ window.VikiJS = (function(mw, $) {
 			    );
 		}
 
-		VikiJS.prototype.redrawZoom = function() {		
+		my.VikiJS.prototype.redrawZoom = function() {		
 			self.Zoompos = d3.event.scale;
 			d3.select("#moveable-"+self.ID).attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
 			// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 			$("#"+self.SliderDiv).slider("value",self.Zoompos);
 		}
 
-		VikiJS.prototype.formatNodeInfo = function(name, isNonexistentPage) {
+		my.VikiJS.prototype.formatNodeInfo = function(name, isNonexistentPage) {
 			var self = this;
 			var info;
 			if(isNonexistentPage)
@@ -944,7 +944,7 @@ window.VikiJS = (function(mw, $) {
 			return info;
 		}
 
-		VikiJS.prototype.displayNodeInfo = function(node) {
+		my.VikiJS.prototype.displayNodeInfo = function(node) {
 			var self = this;
 			
 			if (self.SelectedNodeIndex !== node.index) {
@@ -953,7 +953,7 @@ window.VikiJS = (function(mw, $) {
 			jQuery("#" + self.SubDetailsDiv).html(node.info);
 		}
 
-		VikiJS.prototype.checkForTitleIcon = function(node) {
+		my.VikiJS.prototype.checkForTitleIcon = function(node) {
 			
 			jQuery.ajax({
 				url: node.apiURL,
@@ -990,7 +990,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 		
-		VikiJS.prototype.visitNode = function(intraNode) {
+		my.VikiJS.prototype.visitNode = function(intraNode) {
 			var self = this;
 			// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
 
@@ -1051,7 +1051,7 @@ window.VikiJS = (function(mw, $) {
 		 * Node Management Methods
 		 ****************************************************************************************************************************/
 		
-		VikiJS.prototype.addExternalNode = function(url) {
+		my.VikiJS.prototype.addExternalNode = function(url) {
 			var self = this;
 
 			node = self.newNode();
@@ -1066,7 +1066,7 @@ window.VikiJS = (function(mw, $) {
 			return node;
 		}
 
-		VikiJS.prototype.addWikiNodeFromWiki = function(pageTitle, wikiTitle) {
+		my.VikiJS.prototype.addWikiNodeFromWiki = function(pageTitle, wikiTitle) {
 			var self = this;
 			
 			index = self.searchableWikiIndexForName(wikiTitle);
@@ -1076,7 +1076,7 @@ window.VikiJS = (function(mw, $) {
 			return self.addWikiNode(pageTitle, url, wiki);
 		}
 
-		VikiJS.prototype.addWikiNodeFromExternalLink = function(url, wikiIndex) {
+		my.VikiJS.prototype.addWikiNodeFromExternalLink = function(url, wikiIndex) {
 			var self = this;
 
 			pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
@@ -1085,7 +1085,7 @@ window.VikiJS = (function(mw, $) {
 			return self.addWikiNode(pageTitle, url, wiki);
 		}
 
-		VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
+		my.VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
 			node.displayName = pageTitle;
 			node.pageTitle = pageTitle;
@@ -1107,7 +1107,7 @@ window.VikiJS = (function(mw, $) {
 			return node;
 		}
 
-		VikiJS.prototype.newNode = function() {
+		my.VikiJS.prototype.newNode = function() {
 			var self = this;
 
 			var node = {
@@ -1118,7 +1118,7 @@ window.VikiJS = (function(mw, $) {
 			return node;
 		}
 
-		VikiJS.prototype.findNode = function(property, value) {
+		my.VikiJS.prototype.findNode = function(property, value) {
 			var self = this;
 
 			for (var i = 0; i < self.Nodes.length; i++) {
@@ -1155,7 +1155,7 @@ window.VikiJS = (function(mw, $) {
 			return null;
 		}
 
-		VikiJS.prototype.addNode = function(node) {
+		my.VikiJS.prototype.addNode = function(node) {
 			var self = this;
 
 			node.identifier = self.CURRENT_IDENTIFIER;
@@ -1166,7 +1166,7 @@ window.VikiJS = (function(mw, $) {
 			}
 		}
 
-		VikiJS.prototype.addLink = function(node1, node2) {
+		my.VikiJS.prototype.addLink = function(node1, node2) {
 			var self = this;
 
 			var link = {
@@ -1180,7 +1180,7 @@ window.VikiJS = (function(mw, $) {
 			return link;
 		}
 
-		VikiJS.prototype.findLink = function(from, to) {
+		my.VikiJS.prototype.findLink = function(from, to) {
 			var self = this;
 			var link = self.LinkMap[from + "," + to];
 			if (typeof link === 'undefined') {
@@ -1193,19 +1193,19 @@ window.VikiJS = (function(mw, $) {
 		 * Graph Modification Methods
 		 ****************************************************************************************************************************/
 
-		VikiJS.prototype.elaborateNode = function(node) {
+		my.VikiJS.prototype.elaborateNode = function(node) {
 			var self = this;
 			if(node.type === self.WIKI_PAGE_TYPE)
 				self.elaborateWikiNode(node);
 			// if node is a non-wiki page, there is no way to elaborate it.
 		}
-		VikiJS.prototype.elaborateNodeAtIndex = function(index) {
+		my.VikiJS.prototype.elaborateNodeAtIndex = function(index) {
 			var self = this;
 			var node = self.Nodes[index];
 			if(node.type == self.WIKI_PAGE_TYPE)
 				self.elaborateWikiNode(node);
 		}
-		VikiJS.prototype.elaborateWikiNode = function(node) {
+		my.VikiJS.prototype.elaborateWikiNode = function(node) {
 			var self = this;
 
 			// 1. Get external links OUT from page.
@@ -1306,7 +1306,6 @@ window.VikiJS = (function(mw, $) {
 							}
 							
 							self.visitNode(externalWikiNode);
-
 						}
 						else {
 							externalNode = self.findNode("URL", externalLinks[i]["*"]);
@@ -1321,9 +1320,8 @@ window.VikiJS = (function(mw, $) {
 							else {
 								link.bidirectional = true;
 							}
-							newExternalNodes.push(externalNode);
-
 						}
+						newExternalNodes.push(externalNode);
 					}
 					// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 					self.callHooks("ExternalNodeHook", [newExternalNodes]);
@@ -1341,6 +1339,7 @@ window.VikiJS = (function(mw, $) {
 						
 					var contentNamespaces = wiki.contentNamespaces;
 					
+					var newIntraOutNodes = [];
 					for(var i = 0; i < intraLinks.length; i++) {
 						intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 						if(!intraNode || (intraNode.apiURL !== originNode.apiURL)) {
@@ -1368,7 +1367,10 @@ window.VikiJS = (function(mw, $) {
 							// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 							self.visitNode(intraNode);
 						}
+						newIntraOutNodes.push(intraNode);
 					}
+					// now call hooks on these nodes
+					self.callHooks("IntraOutNodeHook", [newIntraOutNodes]);
 				}
 				self.redraw(true);
 			}
@@ -1382,6 +1384,7 @@ window.VikiJS = (function(mw, $) {
 					var wiki = self.allWikis[originNode.wikiIndex];				
 					var contentNamespaces = wiki.contentNamespaces;
 					
+					var newIntraInNodes = [];
 					for(var i = 0; i < intraLinks.length; i++) {
 						intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 						if(!intraNode  || (intraNode.apiURL !== originNode.apiURL)) {					
@@ -1405,16 +1408,20 @@ window.VikiJS = (function(mw, $) {
 								if(!link.bidirectional && link.source.identifier == originNode.identifier)
 									link.bidirectional = true;
 							}
+							self.visitNode(intraNode);
 						}
-
-						self.visitNode(intraNode);
+						
+						newIntraInNodes.push(intraNode);
 					}
+					// now call hooks on these nodes
+					self.callHooks("IntraInNodeHook", [newIntraInNodes]);
+
 				}
 				self.redraw(true);
 			}
 		}
 
-			VikiJS.prototype.showNewNodesWindow = function() {
+			my.VikiJS.prototype.showNewNodesWindow = function() {
 			var self = this;
 
 
@@ -1449,7 +1456,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 		
-		VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
+		my.VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
 			
 			for(var i = 0; i < nodes.length; i++)
 				if(nodes[i].checked)
@@ -1458,7 +1465,7 @@ window.VikiJS = (function(mw, $) {
 			self.redraw(true);		
 		}
 
-		VikiJS.prototype.hideNode = function(node) {
+		my.VikiJS.prototype.hideNode = function(node) {
 			var recentHiddenLinks = Array();
 
 			// 1. Remove node from Nodes array and store into hidden nodes array.
@@ -1495,13 +1502,13 @@ window.VikiJS = (function(mw, $) {
 
 		}
 
-		VikiJS.prototype.hideNodeAndRedraw = function(node) {
+		my.VikiJS.prototype.hideNodeAndRedraw = function(node) {
 			self.hideNode(node);
 
 			self.redraw(true);
 		}
 
-		VikiJS.prototype.hideHub = function(node) {
+		my.VikiJS.prototype.hideHub = function(node) {
 			if(!node.elaborated)
 				return;
 
@@ -1530,7 +1537,7 @@ window.VikiJS = (function(mw, $) {
 			self.redraw(true);
 		}
 
-		VikiJS.prototype.unhideNode = function(identifier) {
+		my.VikiJS.prototype.unhideNode = function(identifier) {
 
 			var index = -1;
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
@@ -1550,7 +1557,7 @@ window.VikiJS = (function(mw, $) {
 
 		}
 
-		VikiJS.prototype.showAllNodes = function() {
+		my.VikiJS.prototype.showAllNodes = function() {
 			// 1. Add all hidden nodes back into main Nodes array, then destroy hidden nodes array.
 
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
@@ -1578,7 +1585,7 @@ window.VikiJS = (function(mw, $) {
 		 * Helper Methods
 		 ****************************************************************************************************************************/
 		
-		VikiJS.prototype.indexOfWikiForURL = function(url) {
+		my.VikiJS.prototype.indexOfWikiForURL = function(url) {
 			var self = this;
 			for(var i = 0; i < self.allWikis.length; i++)
 				if(url.indexOf(self.allWikis[i]["contentURL"]) != -1)
@@ -1586,7 +1593,7 @@ window.VikiJS = (function(mw, $) {
 			return -1;
 		}
 		
-		VikiJS.prototype.searchableWikiIndexForName = function(wikiTitle) {
+		my.VikiJS.prototype.searchableWikiIndexForName = function(wikiTitle) {
 			var self = this;
 			
 			for(var i = 0; i < self.allWikis.length; i++)
@@ -1596,17 +1603,17 @@ window.VikiJS = (function(mw, $) {
 			return null;
 		}
 		
-		VikiJS.prototype.replaceAt = function(string, index, character) {
+		my.VikiJS.prototype.replaceAt = function(string, index, character) {
 			return string.substr(0, index) + character + string.substr(index+character.length);
 		}
 
-		VikiJS.prototype.numberOfConnections = function(node) {
+		my.VikiJS.prototype.numberOfConnections = function(node) {
 			var connections = self.Links.filter(function(link) { return link.source.identifier == node.identifier || link.target.identifier == node.identifier});
 
 			return connections.length;
 		}
 
-		VikiJS.prototype.log = function(text) {
+		my.VikiJS.prototype.log = function(text) {
 			if( (window['console'] !== undefined) )
 				console.log( text );
 		}
@@ -1615,7 +1622,7 @@ window.VikiJS = (function(mw, $) {
 		 * VikiJS Hook Structure Methods
 		 ****************************************************************************************************************************/
 		
-		VikiJS.prototype.callHooks = function(hookName, parameters) {
+		my.VikiJS.prototype.callHooks = function(hookName, parameters) {
 			var self = this;
 			if(this.hasHooks) {
 				if(this.Hooks[hookName]) {
@@ -1643,7 +1650,7 @@ window.VikiJS = (function(mw, $) {
 			return false;
 		}
 
-		VikiJS.prototype.hookCompletion = function(hookName, parameters) {
+		my.VikiJS.prototype.hookCompletion = function(hookName, parameters) {
 			var self = this;
 			// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
 			if(hookName === "GetAllWikisHook") {
@@ -1651,4 +1658,6 @@ window.VikiJS = (function(mw, $) {
 			}
 		}
 	}
-}(mediaWiki, jQuery));
+
+	return my;
+}(window.VIKI || {}));
