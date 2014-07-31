@@ -24,7 +24,11 @@
 /**
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
+* $wgRegisterInternalExternals = true;
 * include_once("$IP/extensions/VikiJS/VikiJS.php");
+* 
+* If $wgRegisterInternalExternals was not already true, you must run
+* refreshLinks.php after setting this flag.
 */
 
 if (!defined('MEDIAWIKI')) {
@@ -37,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );

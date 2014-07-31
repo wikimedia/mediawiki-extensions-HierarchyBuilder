@@ -1306,7 +1306,6 @@ window.VIKI = (function(my) {
 							}
 							
 							self.visitNode(externalWikiNode);
-
 						}
 						else {
 							externalNode = self.findNode("URL", externalLinks[i]["*"]);
@@ -1321,9 +1320,8 @@ window.VIKI = (function(my) {
 							else {
 								link.bidirectional = true;
 							}
-							newExternalNodes.push(externalNode);
-
 						}
+						newExternalNodes.push(externalNode);
 					}
 					// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 					self.callHooks("ExternalNodeHook", [newExternalNodes]);
@@ -1341,6 +1339,7 @@ window.VIKI = (function(my) {
 						
 					var contentNamespaces = wiki.contentNamespaces;
 					
+					var newIntraOutNodes = [];
 					for(var i = 0; i < intraLinks.length; i++) {
 						intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 						if(!intraNode || (intraNode.apiURL !== originNode.apiURL)) {
@@ -1368,7 +1367,10 @@ window.VIKI = (function(my) {
 							// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
 							self.visitNode(intraNode);
 						}
+						newIntraOutNodes.push(intraNode);
 					}
+					// now call hooks on these nodes
+					self.callHooks("IntraOutNodeHook", [newIntraOutNodes]);
 				}
 				self.redraw(true);
 			}
@@ -1382,6 +1384,7 @@ window.VIKI = (function(my) {
 					var wiki = self.allWikis[originNode.wikiIndex];				
 					var contentNamespaces = wiki.contentNamespaces;
 					
+					var newIntraInNodes = [];
 					for(var i = 0; i < intraLinks.length; i++) {
 						intraNode = self.findNode("pageTitle", intraLinks[i]["title"]);
 						if(!intraNode  || (intraNode.apiURL !== originNode.apiURL)) {					
@@ -1405,10 +1408,14 @@ window.VIKI = (function(my) {
 								if(!link.bidirectional && link.source.identifier == originNode.identifier)
 									link.bidirectional = true;
 							}
+							self.visitNode(intraNode);
 						}
-
-						self.visitNode(intraNode);
+						
+						newIntraInNodes.push(intraNode);
 					}
+					// now call hooks on these nodes
+					self.callHooks("IntraInNodeHook", [newIntraInNodes]);
+
 				}
 				self.redraw(true);
 			}
