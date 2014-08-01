@@ -48,9 +48,9 @@
 
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-				console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
+				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
 				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
-				console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
+				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -215,7 +215,7 @@
 
 
 				var wikiText = this.parseHtmlToWikiText(list, "*");
-				console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
+				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
 				document.getElementById(input_id).value = wikiText;
 				//console.log(wikiText);

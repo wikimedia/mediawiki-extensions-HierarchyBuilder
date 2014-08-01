@@ -443,15 +443,15 @@ class EditHierarchy extends SFFormInput {
 
 
 		//wikiLog("EditHierarchy", "setupJsInitAttribs", var_export($this, true));
-		/*wikiLog("EditHierarchy", "setupJsInitAttribs", "mOtherArgs");
+		/*//wikiLog("EditHierarchy", "setupJsInitAttribs", "mOtherArgs");
 		foreach($this->mOtherArgs as $key => $value) {
 			$value = var_export($value, true);
-			wikiLog("EditHierarchy","setupJsInitAttribs",  $key . " => " . $value);
+			//wikiLog("EditHierarchy","setupJsInitAttribs",  $key . " => " . $value);
 		}
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Name = " . $this->mOtherArgs['semantic_property']);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Name = " . $this->mOtherArgs['semantic_property']);
 		$title = Title::newFromText($this->mCategory);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "title: " . $title);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Values = " . var_export($this->getPropertyValues($title, $this->mOtherArgs['semantic_property'])));	*/
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "title: " . $title);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Values = " . var_export($this->getPropertyValues($title, $this->mOtherArgs['semantic_property'])));	*/
 
 
 		$params = array();
@@ -492,7 +492,7 @@ class EditHierarchy extends SFFormInput {
 
 		$hierarchy = $this->mCurrentValue; // I don't use the call below anymore because now we have wikiText, not HTML
 		$hierarchy = self::updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . $hierarchy);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . $hierarchy);
 		/*$hierarchy = HierarchyBuilder::parseHierarchy($this->mCurrentValue,
 			$displayNameProperty, $pages,
 			function ($pageName, $displayNameProperty, &$pages) {
@@ -812,6 +812,6 @@ class SelectFromHierarchy extends SFFormInput {
 	}
 }
 
-function wikiLog($className, $methodName, $message) {
+/*function wikiLog($className, $methodName, $message) {
 	wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
-}
+}*/
