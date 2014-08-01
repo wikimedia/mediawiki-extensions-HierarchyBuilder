@@ -281,16 +281,16 @@
 					var html = "<li>";
 				}
 					
-					var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
-					var pageLinkMatches = pageLinkRegex.exec(root);
-					var pageLink = (pageLinkMatches.length > 0 ? pageLinkMatches[2] : "");
-					var pageName = pageLink.split(" | ")[0];
-					var displayName = pageLink.split(" | ")[1] ? pageLink.split(" | ")[1] : pageName;
-					var rootRow = "<a>" + 
-							displayName +
-							"<span style=display:none>" + pageName + "</span>" +
-							"</a>"; 
-					html += rootRow; 
+				var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
+				var pageLinkMatches = pageLinkRegex.exec(root);
+				var pageLink = (pageLinkMatches.length > 0 ? pageLinkMatches[2] : "");
+				var pageName = pageLink.split(" | ")[0];
+				var displayName = pageLink.split(" | ")[1] ? pageLink.split(" | ")[1] : pageName;
+				var rootRow = "<a>" + 
+						displayName +
+						"<span style=display:none>" + pageName + "</span>" +
+						"</a>"; 
+				html += rootRow; 
 
 				//console.log("[editHierarchy.js][init] pageName = \n" + pageName);
 				//console.log("[editHierarchy.js][init] displayName = \n" + displayName);
