@@ -132,7 +132,7 @@ function vikiJS_parseParameters($params) {
 class VikiJS {
 
 	private static $pqnum = 0;
-	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar", "ext.MultiWikiSearch");
+	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar");
 	private static $functionHooks = array();
 
 	static function addResourceModule($moduleName) {
