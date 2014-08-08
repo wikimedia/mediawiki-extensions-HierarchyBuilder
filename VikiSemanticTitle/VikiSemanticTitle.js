@@ -62,6 +62,16 @@ window.VIKI = (function(my) {
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
 	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+	   				if(hookName == "IntraInNodeHook") {
+						this.ajaxCalls_intraIn--;
+						if(this.ajaxCalls_intraIn == 0)
+							vikiObject.hookCompletion(hookName, { "redraw" : true });
+					}
+					else {
+						this.ajaxCalls_intraOut--;
+						if(this.ajaxCalls_intraOut ==0)
+							vikiObject.hookCompletion(hookName, { "redraw" : true });
+					}
 	            }
 			});
 		},
