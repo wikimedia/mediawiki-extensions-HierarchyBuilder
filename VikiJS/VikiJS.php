@@ -41,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.1',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
@@ -156,8 +156,6 @@ class VikiJS {
 <div class="vikijs-zoom-slider" id="$sliderdiv"></div>
 </div></td></tr>
 <tr><td><div class="vikijs-errors-panel" id="$errorsdiv">
-</div></td></tr>
-<tr><td><div id="vikijs-add-nodes-panel"><button id="addNodesButton">Add Nodes</button>
 </div></td></tr>
 </table>
 EOT;

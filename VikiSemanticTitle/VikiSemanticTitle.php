@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.0',
+	'version' => '1.0.1',
 	'author' => 'Jason Ji'
 );
 

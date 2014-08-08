@@ -24,11 +24,14 @@ window.VIKI = (function(my) {
    my.MITRE_VIKI = {
 
       hookName : "",
+      ajaxCalls : 0,
       mitre_matchIcons : function(vikiObject, parameters, hookName) {
       //parameters = [ new external nodes ]
          this.hookName = hookName;
       	nodes = parameters[0];
          needsRedraw = false;
+
+         this.ajaxCalls = nodes.filter(function(i) { return i.URL.indexOf("info.mitre.org/people") != -1; }).length;
 
       	for(var i = 0; i < nodes.length; i++) {
       		node = nodes[i];
@@ -37,7 +40,6 @@ window.VIKI = (function(my) {
       			employeeNum = node.URL.match(pattern)[0];
 
       		   this.queryPhonebook(vikiObject, node, employeeNum);
-               needsRedraw = true;
       		}
       		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
       			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
@@ -55,15 +57,14 @@ window.VIKI = (function(my) {
       		}
       	}
       	
-         if(needsRedraw)
-            vikiObject.redraw(true);
+         if(this.ajaxCalls == 0)
+            vikiObject.hookCompletion(hookName, {"redraw" : needsRedraw});
       	
       },
 
       queryPhonebook : function(vikiObject, node, employeeNum) {
          var self = this;
          jQuery.ajax({
-            // async: false,
             url: vikiObject.myApiURL,
             dataType: 'json',
             data: {
@@ -71,6 +72,7 @@ window.VIKI = (function(my) {
                format: 'json',
                empNum: employeeNum
             },
+            timeout : 5000,
             beforeSend: function(jqXHR, settings) {
             },
             success: function(data, textStatus, jqXHR) {
@@ -78,6 +80,9 @@ window.VIKI = (function(my) {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+               this.ajaxCalls--;
+               if(this.ajaxCalls == 0)
+                  vikiObject.hookCompletion(this.hookName, { "redraw" : true });
 
             }
          });
@@ -91,9 +96,11 @@ window.VIKI = (function(my) {
          node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-         vikiObject.redraw(true);
+         // vikiObject.redraw(true);
 
-         vikiObject.hookCompletion(this.hookName);
+         this.ajaxCalls--;
+         if(this.ajaxCalls == 0)
+            vikiObject.hookCompletion(this.hookName, { "redraw" : true });
       },
 
       hook_log : function(text) {
