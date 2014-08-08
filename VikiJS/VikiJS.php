@@ -31,12 +31,22 @@
 * refreshLinks.php after setting this flag.
 */
 
+define('VIKIJS_VERSION', '1.2');
+
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
 if (version_compare($wgVersion, '1.22', 'lt')) {
 	die('<b>Error:</b> This version of VikiJS is only compatible with MediaWiki 1.22 or above.');
+}
+
+if ( !defined( 'SMW_VERSION' ) ) {
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+}
+
+if(version_compare(SMW_VERSION, '1.9', '<')) {
+	die('<b>Error:</b> VikiJS is only compatible with Semantic MediaWiki 1.9 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
