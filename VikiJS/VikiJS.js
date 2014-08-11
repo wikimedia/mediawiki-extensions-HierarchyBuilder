@@ -1291,6 +1291,7 @@ window.VIKI = (function(my) {
 						isWikiPage = (index != -1);
 
 						if(isWikiPage) {
+							externalNode = null;
 							externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
 							if(!externalWikiNode) {
 									externalWikiNode = self.addWikiNodeFromExternalLink(externalLinks[i]["*"], index);	
@@ -1321,7 +1322,8 @@ window.VIKI = (function(my) {
 								link.bidirectional = true;
 							}
 						}
-						newExternalNodes.push(externalNode);
+						if(externalNode)
+							newExternalNodes.push(externalNode);
 					}
 					// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 					self.callHooks("ExternalNodeHook", [newExternalNodes]);
