@@ -31,13 +31,17 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of MITRE_VIKI is only compatible with MediaWiki 1.21 or above.');
+if (!defined('VIKIJS_VERSION')) {
+	die("<b>Error:</b> The extension MITRE_VIKI requires VikiJS to be installed first. Be sure that VikiJS is included on a line ABOVE the line where you've included MITRE_VIKI.");
+}
+
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of MITRE_VIKI is only compatible with MediaWiki 1.22 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'MITRE_VIKI',
-	'version' => '1.0',
+	'version' => '1.0.1',
 	'author' => 'Jason Ji'
 );
 

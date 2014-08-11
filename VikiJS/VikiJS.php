@@ -31,6 +31,8 @@
 * refreshLinks.php after setting this flag.
 */
 
+define('VIKIJS_VERSION', '1.2');
+
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
@@ -39,9 +41,17 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 	die('<b>Error:</b> This version of VikiJS is only compatible with MediaWiki 1.22 or above.');
 }
 
+if ( !defined( 'SMW_VERSION' ) ) {
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+}
+
+if(version_compare(SMW_VERSION, '1.9', '<')) {
+	die('<b>Error:</b> VikiJS is only compatible with Semantic MediaWiki 1.9 or above.');
+}
+
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.1',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
@@ -122,7 +132,7 @@ function vikiJS_parseParameters($params) {
 class VikiJS {
 
 	private static $pqnum = 0;
-	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar", "ext.MultiWikiSearch");
+	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar");
 	private static $functionHooks = array();
 
 	static function addResourceModule($moduleName) {
@@ -156,8 +166,6 @@ class VikiJS {
 <div class="vikijs-zoom-slider" id="$sliderdiv"></div>
 </div></td></tr>
 <tr><td><div class="vikijs-errors-panel" id="$errorsdiv">
-</div></td></tr>
-<tr><td><div id="vikijs-add-nodes-panel"><button id="addNodesButton">Add Nodes</button>
 </div></td></tr>
 </table>
 EOT;

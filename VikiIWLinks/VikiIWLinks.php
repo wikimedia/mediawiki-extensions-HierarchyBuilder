@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,17 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of VikiIWLinks is only compatible with MediaWiki 1.21 or above.');
+if (!defined('VIKIJS_VERSION')) {
+	die("<b>Error:</b> The extension VikiIWLinks requires VikiJS to be installed first. Be sure that VikiJS is included on a line ABOVE the line where you've included VikiIWLinks.");
+}
+
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of VikiIWLinks is only compatible with MediaWiki 1.22 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.0',
+	'version' => '1.0.1',
 	'author' => 'Jason Ji'
 );
 

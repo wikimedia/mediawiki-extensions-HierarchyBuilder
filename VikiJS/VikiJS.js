@@ -1291,6 +1291,7 @@ window.VIKI = (function(my) {
 						isWikiPage = (index != -1);
 
 						if(isWikiPage) {
+							externalNode = null;
 							externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
 							if(!externalWikiNode) {
 									externalWikiNode = self.addWikiNodeFromExternalLink(externalLinks[i]["*"], index);	
@@ -1321,7 +1322,8 @@ window.VIKI = (function(my) {
 								link.bidirectional = true;
 							}
 						}
-						newExternalNodes.push(externalNode);
+						if(externalNode)
+							newExternalNodes.push(externalNode);
 					}
 					// now call hooks on these nodes to see if any other special way to handle it (e.g. MII Phonebook)
 					self.callHooks("ExternalNodeHook", [newExternalNodes]);
@@ -1419,50 +1421,6 @@ window.VIKI = (function(my) {
 				}
 				self.redraw(true);
 			}
-		}
-
-			my.VikiJS.prototype.showNewNodesWindow = function() {
-			var self = this;
-
-
-			var style = "\
-	<style>\
-		#MultiWikiSearch {\
-			font-family: sans-serif;\
-			font-size: 0.8em;\
-			padding: 1.25em 1.5em 1.5em 1.25em;\
-		}\
-	</style>\
-	";
-
-			var mws;
-
-			content = vex.dialog.open({
-				message: "Search For Nodes",
-				contentCSS: {
-					"width" : "750px"
-				},
-				afterOpen: function($vexContent) {
-					mws = new MultiWikiSearch("addNodes", self.myApiURL);
-					mws.showSnippets(false);
-					mws.initializeMWS(".vex-dialog-input");
-					$vexContent.append(style);
-				},
-				input: null,
-				callback: function(data) {
-					self.closeNewNodesWindowCallback(mws.searchResultNodes);
-				}
-			});
-
-		}
-		
-		my.VikiJS.prototype.closeNewNodesWindowCallback = function(nodes) {
-			
-			for(var i = 0; i < nodes.length; i++)
-				if(nodes[i].checked)
-					self.addWikiNodeFromWiki(nodes[i].pageTitle, nodes[i].wikiTitle);
-				
-			self.redraw(true);		
 		}
 
 		my.VikiJS.prototype.hideNode = function(node) {
@@ -1653,9 +1611,14 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.hookCompletion = function(hookName, parameters) {
 			var self = this;
 			// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
+
+			parameters = parameters || {};
+			self.log("hookCompletion() from "+hookName);
 			if(hookName === "GetAllWikisHook") {
 				self.fetchContentNamespaces();
 			}
+			if(parameters["redraw"] && parameters["redraw"] == true)
+				self.redraw(true);
 		}
 	}
 

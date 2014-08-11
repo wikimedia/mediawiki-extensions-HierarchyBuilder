@@ -31,13 +31,25 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of VikiSemanticTitle is only compatible with MediaWiki 1.21 or above.');
+if (!defined('VIKIJS_VERSION')) {
+	die("<b>Error:</b> The extension VikiSemanticTitle requires VikiJS to be installed first. Be sure that VikiJS is included on a line ABOVE the line where you've included VikiSemanticTitle.");
+}
+
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of VikiSemanticTitle is only compatible with MediaWiki 1.22 or above.');
+}
+
+if ( !defined( 'SMW_VERSION' ) ) {
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+}
+
+if(version_compare(SMW_VERSION, '1.9', '<')) {
+	die('<b>Error:</b> VikiSemanticTitle is only compatible with Semantic MediaWiki 1.9 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.0',
+	'version' => '1.0.1',
 	'author' => 'Jason Ji'
 );
 
