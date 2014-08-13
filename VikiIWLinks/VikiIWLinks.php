@@ -41,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.0.1',
+	'version' => '1.0.2',
 	'author' => 'Jason Ji'
 );
 
@@ -83,7 +83,7 @@ function addVikiTablesToDatabase($updater) {
 	return true;
 }
 
-function efVikiIWLinks_Setup($parser, &$text) {
+function efVikiIWLinks_Setup($parser) {
 
 	wfErrorLog("efVikiIWLinks_Setup called \n", "/var/www/html/DEBUG_VikiIWLinks.out");
 
