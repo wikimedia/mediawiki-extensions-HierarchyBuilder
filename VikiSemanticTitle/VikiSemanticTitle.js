@@ -30,7 +30,6 @@ window.VIKI = (function(my) {
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
-			console.log("checkForSemanticTitle() by "+hookName+", "+parameters[0].displayName);
 
 			nodes = parameters[0];
 

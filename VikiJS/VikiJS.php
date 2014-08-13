@@ -42,7 +42,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 }
 
 if ( !defined( 'SMW_VERSION' ) ) {
-	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use VikiJS.' );
 }
 
 if(version_compare(SMW_VERSION, '1.9', '<')) {
@@ -80,7 +80,7 @@ $wgHooks['LanguageGetMagic'][] = 'wfExtensionVikiJS_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
 
 $wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
-$wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
+// $wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
 $wgAPIModules['getContentNamespaces'] = 'ApiGetContentNamespaces';
 
 function efVikiJSParserFunction_Setup (& $parser) {
@@ -232,111 +232,6 @@ class ApiGetSiteLogo extends ApiBase {
 		return array(
 			'api.php?action=getSiteLogo'
 		);
-	}
-	public function getHelpUrls() {
-		return '';
-	}
-}
-
-class ApiGetTitleIcons extends ApiBase {
-	public function __construct( $main, $action ) {
-		parent::__construct( $main, $action );
-	}
-	
-	public function execute() {
-		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-
-		$pageTitle = $this->getMain()->getVal('pageTitle');
-
-		global $TitleIcon_TitleIconPropertyName;
- 		$myTitleIconName = $TitleIcon_TitleIconPropertyName;
-
-		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
-		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
-
-		wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-		wfErrorLog("pageTitle = $pageTitle\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-		
-		$api = new ApiMain(
-			new DerivativeRequest(
-				$this->getRequest(),
-				array(
-					'action' => 'askargs',
-					'conditions' => $pageTitle,
-					'printouts' => $titleIconWithSpaces
-				)
-			),
-			false
-		);
-		
-		$api->execute();
-		$data = $api->getResultData();
-
-		if(is_array($data["query"]["results"]) && count($data["query"]["results"]) == 0) {
-			$this->getResult()->addValue(null, $this->getModuleName(),
-				array('pageTitle' => $pageTitle,
-					'titleIcons' => array()
-						));
-
-			return true;
-		}
-
-		$titleIconNames = $data["query"]["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
-		$titleIconURLs = array();
-		
-		foreach($titleIconNames as $name) {
-			wfErrorLog("$name\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-			
-			$api = new ApiMain(
-				new DerivativeRequest(
-					$this->getRequest(),
-					array(
-						'action' => 'query',
-						'titles' => 'File:' . $name,
-						'prop' => 'imageinfo',
-						'iiprop' => 'url'
-					)
-				),
-				false
-			);			
-
-			$api->execute();
-			$data = $api->getResultData();
-			$key = array_shift(array_keys($data["query"]["pages"]));
-			$url = $data["query"]["pages"][$key]["imageinfo"][0]["url"];
-			wfErrorLog("$key --> $url\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-			$titleIconURLs[] = $url;
-		}
-
-		$this->getResult()->addValue(null, $this->getModuleName(),
-			array('pageTitle' => $pageTitle,
-				'titleIcons' => $titleIconURLs
-					));
-		
-		return true;
-		
-	}
-	public function getDescription() {
-		return "Get the URLs of all Title Icons for the page, if any exist.
-			
-Note that because the returned value is a JSON object, you must specify format=json in this query; the default xml format will return only an error.";
-	}
-	public function getAllowedParams() {
-		return array(
-			'pageTitle' => array(
-				ApiBase::PARAM_TYPE => 'string',
-				ApiBase::PARAM_REQUIRED => true
-			)
-		);
-	}
-	public function getParamDescription() {
-		return array(
-			'pageTitle' => 'title of the page whose title icons you wish to retrieve'
-		);
-	}
-	public function getExamples() {
-		return array(
-			'api.php?action=getTitleIcons&pageTitle=Test_Page_C&format=jsonfm');
 	}
 	public function getHelpUrls() {
 		return '';

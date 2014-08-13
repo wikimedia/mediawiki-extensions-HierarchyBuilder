@@ -952,43 +952,6 @@ window.VIKI = (function(my) {
 			}
 			jQuery("#" + self.SubDetailsDiv).html(node.info);
 		}
-
-		my.VikiJS.prototype.checkForTitleIcon = function(node) {
-			
-			jQuery.ajax({
-				url: node.apiURL,
-				dataType: node.sameServer ? 'json' : 'jsonp',
-				data: {
-					action: 'getTitleIcons',
-					format: 'json',
-					pageTitle: node.pageTitle
-				},
-				beforeSend: function(jqXHR, settings) {
-				},
-				success: function(data, textStatus, jqXHR) {
-					titleIconSuccessHandler(data, node);
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-				}
-			});
-			
-			function titleIconSuccessHandler(data, node) {
-				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					return;
-				}
-
-				var titleIconURLs = data["getTitleIcons"]["titleIcons"];
-				if(titleIconURLs.length == 0) {
-					return;
-				}
-				else {
-					node.titleIconURL = titleIconURLs[0];
-					self.redraw(false);
-				}
-			}
-
-		}
 		
 		my.VikiJS.prototype.visitNode = function(intraNode) {
 			var self = this;
@@ -1103,7 +1066,7 @@ window.VIKI = (function(my) {
 			
 			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
 			
-			self.checkForTitleIcon(node);
+			// self.checkForTitleIcon(node);
 			self.addNode(node);
 
 			self.callHooks("NewWikiNodeAddedHook", [node]);
@@ -1607,8 +1570,8 @@ window.VIKI = (function(my) {
 
 						var scope = window;
 						var scopeSplit = hookFunction.split('.');
-	    				for (i = 0; i < scopeSplit.length - 1; i++) {
-	        				scope = scope[scopeSplit[i]];
+	    				for (j = 0; j < scopeSplit.length - 1; j++) {
+	        				scope = scope[scopeSplit[j]];
 
 	        				if (scope == undefined) return false;
 					    }

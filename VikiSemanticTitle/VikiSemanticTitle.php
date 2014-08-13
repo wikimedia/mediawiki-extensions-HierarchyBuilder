@@ -40,7 +40,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 }
 
 if ( !defined( 'SMW_VERSION' ) ) {
-	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use VikiSemanticTitle.' );
 }
 
 if(version_compare(SMW_VERSION, '1.9', '<')) {
