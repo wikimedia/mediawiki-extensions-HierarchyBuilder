@@ -1063,6 +1063,8 @@ window.VIKI = (function(my) {
 			node.URL = url;
 			node.externalNodeIconURL = self.ImagePath + "internet.png";
 			self.addNode(node);
+
+			self.callHooks("NewExternalNodeAddedHook", [node]);
 			return node;
 		}
 
@@ -1103,6 +1105,8 @@ window.VIKI = (function(my) {
 			
 			self.checkForTitleIcon(node);
 			self.addNode(node);
+
+			self.callHooks("NewWikiNodeAddedHook", [node]);
 			
 			return node;
 		}
@@ -1377,7 +1381,7 @@ window.VIKI = (function(my) {
 								if(!link.bidirectional && link.target.identifier == originNode.identifier)
 									link.bidirectional = true;
 							}
-							// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
+							// now visit the wiki page to get more info (does it exist? what categories?)
 							self.visitNode(intraNode);
 						}
 						newIntraOutNodes.push(intraNode);

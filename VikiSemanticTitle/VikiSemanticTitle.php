@@ -70,20 +70,10 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
+if(array_key_exists('NewWikiNodeAddedHook', $VikiJS_Function_Hooks))
+	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
-
-if(array_key_exists('IntraInNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['IntraInNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
-else
-	$VikiJS_Function_Hooks['IntraInNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
-
-if(array_key_exists('IntraOutNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['IntraOutNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
-else
-	$VikiJS_Function_Hooks['IntraOutNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
+	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiSemanticTitle_AddResource';
 $wgAPIModules['getDisplayTitle'] = 'ApiGetDisplayTitle';

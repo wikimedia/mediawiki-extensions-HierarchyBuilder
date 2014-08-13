@@ -26,16 +26,15 @@ window.VIKI = (function(my) {
 		hookName: "",
 		ajaxCalls_intraOut: 0,
 		ajaxCalls_intraIn: 0,
+		ajaxCalls: 0,
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
-			console.log("checkForSemanticTitle() by "+hookName);
+			console.log("checkForSemanticTitle() by "+hookName+", "+parameters[0].displayName);
 
 			nodes = parameters[0];
-			if(hookName == "IntraInNodeHook")
-				this.ajaxCalls_intraIn = nodes.length;
-			else
-				this.ajaxCalls_intraOut = nodes.length;
+
+			this.ajaxCalls = nodes.length;
 
 			for(var i = 0; i < nodes.length; i++)
 				this.queryForSemanticTitle(vikiObject, nodes[i], hookName);
@@ -62,16 +61,10 @@ window.VIKI = (function(my) {
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
 	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-	   				if(hookName == "IntraInNodeHook") {
-						this.ajaxCalls_intraIn--;
-						if(this.ajaxCalls_intraIn == 0)
-							vikiObject.hookCompletion(hookName, { "redraw" : true });
-					}
-					else {
-						this.ajaxCalls_intraOut--;
-						if(this.ajaxCalls_intraOut ==0)
-							vikiObject.hookCompletion(hookName, { "redraw" : true });
-					}
+
+					this.ajaxCalls--;
+					if(this.ajaxCalls == 0)
+						vikiObject.hookCompletion(hookName, { "redraw" : true });
 	            }
 			});
 		},
@@ -84,16 +77,9 @@ window.VIKI = (function(my) {
 				node.fullDisplayName = node.displayName;
 				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
-				if(hookName == "IntraInNodeHook") {
-					this.ajaxCalls_intraIn--;
-					if(this.ajaxCalls_intraIn == 0)
-						vikiObject.hookCompletion(hookName, { "redraw" : true });
-				}
-				else {
-					this.ajaxCalls_intraOut--;
-					if(this.ajaxCalls_intraOut ==0)
-						vikiObject.hookCompletion(hookName, { "redraw" : true });
-				}
+				this.ajaxCalls--;
+				if(this.ajaxCalls == 0)
+					vikiObject.hookCompletion(hookName, { "redraw" : true });
 			}
 	};
 
