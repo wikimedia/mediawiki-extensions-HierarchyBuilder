@@ -51,7 +51,7 @@ window.VIKI = (function(my) {
 	               format: 'json',
 	               pageTitle: node.pageTitle
 	            },
-	            timeout: 5000,
+	            timeout: 8000,
 	            beforeSend: function(jqXHR, settings) {
 	            	console.log(settings.url);
 	            },

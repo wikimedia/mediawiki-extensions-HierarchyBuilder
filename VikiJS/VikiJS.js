@@ -1286,15 +1286,26 @@ window.VIKI = (function(my) {
 						// some of these external links are actually links to other searchable wikis.
 						// these should be recognized as wiki nodes, not just external nodes.
 
+						var thisURL = externalLinks[i]["*"];
+
 						// index of the searchable wiki in list of searchable wikis, or -1 if this is not a searchable wiki page.
 						var index = self.indexOfWikiForURL(externalLinks[i]["*"]);
-						isWikiPage = (index != -1);
+						// handle the case where the URL has the form "index.php?title=..." rather than "index.php/..."
+						var alternativeIndex = self.indexOfWikiForURL( thisURL.replace("?title=", "/") );
+
+						isWikiPage = (index != -1 || alternativeIndex !=-1);
 
 						if(isWikiPage) {
+							// if "index.php?title=..." form was used, swap it with "index.php/..." form.
+							if(alternativeIndex != -1) {  
+								thisURL = thisURL.replace("?title=", "/");
+								index = alternativeIndex;
+							}
+
 							externalNode = null;
-							externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
+							externalWikiNode = self.findNode("URL", thisURL);
 							if(!externalWikiNode) {
-									externalWikiNode = self.addWikiNodeFromExternalLink(externalLinks[i]["*"], index);	
+									externalWikiNode = self.addWikiNodeFromExternalLink(thisURL, index);	
 							}
 							if(externalWikiNode.hidden) {
 								self.unhideNode(externalWikiNode.identifier);
@@ -1309,9 +1320,9 @@ window.VIKI = (function(my) {
 							self.visitNode(externalWikiNode);
 						}
 						else {
-							externalNode = self.findNode("URL", externalLinks[i]["*"]);
+							externalNode = self.findNode("URL", thisURL);
 							if(!externalNode)
-								externalNode = self.addExternalNode(externalLinks[i]["*"]);		
+								externalNode = self.addExternalNode(thisURL);		
 							if(externalNode.hidden) {
 								self.unhideNode(externalNode.identifier);
 							}
