@@ -24,19 +24,12 @@ window.VIKI = (function(my) {
 	my.VikiSemanticTitle = {
 		displayNames : {},
 		hookName: "",
-		ajaxCalls_intraOut: 0,
-		ajaxCalls_intraIn: 0,
-		ajaxCalls: 0,
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
-
 			nodes = parameters[0];
 
-			this.ajaxCalls = nodes.length;
-
-			for(var i = 0; i < nodes.length; i++)
-				this.queryForSemanticTitle(vikiObject, nodes[i], hookName);
+			this.queryForSemanticTitle(vikiObject, nodes, hookName);
 		},
 
 		queryForSemanticTitle : function(vikiObject, node, hookName) {
@@ -61,9 +54,7 @@ window.VIKI = (function(my) {
 	            error: function(jqXHR, textStatus, errorThrown) {
 	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 
-					this.ajaxCalls--;
-					if(this.ajaxCalls == 0)
-						vikiObject.hookCompletion(hookName, { "redraw" : true });
+					vikiObject.hookCompletion(hookName, { "redraw" : true });
 	            }
 			});
 		},
@@ -76,9 +67,7 @@ window.VIKI = (function(my) {
 				node.fullDisplayName = node.displayName;
 				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
-				this.ajaxCalls--;
-				if(this.ajaxCalls == 0)
-					vikiObject.hookCompletion(hookName, { "redraw" : true });
+				vikiObject.hookCompletion(hookName, { "redraw" : true });
 			}
 	};
 
