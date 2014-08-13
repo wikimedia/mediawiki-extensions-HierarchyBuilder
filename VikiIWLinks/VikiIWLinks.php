@@ -41,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.0.1',
+	'version' => '1.0.3',
 	'author' => 'Jason Ji'
 );
 
@@ -69,7 +69,7 @@ $wgHooks['LoadExtensionSchemaUpdates'][] = 'addVikiTablesToDatabase';
 
 function efVikiIWLinks_AddResource (& $parser) {
 	VikiJS::addResourceModule("ext.VikiIWLinks");
-	VikiJS::addPHPHook("efVikiIWLinks_Setup");
+	VikiJS::addPHPHook("efVikiIWLinks_Setup", array($parser));
 	return true;
 }
 
@@ -83,7 +83,7 @@ function addVikiTablesToDatabase($updater) {
 	return true;
 }
 
-function efVikiIWLinks_Setup($parser, &$text) {
+function efVikiIWLinks_Setup($params) {
 
 	wfErrorLog("efVikiIWLinks_Setup called \n", "/var/www/html/DEBUG_VikiIWLinks.out");
 

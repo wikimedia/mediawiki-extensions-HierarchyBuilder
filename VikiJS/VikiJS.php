@@ -51,7 +51,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.2',
+	'version' => '1.3',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
@@ -134,13 +134,15 @@ class VikiJS {
 	private static $pqnum = 0;
 	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar");
 	private static $functionHooks = array();
+	private static $functionHookParams = array();
 
 	static function addResourceModule($moduleName) {
 		self::$modules[] = $moduleName;
 	}
 
-	static function addPHPHook($functionName) {
+	static function addPHPHook($functionName, $params) {
 		self::$functionHooks[] = $functionName;
+		self::$functionHookParams[] = $params;
 	}
 
 	function display($parser, $pageTitles, $width, $height) {
@@ -177,9 +179,11 @@ EOT;
 			$outputObject->addModules($name);
 		}
 
+		$index = 0;
 		foreach(self::$functionHooks as $hook) {
-			wfErrorLog("About to call hook: $hook\n", "/var/www/html/DEBUG_VikiJS.out");
-			call_user_func($hook);
+			// wfErrorLog("About to call hook: $hook with params: " . print_r(self::$functionHookParams[$index], true) . "\n", "/var/www/html/DEBUG_VikiJS.out");
+			call_user_func_array($hook, self::$functionHookParams[$index]);
+			$index++;
 		}
 
 		$pageTitles_json = addslashes(json_encode(array_map('trim', explode(',', $pageTitles))));
