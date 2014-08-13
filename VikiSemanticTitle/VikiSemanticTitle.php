@@ -49,9 +49,13 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.0.2',
-	'author' => 'Jason Ji'
+	'version' => '1.0.3',
+	'author' => 'Jason Ji',
+	'descriptionmsg' => 'vikisemantictitle-desc'
 );
+
+$wgExtensionMessagesFiles['VikiSemanticTitle'] =
+	__DIR__ . '/VikiSemanticTitle.i18n.php';
 
 $wgResourceModules['ext.VikiSemanticTitle'] = array(
 	'localBasePath' => dirname(__FILE__),

@@ -41,9 +41,13 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'MITRE_VIKI',
-	'version' => '1.0.1',
-	'author' => 'Jason Ji'
+	'version' => '1.0.2',
+	'author' => 'Jason Ji',
+	'descriptionmsg' => 'mitreviki-desc'
 );
+
+$wgExtensionMessagesFiles['MITRE_VIKI'] =
+	__DIR__ . '/MITRE_VIKI.i18n.php';
 
 $wgResourceModules['ext.MITRE_VIKI'] = array(
 	'localBasePath' => dirname(__FILE__),

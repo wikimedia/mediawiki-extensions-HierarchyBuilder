@@ -42,8 +42,12 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
 	'version' => '1.0.3',
-	'author' => 'Jason Ji'
+	'author' => 'Jason Ji',
+	'descriptionmsg' => 'vikiiwlinks-desc'
 );
+
+$wgExtensionMessagesFiles['VikiIWLinks'] =
+	__DIR__ . '/VikiIWLinks.i18n.php';
 
 $wgResourceModules['ext.VikiIWLinks'] = array(
 	'localBasePath' => dirname(__FILE__),
