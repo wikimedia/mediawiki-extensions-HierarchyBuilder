@@ -126,7 +126,12 @@ class ApiGetTitleIcons extends ApiBase {
 			return true;
 		}
 
-		$titleIconNames = $data["query"]["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
+		if(array_key_exists($pageNameWithSpaces, $data["query"]["results"]))
+			$titleIconNames = $data["query"]["results"]["$pageNameWithSpaces"]["printouts"]["$titleIconWithSpaces"];
+		else {
+			$key = array_shift(array_keys($data["query"]["results"]));
+			$titleIconNames = $data["query"]["results"][$key]["printouts"]["$titleIconWithSpaces"];
+		}
 		$titleIconURLs = array();
 		
 		foreach($titleIconNames as $name) {
