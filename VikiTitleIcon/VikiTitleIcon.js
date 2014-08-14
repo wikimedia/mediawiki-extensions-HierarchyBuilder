@@ -47,7 +47,8 @@ window.VIKI = (function(my) {
 					self.titleIconSuccessHandler(vikiObject, data, node);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					// alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					vikiObject.showError("Error fetching title icon data for "+node.pageTitle+". jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
 		},

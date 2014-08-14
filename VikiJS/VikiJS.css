@@ -45,7 +45,9 @@ h4 vikijs-header{
   padding-left: 10px;
   padding-right: 10px;
   visibility: hidden;
-  font-size: 1.5em;
+  font-size: 1.0em;
+  overflow-y: scroll;
+  max-height: 6em;
 }
 
 .vikijs-zoom-slider{

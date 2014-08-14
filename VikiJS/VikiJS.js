@@ -127,6 +127,9 @@ window.VIKI = (function(my) {
 			// Set up the slider div.
 			initializeSliderDiv();
 
+			// Set up the error div.
+			initializeErrorDiv();
+
 			// Set up the loading spinner
 			initializeLoadingSpinner();
 
@@ -174,6 +177,10 @@ window.VIKI = (function(my) {
 				        self.slide();
 				  }
 				});
+			}
+
+			function initializeErrorDiv() {
+				$("#"+self.ErrorsDiv).append("<p><strong>Error:</strong></p>");
 			}
 
 			function initializeLoadingSpinner() {
@@ -538,8 +545,7 @@ window.VIKI = (function(my) {
 					if(errorThrown === 'timeout') {
 						// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
 						// default to just NS 0 (main).
-						$("#"+self.ErrorsDiv).css("visibility", "visible");
-						$("#"+self.ErrorsDiv).append("<p>Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).</p>");
+						self.showError("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
 						actuallySearchableWikis[index].contentNamespaces = [0];
 						self.contentNamespacesFetched++;
 						if(self.contentNamespacesFetched == self.searchableCount) {
@@ -1552,6 +1558,11 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.log = function(text) {
 			if( (window['console'] !== undefined) )
 				console.log( text );
+		}
+
+		my.VikiJS.prototype.showError = function(errorText) {
+			$("#"+self.ErrorsDiv).css("visibility", "visible");
+			$("#"+self.ErrorsDiv).append("<p>"+ errorText + "</p>");
 		}
 
 		/****************************************************************************************************************************

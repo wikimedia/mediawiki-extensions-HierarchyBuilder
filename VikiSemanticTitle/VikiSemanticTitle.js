@@ -42,7 +42,6 @@ window.VIKI = (function(my) {
 	               format: 'json',
 	               pageTitle: node.pageTitle
 	            },
-	            timeout: 8000,
 	            beforeSend: function(jqXHR, settings) {
 	            	console.log(settings.url);
 	            },
@@ -52,8 +51,7 @@ window.VIKI = (function(my) {
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-
+	               vikiObject.showError("Error fetching display title data for "+node.pageTitle+". jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 					vikiObject.hookCompletion(hookName, { "redraw" : true });
 	            }
 			});
