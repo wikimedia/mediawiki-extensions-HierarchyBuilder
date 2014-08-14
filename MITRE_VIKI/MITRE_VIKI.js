@@ -72,14 +72,15 @@ window.VIKI = (function(my) {
                format: 'json',
                empNum: employeeNum
             },
-            timeout : 5000,
+            timeout : 8000,
             beforeSend: function(jqXHR, settings) {
             },
             success: function(data, textStatus, jqXHR) {
                self.parsePhonebookData(vikiObject, data, node);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-               alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+               // alert("Error fetching phonebook data. errorThrown = "+errorThrown);
+               vikiObject.showError("Error fetching phonebook data for employee "+employeeNum+". errorThrown = "+errorThrown);
                this.ajaxCalls--;
                if(this.ajaxCalls == 0)
                   vikiObject.hookCompletion(this.hookName, { "redraw" : true });

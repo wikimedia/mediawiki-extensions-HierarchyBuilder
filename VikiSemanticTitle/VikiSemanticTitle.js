@@ -51,7 +51,7 @@ window.VIKI = (function(my) {
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	               vikiObject.showError("Error fetching display title data for "+node.pageTitle+". jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+	               vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
 					vikiObject.hookCompletion(hookName, { "redraw" : true });
 	            }
 			});
