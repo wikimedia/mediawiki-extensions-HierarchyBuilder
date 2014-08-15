@@ -799,7 +799,7 @@ window.VIKI = (function(my) {
 					// the actual menu code
 
 
-			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
+			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage || (node.type === self.WIKI_PAGE_TYPE && !node.searchable)) {
 			          $('.elaborate-'+self.ID, menu).remove();
 			        }
 			        if(!node.elaborated)
@@ -940,23 +940,25 @@ window.VIKI = (function(my) {
 			$("#"+self.SliderDiv).slider("value",self.Zoompos);
 		}
 
-		my.VikiJS.prototype.formatNodeInfo = function(name, isNonexistentPage) {
-			var self = this;
-			var info;
-			if(isNonexistentPage)
-				info = "<h4 id='vikijs-header'>" + name + " (Page Does Not Exist) </h4>";
-			else
-				info = "<h4 id='vikijs-header'>" + name + "</h4>";
-			return info;
-		}
-
 		my.VikiJS.prototype.displayNodeInfo = function(node) {
 			var self = this;
 			
 			if (self.SelectedNodeIndex !== node.index) {
 				return;
 			}
-			jQuery("#" + self.SubDetailsDiv).html(node.info);
+
+			var info = "<h4 id='vikijs-header'>";
+
+			info += node.fullDisplayName;
+
+			if(node.nonexistentPage)
+				info += " (Page Does Not Exist)";
+			if(node.type == self.WIKI_PAGE_TYPE && !node.searchable)
+				info += " (Unsearchable Wiki)";
+
+			info += "</h4>";
+
+			jQuery("#"+self.SubDetailsDiv).html(info);
 		}
 		
 		my.VikiJS.prototype.visitNode = function(intraNode) {
@@ -990,8 +992,8 @@ window.VIKI = (function(my) {
 
 				if(data.query.pages["-1"]) {
 					// check if the page is nonexistent
+					self.log("nonexistent page: "+originNode.pageTitle);
 					originNode.nonexistentPage = true;
-					originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 					self.redraw(true);	
 				}
 				else {
@@ -1027,7 +1029,6 @@ window.VIKI = (function(my) {
 			shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
 			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,15)+"...");
 			node.fullDisplayName = url;
-			node.info = self.formatNodeInfo(node.fullDisplayName);
 			node.type = self.EXTERNAL_PAGE_TYPE;
 			node.URL = url;
 			node.externalNodeIconURL = self.ImagePath + "internet.png";
@@ -1059,6 +1060,7 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
 			node.displayName = pageTitle;
+			node.fullDisplayName = node.displayName;
 			node.pageTitle = pageTitle;
 			node.type = self.WIKI_PAGE_TYPE;
 			node.URL = url;
@@ -1070,9 +1072,6 @@ window.VIKI = (function(my) {
 			node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 			node.wikiTitle = wiki.wikiTitle;
 			
-			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
-			
-			// self.checkForTitleIcon(node);
 			self.addNode(node);
 
 			self.callHooks("NewWikiNodeAddedHook", [node]);
@@ -1247,7 +1246,6 @@ window.VIKI = (function(my) {
 				}
 			});
 			node.elaborated = true;
-			node.info = self.formatNodeInfo(node.displayName);
 			self.displayNodeInfo(node);
 
 			function externalLinksSuccessHandler(data, textStatus, jqXHR, originNode) {
@@ -1440,7 +1438,7 @@ window.VIKI = (function(my) {
 
 			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
 			self.SelectedNodeIndex = 0;
-			self.displayNodeInfo(self.SelectedNodeIndex);
+			self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
 
 		}
 

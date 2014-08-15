@@ -51,7 +51,7 @@ window.VIKI = (function(my) {
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	               vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
+	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
 					vikiObject.hookCompletion(hookName, { "redraw" : true });
 	            }
 			});
@@ -63,7 +63,6 @@ window.VIKI = (function(my) {
 				node.pageTitle = data["getDisplayTitle"]["result"];
 				node.displayName = node.pageTitle;
 				node.fullDisplayName = node.displayName;
-				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
 				vikiObject.hookCompletion(hookName, { "redraw" : true });
 			}

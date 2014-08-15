@@ -46,7 +46,7 @@ window.VIKI = (function(my) {
       			node.pageTitle = deptNum;
       			node.displayName = node.pageTitle;
       			node.fullDisplayName = node.displayName;
-      			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+      			// node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
       			
       			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
                needsRedraw = true;
@@ -94,10 +94,8 @@ window.VIKI = (function(my) {
          node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
          node.displayName = node.pageTitle;
          node.fullDisplayName = node.displayName;
-         node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-         // vikiObject.redraw(true);
 
          this.ajaxCalls--;
          if(this.ajaxCalls == 0)
