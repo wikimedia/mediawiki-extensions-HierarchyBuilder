@@ -6,20 +6,20 @@ $wgExtensionCredits['api'][] = array(
    'path' => __FILE__,
  
    // The name of the extension, which will appear on Special:Version.
-   'name' => 'Sample API Function',
+   'name' => 'The Interwiki Table API Extension',
  
    // A description of the extension, which will appear on Special:Version.
-   'description' => 'A simple sample API extension',
+   'description' => 'An extension of the Wiki API to include a readout of the interwiki table',
  
    // Alternatively, you can specify a message key for the description.
-   'descriptionmsg' => 'sampleapiextension-desc',
+   'descriptionmsg' => 'interwiki-api',
  
    // The version of the extension, which will appear on Special:Version.
    // This can be a number or a string.
    'version' => 1, 
  
    // Your name, which will appear on Special:Version.
-   'author' => 'Me',
+   'author' => 'Alex Lyte',
  
    // The URL to a wiki page/web page with information about the extension,
    // which will appear on Special:Version.
@@ -28,12 +28,12 @@ $wgExtensionCredits['api'][] = array(
 );
  
 // Map class name to filename for autoloading
-$wgAutoloadClasses['ApiSample'] = __DIR__ . '/ApiWikiIWAPI.php';
+$wgAutoloadClasses['IWAPI'] = __DIR__ . '/ApiWikiIWAPI.php';
  
 
 // This must be where the 'action' is defined for the API
 // Map module name to class name
-$wgAPIModules['iwlinks'] = 'ApiSample';
+$wgAPIModules['iwlinks'] = 'IWAPI';
  
 // Load the internationalization file
 $wgExtensionMessagesFiles['myextension'] = __DIR__ . '/ApiWikiIWAPI.i18n.php';

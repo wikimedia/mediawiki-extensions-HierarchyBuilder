@@ -1,5 +1,5 @@
 <?php
-class ApiSample extends ApiBase {
+class IWAPI extends ApiBase {
     public function execute() {
         // Get specific parameters
         // Using ApiMain::getVal makes a record of the fact that we've
@@ -36,7 +36,7 @@ class ApiSample extends ApiBase {
 	}
 
         // Top level
-        $this->getResult()->addValue( null, $this->getModuleName(), array ( 'wikiTestArray' => $wikiTestArray ) );
+        $this->getResult()->addValue( null, $this->getModuleName(), array ( 'wikiIWArray' => $wikiTestArray ) );
 
 
        return true;
