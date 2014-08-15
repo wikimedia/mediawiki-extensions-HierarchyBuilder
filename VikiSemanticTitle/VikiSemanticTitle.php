@@ -145,6 +145,8 @@ class ApiGetDisplayTitle extends ApiBase {
 			$data = $api->getResultData();
 
 			$displayName = $data["query"]["results"][$pageTitle]["printouts"][$displayNameProperty][0];
+			if($displayName == null)
+				$displayName = $pageTitle;
 
 		}
 

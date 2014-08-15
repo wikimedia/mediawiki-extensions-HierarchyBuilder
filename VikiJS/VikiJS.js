@@ -660,7 +660,13 @@ window.VIKI = (function(my) {
 				return d.index == self.SelectedNodeIndex ? "bold" : "normal";
 			});
 			texts.attr("fill", function(d) {
-				return d.nonexistentPage ? "red" : "black";
+				// return d.nonexistentPage ? "red" : "black";
+				if(d.nonexistentPage)
+					return "red";
+				else if(!d.searchable)
+					return "grey";
+				else
+					return "black";
 			});
 
 			var newImages = newNodes.append("svg:image");
@@ -671,10 +677,9 @@ window.VIKI = (function(my) {
 
 			allImages.attr("xlink:href", function(d) {
 				// go through the hierarchy of possible icons in order of preference
-				// Title Icons > Hook Icons > Site Logo Icons > External Node Icons > info.png
-				if(d.titleIconURL)
-					return d.titleIconURL;
-				else if(d.hookIconURL)
+				// Hook Icons > Site Logo Icons > External Node Icons > info.png
+				
+				if(d.hookIconURL)
 					return d.hookIconURL;
 				else if(d.logoURL)
 					return d.logoURL;
@@ -965,6 +970,8 @@ window.VIKI = (function(my) {
 			var self = this;
 			// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
 
+			self.callHooks("BeforeVisitNodeHook", [intraNode]);
+
 			if(intraNode.visited)
 				return;
 
@@ -992,7 +999,6 @@ window.VIKI = (function(my) {
 
 				if(data.query.pages["-1"]) {
 					// check if the page is nonexistent
-					self.log("nonexistent page: "+originNode.pageTitle);
 					originNode.nonexistentPage = true;
 					self.redraw(true);	
 				}
@@ -1059,9 +1065,9 @@ window.VIKI = (function(my) {
 
 		my.VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
+			node.pageTitle = pageTitle;
 			node.displayName = pageTitle;
 			node.fullDisplayName = node.displayName;
-			node.pageTitle = pageTitle;
 			node.type = self.WIKI_PAGE_TYPE;
 			node.URL = url;
 			node.wikiIndex = index;
@@ -1600,7 +1606,6 @@ window.VIKI = (function(my) {
 			// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
 
 			parameters = parameters || {};
-			self.log("hookCompletion() from "+hookName);
 			if(hookName === "GetAllWikisHook") {
 				self.fetchContentNamespaces();
 			}

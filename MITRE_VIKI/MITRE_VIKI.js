@@ -43,9 +43,9 @@ window.VIKI = (function(my) {
       		}
       		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
       			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
-      			node.pageTitle = deptNum;
-      			node.displayName = node.pageTitle;
-      			node.fullDisplayName = node.displayName;
+      			// node.pageTitle = deptNum;
+      			node.displayName = deptNum;
+      			node.fullDisplayName = deptNum;
       			// node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
       			
       			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
@@ -91,8 +91,8 @@ window.VIKI = (function(my) {
 
       parsePhonebookData : function(vikiObject, data, node) {
          result = data["mitrePhonebookAPILookup"]["result"];
-         node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
-         node.displayName = node.pageTitle;
+         node.displayName = result["lastName"] + ", "+result["firstName"] + " (MII)";
+         // node.displayName = node.pageTitle;
          node.fullDisplayName = node.displayName;
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";

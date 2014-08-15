@@ -65,7 +65,7 @@ window.VIKI = (function(my) {
 				return;
 			}
 			else {
-				node.titleIconURL = titleIconURLs[0];
+				node.hookIconURL = titleIconURLs[0];
 			}
 
 			vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : true});
