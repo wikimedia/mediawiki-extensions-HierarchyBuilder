@@ -41,7 +41,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 # credits
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'HierarchyBuilder',
-	'version' => '1.5.1',
+	'version' => '1.6',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'hierarchybuilder-desc'
 );
@@ -417,6 +417,42 @@ END;
 		}
 		return $page;
 	}
+
+	/**
+	 * $hierarchy is a wikitext formatted hierarchy
+	 *
+	 * This function will search through the hierarchy to find all the page names
+	 * (defined by [[]] syntax) and return them as an array without [[]] syntax.
+	 *
+	 * This function will return an array of all the page names found, otherwise
+	 * an empty array will be returned when no page names are found.
+	 */
+	public static function collectPageNamesFromHierarchy($hierarchy) {
+		// use a regex to find all of the page names
+		$numMatches = preg_match_all(HierarchyBuilder::pageNamePattern, $hierarchy, $matches);
+		return ($numMatches > 0 ? $matches[1] : array());
+	}
+
+	/**
+	 * $hierarchy is a wikitext formatted hierarchy
+	 * $displayNameProperty is the name of the property containing the display name
+	 *
+	 * This function will run through the hierarchy and for each pageName link
+	 * found, it will find the displayName for that pageName, and then update
+	 * the link syntax so that the displayName will be shown instead.
+	 * 
+	 * ex: [[pageName]] -> [[pageName | displayName]]
+	 */
+	public static function updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty) {
+		$hierarchyPageNames = self::collectPageNamesFromHierarchy($hierarchy);
+		foreach ($hierarchyPageNames as $pageName) {
+			$displayName = self::getPageDisplayName($pageName, $displayNameProperty);
+			$pageNameLink = "[[".$pageName."]]";
+			$displayNameLink = "[[".$pageName." | ".$displayName."]]";
+			$hierarchy = str_replace($pageNameLink, $displayNameLink, $hierarchy);
+		}
+		return $hierarchy;
+	}
 }
 
 class EditHierarchy extends SFFormInput {
@@ -491,8 +527,10 @@ class EditHierarchy extends SFFormInput {
 		}
 
 		$hierarchy = $this->mCurrentValue; // I don't use the call below anymore because now we have wikiText, not HTML
-		$hierarchy = self::updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty);
-		//wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . $hierarchy);
+
+		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . str_replace("'", "", $hierarchy));
+
 		/*$hierarchy = HierarchyBuilder::parseHierarchy($this->mCurrentValue,
 			$displayNameProperty, $pages,
 			function ($pageName, $displayNameProperty, &$pages) {
@@ -527,42 +565,6 @@ class EditHierarchy extends SFFormInput {
 				wfMessage('hierarchybuilder-unusedpages')->text()
 		);
 		return json_encode($jsattribs);
-	}
-
-	/**
-	 * $hierarchy is a wikitext formatted hierarchy
-	 *
-	 * This function will search through the hierarchy to find all the page names
-	 * (defined by [[]] syntax) and return them as an array without [[]] syntax.
-	 *
-	 * This function will return an array of all the page names found, otherwise
-	 * an empty array will be returned when no page names are found.
-	 */
-	public function collectPageNamesFromHierarchy($hierarchy) {
-		// use a regex to find all of the page names
-		$numMatches = preg_match_all(HierarchyBuilder::pageNamePattern, $hierarchy, $matches);
-		return ($numMatches > 0 ? $matches[1] : array());
-	}
-
-	/**
-	 * $hierarchy is a wikitext formatted hierarchy
-	 * $displayNameProperty is the name of the property containing the display name
-	 *
-	 * This function will run through the hierarchy and for each pageName link
-	 * found, it will find the displayName for that pageName, and then update
-	 * the link syntax so that the displayName will be shown instead.
-	 * 
-	 * ex: [[pageName]] -> [[pageName | displayName]]
-	 */
-	public function updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty) {
-		$hierarchyPageNames = self::collectPageNamesFromHierarchy($hierarchy);
-		foreach ($hierarchyPageNames as $pageName) {
-			$displayName = HierarchyBuilder::getPageDisplayName($pageName, $displayNameProperty);
-			$pageNameLink = "[[".$pageName."]]";
-			$displayNameLink = "[[".$pageName." | ".$displayName."]]";
-			$hierarchy = str_replace($pageNameLink, $displayNameLink, $hierarchy);
-		}
-		return $hierarchy;
 	}
 
 	/*
@@ -697,16 +699,16 @@ class SelectFromHierarchy extends SFFormInput {
 		}
 
 		
-		$params = array();
+		/*$params = array();
 		$params[] = "[[$this->mPageName]]";
 		$params[] = "?$this->mPropertyName";
 		$params[] = "mainlabel=-";
 		$params[] = "headers=hide";
 		$params[] = "limit=1";
 		$output = SMWQueryProcessor::getResultFromFunctionParams($params,
-			SMW_OUTPUT_WIKI); // maybe also call getPropertyFromPage
-		//$output = HierarchyBuilder::getPropertyFromPage($this->mPageName, $this->mPropertyName);
-
+			SMW_OUTPUT_WIKI); // maybe also call getPropertyFromPage*/
+		$hierarchy = HierarchyBuilder::getPropertyFromPage($this->mPageName, $this->mPropertyName);
+		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames($hierarchy, $displaynameproperty);
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "output: " . var_export($output, true));
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPageName: " . var_export($this->mPageName, true));
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPropertyName: " . var_export($this->mPropertyName, true));
@@ -732,11 +734,13 @@ class SelectFromHierarchy extends SFFormInput {
 					Html::element('span', array('style' => 'display:none'),
 					$pageName) .  Html::closeElement('a');
 			});*/
-		$hierarchy = str_replace("<br />", "\n", trim($output));
+		//$hierarchy = str_replace("<br />", "\n", trim($output));
 
-		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . var_export($hierarchy, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . print_r($hierarchy, true));
 
 		$selected_items = array_map('trim', explode(",", $this->mCurrentValue));
+
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "selected_items = " . print_r($selected_items, true));
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -749,6 +753,9 @@ class SelectFromHierarchy extends SFFormInput {
 			'is_mandatory' => array_key_exists('mandatory', $this->mOtherArgs),
 			'collapsed' => $this->mCollapsed == "true" ? true : false
 		);
+
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "jsonencode = ".print_r(json_encode($jsattribs), true));
+
 		return json_encode($jsattribs);
 	}
 
@@ -812,6 +819,6 @@ class SelectFromHierarchy extends SFFormInput {
 	}
 }
 
-/*function wikiLog($className, $methodName, $message) {
+function wikiLog($className, $methodName, $message) {
 	wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
-}*/
+}
