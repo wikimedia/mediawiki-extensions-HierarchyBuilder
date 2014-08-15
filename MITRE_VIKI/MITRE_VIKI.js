@@ -1,15 +1,37 @@
-// Hook functions
+/*
+ * Copyright (c) 2014 The MITRE Corporation
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 
-
-window.MITRE_VIKI = (function($) {
-   var my = {
+window.VIKI = (function(my) {
+   my.MITRE_VIKI = {
 
       hookName : "",
+      ajaxCalls : 0,
       mitre_matchIcons : function(vikiObject, parameters, hookName) {
       //parameters = [ new external nodes ]
          this.hookName = hookName;
       	nodes = parameters[0];
          needsRedraw = false;
+
+         this.ajaxCalls = nodes.filter(function(i) { return i.URL.indexOf("info.mitre.org/people") != -1; }).length;
 
       	for(var i = 0; i < nodes.length; i++) {
       		node = nodes[i];
@@ -18,7 +40,6 @@ window.MITRE_VIKI = (function($) {
       			employeeNum = node.URL.match(pattern)[0];
 
       		   this.queryPhonebook(vikiObject, node, employeeNum);
-               needsRedraw = true;
       		}
       		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
       			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
@@ -36,15 +57,14 @@ window.MITRE_VIKI = (function($) {
       		}
       	}
       	
-         if(needsRedraw)
-            vikiObject.redraw(true);
+         if(this.ajaxCalls == 0)
+            vikiObject.hookCompletion(hookName, {"redraw" : needsRedraw});
       	
       },
 
       queryPhonebook : function(vikiObject, node, employeeNum) {
          var self = this;
          jQuery.ajax({
-            // async: false,
             url: vikiObject.myApiURL,
             dataType: 'json',
             data: {
@@ -52,6 +72,7 @@ window.MITRE_VIKI = (function($) {
                format: 'json',
                empNum: employeeNum
             },
+            timeout : 5000,
             beforeSend: function(jqXHR, settings) {
             },
             success: function(data, textStatus, jqXHR) {
@@ -59,6 +80,9 @@ window.MITRE_VIKI = (function($) {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+               this.ajaxCalls--;
+               if(this.ajaxCalls == 0)
+                  vikiObject.hookCompletion(this.hookName, { "redraw" : true });
 
             }
          });
@@ -72,9 +96,11 @@ window.MITRE_VIKI = (function($) {
          node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-         vikiObject.redraw(true);
+         // vikiObject.redraw(true);
 
-         vikiObject.hookCompletion(this.hookName);
+         this.ajaxCalls--;
+         if(this.ajaxCalls == 0)
+            vikiObject.hookCompletion(this.hookName, { "redraw" : true });
       },
 
       hook_log : function(text) {
@@ -84,7 +110,7 @@ window.MITRE_VIKI = (function($) {
    };
 
    return my;
-}(jQuery));
+}(window.VIKI || {}));
 
 // window.mitre_getAllWikis = function(vikiObject, parameters, hookName) {
 //    MITRE_VIKI.hookName = hookName;

@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.6.1',
+	'version' => '1.7.0',
 	'author' => array("Cindy Cicalese", "Jason Ji", "Austin Vecchio"),
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -176,15 +176,23 @@ EOT;
 		global $wgScriptPath;
 		$imagePath = $wgServer . $wgScriptPath .  '/extensions/ProjectGraph/';
 		$script =<<<END
-mw.loader.using(['jquery.ui.slider', 'ext.ProjectGraph'], function () {
 
-	$(document).ready(function() {
-
-		var g = new ProjectGraph();
-		g.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
-		"$detailsdiv", "$imagePath", "$names_json", "$width", "$height", true);
+addEvent(window, 'load', function(){
+	mw.loader.using(['jquery.ui.slider', 'ext.ProjectGraph'], function () {
+		$(document).ready(function() {
+			var g = new ProjectGraph();
+			g.drawGraph("$projects", "$people_json", "$years", "$graphdiv",
+			"$detailsdiv", "$imagePath", "$names_json", "$width", "$height", true);
+		});
 	});
 });
+
+function addEvent(element, event, fn) {
+    if (element.addEventListener)
+        element.addEventListener(event, fn, false);
+    else if (element.attachEvent)
+        element.attachEvent('on' + event, fn);
+}
 END;
 
 		$script = '<script type="text/javascript">' . $script . "</script>";

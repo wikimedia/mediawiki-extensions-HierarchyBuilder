@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,17 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of VikiIWLinks is only compatible with MediaWiki 1.21 or above.');
+if (!defined('VIKIJS_VERSION')) {
+	die("<b>Error:</b> The extension VikiIWLinks requires VikiJS to be installed first. Be sure that VikiJS is included on a line ABOVE the line where you've included VikiIWLinks.");
+}
+
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of VikiIWLinks is only compatible with MediaWiki 1.22 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.0',
+	'version' => '1.0.2',
 	'author' => 'Jason Ji'
 );
 
@@ -55,9 +59,9 @@ if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
 if(array_key_exists('GetAllWikisHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'VikiIWLinks.viki_getAllWikisFromIWLinks';
+	$VikiJS_Function_Hooks['GetAllWikisHook'][] = 'VIKI.VikiIWLinks.viki_getAllWikisFromIWLinks';
 else
-	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('VikiIWLinks.viki_getAllWikisFromIWLinks');
+	$VikiJS_Function_Hooks['GetAllWikisHook'] = array('VIKI.VikiIWLinks.viki_getAllWikisFromIWLinks');
 
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiIWLinks_AddResource';
@@ -67,7 +71,6 @@ function efVikiIWLinks_AddResource (& $parser) {
 	VikiJS::addResourceModule("ext.VikiIWLinks");
 	VikiJS::addPHPHook("efVikiIWLinks_Setup");
 	return true;
-
 }
 
 function addVikiTablesToDatabase($updater) {
@@ -80,7 +83,7 @@ function addVikiTablesToDatabase($updater) {
 	return true;
 }
 
-function efVikiIWLinks_Setup($parser, &$text) {
+function efVikiIWLinks_Setup($parser) {
 
 	wfErrorLog("efVikiIWLinks_Setup called \n", "/var/www/html/DEBUG_VikiIWLinks.out");
 
@@ -119,7 +122,7 @@ function efVikiIWLinks_Setup($parser, &$text) {
 
 	$script = <<<END
 mw.loader.using('ext.VikiIWLinks', function() {
-	VikiIWLinks.viki_parseWikiData("$wikiTestArrayJSON");	
+	VIKI.VikiIWLinks.viki_parseWikiData("$wikiTestArrayJSON");	
 });
 END;
 

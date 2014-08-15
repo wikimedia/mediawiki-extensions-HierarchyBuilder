@@ -48,20 +48,26 @@
 				if (params.hierarchy.length < 1) {
 					return;
 				}
-			
+
 				var selected_components = params.selected_items;
+
 					//this.getSelectedHierarchyComponents(input_id);
 				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
 			
-				var hierarchy = $(params.hierarchy);
-				var html = hierarchy.html();
+				//var hierarchy = $(params.hierarchy);
+				var hierarchy = params.hierarchy;
+				//console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
+				//var html = hierarchy.html();
+				var html = hierarchy;
 				var ulId = params.div_id + "ul";
 				//console.log("[selectFromHierarchy][init]" + html);
 				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
 				//	"</ul>";
-				html = html.replace(/&nbsp;/gi, " ");
+				//html = html.replace(/&nbsp;/gi, " ");
 				//html = html.replace(/&amp;#160;/gi, " ");
 				html = this.parseWikiTextToHtml(html);
+				//console.log("[selectFromHierarchy.js][init] output hierarchy = " + html);
+
 				var jqDivId = "#" + params.div_id;
 				$(jqDivId).html(html);
 				$(jqDivId + " * li").css("list-style-image", "none");
@@ -75,7 +81,9 @@
 					var parent = $(this);
 					$(this).children("a").each(function() {
 						//console.log("[selectFromHierarchy.js][init] anchor text " + $(this).text());
-						var element_name = $(this).text().trim();// $(this).children("span:first").text();
+						//var element_name = $(this).text().trim();
+						//console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
+						var element_name = $(this).children("span:first").text();
 						//console.log("[selectFromHierarchy.js][init] " + element_name);
 						if (obj.isSelectedHierarchyComponent(element_name,
 							selected_components)) {
@@ -148,7 +156,8 @@
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
-						var element_name = $(this).text().trim();//$(this).children("span:first").text();
+						//var element_name = $(this).text().trim();
+						var element_name = $(this).children("span:first").text();
 						if (obj.isSelectedHierarchyComponent(element_name,
 							selected_components)) {
 							$(jqDivId).jstree("check_node", parent);
@@ -165,14 +174,16 @@
 					$(jqDivId).bind("check_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
 							var element_name =
-								$(this).text().trim();//$(this).children("span:first").text();
+								//$(this).text().trim();
+								$(this).children("span:first").text();
 							obj.checkNode(element_name, input_id);
 						});
 					});
 					$(jqDivId).bind("uncheck_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
 							var element_name =
-								$(this).text().trim();//$(this).children("span:first").text();
+								//$(this).text().trim();
+								$(this).children("span:first").text();
 							obj.uncheckNode(element_name, input_id);
 						});
 					});
@@ -181,13 +192,14 @@
 			
 			isSelectedHierarchyComponent: function(element_name,
 				selected_components) {
-				//alert("isSelectedHierarchyComponent");
+				//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + element_name);
 				if (selected_components && selected_components.length > 0) {
 					var page_name = "[[" + element_name + "]]";
 					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name + "\t" + JSON.stringify(selected_components));
 					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(page_name, selected_components));
 					var index = $.inArray(page_name, selected_components);
 					if (index != -1) {
+						//console.log("********************************************************************************************");
 						return true;
 					}
 				}
@@ -209,6 +221,7 @@
 					cur_value = selected_components.join(",");
 				}
 				$("#" + input_id).val(cur_value);
+				//console.log("[selectFromHierarchy.js][checkNode] cur_value = " + cur_value);
 			},
 			
 			uncheckNode: function(element_name, input_id) {
@@ -257,7 +270,18 @@
 				
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
 				if (depth !== "") {
-					var html = "<li>" + root.replace("[[","<a>").replace("]]","</a>");
+					var html = "<li>";// + root.replace("[[","<a>").replace("]]","</a>");
+
+					var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
+					var pageLinkMatches = pageLinkRegex.exec(root);
+					var pageLink = (pageLinkMatches.length > 0 ? pageLinkMatches[2] : "");
+					var pageName = pageLink.split(" | ")[0];
+					var displayName = pageLink.split(" | ")[1] ? pageLink.split(" | ")[1] : pageName;
+					var rootRow = "<a>" + 
+							displayName +
+							"<span style=display:none>" + pageName + "</span>" +
+							"</a>"; 
+					html += rootRow; 
 				}
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child

@@ -1,6 +1,6 @@
 <?php 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,8 +24,14 @@
 /**
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
+* $wgRegisterInternalExternals = true;
 * include_once("$IP/extensions/VikiJS/VikiJS.php");
+* 
+* If $wgRegisterInternalExternals was not already true, you must run
+* refreshLinks.php after setting this flag.
 */
+
+define('VIKIJS_VERSION', '1.2');
 
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
@@ -35,9 +41,17 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 	die('<b>Error:</b> This version of VikiJS is only compatible with MediaWiki 1.22 or above.');
 }
 
+if ( !defined( 'SMW_VERSION' ) ) {
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+}
+
+if(version_compare(SMW_VERSION, '1.9', '<')) {
+	die('<b>Error:</b> VikiJS is only compatible with Semantic MediaWiki 1.9 or above.');
+}
+
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.0',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
@@ -87,7 +101,7 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
-	$pageTitles = $paramDictionary["pageTitle"];
+	$pageTitles = $paramDictionary["pageTitles"];
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
 
@@ -118,7 +132,7 @@ function vikiJS_parseParameters($params) {
 class VikiJS {
 
 	private static $pqnum = 0;
-	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar", "ext.MultiWikiSearch");
+	private static $modules = array("ext.VikiJS", "jquery.ui.slider", "jquery.ui.progressbar");
 	private static $functionHooks = array();
 
 	static function addResourceModule($moduleName) {
@@ -153,8 +167,6 @@ class VikiJS {
 </div></td></tr>
 <tr><td><div class="vikijs-errors-panel" id="$errorsdiv">
 </div></td></tr>
-<tr><td><div id="vikijs-add-nodes-panel"><button id="addNodesButton">Add Nodes</button>
-</div></td></tr>
 </table>
 EOT;
 		
@@ -184,7 +196,7 @@ EOT;
 modules = jQuery.parseJSON("$modules_json");
 mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
 	$(document).ready(function() {
-		var g = new VikiJS();
+		var g = new VIKI.VikiJS();
 		g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
 	});
 });
