@@ -529,7 +529,7 @@ class EditHierarchy extends SFFormInput {
 		$hierarchy = $this->mCurrentValue; // I don't use the call below anymore because now we have wikiText, not HTML
 
 		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . str_replace("'", "", $hierarchy));
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . str_replace("'", "", $hierarchy));
 
 		/*$hierarchy = HierarchyBuilder::parseHierarchy($this->mCurrentValue,
 			$displayNameProperty, $pages,
@@ -740,7 +740,7 @@ class SelectFromHierarchy extends SFFormInput {
 
 		$selected_items = array_map('trim', explode(",", $this->mCurrentValue));
 
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "selected_items = " . print_r($selected_items, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "selected_items = " . print_r($selected_items, true));
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -754,7 +754,7 @@ class SelectFromHierarchy extends SFFormInput {
 			'collapsed' => $this->mCollapsed == "true" ? true : false
 		);
 
-		wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "jsonencode = ".print_r(json_encode($jsattribs), true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "jsonencode = ".print_r(json_encode($jsattribs), true));
 
 		return json_encode($jsattribs);
 	}

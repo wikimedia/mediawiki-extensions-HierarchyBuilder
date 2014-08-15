@@ -39,8 +39,8 @@
 				//console.log("[selectFromHierarchy.js][init] " + input_id);
 				//console.log("[selectFromHierarchy.js][init] ");
 				//console.log(JSON.stringify(params));
-				console.log("[selectFromHierarchy.js][init] " + "selected = ");
-				console.log(params.selected_items);
+				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
+				//console.log(params.selected_items);
 
 				//var wikiText = "\*[[My University]]\n\*\*[[School of Arts and Sciences]]\n\*\*\*[[English Department]]\n\*\*\*[[Art Department]]\n\*\*\*[[Math Department]]\n\*\*[[School of Engineering]]\n\*\*\*[[Computer Engineering]]\n\*\*\*[[Electrical Engineering]]\n\*\*\*[[Mechanical Engineering]]";
 				//console.log(this.parseWikiTextToHtml(wikiText));
@@ -56,7 +56,7 @@
 			
 				//var hierarchy = $(params.hierarchy);
 				var hierarchy = params.hierarchy;
-				console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
+				//console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
 				//var html = hierarchy.html();
 				var html = hierarchy;
 				var ulId = params.div_id + "ul";
@@ -66,7 +66,7 @@
 				//html = html.replace(/&nbsp;/gi, " ");
 				//html = html.replace(/&amp;#160;/gi, " ");
 				html = this.parseWikiTextToHtml(html);
-				console.log("[selectFromHierarchy.js][init] output hierarchy = " + html);
+				//console.log("[selectFromHierarchy.js][init] output hierarchy = " + html);
 
 				var jqDivId = "#" + params.div_id;
 				$(jqDivId).html(html);
@@ -82,7 +82,7 @@
 					$(this).children("a").each(function() {
 						//console.log("[selectFromHierarchy.js][init] anchor text " + $(this).text());
 						//var element_name = $(this).text().trim();
-						console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
+						//console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
 						var element_name = $(this).children("span:first").text();
 						//console.log("[selectFromHierarchy.js][init] " + element_name);
 						if (obj.isSelectedHierarchyComponent(element_name,
@@ -192,14 +192,14 @@
 			
 			isSelectedHierarchyComponent: function(element_name,
 				selected_components) {
-				console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + element_name);
+				//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + element_name);
 				if (selected_components && selected_components.length > 0) {
 					var page_name = "[[" + element_name + "]]";
 					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name + "\t" + JSON.stringify(selected_components));
 					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(page_name, selected_components));
 					var index = $.inArray(page_name, selected_components);
 					if (index != -1) {
-						console.log("********************************************************************************************");
+						//console.log("********************************************************************************************");
 						return true;
 					}
 				}
@@ -221,6 +221,7 @@
 					cur_value = selected_components.join(",");
 				}
 				$("#" + input_id).val(cur_value);
+				//console.log("[selectFromHierarchy.js][checkNode] cur_value = " + cur_value);
 			},
 			
 			uncheckNode: function(element_name, input_id) {
