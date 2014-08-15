@@ -19,7 +19,6 @@ window.WikiTreeMap = function() {
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
 	
 	window.onload = function(e){        
-
 		if (wiki !== ""){
 //			$('#selectAWiki').hide();						
 			var elmDiv = wiki;
@@ -39,8 +38,6 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 			getWanted(vikiObject);
 			getUnused(vikiObject);
 		} else {
-			getIWLinksTable();
-
 			var vikiObject = [];
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
