@@ -18,7 +18,9 @@ WikiVersionTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wi
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
 				vikiObject.divheight = divheight;
-			mitre_getAllWikis(vikiObject) 
+			getIWLinksTable(vikiObject);
+//			mitre_getAllWikis(vikiObject) 
+			
 	}; 
 }
 
@@ -45,7 +47,10 @@ function fillDropdown(dropdownName, vikiObject) {
     $('#wiki2').append('<p><button id="loadVersionData" type="button">Load Version Data</button></p>');		
 
 	// adding text boxed for API input
-    $('#wiki1text').append('<h3>Or enter a wiki API URL</h3>');		
+    $('#wiki1text').append('<h3>Or enter a wiki API URL</h3>');
+    $('#wiki1text').append("<h4>For Example:</h4>" + "<p>" + "http://gestalt-archive.mitre.org/dstc/.mediawiki/api.php?action=query&meta=siteinfo&siprop=general&format=json" +  "</p>");
+
+		
     $('#wiki1text').append('<input type="text" name="wiki1URL" id="wiki1URL">');		
     $('#wiki2text').append('<input type="text" name="wiki2URL" id="wiki2URL">');		
     $('#wiki2text').append('<p><button id="loadVersionText" type="button">Load Version Data</button></p>');		
@@ -97,6 +102,72 @@ function fillDropdown(dropdownName, vikiObject) {
 	    getComparativeWikis(wikiVObject);
 	});
 }
+
+
+
+window.getIWLinksTable = function(vikiObject){
+	
+   jQuery.ajax({
+      url: 'http://gestalt-ed.mitre.org/robopedia/api.php?action=iwlinks&format=json',
+      dataType: 'jsonp',
+      beforeSend: function (jqXHR, settings) {
+         url = settings.url;
+         // hook_log("url of ajax call: "+url);
+      },
+      success: function(data, textStatus, jqXHR) {
+  //      parseAllWikisResults(data, vikiObject);
+	//	fillDropdown('#wikis', vikiObject);
+	//			 console.log(data);
+
+				 allWikis = data["iwlinks"]["wikiIWArray"];
+				 allWikisArray = [];
+
+				 for(var i in allWikis) {
+						var title = allWikis[i]["wikiTitle"];
+						var wiki = {
+									wikiTitle: title,
+									apiURL: allWikis[i]["apiURL"],
+									contentURL: allWikis[i]["contentURL"],
+									logoURL: allWikis[i]["logoURL"],
+									searchableWiki : allWikis[i]["searchableWiki"],
+								  };
+						if(allWikis[i]['searchableWiki']!== undefined ){
+
+							var searchable = allWikis[i]['searchableWiki']
+
+							if(searchable.length > 0 && searchable=== 'false'){
+								 wiki.searchableWiki = true;
+							} else {
+								 wiki.searchableWiki = false;
+							}		        
+
+							allWikisArray.push(wiki);
+	
+						} else {
+							console.log(allWikis[i])
+						}
+
+
+		
+				}
+
+				vikiObject.allWikis = allWikisArray;
+				vikiObject.activeWikis = []
+				vikiObject.allWikis.forEach(function(d){
+					if(d.searchableWiki===false){
+							vikiObject.activeWikis.push(d)
+					}
+				})
+				vikiObject.selectMsg = "Select a Wiki from the Inter-Wiki Table";
+				fillDropdown('#IWwikis', vikiObject);
+    },
+      error: function(jqXHR, textStatus, errorThrown) {
+         alert("Unable to fetch list of wikis. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown="+errorThrown);
+      }
+   });
+
+}
+
 
 
 
