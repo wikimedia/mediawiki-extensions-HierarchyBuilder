@@ -39,13 +39,13 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 			getWanted(vikiObject);
 			getUnused(vikiObject);
 		} else {
-			getIWLinksTable();
 
 			var vikiObject = [];
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
 				vikiObject.divheight = divheight;
-			mitre_getAllWikis(vikiObject) 
+			getIWLinksTable(vikiObject);
+//			mitre_getAllWikis(vikiObject) 
 		}
     }; 
 
@@ -60,8 +60,8 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 function fillDropdown(dropdownName, vikiObject) {
 	
 	// Creating the Treemap dropdown menu
-    $('#selectAWiki').append('<select id="wikis" style="width:500px;"></select>');		
-    $(dropdownName).prepend("<option value='0' selected='true'>" +"--Select a Wiki--"+ "</option>");
+    $('#selectAWiki').append("<select id='" + dropdownName.split("#")[1] + "' style='width:500px;'></select>");		
+    $(dropdownName).prepend("<option value='0' selected='true'>" +vikiObject.selectMsg+ "</option>");
     $(dropdownName).find("option:first")[0].selected = true;
     $('#selectAWiki').append('<p><button id="loadData" type="button">Load Data</button></p>');		
     $(dropdownName).append('<option value="' + "http://mitrepedia.mitre.org/api.php" + '">' + "MITREpedia" + '</option>');
@@ -90,7 +90,7 @@ function fillDropdown(dropdownName, vikiObject) {
 
 	// once a wiki is selected and the user clicks 'Load Data', category data is queried	
 	$('#loadData').click(function(e){
-	    var elmDiv = $('#wikis');
+	    var elmDiv = $(dropdownName);
 	    elmValue = elmDiv[0].value;        
 		elmLabel = elmDiv[0]['selectedOptions'][0]['label'];
 	    jsonData = {"name":"allcategories", "children" : []};
