@@ -30,10 +30,10 @@ window.VIKI = (function(my) {
 			node = parameters[0];
 			node.semanticTitle = node.pageTitle;
 			if(!node.semanticQueried)
-				this.queryForSemanticTitle(vikiObject, node, hookName);
+				this.queryForSemanticTitle(vikiObject, node);
 		},
 
-		queryForSemanticTitle : function(vikiObject, node, hookName) {
+		queryForSemanticTitle : function(vikiObject, node) {
 			var self = this;
 			jQuery.ajax({
 	            url: node.apiURL,
@@ -44,22 +44,20 @@ window.VIKI = (function(my) {
 	               pageTitle: node.semanticTitle
 	            },
 	            beforeSend: function(jqXHR, settings) {
-	            	console.log(settings.url);
 	            },
 	            success: function(data, textStatus, jqXHR) {
-	            	self.processDisplayTitle(vikiObject, data, node, hookName);
+	            	self.processDisplayTitle(vikiObject, data, node);
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
 	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
-					vikiObject.hookCompletion(hookName, { "redraw" : true });
+					vikiObject.hookCompletion(self.hookName, { "redraw" : true });
 	            }
 			});
 		},
 
-		processDisplayTitle : function(vikiObject, data, node, hookName) {
+		processDisplayTitle : function(vikiObject, data, node) {
 			semanticTitle = data["getDisplayTitle"]["result"];
-			console.log("getDisplayTitle result: "+semanticTitle + " (query was "+node.semanticTitle+")");
 			if(node.semanticTitle !== semanticTitle) {
 
 				// node.pageTitle = data["getDisplayTitle"]["result"];
@@ -68,7 +66,7 @@ window.VIKI = (function(my) {
 			}
 			node.semanticQueried = true;
 
-			vikiObject.hookCompletion(hookName, { "redraw" : true });
+			vikiObject.hookCompletion(VIKI.VikiSemanticTitle.hookName, { "redraw" : true });
 		}
 	};
 

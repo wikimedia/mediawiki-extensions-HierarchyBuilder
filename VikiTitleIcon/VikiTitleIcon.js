@@ -48,7 +48,7 @@ window.VIKI = (function(my) {
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					vikiObject.showError("Error fetching title icon data for "+node.pageTitle+". errorThrown = "+errorThrown);
-					vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
+					vikiObject.hookCompletion(self.hookName, {"redraw" : false});
 				}
 			});
 		},
