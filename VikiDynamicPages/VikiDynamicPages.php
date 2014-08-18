@@ -75,11 +75,26 @@ if(array_key_exists('BeforeVisitNodeHook', $VikiJS_Function_Hooks))
 else
 	$VikiJS_Function_Hooks['BeforeVisitNodeHook'] = array('VIKI.VikiDynamicPages.processQueryString');
 
-$wgHooks['ParserFirstCallInit'][] = 'efVikiDynamicPages_Setup';
+$wgHooks['ParserFirstCallInit'][] = 'efVikiDynamicPages_AddResource';
 
-function efVikiDynamicPages_Setup (& $parser) {
+function efVikiDynamicPages_AddResource (& $parser) {
 
 	VikiJS::addResourceModule("ext.VikiDynamicPages");
+	VikiJS::addPHPHook("efVikiDynamicPages_Setup", array(&$parser));
 	return true;
 
+}
+
+function efVikiDynamicPages_Setup($params) {
+	global $egVikiDynamicPagePropertyName;
+	global $wgOut;
+
+	$script = <<<END
+mw.loader.using('ext.VikiDynamicPages', function() {
+	VIKI.VikiDynamicPages.parseDynamicPagePropertyName("$egVikiDynamicPagePropertyName");	
+});
+END;
+
+	$script = '<script type="text/javascript">' . $script . '</script>';
+	$wgOut->addScript($script);
 }

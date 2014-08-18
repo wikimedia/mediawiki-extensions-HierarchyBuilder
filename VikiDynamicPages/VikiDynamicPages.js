@@ -23,12 +23,15 @@
 window.VIKI = (function(my) {
 	my.VikiDynamicPages = {
 		hookName: "",
+		propertyName: "",
+		parseDynamicPagePropertyName : function(propertyName) {
+			this.propertyName = propertyName;
+			console.log("property name: "+propertyName);
+		},
 
 		processQueryString : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
 			node = parameters[0];
-
-			console.log("processQueryString called");
 
 			if(node.pageTitle.indexOf("?") != -1) {
 				node.searchable = false;
@@ -56,7 +59,7 @@ window.VIKI = (function(my) {
 	            data: {
 	               action: 'askargs',
 	               conditions: node.pageTitle,
-	               printouts: 'Dynamic Display',
+	               printouts: self.propertyName,
 	               format: 'json',
 	            },
 	            beforeSend: function(jqXHR, settings) {
@@ -73,8 +76,7 @@ window.VIKI = (function(my) {
 		},
 
 		processDisplayFormula : function(vikiObject, data, node, queryParameters) {
-			var formula = data.query.results[node.pageTitle].printouts["Dynamic Display"][0];
-			console.log("formula: "+formula);
+			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
 
 			Object.keys(queryParameters).forEach(function(element, index, array) {
 				formula = formula.replace("$"+element, queryParameters[element]);
@@ -84,6 +86,8 @@ window.VIKI = (function(my) {
 
 			node.displayName = formula.length < 15 ? formula : formula.substring(0,15)+"...";
 			node.fullDisplayName = formula;
+
+			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redraw" : true });
 		}
 	};
 
