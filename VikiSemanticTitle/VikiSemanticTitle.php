@@ -40,7 +40,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 }
 
 if ( !defined( 'SMW_VERSION' ) ) {
-	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use Semantic Watchlist.' );
+	die( '<b>Error:</b> You need to have <a href="https://semantic-mediawiki.org/wiki/Semantic_MediaWiki">Semantic MediaWiki</a> installed in order to use VikiSemanticTitle.' );
 }
 
 if(version_compare(SMW_VERSION, '1.9', '<')) {
@@ -49,9 +49,13 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.0.1',
-	'author' => 'Jason Ji'
+	'version' => '1.0.3',
+	'author' => 'Jason Ji',
+	'descriptionmsg' => 'vikisemantictitle-desc'
 );
+
+$wgExtensionMessagesFiles['VikiSemanticTitle'] =
+	__DIR__ . '/VikiSemanticTitle.i18n.php';
 
 $wgResourceModules['ext.VikiSemanticTitle'] = array(
 	'localBasePath' => dirname(__FILE__),
@@ -66,20 +70,10 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
+if(array_key_exists('NewWikiNodeAddedHook', $VikiJS_Function_Hooks))
+	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
-
-if(array_key_exists('IntraInNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['IntraInNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
-else
-	$VikiJS_Function_Hooks['IntraInNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
-
-if(array_key_exists('IntraOutNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['IntraOutNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
-else
-	$VikiJS_Function_Hooks['IntraOutNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
+	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiSemanticTitle_AddResource';
 $wgAPIModules['getDisplayTitle'] = 'ApiGetDisplayTitle';
@@ -151,6 +145,8 @@ class ApiGetDisplayTitle extends ApiBase {
 			$data = $api->getResultData();
 
 			$displayName = $data["query"]["results"][$pageTitle]["printouts"][$displayNameProperty][0];
+			if($displayName == null)
+				$displayName = $pageTitle;
 
 		}
 

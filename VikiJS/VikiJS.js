@@ -127,6 +127,9 @@ window.VIKI = (function(my) {
 			// Set up the slider div.
 			initializeSliderDiv();
 
+			// Set up the error div.
+			initializeErrorDiv();
+
 			// Set up the loading spinner
 			initializeLoadingSpinner();
 
@@ -174,6 +177,10 @@ window.VIKI = (function(my) {
 				        self.slide();
 				  }
 				});
+			}
+
+			function initializeErrorDiv() {
+				$("#"+self.ErrorsDiv).append("<p><strong>Error:</strong></p>");
 			}
 
 			function initializeLoadingSpinner() {
@@ -399,6 +406,14 @@ window.VIKI = (function(my) {
 		
 				function tick() {
 
+					// Explicit detection for IE10 and IE11, which requires this patch to fix SVG markers.
+					// See: 
+					// http://stackoverflow.com/questions/15588478/internet-explorer-10-not-showing-svg-path-d3-js-graph
+					// http://stackoverflow.com/questions/17447373/how-can-i-target-only-internet-explorer-11-with-javascript
+					if( (navigator.appVersion.indexOf("MSIE 10") !=-1) || 
+						(!!navigator.userAgent.match(/Trident.*rv[ :]*11\./))) 
+						self.LinkSelection.each(function() { this.parentNode.insertBefore(this, this); });
+
 					// var boundaryRadius = 12;
 
 					self.NodeSelection.attr("transform", function(d) {
@@ -538,8 +553,7 @@ window.VIKI = (function(my) {
 					if(errorThrown === 'timeout') {
 						// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
 						// default to just NS 0 (main).
-						$("#"+self.ErrorsDiv).css("visibility", "visible");
-						$("#"+self.ErrorsDiv).append("<p>Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).</p>");
+						self.showError("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
 						actuallySearchableWikis[index].contentNamespaces = [0];
 						self.contentNamespacesFetched++;
 						if(self.contentNamespacesFetched == self.searchableCount) {
@@ -654,7 +668,13 @@ window.VIKI = (function(my) {
 				return d.index == self.SelectedNodeIndex ? "bold" : "normal";
 			});
 			texts.attr("fill", function(d) {
-				return d.nonexistentPage ? "red" : "black";
+				// return d.nonexistentPage ? "red" : "black";
+				if(d.nonexistentPage)
+					return "red";
+				else if(!d.searchable)
+					return "grey";
+				else
+					return "black";
 			});
 
 			var newImages = newNodes.append("svg:image");
@@ -665,10 +685,9 @@ window.VIKI = (function(my) {
 
 			allImages.attr("xlink:href", function(d) {
 				// go through the hierarchy of possible icons in order of preference
-				// Title Icons > Hook Icons > Site Logo Icons > External Node Icons > info.png
-				if(d.titleIconURL)
-					return d.titleIconURL;
-				else if(d.hookIconURL)
+				// Hook Icons > Site Logo Icons > External Node Icons > info.png
+				
+				if(d.hookIconURL)
 					return d.hookIconURL;
 				else if(d.logoURL)
 					return d.logoURL;
@@ -793,7 +812,7 @@ window.VIKI = (function(my) {
 					// the actual menu code
 
 
-			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage) {
+			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage || (node.type === self.WIKI_PAGE_TYPE && !node.searchable)) {
 			          $('.elaborate-'+self.ID, menu).remove();
 			        }
 			        if(!node.elaborated)
@@ -934,65 +953,32 @@ window.VIKI = (function(my) {
 			$("#"+self.SliderDiv).slider("value",self.Zoompos);
 		}
 
-		my.VikiJS.prototype.formatNodeInfo = function(name, isNonexistentPage) {
-			var self = this;
-			var info;
-			if(isNonexistentPage)
-				info = "<h4 id='vikijs-header'>" + name + " (Page Does Not Exist) </h4>";
-			else
-				info = "<h4 id='vikijs-header'>" + name + "</h4>";
-			return info;
-		}
-
 		my.VikiJS.prototype.displayNodeInfo = function(node) {
 			var self = this;
 			
 			if (self.SelectedNodeIndex !== node.index) {
 				return;
 			}
-			jQuery("#" + self.SubDetailsDiv).html(node.info);
-		}
 
-		my.VikiJS.prototype.checkForTitleIcon = function(node) {
-			
-			jQuery.ajax({
-				url: node.apiURL,
-				dataType: node.sameServer ? 'json' : 'jsonp',
-				data: {
-					action: 'getTitleIcons',
-					format: 'json',
-					pageTitle: node.pageTitle
-				},
-				beforeSend: function(jqXHR, settings) {
-				},
-				success: function(data, textStatus, jqXHR) {
-					titleIconSuccessHandler(data, node);
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching title icon data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-				}
-			});
-			
-			function titleIconSuccessHandler(data, node) {
-				if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-					return;
-				}
+			var info = "<h4 id='vikijs-header'>";
 
-				var titleIconURLs = data["getTitleIcons"]["titleIcons"];
-				if(titleIconURLs.length == 0) {
-					return;
-				}
-				else {
-					node.titleIconURL = titleIconURLs[0];
-					self.redraw(false);
-				}
-			}
+			info += node.fullDisplayName;
 
+			if(node.nonexistentPage)
+				info += " (Page Does Not Exist)";
+			if(node.type == self.WIKI_PAGE_TYPE && !node.searchable)
+				info += " (Unsearchable Wiki)";
+
+			info += "</h4>";
+
+			jQuery("#"+self.SubDetailsDiv).html(info);
 		}
 		
 		my.VikiJS.prototype.visitNode = function(intraNode) {
 			var self = this;
 			// note: beyond modularity, this is a separate function to preserve the scope of intraNode for the ajax call.
+
+			self.callHooks("BeforeVisitNodeHook", [intraNode]);
 
 			if(intraNode.visited)
 				return;
@@ -1022,7 +1008,6 @@ window.VIKI = (function(my) {
 				if(data.query.pages["-1"]) {
 					// check if the page is nonexistent
 					originNode.nonexistentPage = true;
-					originNode.info = self.formatNodeInfo(originNode.pageTitle, true);
 					self.redraw(true);	
 				}
 				else {
@@ -1058,11 +1043,12 @@ window.VIKI = (function(my) {
 			shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
 			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,15)+"...");
 			node.fullDisplayName = url;
-			node.info = self.formatNodeInfo(node.fullDisplayName);
 			node.type = self.EXTERNAL_PAGE_TYPE;
 			node.URL = url;
 			node.externalNodeIconURL = self.ImagePath + "internet.png";
 			self.addNode(node);
+
+			self.callHooks("NewExternalNodeAddedHook", [node]);
 			return node;
 		}
 
@@ -1087,8 +1073,9 @@ window.VIKI = (function(my) {
 
 		my.VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
-			node.displayName = pageTitle;
 			node.pageTitle = pageTitle;
+			node.displayName = pageTitle;
+			node.fullDisplayName = node.displayName;
 			node.type = self.WIKI_PAGE_TYPE;
 			node.URL = url;
 			node.wikiIndex = index;
@@ -1099,10 +1086,9 @@ window.VIKI = (function(my) {
 			node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 			node.wikiTitle = wiki.wikiTitle;
 			
-			node.info = node.searchable ? self.formatNodeInfo(pageTitle, node.nonexistentPage) : self.formatNodeInfo(pageTitle + " (Unsearchable Wiki)");
-			
-			self.checkForTitleIcon(node);
 			self.addNode(node);
+
+			self.callHooks("NewWikiNodeAddedHook", [node]);
 			
 			return node;
 		}
@@ -1274,7 +1260,6 @@ window.VIKI = (function(my) {
 				}
 			});
 			node.elaborated = true;
-			node.info = self.formatNodeInfo(node.displayName);
 			self.displayNodeInfo(node);
 
 			function externalLinksSuccessHandler(data, textStatus, jqXHR, originNode) {
@@ -1286,15 +1271,26 @@ window.VIKI = (function(my) {
 						// some of these external links are actually links to other searchable wikis.
 						// these should be recognized as wiki nodes, not just external nodes.
 
+						var thisURL = externalLinks[i]["*"];
+
 						// index of the searchable wiki in list of searchable wikis, or -1 if this is not a searchable wiki page.
 						var index = self.indexOfWikiForURL(externalLinks[i]["*"]);
-						isWikiPage = (index != -1);
+						// handle the case where the URL has the form "index.php?title=..." rather than "index.php/..."
+						var alternativeIndex = self.indexOfWikiForURL( thisURL.replace("?title=", "/") );
+
+						isWikiPage = (index != -1 || alternativeIndex !=-1);
 
 						if(isWikiPage) {
+							// if "index.php?title=..." form was used, swap it with "index.php/..." form.
+							if(alternativeIndex != -1) {  
+								thisURL = thisURL.replace("?title=", "/");
+								index = alternativeIndex;
+							}
+
 							externalNode = null;
-							externalWikiNode = self.findNode("URL", externalLinks[i]["*"]);
+							externalWikiNode = self.findNode("URL", thisURL);
 							if(!externalWikiNode) {
-									externalWikiNode = self.addWikiNodeFromExternalLink(externalLinks[i]["*"], index);	
+									externalWikiNode = self.addWikiNodeFromExternalLink(thisURL, index);	
 							}
 							if(externalWikiNode.hidden) {
 								self.unhideNode(externalWikiNode.identifier);
@@ -1309,9 +1305,9 @@ window.VIKI = (function(my) {
 							self.visitNode(externalWikiNode);
 						}
 						else {
-							externalNode = self.findNode("URL", externalLinks[i]["*"]);
+							externalNode = self.findNode("URL", thisURL);
 							if(!externalNode)
-								externalNode = self.addExternalNode(externalLinks[i]["*"]);		
+								externalNode = self.addExternalNode(thisURL);		
 							if(externalNode.hidden) {
 								self.unhideNode(externalNode.identifier);
 							}
@@ -1366,7 +1362,7 @@ window.VIKI = (function(my) {
 								if(!link.bidirectional && link.target.identifier == originNode.identifier)
 									link.bidirectional = true;
 							}
-							// now visit the wiki page to get more info (does it exist? does it have a LogoLink?)
+							// now visit the wiki page to get more info (does it exist? what categories?)
 							self.visitNode(intraNode);
 						}
 						newIntraOutNodes.push(intraNode);
@@ -1456,7 +1452,7 @@ window.VIKI = (function(my) {
 
 			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
 			self.SelectedNodeIndex = 0;
-			self.displayNodeInfo(self.SelectedNodeIndex);
+			self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
 
 		}
 
@@ -1576,6 +1572,11 @@ window.VIKI = (function(my) {
 				console.log( text );
 		}
 
+		my.VikiJS.prototype.showError = function(errorText) {
+			$("#"+self.ErrorsDiv).css("visibility", "visible");
+			$("#"+self.ErrorsDiv).append("<p>"+ errorText + "</p>");
+		}
+
 		/****************************************************************************************************************************
 		 * VikiJS Hook Structure Methods
 		 ****************************************************************************************************************************/
@@ -1592,8 +1593,8 @@ window.VIKI = (function(my) {
 
 						var scope = window;
 						var scopeSplit = hookFunction.split('.');
-	    				for (i = 0; i < scopeSplit.length - 1; i++) {
-	        				scope = scope[scopeSplit[i]];
+	    				for (j = 0; j < scopeSplit.length - 1; j++) {
+	        				scope = scope[scopeSplit[j]];
 
 	        				if (scope == undefined) return false;
 					    }
@@ -1613,7 +1614,6 @@ window.VIKI = (function(my) {
 			// let VikiJS know that the hook was completed, so VikiJS can perform actions if needed.
 
 			parameters = parameters || {};
-			self.log("hookCompletion() from "+hookName);
 			if(hookName === "GetAllWikisHook") {
 				self.fetchContentNamespaces();
 			}
