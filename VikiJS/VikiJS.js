@@ -406,6 +406,14 @@ window.VIKI = (function(my) {
 		
 				function tick() {
 
+					// Explicit detection for IE10 and IE11, which requires this patch to fix SVG markers.
+					// See: 
+					// http://stackoverflow.com/questions/15588478/internet-explorer-10-not-showing-svg-path-d3-js-graph
+					// http://stackoverflow.com/questions/17447373/how-can-i-target-only-internet-explorer-11-with-javascript
+					if( (navigator.appVersion.indexOf("MSIE 10") !=-1) || 
+						(!!navigator.userAgent.match(/Trident.*rv[ :]*11\./))) 
+						self.LinkSelection.each(function() { this.parentNode.insertBefore(this, this); });
+
 					// var boundaryRadius = 12;
 
 					self.NodeSelection.attr("transform", function(d) {
