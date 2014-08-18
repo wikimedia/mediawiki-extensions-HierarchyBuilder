@@ -26,13 +26,13 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
+if (version_compare($wgVersion, '1.23', 'lt')) {
+	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.23 or above.');
 }
 
 $wgExtensionCredits['other'][] = array (
 	'name' => 'OpenID Connect',
-	'version' => '1.4',
+	'version' => '1.5',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
 	),
@@ -47,6 +47,8 @@ $wgAutoloadClasses['OpenIDConnectClient'] =
 $wgExtensionMessagesFiles['OpenIDConnect'] =
 	__DIR__ . '/OpenIDConnect.i18n.php';
 
+$wgExtensionMessagesFiles['SelectOpenIDConnectIssuer'] =
+	__DIR__ . '/SelectOpenIDConnectIssuer.i18n.php';
 
 $wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
 $wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
@@ -54,13 +56,15 @@ $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'OpenIDConnect::loadExtensionSchemaUpdates';
 $wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
 $wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-$wgExtensionMessagesFiles['OpenIDConnectSpecialAliases'] =
-	__DIR__ . '/OpenIDConnect.aliases.php';
 
+$wgSpecialPages['Userlogin'] = 'OpenIDConnectLogin';
 $wgAutoloadClasses['OpenIDConnectLogin'] =
 	__DIR__ . '/OpenIDConnectLogin.class.php';
-$wgSpecialPages['OpenIDConnectLogin'] = 'OpenIDConnectLogin';
 
 $wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
 $wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
 	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
+
+$wgSpecialPages['SelectOpenIDConnectIssuer'] = 'SelectOpenIDConnectIssuer';
+$wgAutoloadClasses['SelectOpenIDConnectIssuer'] =
+	__DIR__ . '/SelectOpenIDConnectIssuer.class.php';
