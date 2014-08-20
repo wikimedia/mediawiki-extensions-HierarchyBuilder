@@ -1678,6 +1678,10 @@ window.VIKI = (function(my) {
 			}
 			if(parameters["redraw"] && parameters["redraw"] == true)
 				self.redraw(true);
+
+			if(parameters["redrawNode"] && parameters["redrawNode"] == true && parameters["node"]) {
+				self.redrawNode(parameters["node"]);
+			}
 		}
 	}
 
