@@ -1602,7 +1602,7 @@ window.VIKI = (function(my) {
 	    				scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
 					}
 					
-					self.redraw(true);
+					// self.redraw(true);
 					return true;
 				}
 			}
