@@ -197,13 +197,22 @@ EOT;
 															"logoURL" => $wgLogo)));
 
 		$script =<<<END
-modules = jQuery.parseJSON("$modules_json");
-mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
-	$(document).ready(function() {
-		var g = new VIKI.VikiJS();
-		g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
+addEvent(window, 'load', function() {
+	modules = jQuery.parseJSON("$modules_json");
+	mw.loader.using(jQuery.parseJSON("$modules_json"), function () {
+		$(document).ready(function() {
+			var g = new VIKI.VikiJS();
+			g.initialize("$pageTitles_json", "$divs_json", "$parameters_json");
+		});
 	});
 });
+
+function addEvent(element, event, fn) {
+    if (element.addEventListener)
+        element.addEventListener(event, fn, false);
+    else if (element.attachEvent)
+        element.attachEvent('on' + event, fn);
+}
 END;
 
 		$script = '<script type="text/javascript">' . $script . "</script>";
