@@ -178,7 +178,7 @@ class OpenIDConnect {
 			}
 			if ($oidc->authenticate()) {
 				$subject = $oidc->requestUserInfo('sub');
-				$issuer = $oidc->requestUserInfo('iss');
+				$issuer = $oidc->getProviderURL();
 				$realname = $oidc->requestUserInfo("name");
 				$email = $oidc->requestUserInfo("email");
 				$user->mId = self::getId($subject, $issuer);
