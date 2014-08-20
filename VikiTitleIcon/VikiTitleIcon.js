@@ -48,26 +48,26 @@ window.VIKI = (function(my) {
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					vikiObject.showError("Error fetching title icon data for "+node.pageTitle+". errorThrown = "+errorThrown);
-					vikiObject.hookCompletion(self.hookName, {"redraw" : false});
+					vikiObject.hookCompletion(self.hookName);
 				}
 			});
 		},
 
 		titleIconSuccessHandler :function(vikiObject, data, node) {
 			if(data["error"] && data["error"]["code"] && data["error"]["code"]=== "unknown_action") {
-				vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
+				vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName);
 				return;
 			}
 
 			var titleIconURLs = data["getTitleIcons"]["titleIcons"];
 			if(titleIconURLs.length == 0 || titleIconURLs[0] === null) {
-				vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
+				vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName);
 				return;
 			}
-				
+			
 			node.hookIconURL = titleIconURLs[0];
-			vikiObject.redrawNode(node);
-			vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
+			vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redrawNode" : true, "node" : node});
+
 		}
 
 	};
