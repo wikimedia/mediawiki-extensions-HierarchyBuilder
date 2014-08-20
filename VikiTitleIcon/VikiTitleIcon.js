@@ -60,15 +60,14 @@ window.VIKI = (function(my) {
 			}
 
 			var titleIconURLs = data["getTitleIcons"]["titleIcons"];
-			if(titleIconURLs.length == 0) {
+			if(titleIconURLs.length == 0 || titleIconURLs[0] === null) {
 				vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
 				return;
 			}
-			else {
-				node.hookIconURL = titleIconURLs[0];
-			}
-
-			vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : true});
+				
+			node.hookIconURL = titleIconURLs[0];
+			vikiObject.redrawNode(node);
+			vikiObject.hookCompletion(VIKI.VikiTitleIcon.hookName, {"redraw" : false});
 		}
 
 	};
