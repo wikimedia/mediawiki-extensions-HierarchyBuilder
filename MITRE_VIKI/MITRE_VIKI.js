@@ -72,7 +72,7 @@ window.VIKI = (function(my) {
                format: 'json',
                empNum: employeeNum
             },
-            timeout : 8000,
+            timeout : 10000,
             beforeSend: function(jqXHR, settings) {
             },
             success: function(data, textStatus, jqXHR) {
