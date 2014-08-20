@@ -24,9 +24,9 @@ window.VIKI = (function(my) {
 	my.VikiDynamicPages = {
 		hookName: "",
 		propertyName: "",
+		errorFlags: {},
 		parseDynamicPagePropertyName : function(propertyName) {
 			this.propertyName = propertyName;
-			console.log("property name: "+propertyName);
 		},
 
 		processQueryString : function(vikiObject, parameters, hookName) {
@@ -70,13 +70,22 @@ window.VIKI = (function(my) {
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
 	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
-					vikiObject.hookCompletion(this.hookName, { "redraw" : true });
+					vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 	            }
 			});
 		},
 
 		processDisplayFormula : function(vikiObject, data, node, queryParameters) {
 			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
+
+			if(typeof formula !== 'string') {
+				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined') {
+					vikiObject.showError("Error: wiki "+node.wikiTitle+" does not have a property named "+VIKI.VikiDynamicPages.propertyName+".");
+					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = 'YES';
+				}
+				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
+				return;
+			}
 
 			Object.keys(queryParameters).forEach(function(element, index, array) {
 				formula = formula.replace("$"+element, queryParameters[element]);
