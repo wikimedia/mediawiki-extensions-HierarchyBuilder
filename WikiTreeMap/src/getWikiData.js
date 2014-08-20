@@ -29,7 +29,7 @@ function recursiveQuery(vikiObject, wanted){
 		  }
 		},
 		error: function (jqXHR, textStatus, errorThrown) {
-		   error(textStatus);
+//		   error(textStatus);
 		}
 	}); 
 
@@ -49,7 +49,7 @@ function getWanted(vikiObject){
 		  recursiveQuery(vikiObject, wanted);
 	},
 		error: function (jqXHR, textStatus, errorThrown) {
-		   error(textStatus);
+//		   error(textStatus);
 		   recursiveQuery(vikiObject);
 		}
 	}); 
@@ -70,7 +70,7 @@ function getUnused(vikiObject){
 			}		      
 		},
         error: function (jqXHR, textStatus, errorThrown) {
-           error(textStatus);
+//           error(textStatus);
 //	           recursiveQuery(categoryUrl, graphDiv, divwidth, divheight);
         }
     }); 	

@@ -25,7 +25,6 @@ var tutorTree = function(data, graphDiv, divwidth, divheight, wanted){
 		.size([(width),(height)])
 		.nodes(data)
 
-
 //	var tip = d3.tip()
 //	.attr('class', 'd3-tip')
 //	.offset([0, 0])
