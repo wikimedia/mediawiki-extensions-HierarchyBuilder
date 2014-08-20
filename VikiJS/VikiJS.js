@@ -107,7 +107,7 @@ window.VIKI = (function(my) {
 			this.initialPageTitles = jQuery.parseJSON(pageTitles);
 
 			if(this.initialPageTitles === null) {
-				alert("You must supply a page title.");
+				self.showError("You must supply a page title.");
 				return;
 			}
 
@@ -561,7 +561,7 @@ window.VIKI = (function(my) {
 						}
 					}
 					else {
-						alert("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+						self.showError("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 					}
 				}
 			});
@@ -637,7 +637,7 @@ window.VIKI = (function(my) {
 			newToolTips.attr("class", "tooltip");
 			var allToolTips = d3.selectAll(".tooltip");
 			allToolTips.text(function(d) {
-				return d.displayName;
+				return d.fullDisplayName;
 			});
 
 			var newLabels = newNodes.append("svg:text");
@@ -778,6 +778,65 @@ window.VIKI = (function(my) {
 				self.Force.start();
 			}
 
+		}
+
+		my.VikiJS.prototype.redrawNode = function(node) {
+			// nodeSelection is a selection of one, but it's easier to still behave as a selection.
+
+			var nodeSelection = self.NodeSelection.filter(function(d, i) { return d == node; });
+			self.log("filtered node: ");
+			self.log(nodeSelection);
+
+			var toolTip = nodeSelection.select(".tooltip");
+			toolTip.text(node.fullDisplayName);
+
+			var text = nodeSelection.select("text");
+			text.text(node.displayName);
+
+			text.each(function() {
+				var textbox = this.getBBox();
+				node.nodeWidth = textbox.width + self.UNSELECTED_IMAGE_DIMENSION + 10;
+				node.nodeHeight = Math.max(textbox.height, self.UNSELECTED_IMAGE_DIMENSION) + 5;
+			});
+
+			text.attr("font-weight", function(d) {
+				return d.index == self.SelectedNodeIndex ? "bold" : "normal";
+			});
+
+			text.attr("fill", function(d) {
+				if(d.nonexistentPage)
+					return "red";
+				else if(!d.searchable)
+					return "grey";
+				else
+					return "black";
+			});
+
+			image = nodeSelection.select(".icon");
+			image.attr("xlink:href", function(d) {
+				// go through the hierarchy of possible icons in order of preference
+				// Hook Icons > Site Logo Icons > External Node Icons > info.png
+				
+				if(d.hookIconURL)
+					return d.hookIconURL;
+				else if(d.logoURL)
+					return d.logoURL;
+				else if(d.externalNodeIconURL)
+					return d.externalNodeIconURL;
+				else
+					return self.ImagePath+"info.png";
+			})
+			   .attr("x", function(d) {
+				text = d3.select(this.parentNode).select("text");
+				textbox = d3.select(this.parentNode).select("text").node().getBBox();
+				nodeWidth = textbox.width + self.UNSELECTED_IMAGE_DIMENSION;
+				return -1 * nodeWidth/2 - 2;	// this -2 is a magic number
+			   })
+			   .attr("y", function(d) {
+				return -1 * self.UNSELECTED_IMAGE_DIMENSION/2;
+			   })
+			   .attr("width", self.UNSELECTED_IMAGE_DIMENSION)
+			   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 		}
 
 		my.VikiJS.prototype.prepareContextMenu = function() {
@@ -999,7 +1058,7 @@ window.VIKI = (function(my) {
 					wikiPageCheckSuccessHandler(data, textStatus, jqXHR, intraNode);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching inside visitNode - AJAX request (query page). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.showError("Error fetching inside visitNode - AJAX request (query page). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
 
@@ -1213,7 +1272,7 @@ window.VIKI = (function(my) {
 					externalLinksSuccessHandler(data, textStatus, jqXHR, node);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching inside elaborateWikiNode - AJAX request (external links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.showError("Error fetching inside elaborateWikiNode - AJAX request (external links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
 			
@@ -1235,7 +1294,7 @@ window.VIKI = (function(my) {
 					intraWikiOutSuccessHandler(data, textStatus, jqXHR, node);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.showError("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links OUT). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
 			// 3. Get intra-wiki links IN to this page.
@@ -1256,7 +1315,7 @@ window.VIKI = (function(my) {
 					intraWikiInSuccessHandler(data, textStatus, jqXHR, node);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					alert("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links IN). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+					self.showError("Error fetching inside elaborateWikiNode - AJAX request (intra-wiki links IN). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
 			node.elaborated = true;
