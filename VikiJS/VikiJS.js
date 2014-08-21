@@ -589,7 +589,7 @@ window.VIKI = (function(my) {
 			// after initial population, by default select the first node.
 			self.SelectedNodeIndex = 0;
 			self.displayNodeInfo(self.Nodes[0]);
-			self.redraw(false);
+			self.redrawNode(self.Nodes[0]);
 			
 		}
 
@@ -599,6 +599,7 @@ window.VIKI = (function(my) {
 
 		 my.VikiJS.prototype.redraw = function(restartGraph) {
 			var self = this;
+			self.log("redraw() called");
 
 			self.NodeSelection =
 				self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
@@ -784,8 +785,6 @@ window.VIKI = (function(my) {
 			// nodeSelection is a selection of one, but it's easier to still behave as a selection.
 
 			var nodeSelection = self.NodeSelection.filter(function(d, i) { return d == node; });
-			self.log("filtered node: ");
-			self.log(nodeSelection);
 
 			var toolTip = nodeSelection.select(".tooltip");
 			toolTip.text(node.fullDisplayName);
@@ -1067,7 +1066,7 @@ window.VIKI = (function(my) {
 				if(data.query.pages["-1"]) {
 					// check if the page is nonexistent
 					originNode.nonexistentPage = true;
-					self.redraw(true);	
+					self.redrawNode(originNode);	
 				}
 				else {
 					// if originNode doesn't already have a categories array, make one
