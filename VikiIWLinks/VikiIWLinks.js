@@ -29,7 +29,7 @@ window.VIKI = (function(my) {
 			for(var i = 0; i < allWikis.length; i++)
 				vikiObject.allWikis.push(allWikis[i]);
 
-			vikiObject.hookCompletion(hookName, null);
+			vikiObject.hookCompletion(hookName);
 		},
 
 		viki_parseWikiData : function(data) {
