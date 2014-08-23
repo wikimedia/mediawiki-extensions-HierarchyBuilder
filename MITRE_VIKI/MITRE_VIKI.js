@@ -43,10 +43,10 @@ window.VIKI = (function(my) {
       		}
       		else if(node.URL.indexOf("info.mitre.org/phonebook/organization") != -1) {
       			deptNum = "Department "+node.URL.substring(node.URL.indexOf("=")+1) + " (MII)";
-      			node.pageTitle = deptNum;
-      			node.displayName = node.pageTitle;
-      			node.fullDisplayName = node.displayName;
-      			node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
+      			// node.pageTitle = deptNum;
+      			node.displayName = deptNum;
+      			node.fullDisplayName = deptNum;
+      			// node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
       			
       			node.hookIconURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath")+"/extensions/MITRE_VIKI/mitre_m.png";
                needsRedraw = true;
@@ -72,14 +72,15 @@ window.VIKI = (function(my) {
                format: 'json',
                empNum: employeeNum
             },
-            timeout : 5000,
+            timeout : 8000,
             beforeSend: function(jqXHR, settings) {
             },
             success: function(data, textStatus, jqXHR) {
                self.parsePhonebookData(vikiObject, data, node);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-               alert("Error fetching phonebook data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
+               // alert("Error fetching phonebook data. errorThrown = "+errorThrown);
+               vikiObject.showError("Error fetching phonebook data for employee "+employeeNum+". errorThrown = "+errorThrown);
                this.ajaxCalls--;
                if(this.ajaxCalls == 0)
                   vikiObject.hookCompletion(this.hookName, { "redraw" : true });
@@ -90,13 +91,11 @@ window.VIKI = (function(my) {
 
       parsePhonebookData : function(vikiObject, data, node) {
          result = data["mitrePhonebookAPILookup"]["result"];
-         node.pageTitle = result["lastName"] + ", "+result["firstName"] + " (MII)";
-         node.displayName = node.pageTitle;
+         node.displayName = result["lastName"] + ", "+result["firstName"] + " (MII)";
+         // node.displayName = node.pageTitle;
          node.fullDisplayName = node.displayName;
-         node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
 
          node.hookIconURL = "http://static.mitre.org/people/photos/big/"+data["mitrePhonebookAPILookup"]["empNum"]+".jpg";
-         // vikiObject.redraw(true);
 
          this.ajaxCalls--;
          if(this.ajaxCalls == 0)
