@@ -68,7 +68,7 @@ $wgResourceModules['ext.VikiJS'] = array(
 		'vex-theme-default.css'
 	),
 	'scripts' => array(
-		'd3.v3.min.js',
+		'd3.v3.js',
 		'vex.combined.min.js',
 		'spin.min.js',
 		'contextmenu.js',
