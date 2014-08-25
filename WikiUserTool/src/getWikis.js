@@ -26,145 +26,201 @@ WikiUserTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki)
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
 				vikiObject.divheight = divheight;
+				vikiObject.rowName = 'user';
+				vikiObject.colName = 'day';
 			getIWTable(vikiObject);
 			
 	}; 
 }
 
 
-function buildHeatmap(){
+function buildHeatmap(vikiObject){
+	console.log("we're Here!")
+	console.log(vikiObject);
+	var gs;
+	vikiObject.colName === 'day' ? gs = 32 : gs = 32;
+	var margin = { top: 50, right: 0, bottom: 100, left: 30 },
+          width = 960 - margin.left - margin.right,
+          height = 430 - margin.top - margin.bottom,
+          gridSize = Math.floor(width / gs),
+          legendElementWidth = gridSize*2,
+          buckets = 9,
+          colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
+	  cols = vikiObject.objAry.colNames;
+	  rows = vikiObject.objAry.rowNames;
+//          days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+//          times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
+
+
+	var data = vikiObject.objAry.sort(function(a,b){
+				if(a.col > b.col){return 1}	
+				if(a.col < b.col){return -1}
+				return 0;
+			});
+
+	  var x = d3.scale.ordinal()
+		.domain(vikiObject.objAry.rowNames)
+		.rangeRoundBands([0,vikiObject.objAry.rowNames.length], 0, 0)
+
+	  var colorScale = d3.scale.quantile()
+              .domain([0, buckets - 1, d3.max(data, function (d) { return d.value; })])
+              .range(colors);
+
+          var svg = d3.select('#' + vikiObject.graphDiv).append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          var dayLabels = svg.selectAll(".dayLabel")
+              .data(cols)
+              .enter().append("text")
+                .text(function (d) { return d; })
+                .attr("x", 0)
+                .attr("y", function (d, i) { return i * gridSize; })
+                .style("text-anchor", "end")
+                .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                .attr("class", function (d, i) { return ((i >= 0 && i <= 4) ? "dayLabel mono axis axis-workweek" : "dayLabel mono axis"); })
+
+          var timeLabels = svg.selectAll(".timeLabel")
+              .data(rows)
+              .enter().append("text")
+                .text(function(d) { return d; })
+                .attr("x", function(d, i) { return i * gridSize; })
+                .attr("y", 0)
+                .style("text-anchor", "middle")
+                .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                .attr("class", function(d, i) { return ((i >= 7 && i <= 16) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); })
+//		.attr("transform", function(d) {
+//				return "rotate(90)" 
+//                });
+
+
+          var heatMap = svg.selectAll(".hour")
+              .data(data)
+              .enter().append("rect")
+              .attr("y", function(d,i) { return (x(d.row) - 1) * gridSize; })
+              .attr("x", function(d) { return (d.col - 1) * gridSize; })
+              .attr("rx", 4)
+              .attr("ry", 4)
+              .attr("class", "hour bordered")
+              .attr("width", gridSize)
+              .attr("height", gridSize)
+              .style("fill", colors[0]);
+
+          heatMap.transition().duration(1000)
+              .style("fill", function(d) { return colorScale(d.value); });
+
+          heatMap.append("title").text(function(d) { return d.value; });
+              
+          var legend = svg.selectAll(".legend")
+              .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+              .enter().append("g")
+              .attr("class", "legend");
+
+          legend.append("rect")
+            .attr("x", function(d, i) { return legendElementWidth * i; })
+            .attr("y", height)
+            .attr("width", legendElementWidth)
+            .attr("height", gridSize / 2)
+            .style("fill", function(d, i) { return colors[i]; });
+
+          legend.append("text")
+            .attr("class", "mono")
+            .text(function(d) { return "≥ " + Math.round(d); })
+            .attr("x", function(d, i) { return legendElementWidth * i; })
+            .attr("y", height + gridSize);
+
+
+
 
 }
 
 
-// Once the data is returned, the data should be subsetted based on VM < Wiki < User < Event
 function propogateStats(vikiObject){
 
-// Start by categorizing. Each wiki currently has a bunch of events. 
-// We need to extract the users from these. So, for each wiki, make an array of users. 
-// Each of those users will have an array of events. 
-
 // add all the logs to an array
-var allLogs = [];
-vikiObject.activeWikis.forEach(function(w){
-	w.logs.forEach(function(l){
-		l.wiki = w.wikiTitle;
-		var date = new Date(l.timestamp);
-		l.hour = date.getHours();
-		l.day = date.getDay();
-		l.month = date.getMonth();
-		allLogs.push(l);
-	})
-})
-vikiObject.objAry = populate(allLogs, 'user', 'day');
-
-// the two keys to filter on
-function populate(ary, key1, key2){
-	var lAry = [];
-	var result = {};
-	ary.forEach(function(l){
-		var val1 = l[key1];
-		var val2 = l[key2];		
-		function containsObj(element){
-			return (element['row'] === val1 && element['col'] === val2);
-		}
-		var obj = lAry.filter(containsObj);
-//		console.log(obj)
-		// if it's in the array, add 1 to the representative
-		if(obj.length < 1){
-		  lAry.push(
-			{
-			  'row' : val1,
-			  'col' : val2,
-			  'val' : 1
-			}
-		  )
-		} else {
-		  obj[0].val++;
-		}
-		// otherwise, add it to the array
-	})	
-return lAry;
-}
-
-
-
-
-
+	var allLogs = [];
 	vikiObject.activeWikis.forEach(function(w){
-		var wiki = w;
-		wiki.users = [];
-		var currentDate = new Date();
-		var currentMonth = currentDate.getMonth();
-		var currentDay = currentDate.getDay();
-		var currentHour = currentDate.getHours();
-		wiki.logs.forEach(function(l){
+		w.logs.forEach(function(l){
+			l.wiki = w.wikiTitle;
 			var date = new Date(l.timestamp);
 			l.hour = date.getHours();
 			l.day = date.getDay();
 			l.month = date.getMonth();
-		});
-
-// parse through all the logs. for each log, create an element with that user and row, and a val equal to 1; 
-// pop that element into an array. 
-// if that element is already in the array, 
-
-
-
-		// array of objects of the form {'row' : username, 'col' : day, 'val' : logCount}
-		wiki.heatArray = [];
-		wiki.users.forEach(function(u){
-		  // for each user, create an object for every unique date. push it to the array
-		  wiki.logs.forEach(function(l){
-		    // if the log is for this user
-		    if(l.user === u){
-			// if the heatmap array doesn't already contain that day, add it. Otherwise, ++ that day
-
-		    }
-		  })		
+			allLogs.push(l);
 		})
+	})
+	vikiObject.objAry = populate(allLogs, vikiObject.rowName, vikiObject.colName);
 
-		wiki.logs.forEach(function(l){
-			var user = l.user;
-			wiki.udata = [];
-			// if the user is not in the array, add it to it
-			if(wiki.users.indexOf(user) === -1){
-				wiki.users.push(user);
-//				wiki.udata.push(
-//					{ 'name' : user,
-//					  'row' : countTypes(wiki, 'day'),
-//					}
-//				)				
+	// the two keys to filter on
+	function populate(ary, key1, key2){
+		var lAry = [];
+		var result = {};
+		lAry.rowNames = [];
+		lAry.colNames = [];
+		ary.forEach(function(l){
+			var val1 = l[key1];
+			var val2 = l[key2];		
+			function containsObj(element){
+				return (element['row'] === val1 && element['col'] === val2);
 			}
-		
-		})
-	})
-	console.log(vikiObject)
-}
+			var obj = lAry.filter(containsObj);
+	//		console.log(obj)
+			// if it's in the array, add 1 to the representative
+			if(obj.length < 1){
+			  lAry.push(
+				{
+				  'row' : val1,
+				  'col' : val2,
+				  'value' : 1
+				}
+			  )
+			  lAry.rowNames.indexOf(val1) === -1 && lAry.rowNames.push(val1);
+			  lAry.colNames.indexOf(val2) === -1 && lAry.colNames.push(val2);
+//			  lAry.colNames.push(val2);
+			} else {
+			  obj[0].value++;
+			}
+			// otherwise, add it to the array
+		})	
+	return lAry;
+	}
 
-//we want to create an array of month, user pairs. So, for each user, we want to create an array of 
-// {user : 1, day : 1, val : 0}, {user : 1, day : 2, val : 0}
-// so we can use a map function to loop through every value in the logs and for each element 
+	if(vikiObject.colName === 'day'){
+		var colCount = 32;
+	}
 
-// return an array 
-function countTypes(wiki, col){
-        var monthArray = [];		
-	wiki.monthData = {};
-	// loop through all the logs on this wiki
-	wiki.logs.forEach(function(l){
-		// if we are counting by day, 
-		if(col === 'day'){
-//		  for(var m=1; m<33; m++){
-//		    if(l.day === day){
-		      wiki.monthData[l.day] !== undefined ? wiki.monthData[l.day]++ : wiki.monthData[l.day] = 1;
-//		    }		  
-//		  }
-//		  monthArray.forEach(function(day){})
+	vikiObject.objAry.rowNames.forEach(function(r){
+		// find all the 'row' options (eg users)		
+		function containsR(element){
+			return (element['row'] === r);
 		}
-	})
-//return monthData;
-}
+		
+		var rowElms = vikiObject.objAry.filter(containsR)	
+//		console.log(rowElms)
+		for(i = 1; i <= colCount; i++){
 
+			function containsC(element){
+				return (element['col'] === i);
+			}
+			var cObj = rowElms.filter(containsC);		
+			if(cObj.length < 1){
+			  vikiObject.objAry.push(
+				{
+				  'row' : r, 
+				  'col' : i,
+				  'value' : 0
+				}
+			  )
+			  vikiObject.objAry.colNames.push(i)
+			}
+		}				
+
+	})
+
+
+}
 
 
 function populateWikiLogs(vikiObject){
@@ -257,6 +313,7 @@ function incrementalRecursiveQuery(vikiObject){
 
 	} else {
 		propogateStats(vikiObject);
+		buildHeatmap(vikiObject)
 	}
 
 
