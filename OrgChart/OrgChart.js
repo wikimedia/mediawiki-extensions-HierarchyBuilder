@@ -11,21 +11,27 @@ window.OrgChart = function() {
 	this.Zoompos = 1;
 
 	this.tree = null;
-	this.redundancy = false;
 	this.focusedNode = null;
 	this.errorNode = null;
+	this.errorLinks = new Array();
 	this.Visited = new Array();
 	this.orgTreeData = null;
-	this.Leaves = new Array();
+	this.nodes = null;
+	this.links = null;
+	this.orgChartData = null;
 	this.apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/api.php";
 	this.imagePath = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/extensions/OrgChart/";
 	OrgChart.prototype.assembleData = function(orgName) {
 
 		var self = this;
-		self.redundancy = true;
 		// gets all parents
 		var orgChartData = self.queryForParents(orgName, null);
 		var currentOrg = orgChartData;
+		if(self.errorNode != null){	
+			var msg = "Error: cyclical graph detected. Child organization cannot own parent organization!";
+			$("#error-panel").css("visibility", "visible");
+			$("#error-panel").html("<p>"+msg+"</p>");
+		}
 		var index = self.Visited.indexOf(orgName);
 		if (index > -1)
 		    self.Visited.splice(index, 1);
@@ -34,14 +40,12 @@ window.OrgChart = function() {
 		}
 		// now currentOrg should point to the bottom org in the tree (also the originally passed-in org)
 		currentOrg["status"] = "focused";
-		self.focusedNode = self.redundancy ? orgName.toLowerCase() : orgName;
-		var children = self.queryForChildren(currentOrg, false);
+		self.focusedNode = orgName;
+		var children = self.queryForChildren(currentOrg);
 		currentOrg["children"] = children;
 		if(!currentOrg["children"])
 			delete currentOrg["children"];
-		self.Visited = new Array();
-		this.orgTreeData = orgChartData;
-		this.orgTreeData = self.flag(orgChartData,false,false,false);
+		self.orgChartData = orgChartData;
 		return currentOrg;
 	}
 
@@ -63,23 +67,35 @@ window.OrgChart = function() {
 				success: function(data, textStatus, jqXHR) {
 					if(data) {
 						result = data["query"]["results"][orgName]["printouts"];
-						var newOrg = {
-							"name" : result["Short Name"][0],
-							"longName" : result["Long Name"][0],
-							"website" : result["Website"][0],
-							"img" : result["Logo Link"][0],
-							"wikiurl" : data["query"]["results"][orgName]["fullurl"],
-							"status":"normal",
-							"local":false
-						};
-						if(orgChartData)							
-							newOrg["children"] = [ orgChartData ];
-
-						orgChartData = newOrg;
-
-						if(result["Parent"][0]) {
-							orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
-						}
+						var case_match = (orgName != result["Short Name"][0]);
+						var sname = case_match ? result["Short Name"][0] : orgName;
+						var seenAgain = self.isVisited(sname);
+						console.log(seenAgain + ' ' + sname);
+						//if(!seenAgain){
+							var newOrg = {
+								// issues with case sensitivity. orgName could be 'Wiki'
+								// but the result could be 'wiki'
+								"name" : sname,
+								"longName" : result["Long Name"][0],
+								"website" : result["Website"][0],
+								"img" : result["Logo Link"][0],
+								"wikiurl" : data["query"]["results"][orgName]["fullurl"],
+								"status":"normal",
+								"local":false
+							};
+							console.log(self.Visited);
+							console.log('----------');
+							if(orgChartData)							
+								newOrg["children"] = [ orgChartData ];
+							orgChartData = newOrg;
+//							if(case_match){
+//								var index = self.Visited.indexOf(orgName);
+//								self.Visited[index] = sname;
+//							}
+							if(result["Parent"][0]) {
+								orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+							}
+						//}
 					}
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
@@ -89,63 +105,60 @@ window.OrgChart = function() {
 
 		}
 		else {
-			self.Visited = new Array();//self.errorNode = orgName;
+			self.errorNode = orgName;
 		}
 		return orgChartData;
 	}
 
-	OrgChart.prototype.queryForChildren = function(orgObject, childOfRepeated) {		
+	OrgChart.prototype.queryForChildren = function(orgObject) {		
 		var self = this;
 		var children = [];
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];		
 		// seen set to false if isVisited cannot find node in Visited array
-		var seen = self.isVisited(orgObject.name);
-		if(seen){
-			self.errorNode = orgObject.name;
-		}
-		if(!seen){
-			if(seen){childOfRepeated = !childOfRepeated;}
-			jQuery.ajax({
-				async: false,
-				url: self.apiURL,
-				data: {
-					action : "askargs",
-					conditions : "Parent::"+orgObject.name,
-					printouts : "Short Name|Long Name|Website|Logo Link",
-					format : "json"
-				},
-				success: function(data, textStatus, jqXHR) {
-					if(data) {
-						for(var childOrg in data["query"]["results"]) {
-							result = data["query"]["results"][childOrg]["printouts"];
-							var childName = result["Short Name"][0];
-							var status = seen ? "error" : "normal";
-							newOrg = {
-								"name" : result["Short Name"][0],
-								"longName" : result["Long Name"][0],
-								"website" : result["Website"][0],
-								"img" : result["Logo Link"][0],
-								"wikiurl" : data["query"]["results"][childOrg]["fullurl"],
-								"status":"normal",
-								"local":false
-							}
-
+		jQuery.ajax({
+			async: false,
+			url: self.apiURL,
+			data: {
+				action : "askargs",
+				conditions : "Parent::"+orgObject.name,
+				printouts : "Short Name|Long Name|Website|Logo Link",
+				format : "json"
+			},
+			success: function(data, textStatus, jqXHR) {
+				if(data) {
+					for(var childOrg in data["query"]["results"]) {
+						result = data["query"]["results"][childOrg]["printouts"];
+						var childName = result["Short Name"][0];
+						var status = seen ? "error" : "normal";
+						newOrg = {
+							"name" : result["Short Name"][0],
+							"longName" : result["Long Name"][0],
+							"website" : result["Website"][0],
+							"img" : result["Logo Link"][0],
+							"wikiurl" : data["query"]["results"][childOrg]["fullurl"],
+							"status":"normal",
+							"local":false
+						}
+						var seen = self.isVisited(newOrg.name);
+						if(seen){
+							console.log('found error');
+							self.brokenLink(newOrg, orgObject);
+							self.errorNode = newOrg.name;
+						}
+						else{
 							children.push(newOrg);
-							newOrg["children"] = self.queryForChildren(newOrg, childOfRepeated);
+							newOrg["children"] = self.queryForChildren(newOrg);
 							if(!newOrg["children"])
-								delete newOrg["children"];
+								delete newOrg["children"];								
 						}
 					}
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					alert("failed query to Special:Ask for children");
 				}
-			});
-			if(children.length==0){
-				self.Leaves.push(orgObject.name);							
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				alert("failed query to Special:Ask for children");
 			}
-		}
+		});
 		return (children.length > 0 ? children : null);
 	}
 
@@ -233,49 +246,67 @@ window.OrgChart = function() {
 		// or don't change them for the top-to-bottom tree
 		var diagonal = d3.svg.diagonal()
 		    .projection(function(d) { return self.alignment === "vertical" ? [d.x, d.y] : [d.y, d.x]; });
-		// query for data.
+		// set up the nodes (from the JSON data) and the links (from the nodes)
+		// this is on the data side, not on the drawing side
+
 		var currentOrg = self.assembleData(orgName);
 		// set up the nodes (from the JSON data) and the links (from the nodes)
 		// this is on the data side, not on the drawing side
-		var nodes = self.tree.nodes(self.orgTreeData);
-		var links = self.tree.links(nodes);
+		var nodes = self.tree.nodes(self.orgChartData);
+		self.orgTreeData = self.orgChartData;
+		nodes = self.tree.nodes(self.orgTreeData);
+		self.nodes = nodes;
+		self.links = self.tree.links(self.nodes);
 		var markers = new Array();
-		if(self.errorNode != null){
-			for(var errorNodeIndex = 0; errorNodeIndex < nodes.length; errorNodeIndex++){
-				if(nodes[errorNodeIndex].name == 'Error'){
-					var source = nodes[0], 
-					target = nodes[errorNodeIndex];
-					var half_x_diff = (target.x - source.x)/2;
-					var midy = ((source.y + target.y) /2);
-			    	var coords = [{
-			            x: target.x,
-			            y: target.y + (self.nodeHeight)/2
-			        },{
-			            x: target.x,
-			            y: target.y + (self.nodeHeight)
-			        },{
-			    	    x: target.x - half_x_diff/2,
-			            y: target.y + (self.nodeHeight)
-			        },{
-			    		x:source.x + half_x_diff,
-			    		y:midy
-			    	},{
-			            x: source.x + half_x_diff,
-			            y: source.y + (-1*self.nodeHeight)
-			        },{
-			    	    x: source.x,
-			            y: source.y + (-1*self.nodeHeight*3/2)
-			        },{
-			    	    x: source.x,
-			            y: source.y + (-1*self.nodeHeight/2)
-			        }];						        
-					var errlink = {source: nodes[0],target: nodes[errorNodeIndex], curve: coords};
-					errlink.type = 'disconnected';
-					links.push(errlink);
-					markers.push(errlink);
-				}
-			}
 
+		var forgedLinks = new Array();
+		for(var ref=0; ref<self.errorLinks.length; ref++){
+			var markAsErrorgedlink = self.errorLinks[ref];
+			var source = self.findNode(self.orgChartData, 'name', markAsErrorgedlink.source);
+			var target = self.findNode(self.orgChartData, 'name', markAsErrorgedlink.target);
+			self.markAsError(source);
+			self.markAsError(target);
+
+			if((source != null) && (target != null))
+				forgedLinks.push({'source':source,'target':target});
+		}
+
+		// query for data.
+		if(self.errorNode != null){
+			for(var errIndex = 0; errIndex < forgedLinks.length; errIndex++){
+				var badlink = forgedLinks[errIndex];
+				var source = badlink.source, 					
+				target = badlink.target;
+				var directly_under = (target.x == source.x);
+				var half_x_diff = directly_under ? (self.nodeWidth) : (target.x - source.x)/2;
+				var midy = ((source.y + target.y) /2);
+				var coords = [{
+		            x: target.x,
+		            y: target.y + (self.nodeHeight)/2
+		        },{
+		            x: target.x,
+		            y: target.y + (self.nodeHeight)
+		        },{
+		    	    x: target.x + half_x_diff/2,
+		            y: target.y + (self.nodeHeight)
+		        },{
+		    		x:source.x + 2*half_x_diff,
+		    		y:midy
+		    	},{
+		            x: source.x + half_x_diff,
+		            y: source.y + (-1*self.nodeHeight)
+		        },{
+		    	    x: source.x,
+		            y: source.y + (-1*self.nodeHeight*3/2)
+		        },{
+		    	    x: source.x,
+		            y: source.y + (-1*self.nodeHeight/2)
+		        }];						        
+				var errlink = {'source': source, 'target': target, 'curve': coords};
+				errlink.type = 'disconnected';
+				self.links.push(errlink);
+				markers.push(errlink);
+			}
 			var allMarkers = svg.select("#markers").selectAll("pathlink")
 			.data(markers)
 			.enter().append("svg:polyline")
@@ -289,13 +320,14 @@ window.OrgChart = function() {
 			});			
 
 		}
+
 		var curved = d3.svg.line()
 		    .x(function(d) { return d.x; })
 		    .y(function(d) { return d.y; })
 	   		.interpolate("basis")
 	    	.tension(0.75);
 		var allLinks = svg.select("#links").selectAll("pathlink")
-		.data(links)
+		.data(self.links)
 		.enter().append("svg:path")
 		.attr("class", "link")
      	.style("stroke-width", function(l){
@@ -341,7 +373,7 @@ window.OrgChart = function() {
 					color = "#2ecc71";
 					break;
 				case "error":
-					color = "red";
+					color = "#FF5333";
 					break;
 				default:
 					color = "white";
@@ -357,6 +389,7 @@ window.OrgChart = function() {
 	            window.open(wiki_url,'_blank'); 			
 			}
 		});
+
 
 		allNodes.append("svg:image")
 		.attr("width", this.imageWidth)
@@ -376,9 +409,13 @@ window.OrgChart = function() {
 
 		allNodes.append("svg:text")
 		.attr("text-anchor", "start")
-		.text(function(d) { return d.name; })
+		.text(function(d) { 
+			return d.name; 
+		})
 		.style("font-family", "Verdana")
-		.style("font-size", "20pt")
+		.style("font-size", function(d){
+			return (d.name == 'Error' ? "24pt" : "20pt");
+		})
 		.style("font-weight", "bold")
 		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
 		.attr("x", -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding)
@@ -402,7 +439,6 @@ window.OrgChart = function() {
 		})
 		.call(self.textWrap, 0.9*(this.nodeWidth-this.imageWidth), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
 		// do some calculations to get proper zoom and translate
-
 		var regExp = /-*[0-9]+(.[0-9]+)*/g;
 		for(var list_index=0; list_index<list.length; list_index++){
 			var item = list[list_index];
@@ -410,13 +446,13 @@ window.OrgChart = function() {
 		focusedNode = allNodes.filter(function(d,i) {
 			return d.name === currentOrg.name;
 		});
-
 		transform = focusedNode.attr("transform");
 		var coord = transform.match(regExp);
 		// odd bug in IE 
 		if (typeof coord === 'object' ){
 			coord = JSON.stringify(coord).replace(/\(|\)|\"|\[|\]/g, "").split(/[.,\/ -]/);
 		}
+
 		var focus_x = coord[0];
 		focus_x = +focus_x;
 		var focus_y = coord[1];
@@ -452,6 +488,7 @@ window.OrgChart = function() {
 			var translate_x = self.width/2 - focus_x*scaleFactor;
 			var translate_y = self.height/2 + focus_y*scaleFactor;	
 		}
+
 		self.zoom.scale(scaleFactor);
 		self.zoom.translate([translate_x, translate_y]);
 		d3.select("#moveable").attr("transform", "translate("+translate_x+", "+translate_y+") scale("+scaleFactor+")");
@@ -497,7 +534,7 @@ window.OrgChart = function() {
 		// get the index of the organization in the Visited list
 		var index = self.Visited.indexOf(orgName);
 		// if the organization does not exist in the Visited list
-		if(index==-1){
+		if(index<0){
 			// add the organization to the Visited list
 			// and return true
 			self.Visited.push(orgName);
@@ -508,62 +545,35 @@ window.OrgChart = function() {
 		return true;
 	}
 
-	OrgChart.prototype.flag = function(org,flagged, setFocused, repeated){
-		var self = this;		
-		// Has the current node and 
-		if(repeated && (self.isVisited(org.name)) && (org.name == self.errorNode)){
-			repeated = false;
-			return self.errorMsg();
-		}
-		//
-		else if(!repeated){
-			repeated = self.isVisited(org.name);
-		}
-		// If 
-		if(!flagged && (self.errorNode != null)){
-			org["status"] = "error";
-			flagged = !flagged;
-			if(org.name == self.focusedNode)
-				setFocused = !setFocused;
-		}
-		//
-		else if((org.name==self.focusedNode)&&setFocused){
-			org["status"] = "focused";
-			setFocused = !setFocused;
-		}
-		// if children exist
-		if("children" in org){
-			// and the children are not null
-			if(org["children"]!=null){
-				// generate an array to store the children
-				var children = new Array();
-				// for all children
-				for(var sibling = 0; sibling<org["children"].length; sibling++){
-					// recursivly call flag to flag any issues in the tree
-					child = self.flag(org["children"][sibling],flagged, setFocused, repeated);
-					children.push(child);
-				}
-				// rebuilt the children of the parent
-				org["children"] = children;				
+	OrgChart.prototype.findNode = function(org, property, value) {
+		// loop through store
+		var self = this;
+
+		for (var i = 0; i < self.nodes.length; i++) {
+			// if the node is not undefined and matches property and value
+			// return node, else return null
+			if (typeof self.nodes[i][property] !== 'undefined' &&
+				self.nodes[i][property] === value) {
+				return self.nodes[i];
 			}
 		}
-		else if((org.name == self.errorNode)&&(typeof org.children == 'undefined')){
-			return self.errorMsg();
-		}
-		return org;
+		return null;
 	}
 
-	OrgChart.prototype.errorMsg = function(parent){
+	OrgChart.prototype.markAsError = function(node){
 		var self = this;
-		var msg = {
-				"name" : "Error",
-				"longName" : "The "+self.errorNode+" organization is the parent orgnization of: "+self.orgTreeData.name ,
-				"website" : "#",
-				"img" : self.imagePath+"exclamation.png",
-				"status":"error",
-				"local":true				
-			};
-		return msg;
+		var index = self.nodes.indexOf(node);
+		if((index > -1) && (node.status == 'normal')){
+			var n = self.nodes[index];
+			n.status = 'error';
+			n.img = self.imagePath+"exclamation.png";
+			n.local = true;
+		}
+	}
+
+	OrgChart.prototype.brokenLink = function(org, parent){
+		var self = this;
+		self.errorLinks.push({'source':org.name,'target':parent.name});
 	}
 	// filter a url
 	OrgChart.prototype.urlFilter = function(url){

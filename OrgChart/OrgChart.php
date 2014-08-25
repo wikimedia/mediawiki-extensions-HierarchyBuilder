@@ -124,9 +124,10 @@ class OrgChart {
 		$div = "OrgChart_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
+
 <table>
-<tr><td><div class="orgchart-graph-container" id="$graphdiv">
-</div></td></tr>
+<tr><td><div id="error-panel"></div></td></tr>
+<tr><td><div class="orgchart-graph-container" id="$graphdiv"></div></td></tr>
 </table>
 EOT;
 
