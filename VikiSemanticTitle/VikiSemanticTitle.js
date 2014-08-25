@@ -24,77 +24,50 @@ window.VIKI = (function(my) {
 	my.VikiSemanticTitle = {
 		displayNames : {},
 		hookName: "",
-		ajaxCalls_intraOut: 0,
-		ajaxCalls_intraIn: 0,
 
 		checkForSemanticTitle : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
-			console.log("checkForSemanticTitle() by "+hookName);
-
-			nodes = parameters[0];
-			if(hookName == "IntraInNodeHook")
-				this.ajaxCalls_intraIn = nodes.length;
-			else
-				this.ajaxCalls_intraOut = nodes.length;
-
-			for(var i = 0; i < nodes.length; i++)
-				this.queryForSemanticTitle(vikiObject, nodes[i], hookName);
+			node = parameters[0];
+			node.semanticTitle = node.pageTitle;
+			if(!node.semanticQueried)
+				this.queryForSemanticTitle(vikiObject, node);
 		},
 
-		queryForSemanticTitle : function(vikiObject, node, hookName) {
+		queryForSemanticTitle : function(vikiObject, node) {
 			var self = this;
 			jQuery.ajax({
-	            url: vikiObject.myApiURL,
-	            dataType: 'json',
+	            url: node.apiURL,
+				dataType: node.sameServer ? 'json' : 'jsonp',
 	            data: {
 	               action: 'getDisplayTitle',
 	               format: 'json',
-	               pageTitle: node.pageTitle
+	               pageTitle: node.semanticTitle
 	            },
-	            timeout: 5000,
 	            beforeSend: function(jqXHR, settings) {
-	            	console.log(settings.url);
 	            },
 	            success: function(data, textStatus, jqXHR) {
-	            	console.log(data);
-	            	self.processDisplayTitle(vikiObject, data, node, hookName);
+	            	self.processDisplayTitle(vikiObject, data, node);
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	               alert("Error fetching getDisplayTitle data. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
-	   				if(hookName == "IntraInNodeHook") {
-						this.ajaxCalls_intraIn--;
-						if(this.ajaxCalls_intraIn == 0)
-							vikiObject.hookCompletion(hookName, { "redraw" : true });
-					}
-					else {
-						this.ajaxCalls_intraOut--;
-						if(this.ajaxCalls_intraOut ==0)
-							vikiObject.hookCompletion(hookName, { "redraw" : true });
-					}
+	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
+					vikiObject.hookCompletion(self.hookName, { "redraw" : true });
 	            }
 			});
 		},
 
-		processDisplayTitle : function(vikiObject, data, node, hookName) {
-				displayTitle = data["getDisplayTitle"]["result"];
+		processDisplayTitle : function(vikiObject, data, node) {
+			semanticTitle = data["getDisplayTitle"]["result"];
+			if(node.semanticTitle !== semanticTitle) {
 
-				node.pageTitle = data["getDisplayTitle"]["result"];
-				node.displayName = node.pageTitle;
-				node.fullDisplayName = node.displayName;
-				node.info = vikiObject.formatNodeInfo(node.fullDisplayName);
-
-				if(hookName == "IntraInNodeHook") {
-					this.ajaxCalls_intraIn--;
-					if(this.ajaxCalls_intraIn == 0)
-						vikiObject.hookCompletion(hookName, { "redraw" : true });
-				}
-				else {
-					this.ajaxCalls_intraOut--;
-					if(this.ajaxCalls_intraOut ==0)
-						vikiObject.hookCompletion(hookName, { "redraw" : true });
-				}
+				// node.pageTitle = data["getDisplayTitle"]["result"];
+				node.displayName = semanticTitle.length < 15 ? semanticTitle : semanticTitle.substring(0,15)+"...";
+				node.fullDisplayName = semanticTitle + " ("+node.pageTitle+")";
 			}
+			node.semanticQueried = true;
+
+			vikiObject.hookCompletion(VIKI.VikiSemanticTitle.hookName, { "redraw" : true });
+		}
 	};
 
 	return my;
