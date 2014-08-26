@@ -12,13 +12,13 @@ window.OrgChart = function() {
 
 	this.tree = null;
 	this.focusedNode = null;
-	this.errorNode = null;
+	this.error = false;// is this chart cyclical?
 	this.errorLinks = new Array();
-	this.Visited = new Array();
-	this.orgTreeData = null;
+	this.Visited = new Array();// contains a list of organization names visited while building the chart
+	this.orgTreeData = null;// contains organization tree data built in method drawChart made global
 	this.nodes = null;
 	this.links = null;
-	this.orgChartData = null;
+	this.orgChartData = null;// contains organization chart data built in method assembleData made global
 	this.apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/api.php";
 	this.imagePath = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/extensions/OrgChart/";
 	OrgChart.prototype.assembleData = function(orgName) {
@@ -27,24 +27,30 @@ window.OrgChart = function() {
 		// gets all parents
 		var orgChartData = self.queryForParents(orgName, null);
 		var currentOrg = orgChartData;
-		if(self.errorNode != null){	
+		// if an error node has been set
+		if(self.error){	
+			// display the following message at the top of the screen
 			var msg = "Error: cyclical graph detected. Child organization cannot own parent organization!";
 			$("#error-panel").css("visibility", "visible");
 			$("#error-panel").html("<p>"+msg+"</p>");
 		}
+		// since there is a search on both the parent and children of the viewed organization
+		// it will appear in the Visited array twice. Find the name in the array and remove it
 		var index = self.Visited.indexOf(orgName);
 		if (index > -1)
 		    self.Visited.splice(index, 1);
 		while(currentOrg["children"]) {
 			currentOrg = currentOrg["children"][0];
 		}
-		// now currentOrg should point to the bottom org in the tree (also the originally passed-in org)
+		// set the focused node in two places for assurance
 		currentOrg["status"] = "focused";
 		self.focusedNode = orgName;
+		// query children
 		var children = self.queryForChildren(currentOrg);
 		currentOrg["children"] = children;
 		if(!currentOrg["children"])
 			delete currentOrg["children"];
+		// make orgChartData global
 		self.orgChartData = orgChartData;
 		return currentOrg;
 	}
@@ -53,7 +59,9 @@ window.OrgChart = function() {
 		var self = this;
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
+		// check to see if orgName has been seen before 
 		var seen = self.isVisited(orgName);
+		// if it has not, then query the child
 		if(!seen) {
 			jQuery.ajax({
 				async: false,
@@ -67,11 +75,19 @@ window.OrgChart = function() {
 				success: function(data, textStatus, jqXHR) {
 					if(data) {
 						result = data["query"]["results"][orgName]["printouts"];
+						// get position of organization name in visited list
+						var pos = self.Visited.indexOf(orgName);
+						if(pos>-1)
+							// remove organization name from visited list
+							self.Visited.splice(pos,1);
+						// see if the names match
 						var case_match = (orgName != result["Short Name"][0]);
+						// if not, use the orgName given, if so, use the results name
 						var sname = case_match ? result["Short Name"][0] : orgName;
+						// has this organization been visited before?
 						var seenAgain = self.isVisited(sname);
-						console.log(seenAgain + ' ' + sname);
-						//if(!seenAgain){
+						// if not, build the node, set the children, and query for the parent
+						if(!seenAgain){
 							var newOrg = {
 								// issues with case sensitivity. orgName could be 'Wiki'
 								// but the result could be 'wiki'
@@ -83,19 +99,13 @@ window.OrgChart = function() {
 								"status":"normal",
 								"local":false
 							};
-							console.log(self.Visited);
-							console.log('----------');
 							if(orgChartData)							
 								newOrg["children"] = [ orgChartData ];
 							orgChartData = newOrg;
-//							if(case_match){
-//								var index = self.Visited.indexOf(orgName);
-//								self.Visited[index] = sname;
-//							}
 							if(result["Parent"][0]) {
 								orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
 							}
-						//}
+						}
 					}
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
@@ -104,8 +114,10 @@ window.OrgChart = function() {
 			});
 
 		}
+		// if orgName has been seen before, then a recursive orgChart has been discovered
 		else {
-			self.errorNode = orgName;
+			// set error as true
+			self.error = true;
 		}
 		return orgChartData;
 	}
@@ -115,6 +127,7 @@ window.OrgChart = function() {
 		var children = [];
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];		
+		console.log(orgObject);
 		// seen set to false if isVisited cannot find node in Visited array
 		jQuery.ajax({
 			async: false,
@@ -129,8 +142,7 @@ window.OrgChart = function() {
 				if(data) {
 					for(var childOrg in data["query"]["results"]) {
 						result = data["query"]["results"][childOrg]["printouts"];
-						var childName = result["Short Name"][0];
-						var status = seen ? "error" : "normal";
+						// build the child node
 						newOrg = {
 							"name" : result["Short Name"][0],
 							"longName" : result["Long Name"][0],
@@ -140,14 +152,19 @@ window.OrgChart = function() {
 							"status":"normal",
 							"local":false
 						}
+						// check to see if the child node has been visited before
 						var seen = self.isVisited(newOrg.name);
+						// if the child organization has been seen before
 						if(seen){
-							console.log('found error');
+							// make the child and parent a broken link respectively
 							self.brokenLink(newOrg, orgObject);
-							self.errorNode = newOrg.name;
+							// a cyclical graph has been found
+							self.error = true;
 						}
 						else{
+							// add the child
 							children.push(newOrg);
+							// and query the child for children
 							newOrg["children"] = self.queryForChildren(newOrg);
 							if(!newOrg["children"])
 								delete newOrg["children"];								
@@ -250,86 +267,104 @@ window.OrgChart = function() {
 		// this is on the data side, not on the drawing side
 
 		var currentOrg = self.assembleData(orgName);
-		// set up the nodes (from the JSON data) and the links (from the nodes)
-		// this is on the data side, not on the drawing side
-		var nodes = self.tree.nodes(self.orgChartData);
-		self.orgTreeData = self.orgChartData;
-		nodes = self.tree.nodes(self.orgTreeData);
-		self.nodes = nodes;
+		self.nodes = self.tree.nodes(self.orgChartData);
 		self.links = self.tree.links(self.nodes);
 		var markers = new Array();
-
 		var forgedLinks = new Array();
+		// go through all erro links, if none exist, then this step will be skipped
 		for(var ref=0; ref<self.errorLinks.length; ref++){
+			// get the link at the reference point
 			var markAsErrorgedlink = self.errorLinks[ref];
+			// get the source and target node objects by the findNode method
 			var source = self.findNode(self.orgChartData, 'name', markAsErrorgedlink.source);
 			var target = self.findNode(self.orgChartData, 'name', markAsErrorgedlink.target);
-			self.markAsError(source);
-			self.markAsError(target);
-
+			// mark the source and targets as error Nodes and add the nodes as a link object
+			// if both the source and target are not null
 			if((source != null) && (target != null))
+				self.markAsError(source);
+				self.markAsError(target);
 				forgedLinks.push({'source':source,'target':target});
 		}
 
 		// query for data.
-		if(self.errorNode != null){
+		if(self.error){
 			for(var errIndex = 0; errIndex < forgedLinks.length; errIndex++){
+				// get the link
 				var badlink = forgedLinks[errIndex];
+				// and the source/target respectively 
 				var source = badlink.source, 					
 				target = badlink.target;
-				var directly_under = (target.x == source.x);
+				// NOTE* The source node is always beneath the target on the tree.
+				// So the line starts from the source (bottom of the graph) to the target (top of the graph)
+				var directly_under = (target.x == source.x);// is the source directly under the target?
+				// calculate a value to determine center of x values, or how far out must the curve bend
 				var half_x_diff = directly_under ? (self.nodeWidth) : (target.x - source.x)/2;
+				// calculate midpoint between y values of source and target
 				var midy = ((source.y + target.y) /2);
+				// top of the target node
 				var coords = [{
 		            x: target.x,
 		            y: target.y + (self.nodeHeight)/2
-		        },{
+		        },{// above the target node by half the node height
 		            x: target.x,
 		            y: target.y + (self.nodeHeight)
-		        },{
+		        },{// center point between two nodes or bend curve outward
 		    	    x: target.x + half_x_diff/2,
 		            y: target.y + (self.nodeHeight)
-		        },{
+		        },{// central node
 		    		x:source.x + 2*half_x_diff,
 		    		y:midy
-		    	},{
+		    	},{// centered x and below source node by half of node height
 		            x: source.x + half_x_diff,
 		            y: source.y + (-1*self.nodeHeight)
-		        },{
+		        },{// below source node by node height
 		    	    x: source.x,
 		            y: source.y + (-1*self.nodeHeight*3/2)
-		        },{
+		        },{// bottom of source node
 		    	    x: source.x,
 		            y: source.y + (-1*self.nodeHeight/2)
 		        }];						        
+		        // build actual link using the source, target, and seven point coordinates
 				var errlink = {'source': source, 'target': target, 'curve': coords};
+				// set the type to be disconnected, all normal links are 'undefined'
 				errlink.type = 'disconnected';
+				// add the broken link to both the links and to the markers
 				self.links.push(errlink);
 				markers.push(errlink);
 			}
+			// construct all markers
 			var allMarkers = svg.select("#markers").selectAll("pathlink")
 			.data(markers)
 			.enter().append("svg:polyline")
 			.attr("class","marker")
 			.attr("points", function(d){
+				// make sure this is a broke link
 				if(!(typeof d.type === 'undefined')){
 					var last = d.curve.length-1;
+					// get the x and y coordinates
 					var x = d.curve[last].x, y = d.curve[last].y;
+					// construct an upside down triangle using raw svg points
 					return x+','+(y+15)+' '+(x+20)+','+(y-40)+' '+(x-20)+','+(y-40);
 				}
 			});			
 
 		}
-
+		// set the standard calculations for a curved line
 		var curved = d3.svg.line()
 		    .x(function(d) { return d.x; })
 		    .y(function(d) { return d.y; })
-	   		.interpolate("basis")
-	    	.tension(0.75);
+	   		.interpolate("basis")// uses a basis type line - see d3js.org
+	    	.tension(0.75);// arbitrarily chosen tension
 		var allLinks = svg.select("#links").selectAll("pathlink")
 		.data(self.links)
 		.enter().append("svg:path")
 		.attr("class", "link")
+		// for the next three styles and one attribute, the basis is on
+		// if the link type is undefined. If it is, the link is normal and should be
+		// black with no dashes, a width of 4, and a standard diagonal curve.
+		// If a type has been defined, then it is an error or broken link symbolizing
+		// a cyclical path that should not exist in an ordinary orgChart and thus will
+		// be a red, curved dash array, with a line thickness of 10.
      	.style("stroke-width", function(l){
 	    	return (typeof l.type === 'undefined' ? 4 : 10);
      	})
@@ -339,17 +374,17 @@ window.OrgChart = function() {
 		.style("stroke-dasharray", function(l){
 	    	return (typeof l.type === 'undefined' ? ('none') : ('16, 12'));
 	    })
-		.attr("d", function(d){
-			if(typeof d.type === 'undefined')
-				return diagonal(d);				
+		.attr("d", function(l){
+			if(typeof l.type === 'undefined')
+				return diagonal(l);
 			else{
-			    return curved(d.curve);
+			    return curved(l.curve);
 			}
 		});
 
 		// do a data-join to draw things for all nodes
 		var allNodes = svg.select("#nodes").selectAll(".node")
-		.data(nodes)
+		.data(self.nodes)
 		.enter().append("svg:g")
 		.attr("transform", function(d) { 
 			var align = self.alignment === "vertical" ? "translate("+d.x+", "+d.y+")" : "translate("+d.y+", "+d.x+")"
@@ -366,13 +401,14 @@ window.OrgChart = function() {
 		.attr("height", self.nodeHeight)
 		.attr("fill", function(d) {
 			var color;
-			// switch between status to determine
-			// the color to fill the box
+			// switch background color according to status
 			switch(d.status){
 				case "focused":
+					// light green
 					color = "#2ecc71";
 					break;
 				case "error":
+					// light orange
 					color = "#FF5333";
 					break;
 				default:
@@ -384,10 +420,10 @@ window.OrgChart = function() {
 		.attr("stroke", "black")
 		.attr("stroke-width", 1)
 		.on("click", function(d){
-			if (d.name != 'Error'){
-				var wiki_url = d.wikiurl;
-	            window.open(wiki_url,'_blank'); 			
-			}
+			// if the background is clicked
+			var wiki_url = d.wikiurl;
+			// open the wiki page of the organization in a new tab
+            window.open(wiki_url,'_blank'); 			
 		});
 
 
@@ -401,8 +437,9 @@ window.OrgChart = function() {
 		})
 		.on("click", function(d) {
 			if (d.name != 'Error'){
-				// filter the url. Url surrounded by brackets
+				// filter the url as the url can be surrounded by brackets.
 				var url = self.urlFilter(d.website);
+				// and open the website in a new tab
     	        window.open(url,'_blank');
 	        }
 		});
@@ -414,7 +451,9 @@ window.OrgChart = function() {
 		})
 		.style("font-family", "Verdana")
 		.style("font-size", function(d){
-			return (d.name == 'Error' ? "24pt" : "20pt");
+			// if the status type is listed as error, make the font 
+			// size larger then the rest of the organization names
+			return (d.status == 'Error' ? "24pt" : "20pt");
 		})
 		.style("font-weight", "bold")
 		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
@@ -448,8 +487,10 @@ window.OrgChart = function() {
 		});
 		transform = focusedNode.attr("transform");
 		var coord = transform.match(regExp);
-		// odd bug in IE 
+		// odd bug in IE where transform is an object instead of a string
+		// if the type of the object coord is indeed an object
 		if (typeof coord === 'object' ){
+			// convert the object to a json string, remove all uneccessary strings, and split the string into an array
 			coord = JSON.stringify(coord).replace(/\(|\)|\"|\[|\]/g, "").split(/[.,\/ -]/);
 		}
 
@@ -536,36 +577,41 @@ window.OrgChart = function() {
 		// if the organization does not exist in the Visited list
 		if(index<0){
 			// add the organization to the Visited list
-			// and return true
+			// and return false
 			self.Visited.push(orgName);
 			return false;
 		}
 		// if the organization exists within the Visited list
-		// return false
+		// return true
 		return true;
 	}
 
 	OrgChart.prototype.findNode = function(org, property, value) {
 		// loop through store
 		var self = this;
-
+		// go through all nodes
 		for (var i = 0; i < self.nodes.length; i++) {
 			// if the node is not undefined and matches property and value
-			// return node, else return null
+			// return node
 			if (typeof self.nodes[i][property] !== 'undefined' &&
 				self.nodes[i][property] === value) {
 				return self.nodes[i];
 			}
 		}
+		// if the node cannot be found, return null
 		return null;
 	}
 
 	OrgChart.prototype.markAsError = function(node){
 		var self = this;
+		// get the index of the node in the array of nodes
 		var index = self.nodes.indexOf(node);
+		// if it exists in the nodes array and the status is normal
 		if((index > -1) && (node.status == 'normal')){
 			var n = self.nodes[index];
+			// set the status as error
 			n.status = 'error';
+			// and the icon as the exclamation point
 			n.img = self.imagePath+"exclamation.png";
 			n.local = true;
 		}
