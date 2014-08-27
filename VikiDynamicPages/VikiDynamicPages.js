@@ -80,7 +80,7 @@ window.VIKI = (function(my) {
 
 			if(typeof formula !== 'string') {
 				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined') {
-					vikiObject.showError("Error: wiki "+node.wikiTitle+" does not have a property named "+VIKI.VikiDynamicPages.propertyName+".");
+					vikiObject.showError("Error: wiki "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
 					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = 'YES';
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
