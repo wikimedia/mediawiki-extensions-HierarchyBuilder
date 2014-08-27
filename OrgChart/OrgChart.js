@@ -27,13 +27,6 @@ window.OrgChart = function() {
 		// gets all parents
 		var orgChartData = self.queryForParents(orgName, null);
 		var currentOrg = orgChartData;
-		// if an error node has been set
-		if(self.error){	
-			// display the following message at the top of the screen
-			var msg = "Error: cyclical graph detected. Child organization cannot own parent organization!";
-			$("#error-panel").css("visibility", "visible");
-			$("#error-panel").html("<p>"+msg+"</p>");
-		}
 		// since there is a search on both the parent and children of the viewed organization
 		// it will appear in the Visited array twice. Find the name in the array and remove it
 		var index = self.Visited.indexOf(orgName);
@@ -69,7 +62,7 @@ window.OrgChart = function() {
 				data: {
 					action : "askargs", 
 					conditions : orgName,
-					printouts : "Parent|Short Name|Long Name|Website|Logo Link",
+					printouts : "Parent|Short Name|Long Name|Website|Logo Link|People",
 					format : "json"
 				},
 				success: function(data, textStatus, jqXHR) {
@@ -88,17 +81,8 @@ window.OrgChart = function() {
 						var seenAgain = self.isVisited(sname);
 						// if not, build the node, set the children, and query for the parent
 						if(!seenAgain){
-							var newOrg = {
-								// issues with case sensitivity. orgName could be 'Wiki'
-								// but the result could be 'wiki'
-								"name" : sname,
-								"longName" : result["Long Name"][0],
-								"website" : result["Website"][0],
-								"img" : result["Logo Link"][0],
-								"wikiurl" : data["query"]["results"][orgName]["fullurl"],
-								"status":"normal",
-								"local":false
-							};
+							var newOrg = self.newNode(result["Short Name"][0], orgName, data);
+							self.log('people '+newOrg.people.toString());
 							if(orgChartData)							
 								newOrg["children"] = [ orgChartData ];
 							orgChartData = newOrg;
@@ -127,7 +111,6 @@ window.OrgChart = function() {
 		var children = [];
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];		
-		console.log(orgObject);
 		// seen set to false if isVisited cannot find node in Visited array
 		jQuery.ajax({
 			async: false,
@@ -135,7 +118,7 @@ window.OrgChart = function() {
 			data: {
 				action : "askargs",
 				conditions : "Parent::"+orgObject.name,
-				printouts : "Short Name|Long Name|Website|Logo Link",
+				printouts : "Short Name|Long Name|Website|Logo Link|People",
 				format : "json"
 			},
 			success: function(data, textStatus, jqXHR) {
@@ -143,15 +126,8 @@ window.OrgChart = function() {
 					for(var childOrg in data["query"]["results"]) {
 						result = data["query"]["results"][childOrg]["printouts"];
 						// build the child node
-						newOrg = {
-							"name" : result["Short Name"][0],
-							"longName" : result["Long Name"][0],
-							"website" : result["Website"][0],
-							"img" : result["Logo Link"][0],
-							"wikiurl" : data["query"]["results"][childOrg]["fullurl"],
-							"status":"normal",
-							"local":false
-						}
+						var newOrg = self.newNode(result["Short Name"][0], childOrg, data);
+						self.log('people '+newOrg.people.toString());
 						// check to see if the child node has been visited before
 						var seen = self.isVisited(newOrg.name);
 						// if the child organization has been seen before
@@ -177,6 +153,21 @@ window.OrgChart = function() {
 			}
 		});
 		return (children.length > 0 ? children : null);
+	}
+
+	OrgChart.prototype.newNode = function(name, displayName, data){
+		var result = data["query"]["results"][displayName]["printouts"];
+		return {
+			"name" : name,
+			"displayName": displayName,			
+			"longName" : result["Long Name"][0],
+			"people" : result["People"],
+			"website" : result["Website"][0],
+			"img" : result["Logo Link"][0],
+			"wikiurl" : data["query"]["results"][displayName]["fullurl"],
+			"status":"normal",
+			"local":false
+		}
 	}
 
 	OrgChart.prototype.queryForImage = function(imgName, imageElement, isLocal) {
@@ -267,6 +258,16 @@ window.OrgChart = function() {
 		// this is on the data side, not on the drawing side
 
 		var currentOrg = self.assembleData(orgName);
+//		self.spanTree(currentOrg, {'maxBreadth':0, 'maxDepth':0});
+
+		// if an error node has been set
+		if(self.error && (self.errorLinks.length > 0)){	
+			// display the following message at the top of the screen
+			var msg = "Error: cyclical graph detected. Child organization cannot own parent organization!";
+			$("#error-panel").css("visibility", "visible");
+			$("#error-panel").html("<p>"+msg+"</p>");
+		}
+
 		self.nodes = self.tree.nodes(self.orgChartData);
 		self.links = self.tree.links(self.nodes);
 		var markers = new Array();
@@ -393,7 +394,6 @@ window.OrgChart = function() {
 		.attr("class", "node");
 
 		// draw stuff inside the node.
-//		var padding = 2;
 		allNodes.append("svg:rect")
 		.attr("x", function(d) { return -1*self.nodeWidth/2; })
 		.attr("y", function(d) { return -1*self.nodeHeight/2; })
@@ -447,13 +447,13 @@ window.OrgChart = function() {
 		allNodes.append("svg:text")
 		.attr("text-anchor", "start")
 		.text(function(d) { 
-			return d.name; 
+			return d.displayName; 
 		})
 		.style("font-family", "Verdana")
 		.style("font-size", function(d){
 			// if the status type is listed as error, make the font 
 			// size larger then the rest of the organization names
-			return (d.status == 'Error' ? "24pt" : "20pt");
+			return (d.status == 'error' ? "24pt" : "20pt");
 		})
 		.style("font-weight", "bold")
 		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
@@ -601,7 +601,21 @@ window.OrgChart = function() {
 		// if the node cannot be found, return null
 		return null;
 	}
-
+/*
+	OrgChart.prototype.spanTree = function(org, stats){
+		var self = this;
+		if("children" in org){
+			if(org["children"] != null){				
+				for(var sibling = 0; sibling<org["children"].length; sibling++){
+					var childStats = self.spanTree(org, stats);
+//					stats.maxBreadth = Math.max(5, 10);
+//					stats.maxDepth = Math.max(5, 10);
+				}
+			}
+		}
+		return stats;
+	}
+*/
 	OrgChart.prototype.markAsError = function(node){
 		var self = this;
 		// get the index of the node in the array of nodes
