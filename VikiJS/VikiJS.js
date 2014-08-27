@@ -1087,6 +1087,7 @@ window.VIKI = (function(my) {
 				}
 
 				originNode.visited = true;
+				self.callHooks("AfterVisitNodeHook", [originNode]);
 			}
 		}
 
