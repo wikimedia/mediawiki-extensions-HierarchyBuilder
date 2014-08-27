@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'OrgChart',
-	'version' => '0.1',
+	'version' => '0.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'orgchart-desc'
 );
@@ -124,9 +124,10 @@ class OrgChart {
 		$div = "OrgChart_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
+
 <table>
-<tr><td><div class="orgchart-graph-container" id="$graphdiv">
-</div></td></tr>
+<tr><td><div id="error-panel"></div></td></tr>
+<tr><td><div class="orgchart-graph-container" id="$graphdiv"></div></td></tr>
 </table>
 EOT;
 

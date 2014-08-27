@@ -7,6 +7,15 @@
   overflow: hidden;
 }
 
+div#error-panel {
+  border:1px solid red;
+  border-radius: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  visibility: hidden;
+  font-size: 2em;
+}
+
 .node circle {
   cursor: pointer;
   fill: #fff;
