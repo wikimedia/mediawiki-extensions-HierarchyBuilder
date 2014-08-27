@@ -70,10 +70,10 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-if(array_key_exists('NewWikiNodeAddedHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'][] = 'VIKI.VikiTitleIcon.checkForTitleIcon';
+if(array_key_exists('AfterVisitNodeHook', $VikiJS_Function_Hooks))
+	$VikiJS_Function_Hooks['AfterVisitNodeHook'][] = 'VIKI.VikiTitleIcon.checkForTitleIcon';
 else
-	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'] = array('VIKI.VikiTitleIcon.checkForTitleIcon');
+	$VikiJS_Function_Hooks['AfterVisitNodeHook'] = array('VIKI.VikiTitleIcon.checkForTitleIcon');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiTitleIcon_AddResource';
 $wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
