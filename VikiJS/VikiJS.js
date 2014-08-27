@@ -1025,7 +1025,7 @@ window.VIKI = (function(my) {
 			if(node.nonexistentPage)
 				info += " (Page Does Not Exist)";
 			if(node.type == self.WIKI_PAGE_TYPE && !node.searchable)
-				info += " (Unsearchable Wiki)";
+				info += " (Unsearchable)";
 
 			info += "</h4>";
 
