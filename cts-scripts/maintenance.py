@@ -4,7 +4,7 @@ from subprocess import Popen, PIPE
 # For running maintenance scripts
 PHP = '/usr/bin/php'
 
-SCRIPT_PATH = '/GESTALT/MEDIAWIKI/mediawiki-1.22/maintenance/'
+SCRIPT_PATH = '/GESTALT/MEDIAWIKI/mediawiki-1.23/maintenance/'
 
 SQL_SCRIPT = 'sql.php'
 GET_TEXT_SCRIPT = 'getText.php'

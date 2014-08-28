@@ -1,4 +1,4 @@
-#!/usr/bin/python26
+#!/usr/bin/python
 from email.mime.text import MIMEText
 import hashlib
 import maintenance
@@ -15,9 +15,9 @@ HASH = 'hash'
 
 VERSION = 'version'
 
-VENDOR_TEMPLATE_NORMAL = 'CTS-Tool-smw'
+UPDATE_FLAG_NORMAL = '^\|possible update=false$'
 
-VENDOR_TEMPLATE_UPDATED = 'CTS-Tool-smw2'
+UPDATE_FLAG_UPDATED = '|possible update=true'
 
 NEW_VERSION_STRING = '(CTS has detected a possible update)'
 
@@ -33,7 +33,7 @@ COMMASPACE = ', '
 
 FROM_ADDRESS = 'cts@mitre.org'
 
-TO_ADDRESS = ['cicalese@mitre.org']
+TO_ADDRESS = ['dbeck@mitre.org']
 
 EMAIL_SUBJECT = 'Possible updated CTS tools'
 
@@ -60,8 +60,8 @@ def update_version(host_count,page_content):
     if (host_count[page_content.hostname] < HOST_THRESHOLD and not
             page_content.blank_hash):
         page_content.updated_version = True
-        if not re.search(VENDOR_TEMPLATE_UPDATED, page_content.page_content):
-            page_content.page_content = page_content.page_content.replace(VENDOR_TEMPLATE_NORMAL, VENDOR_TEMPLATE_UPDATED)
+        p = re.compile(UPDATE_FLAG_NORMAL, re.M)
+        page_content.page_content = p.sub(UPDATE_FLAG_UPDATED, page_content.page_content)
     return page_content
 
 def update_save_data(page_content,hash_field,new_save_data):
