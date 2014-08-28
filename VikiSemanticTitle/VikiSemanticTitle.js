@@ -29,7 +29,7 @@ window.VIKI = (function(my) {
 			this.hookName = hookName;
 			node = parameters[0];
 			node.semanticTitle = node.pageTitle;
-			if(!node.semanticQueried)
+			if(!node.semanticQueried && !node.dynamicPage)
 				this.queryForSemanticTitle(vikiObject, node);
 		},
 
