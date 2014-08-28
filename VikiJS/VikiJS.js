@@ -1323,6 +1323,11 @@ window.VIKI = (function(my) {
 
 			function externalLinksSuccessHandler(data, textStatus, jqXHR, originNode) {
 
+				if(data.error) {
+					self.showError("Error: code = "+data.error.code+", info = "+data.error.info);
+					return;
+				}
+
 				var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 				if(externalLinks) {
 					var newExternalNodes = [];
@@ -1388,6 +1393,10 @@ window.VIKI = (function(my) {
 
 			function intraWikiOutSuccessHandler(data, textStatus, jqXHR, originNode) {
 
+				if(data.error) {
+					self.showError("Error: code = "+data.error.code+", info = "+data.error.info);
+					return;
+				}
 				var intraLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["links"];
 				if(intraLinks) {
 					// get list of namespaces, or fetch with AJAX if required.
@@ -1433,6 +1442,11 @@ window.VIKI = (function(my) {
 			}
 
 			function intraWikiInSuccessHandler(data, textStatus, jqXHR, originNode) {
+
+				if(data.error) {
+					self.showError("Error: code = "+data.error.code+", info = "+data.error.info);
+					return;
+				}
 
 				var intraLinks = data.query.backlinks;
 				if(intraLinks) {
