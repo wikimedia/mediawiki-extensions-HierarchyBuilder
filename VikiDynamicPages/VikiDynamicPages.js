@@ -29,13 +29,17 @@ window.VIKI = (function(my) {
 			this.propertyName = propertyName;
 		},
 
+		checkForSelfLink: function(vikiObject, parameters, hookName) {
+
+		},
+
 		processQueryString : function(vikiObject, parameters, hookName) {
 			this.hookName = hookName;
 			node = parameters[0];
 
 			if(node.pageTitle.indexOf("?") != -1) {
 				node.searchable = false;
-				
+				node.dynamicPage = true;				
 				queryString = node.pageTitle.substring(node.pageTitle.indexOf("?")+1, node.pageTitle.length).split("+").join(" ");
 				node.pageTitle = node.pageTitle.substring(0, node.pageTitle.indexOf("?"));
 
@@ -69,7 +73,7 @@ window.VIKI = (function(my) {
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
+	            	vikiObject.showError("Error fetching "+VIKI.VikiDynamicPages.propertyName+" data for "+node.pageTitle+" on "+node.wikiTitle+". errorThrown = "+errorThrown);
 					vikiObject.hookCompletion(this.hookName);
 	            }
 			});
@@ -80,7 +84,7 @@ window.VIKI = (function(my) {
 
 			if(typeof formula !== 'string') {
 				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined') {
-					vikiObject.showError("Error: wiki "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
+					vikiObject.showError("Error: "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
 					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = 'YES';
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
@@ -91,7 +95,7 @@ window.VIKI = (function(my) {
 				formula = formula.replace("$"+element, queryParameters[element]);
 			});
 
-			node.displayName = formula.length < 15 ? formula : formula.substring(0,15)+"...";
+			node.displayName = formula.length < 15 ? formula : formula.substring(0,20)+"...";
 			node.fullDisplayName = formula;
 			// vikiObject.redrawNode(node);
 			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redrawNode" : true, "node" : node });
