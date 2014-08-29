@@ -284,6 +284,15 @@ class HierarchyBuilder {
 			$displayNameProperty = "";
 		}
 
+		if (isset($attributes["numbered"])) {
+			$numbered = htmlspecialchars($attributes["numbered"]);
+			if ($numbered === "numbered") {
+				$numbered = "true";
+			}
+		} else {
+			$numbered = "false";
+		}
+
 		//wikiLog("HierarchyBuilder", "renderHierarchy", "direct input: " . print_r($input, true));
 		$input = $parser->recursiveTagParse($input, $frame); // this looks like it gets the property but it eats all the links.
 		//wikiLog("HierarchyBuilder", "renderHierarchy", "tag-parsed input: " . print_r($input, true));
@@ -317,7 +326,7 @@ class HierarchyBuilder {
 
 		$script =<<<END
 mw.loader.using(['ext.HierarchyBuilder.render'], function () {
-	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed);
+	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed, $numbered);
 });
 END;
 
