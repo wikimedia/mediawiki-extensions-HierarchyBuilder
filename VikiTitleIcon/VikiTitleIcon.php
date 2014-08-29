@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiTitleIcon',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikititleicon-desc'
 );
