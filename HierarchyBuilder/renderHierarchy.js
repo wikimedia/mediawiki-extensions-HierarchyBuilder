@@ -108,7 +108,7 @@
 				});
 				return uListRoot;
 			}
-		}).render(divId, hierarchy, collapsed, numbered || true);
+		}).render(divId, hierarchy, collapsed, numbered);
 		
 	}
 }(jQuery));
