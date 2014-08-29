@@ -25,5 +25,6 @@
 $magicWords = array();
 
 $magicWords['en'] = array(
-	'hierarchyBreadcrumb' => array(0, 'hierarchyBreadcrumb')
+	'hierarchyBreadcrumb' => array(0, 'hierarchyBreadcrumb'),
+	'sectionNumber' => array(0, 'sectionNumber')
 );
