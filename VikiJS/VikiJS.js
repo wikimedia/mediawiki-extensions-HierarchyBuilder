@@ -1359,7 +1359,7 @@ window.VIKI = (function(my) {
 							if(!externalWikiNode) {
 									externalWikiNode = self.createWikiNodeFromExternalLink(thisURL, index);
 									self.callHooks("NewWikiNodeCreatedHook", [externalWikiNode, originNode]);
-									if(externalWikiNode.isSelfLink)
+									if(externalWikiNode.unadded)
 										continue;
 									else
 										self.addNode(externalWikiNode);
@@ -1381,7 +1381,7 @@ window.VIKI = (function(my) {
 							if(!externalNode) {
 								externalNode = self.createExternalNode(thisURL);
 								self.callHooks("NewExternalNodeCreatedHook", [externalNode, originNode]);
-								if(externalNode.isSelfLink)
+								if(externalNode.unadded)
 									continue;
 								else
 									self.addNode(externalNode);	
@@ -1428,7 +1428,7 @@ window.VIKI = (function(my) {
 							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1) {
 								intraNode = self.createWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
 								self.callHooks("NewWikiNodeCreatedHook", [intraNode, originNode]);
-								if(intraNode.isSelfLink)
+								if(intraNode.unadded)
 									continue;
 								else								
 									self.addNode(intraNode);
@@ -1484,7 +1484,7 @@ window.VIKI = (function(my) {
 							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1) {
 								intraNode = self.createWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
 								self.callHooks("NewWikiNodeCreatedHook", [intraNode, originNode]);
-								if(intraNode.isSelfLink)
+								if(intraNode.unadded)
 									continue;
 								else
 									self.addNode(intraNode);
