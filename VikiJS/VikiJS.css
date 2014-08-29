@@ -47,7 +47,7 @@ h4 vikijs-header{
   visibility: hidden;
   font-size: 1.0em;
   overflow-y: scroll;
-  max-height: 6em;
+  max-height: 7em;
 }
 
 .vikijs-zoom-slider{

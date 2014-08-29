@@ -25,8 +25,22 @@ window.VIKI = (function(my) {
 		hookName: "",
 		propertyName: "",
 		errorFlags: {},
+		visitedPages: {},
 		parseDynamicPagePropertyName : function(propertyName) {
 			this.propertyName = propertyName;
+		},
+
+		checkForSelfLink : function(vikiObject, parameters, hookName) {
+			newNode = parameters[0];
+			originNode = parameters[1];
+
+			if(node.pageTitle.indexOf("?") != -1) {
+				newNodePageTitle = newNode.pageTitle.substring(0, node.pageTitle.indexOf("?"));
+				if(newNodePageTitle === originNode.pageTitle)
+					newNode.isSelfLink = true;
+			}
+
+			vikiObject.hookCompletion(hookName);
 		},
 
 		processQueryString : function(vikiObject, parameters, hookName) {
@@ -35,7 +49,7 @@ window.VIKI = (function(my) {
 
 			if(node.pageTitle.indexOf("?") != -1) {
 				node.searchable = false;
-				
+				node.dynamicPage = true;				
 				queryString = node.pageTitle.substring(node.pageTitle.indexOf("?")+1, node.pageTitle.length).split("+").join(" ");
 				node.pageTitle = node.pageTitle.substring(0, node.pageTitle.indexOf("?"));
 
@@ -46,7 +60,12 @@ window.VIKI = (function(my) {
 					queryParameters[parameterTuple[0]] = parameterTuple[1];
 				});
 
-				this.queryForDisplayFormula(vikiObject, node, queryParameters);
+				if(!this.visitedPages[node.pageTitle]) {
+					this.queryForDisplayFormula(vikiObject, node, queryParameters);
+				}
+				else {
+					this.processDisplayFormula(vikiObject, this.visitedPages[node.pageTitle], node, queryParameters);
+				}
 			}
 		},
 
@@ -66,11 +85,12 @@ window.VIKI = (function(my) {
 	            },
 	            success: function(data, textStatus, jqXHR) {
 	            	self.processDisplayFormula(vikiObject, data, node, queryParameters);
+	            	self.visitedPages[node.pageTitle] = data;
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
-	            	vikiObject.showError("Error fetching display title data for "+node.pageTitle+". errorThrown = "+errorThrown);
-					vikiObject.hookCompletion(this.hookName, { "redraw" : false });
+	            	vikiObject.showError("Error fetching "+VIKI.VikiDynamicPages.propertyName+" data for "+node.pageTitle+" on "+node.wikiTitle+". errorThrown = "+errorThrown);
+					vikiObject.hookCompletion(this.hookName);
 	            }
 			});
 		},
@@ -79,9 +99,14 @@ window.VIKI = (function(my) {
 			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
 
 			if(typeof formula !== 'string') {
-				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined') {
-					vikiObject.showError("Error: wiki "+node.wikiTitle+" does not have a property named "+VIKI.VikiDynamicPages.propertyName+".");
-					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = 'YES';
+					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] || !VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle]) {
+					vikiObject.showError("Error: "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
+
+					
+					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle])
+						VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = {};
+					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] = true;
+
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 				return;
@@ -91,12 +116,10 @@ window.VIKI = (function(my) {
 				formula = formula.replace("$"+element, queryParameters[element]);
 			});
 
-			// console.log("formula is now: "+formula);
-
-			node.displayName = formula.length < 15 ? formula : formula.substring(0,15)+"...";
+			node.displayName = formula;
 			node.fullDisplayName = formula;
-
-			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redraw" : true });
+			// vikiObject.redrawNode(node);
+			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redrawNode" : true, "node" : node });
 		}
 	};
 

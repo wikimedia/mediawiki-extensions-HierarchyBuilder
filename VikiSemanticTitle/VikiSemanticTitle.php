@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.0.3',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikisemantictitle-desc'
 );
@@ -70,10 +70,10 @@ global $VikiJS_Function_Hooks;
 if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
-if(array_key_exists('NewWikiNodeAddedHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
+if(array_key_exists('AfterVisitNodeHook', $VikiJS_Function_Hooks))
+	$VikiJS_Function_Hooks['AfterVisitNodeHook'][] = 'VIKI.VikiSemanticTitle.checkForSemanticTitle';
 else
-	$VikiJS_Function_Hooks['NewWikiNodeAddedHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
+	$VikiJS_Function_Hooks['AfterVisitNodeHook'] = array('VIKI.VikiSemanticTitle.checkForSemanticTitle');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiSemanticTitle_AddResource';
 $wgAPIModules['getDisplayTitle'] = 'ApiGetDisplayTitle';
