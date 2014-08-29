@@ -574,7 +574,8 @@ window.VIKI = (function(my) {
 			vex.close(self.loadingView.data().vex.id);
 
 			for(var i = 0; i < self.initialPageTitles.length; i++) {
-				node = self.addWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+				node = self.createWikiNodeFromWiki(self.initialPageTitles[i], self.THIS_WIKI)
+				self.addNode(node);
 				self.visitNode(node);
 			}
 
@@ -599,7 +600,6 @@ window.VIKI = (function(my) {
 
 		 my.VikiJS.prototype.redraw = function(restartGraph) {
 			var self = this;
-			self.log("redraw() called");
 
 			self.NodeSelection =
 				self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
@@ -1095,42 +1095,42 @@ window.VIKI = (function(my) {
 		 * Node Management Methods
 		 ****************************************************************************************************************************/
 		
-		my.VikiJS.prototype.addExternalNode = function(url) {
+		my.VikiJS.prototype.createExternalNode = function(url) {
 			var self = this;
 
 			node = self.newNode();
 			shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
-			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,15)+"...");
+			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,20)+"...");
 			node.fullDisplayName = url;
 			node.type = self.EXTERNAL_PAGE_TYPE;
 			node.URL = url;
 			node.externalNodeIconURL = self.ImagePath + "internet.png";
-			self.addNode(node);
+			// self.addNode(node);
 
-			self.callHooks("NewExternalNodeAddedHook", [node]);
+			// self.callHooks("NewExternalNodeAddedHook", [node]);
 			return node;
 		}
 
-		my.VikiJS.prototype.addWikiNodeFromWiki = function(pageTitle, wikiTitle) {
+		my.VikiJS.prototype.createWikiNodeFromWiki = function(pageTitle, wikiTitle) {
 			var self = this;
 			
 			index = self.searchableWikiIndexForName(wikiTitle);
 			var wiki = self.allWikis[index];
 			url = wiki.contentURL + (pageTitle.split(" ").join("_"));
 
-			return self.addWikiNode(pageTitle, url, wiki);
+			return self.createWikiNode(pageTitle, url, wiki);
 		}
 
-		my.VikiJS.prototype.addWikiNodeFromExternalLink = function(url, wikiIndex) {
+		my.VikiJS.prototype.createWikiNodeFromExternalLink = function(url, wikiIndex) {
 			var self = this;
 
 			pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
 			var wiki = self.allWikis[wikiIndex];
 
-			return self.addWikiNode(pageTitle, url, wiki);
+			return self.createWikiNode(pageTitle, url, wiki);
 		}
 
-		my.VikiJS.prototype.addWikiNode = function(pageTitle, url, wiki) {
+		my.VikiJS.prototype.createWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
 			node.pageTitle = pageTitle;
 			node.displayName = pageTitle;
@@ -1145,9 +1145,8 @@ window.VIKI = (function(my) {
 			node.sameServer = node.contentURL.indexOf(self.serverURL) > -1;	// if the node's content URL contains my server, it should have the same server
 			node.wikiTitle = wiki.wikiTitle;
 			
-			self.addNode(node);
-
-			self.callHooks("NewWikiNodeAddedHook", [node]);
+			// self.addNode(node);
+			// self.callHooks("NewWikiNodeAddedHook", [node]);
 			
 			return node;
 		}
@@ -1202,13 +1201,17 @@ window.VIKI = (function(my) {
 
 		my.VikiJS.prototype.addNode = function(node) {
 			var self = this;
-
 			node.identifier = self.CURRENT_IDENTIFIER;
 			self.CURRENT_IDENTIFIER++;
 			self.Nodes.push(node);
 			if (self.Nodes.length == 1) {
 				self.SelectedNodeIndex = 0;
 			}
+
+			if(node.type == self.WIKI_PAGE_TYPE)
+				self.callHooks("NewWikiNodeAddedHook", [node]);
+			else
+				self.callHooks("NewExternalNodeAddedHook", [node]);
 		}
 
 		my.VikiJS.prototype.addLink = function(node1, node2) {
@@ -1354,7 +1357,12 @@ window.VIKI = (function(my) {
 							externalNode = null;
 							externalWikiNode = self.findNode("URL", thisURL);
 							if(!externalWikiNode) {
-									externalWikiNode = self.addWikiNodeFromExternalLink(thisURL, index);	
+									externalWikiNode = self.createWikiNodeFromExternalLink(thisURL, index);
+									self.callHooks("NewWikiNodeCreatedHook", [externalWikiNode, originNode]);
+									if(externalWikiNode.isSelfLink)
+										continue;
+									else
+										self.addNode(externalWikiNode);
 							}
 							if(externalWikiNode.hidden) {
 								self.unhideNode(externalWikiNode.identifier);
@@ -1370,8 +1378,14 @@ window.VIKI = (function(my) {
 						}
 						else {
 							externalNode = self.findNode("URL", thisURL);
-							if(!externalNode)
-								externalNode = self.addExternalNode(thisURL);		
+							if(!externalNode) {
+								externalNode = self.createExternalNode(thisURL);
+								self.callHooks("NewExternalNodeCreatedHook", [externalNode, originNode]);
+								if(externalNode.isSelfLink)
+									continue;
+								else
+									self.addNode(externalNode);	
+							}
 							if(externalNode.hidden) {
 								self.unhideNode(externalNode.identifier);
 							}
@@ -1411,8 +1425,14 @@ window.VIKI = (function(my) {
 						if(!intraNode || (intraNode.apiURL !== originNode.apiURL)) {
 							// add the node to the graph immediately if it is within the wiki's content namespaces.
 							
-							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
-								intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
+							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1) {
+								intraNode = self.createWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
+								self.callHooks("NewWikiNodeCreatedHook", [intraNode, originNode]);
+								if(intraNode.isSelfLink)
+									continue;
+								else								
+									self.addNode(intraNode);
+							}
 							else
 								continue;
 
@@ -1461,8 +1481,14 @@ window.VIKI = (function(my) {
 						if(!intraNode  || (intraNode.apiURL !== originNode.apiURL)) {					
 							// add the node to the graph immediately if it is within the wiki's content namespaces.
 							
-							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1)
-								intraNode = self.addWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);					
+							if(contentNamespaces.indexOf(intraLinks[i].ns) > -1) {
+								intraNode = self.createWikiNodeFromWiki(intraLinks[i]["title"], originNode.wikiTitle);
+								self.callHooks("NewWikiNodeCreatedHook", [intraNode, originNode]);
+								if(intraNode.isSelfLink)
+									continue;
+								else
+									self.addNode(intraNode);
+							}
 							else
 								continue;
 

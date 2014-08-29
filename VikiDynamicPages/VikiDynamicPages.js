@@ -29,8 +29,17 @@ window.VIKI = (function(my) {
 			this.propertyName = propertyName;
 		},
 
-		checkForSelfLink: function(vikiObject, parameters, hookName) {
+		checkForSelfLink : function(vikiObject, parameters, hookName) {
+			newNode = parameters[0];
+			originNode = parameters[1];
 
+			if(node.pageTitle.indexOf("?") != -1) {
+				newNodePageTitle = newNode.pageTitle.substring(0, node.pageTitle.indexOf("?"));
+				if(newNodePageTitle === originNode.pageTitle)
+					newNode.isSelfLink = true;
+			}
+
+			vikiObject.hookCompletion(hookName);
 		},
 
 		processQueryString : function(vikiObject, parameters, hookName) {
@@ -83,9 +92,14 @@ window.VIKI = (function(my) {
 			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
 
 			if(typeof formula !== 'string') {
-				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined') {
+				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined' || typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][VIKI.VikiDynamicPages.propertyName] === 'undefined') {
 					vikiObject.showError("Error: "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
-					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = 'YES';
+
+					
+					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle])
+						VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = {};
+					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][VIKI.VikiDynamicPages.propertyName] = 'YES';
+					
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 				return;
