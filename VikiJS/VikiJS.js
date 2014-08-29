@@ -1025,7 +1025,7 @@ window.VIKI = (function(my) {
 			if(node.nonexistentPage)
 				info += " (Page Does Not Exist)";
 			if(node.type == self.WIKI_PAGE_TYPE && !node.searchable)
-				info += " (Unsearchable)";
+				info += " (Page Cannot Be Elaborated)";
 
 			info += "</h4>";
 
@@ -1133,8 +1133,8 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.createWikiNode = function(pageTitle, url, wiki) {
 			node = self.newNode();
 			node.pageTitle = pageTitle;
-			node.displayName = pageTitle;
-			node.fullDisplayName = node.displayName;
+			node.displayName = pageTitle.length < 50 ? pageTitle : pageTitle.substring(0, 50)+"...";
+			node.fullDisplayName = pageTitle;
 			node.type = self.WIKI_PAGE_TYPE;
 			node.URL = url;
 			node.wikiIndex = index;
