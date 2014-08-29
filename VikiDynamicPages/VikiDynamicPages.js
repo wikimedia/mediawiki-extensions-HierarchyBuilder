@@ -25,6 +25,7 @@ window.VIKI = (function(my) {
 		hookName: "",
 		propertyName: "",
 		errorFlags: {},
+		visitedPages: {},
 		parseDynamicPagePropertyName : function(propertyName) {
 			this.propertyName = propertyName;
 		},
@@ -59,7 +60,12 @@ window.VIKI = (function(my) {
 					queryParameters[parameterTuple[0]] = parameterTuple[1];
 				});
 
-				this.queryForDisplayFormula(vikiObject, node, queryParameters);
+				if(!this.visitedPages[node.pageTitle]) {
+					this.queryForDisplayFormula(vikiObject, node, queryParameters);
+				}
+				else {
+					this.processDisplayFormula(vikiObject, this.visitedPages[node.pageTitle], node, queryParameters);
+				}
 			}
 		},
 
@@ -79,6 +85,7 @@ window.VIKI = (function(my) {
 	            },
 	            success: function(data, textStatus, jqXHR) {
 	            	self.processDisplayFormula(vikiObject, data, node, queryParameters);
+	            	self.visitedPages[node.pageTitle] = data;
 
 	            },
 	            error: function(jqXHR, textStatus, errorThrown) {
@@ -92,13 +99,13 @@ window.VIKI = (function(my) {
 			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
 
 			if(typeof formula !== 'string') {
-				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined' || typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] === 'undefined') {
+					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] || !VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle]) {
 					vikiObject.showError("Error: "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
 
 					
 					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle])
 						VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = {};
-					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] = 'YES';
+					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] = true;
 
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
@@ -109,7 +116,7 @@ window.VIKI = (function(my) {
 				formula = formula.replace("$"+element, queryParameters[element]);
 			});
 
-			node.displayName = formula.length < 15 ? formula : formula.substring(0,20)+"...";
+			node.displayName = formula;
 			node.fullDisplayName = formula;
 			// vikiObject.redrawNode(node);
 			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redrawNode" : true, "node" : node });
