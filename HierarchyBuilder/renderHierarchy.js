@@ -20,18 +20,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// Display the hierarchy
-// divId is the name of the div to render the hierarchy into
-// hierarchy is a 2 dimensional array of the data
-// - for each row in hierarchy, the first column is the level of indentation,
-//	 the second column is the name of the page, and the third column is
-//	 the URL of the page
-// collapsed is a Boolean that indicates if the tree should start collapsed
+/**
+ * Display the hierarchy
+ * divId is the name of the div to render the hierarchy into
+ * hierarchy is a 2 dimensional array of the data
+ * - for each row in hierarchy, the first column is the level of indentation,
+ *	 the second column is the name of the page, and the third column is
+ *	 the URL of the page
+ * collapsed is a Boolean that indicates if the tree should start collapsed
+ * numbered is a boolean that indicates if the hierarchy should be auto-numbered
+ */
 (function($) {
 	window.renderHierarchy = function(divId, hierarchy, collapsed, numbered) {
 		({
 			render: function(divId, hierarchy, collapsed, numbered) {
-				console.log("[renderHierarchy] " + hierarchy);
 				if (hierarchy.length < 1) {
 					return;
 				}
@@ -39,9 +41,8 @@
 				if(numbered) {
 					var $hierarchy = $(hierarchy);
 					var $hierarchy = this.numberHtml($hierarchy);
-					hierarchy = $hierarchy.html();	
+					hierarchy = $hierarchy[0].outerHTML;	
 				}
-				
 			
 				var jqDivId = "#" + divId;
 				$(jqDivId).html(hierarchy);
@@ -107,7 +108,7 @@
 				});
 				return uListRoot;
 			}
-		}).render(divId, hierarchy, collapsed, true);
+		}).render(divId, hierarchy, collapsed, numbered || true);
 		
 	}
 }(jQuery));
