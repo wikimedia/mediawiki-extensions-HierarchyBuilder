@@ -92,14 +92,14 @@ window.VIKI = (function(my) {
 			var formula = data.query.results[node.pageTitle].printouts[VIKI.VikiDynamicPages.propertyName][0];
 
 			if(typeof formula !== 'string') {
-				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined' || typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][VIKI.VikiDynamicPages.propertyName] === 'undefined') {
+				if(typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] === 'undefined' || typeof VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] === 'undefined') {
 					vikiObject.showError("Error: "+node.wikiTitle+" does not have a property '"+VIKI.VikiDynamicPages.propertyName+"' defined for page "+node.pageTitle+".");
 
 					
 					if(!VIKI.VikiDynamicPages.errorFlags[node.wikiTitle])
 						VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = {};
-					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][VIKI.VikiDynamicPages.propertyName] = 'YES';
-					
+					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] = 'YES';
+
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 				return;
