@@ -93,11 +93,27 @@ $wgResourceModules['ext.HierarchyBuilder.select'] = array(
 
 function efHierarchyBuilderSetup (& $parser) {
 	$parser->setFunctionHook('hierarchyBreadcrumb', 'hierarchyBreadcrumb');
+	$parser->setFunctionHook('sectionNumber', 'getPageNumbering');
 	$parser->setHook('hierarchy', 'renderHierarchy');
 	global $sfgFormPrinter;
 	$sfgFormPrinter->registerInputType('EditHierarchy');
 	$sfgFormPrinter->registerInputType('SelectFromHierarchy');
 	return true;
+}
+
+function getPageNumbering($parser) {
+	wikiLog('', 'getPageNumbering', "started");
+
+	$params = func_get_args();
+	if (count($params) != 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$propertyName = $params[3];
+		$output = HierarchyBuilder::getPageNumbering($pageName, $hierarchyPageName, $propertyName);
+	}
+	return $parser->insertStripItem($output, $parser->mStripState);
 }
 
 function hierarchyBreadcrumb($parser) {
@@ -146,6 +162,19 @@ class HierarchyBuilder {
 
 	const pageNamePattern = "/\[\[(.*)\]\]/"; // pattern to extract the pageName from a wikitext hierarchy row
 	const depthPattern = "/^(\**)/"; // pattern to extract the leading *s to determine the current row's depth in the wikitext hierarchy.
+
+	/**
+	 * $currentPageName is the name of the current page for which you want the auto-number in the given hierarchyPage
+	 * $hierarchyPageName is the name of the page containing the hierarchy from which to retrieve numberings
+	 * $propertyName is the name of the property on the hierarchy page which contains the hierarchy data. ex: hierarchy data
+	 */
+	public static function getPageNumbering($currentPageName, $hierarchyPageName, $propertyName) {
+		wikiLog('HierarchyBuilder', 'getPageNumbering', "hierarchyPageName = $hierarchyPageName");
+		wikiLog('HierarchyBuilder', 'getPageNumbering', "propertyName = $propertyName");
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $propertyName);
+		wikiLog('HierarchyBuilder', 'getPageNumbering', "hierarchy = $hierarchy");
+		return "0";
+	}
 
 	/**
 	 * $currentPage is the name of the page in the hierarchy we're currently viewing
