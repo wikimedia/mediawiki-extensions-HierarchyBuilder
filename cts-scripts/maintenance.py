@@ -1,3 +1,4 @@
+import os
 import re
 from subprocess import Popen, PIPE
 
@@ -10,7 +11,7 @@ SQL_SCRIPT = 'sql.php'
 GET_TEXT_SCRIPT = 'getText.php'
 EDIT_SCRIPT = 'edit.php'
 
-SCRIPT_DIR = '/home/cicalese/mgf_extensions/cts-scripts/'
+FILE_DIR = os.path.dirname(__file__) + "/"
 SQL_FILE = 'tool_pages_query.sql'
 
 
@@ -20,7 +21,7 @@ def run_command(command, shell=True):
     return stderr, stdout
 
 def get_pages():
-    command = '%s %s%s %s%s' % (PHP, SCRIPT_PATH, SQL_SCRIPT, SCRIPT_DIR,SQL_FILE)
+    command = '%s %s%s %s%s' % (PHP, SCRIPT_PATH, SQL_SCRIPT, FILE_DIR, SQL_FILE)
     print(command)
     (stderr, stdout) = run_command(command)
     lines = stdout.split('\n')
@@ -31,7 +32,7 @@ def get_pages():
     for line in lines:
         name = prog.search(line)
         if name:
-            page_list.append(name.group(1).replace('\n',''))
+            page_list.append("Tool:" + name.group(1).replace('\n',''))
     return page_list
 
 def get_page(title):
