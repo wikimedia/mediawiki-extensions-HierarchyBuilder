@@ -96,8 +96,8 @@ function efVikiIWLinks_Setup($params) {
 	$dbr = wfGetDB( DB_SLAVE );
 	$result = $dbr->select(
 		'interwiki',
-		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable'),
-		'viki_searchable = true OR viki_searchable = false'
+		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+		'mgf_wiki = true'
 	);
 	wfErrorLog("database result:\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
 
@@ -114,7 +114,8 @@ function efVikiIWLinks_Setup($params) {
 			"apiURL" => $row->iw_api,
 			"contentURL" => $row->iw_url,
 			"logoURL" => $row->logo_url,
-			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false")
+			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false"),
+			"server" => $row->server
 		);
 	}
 
