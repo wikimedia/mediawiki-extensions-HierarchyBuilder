@@ -97,8 +97,8 @@ function vikijs($parser, $pageTitles, $width, $height) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
-		wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
-	wfErrorLog("$value\n", "/var/www/html/DEBUG_VikiJS.out");
+		wfErrorLog("$value\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
+	wfErrorLog("$value\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
 	$pageTitles = $paramDictionary["pageTitles"];
@@ -175,13 +175,13 @@ EOT;
 		$outputObject = $parser->getOutput();
 
 		foreach(self::$modules as $name) {
-			wfErrorLog("Adding module name: $name\n", "/var/www/html/DEBUG_VikiJS.out");
+			wfErrorLog("Adding module name: $name\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
 			$outputObject->addModules($name);
 		}
 
 		$index = 0;
 		foreach(self::$functionHooks as $hook) {
-			// wfErrorLog("About to call hook: $hook with params: " . print_r(self::$functionHookParams[$index], true) . "\n", "/var/www/html/DEBUG_VikiJS.out");
+			// wfErrorLog("About to call hook: $hook with params: " . print_r(self::$functionHookParams[$index], true) . "\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
 			call_user_func_array($hook, self::$functionHookParams[$index]);
 			$index++;
 		}

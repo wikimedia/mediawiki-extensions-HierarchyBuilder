@@ -124,7 +124,7 @@ class ApiGetDisplayTitle extends ApiBase {
 
 			// $params = array("[[$pageTitle]]", "?$displayNameProperty=");
 			// $result = SMWQueryProcessor::getResultFromFunctionParams( $params, SMW_OUTPUT_WIKI );
-			// wfErrorLog(print_r($result, true) . "\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
+			// wfErrorLog(print_r($result, true) . "\n", "/var/www/html/jyj_logs/DEBUG_VikiSemanticTitle.out");
 
 			// Get the semantic title from the title property via SMW API.
 			// (Any better way to do this?)
