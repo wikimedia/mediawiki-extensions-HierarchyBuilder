@@ -554,15 +554,15 @@ window.VIKI = (function(my) {
 						// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
 						// default to just NS 0 (main).
 						self.showError("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
-						actuallySearchableWikis[index].contentNamespaces = [0];
-						self.contentNamespacesFetched++;
-						if(self.contentNamespacesFetched == self.searchableCount) {
-							self.populateInitialGraph();				
-						}
 					}
 					else {
 						self.showError("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 					}
+					actuallySearchableWikis[index].contentNamespaces = [0];
+						self.contentNamespacesFetched++;
+						if(self.contentNamespacesFetched == self.searchableCount) {
+							self.populateInitialGraph();				
+						}
 				}
 			});
 		
