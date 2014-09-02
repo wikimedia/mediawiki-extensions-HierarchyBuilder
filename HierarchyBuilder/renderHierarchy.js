@@ -71,12 +71,18 @@
 				});
 			},
 
+			/**
+			 * uListRoot is a jquery object, representing the top level <ul>
+			 *     element of the entire HTML hierarchy.
+			 *
+			 * This function takes an HTML hierarchy and applies section numbers
+			 * to each row of the hierarchy. The resulting HTML hierarchy with
+			 * section numbers applied is then returned.
+			 */
 			numberHtml: function(uListRoot) {
 				list = uListRoot.clone();
 				return this.numberHtmlHelper(list, "");
 			},
-
-
 
 			/**
 			 * uListRoot is a jquery object, representing the <ul> element of a list.
