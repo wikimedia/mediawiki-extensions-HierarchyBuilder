@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'OrgChart',
-	'version' => '0.2',
+	'version' => '0.3',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'orgchart-desc'
 );
@@ -49,10 +49,12 @@ $wgResourceModules['ext.OrgChart'] = array(
 	'localBasePath' => dirname(__FILE__),
 	'remoteExtPath' => 'OrgChart',
 	'styles' => array(
-		'OrgChart.css'
+		'OrgChart.css',
+		'd3-tip.min.css'
 	),
 	'scripts' => array(
 		'd3.v3.min.js',
+		'd3-tip.min.js',
 		'OrgChart.js'
 	)
 );

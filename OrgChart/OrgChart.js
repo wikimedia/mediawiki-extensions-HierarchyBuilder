@@ -2,9 +2,9 @@ window.OrgChart = function() {
 	this.width = 0;
 	this.height = 0;
 	this.nodeWidth = 370;
-	this.nodeHeight = 100;
+	this.nodeHeight = 150;
 	this.imagePadding = 20;
-	this.imageWidth = this.nodeHeight-this.imagePadding;
+	this.imageWidth = 100-this.imagePadding;
 
 	this.MIN_SCALE = .1;
 	this.MAX_SCALE = 3;
@@ -12,6 +12,7 @@ window.OrgChart = function() {
 
 	this.tree = null;
 	this.focusedNode = null;
+	this.currentNode = null;
 	this.error = false;// is this chart cyclical?
 	this.errorLinks = new Array();
 	this.Visited = new Array();// contains a list of organization names visited while building the chart
@@ -21,6 +22,7 @@ window.OrgChart = function() {
 	this.orgChartData = null;// contains organization chart data built in method assembleData made global
 	this.apiURL = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/api.php";
 	this.imagePath = mw.config.get("wgServer")+mw.config.get("wgScriptPath") + "/extensions/OrgChart/";
+	this.toolTipIcon = this.imagePath;
 	OrgChart.prototype.assembleData = function(orgName) {
 
 		var self = this;
@@ -62,7 +64,7 @@ window.OrgChart = function() {
 				data: {
 					action : "askargs", 
 					conditions : orgName,
-					printouts : "Parent|Short Name|Long Name|Website|Logo Link|People",
+					printouts : "Parent|Short Name|Long Name|Website|Logo Link",
 					format : "json"
 				},
 				success: function(data, textStatus, jqXHR) {
@@ -82,8 +84,7 @@ window.OrgChart = function() {
 						// if not, build the node, set the children, and query for the parent
 						if(!seenAgain){
 							var newOrg = self.newNode(result["Short Name"][0], orgName, data);
-							self.log('people '+newOrg.people.toString());
-							if(orgChartData)							
+							if(orgChartData)
 								newOrg["children"] = [ orgChartData ];
 							orgChartData = newOrg;
 							if(result["Parent"][0]) {
@@ -118,7 +119,7 @@ window.OrgChart = function() {
 			data: {
 				action : "askargs",
 				conditions : "Parent::"+orgObject.name,
-				printouts : "Short Name|Long Name|Website|Logo Link|People",
+				printouts : "Short Name|Long Name|Website|Logo Link",
 				format : "json"
 			},
 			success: function(data, textStatus, jqXHR) {
@@ -127,7 +128,6 @@ window.OrgChart = function() {
 						result = data["query"]["results"][childOrg]["printouts"];
 						// build the child node
 						var newOrg = self.newNode(result["Short Name"][0], childOrg, data);
-						self.log('people '+newOrg.people.toString());
 						// check to see if the child node has been visited before
 						var seen = self.isVisited(newOrg.name);
 						// if the child organization has been seen before
@@ -156,12 +156,13 @@ window.OrgChart = function() {
 	}
 
 	OrgChart.prototype.newNode = function(name, displayName, data){
+		var self = this;
 		var result = data["query"]["results"][displayName]["printouts"];
 		return {
 			"name" : name,
 			"displayName": displayName,			
 			"longName" : result["Long Name"][0],
-			"people" : result["People"],
+			"people" : self.queryForPersonnel(displayName),
 			"website" : result["Website"][0],
 			"img" : result["Logo Link"][0],
 			"wikiurl" : data["query"]["results"][displayName]["fullurl"],
@@ -199,10 +200,38 @@ window.OrgChart = function() {
 					imageElement.attr("xlink:href",imgURL);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
+// ->
 					alert("failed query for image");
 				}
 			});
 		}
+	}
+
+	OrgChart.prototype.queryForPersonnel = function(orgName){
+		var self = this;
+		var personnel = new Array();
+		jQuery.ajax({
+			url: self.apiURL,
+			async: false,
+			dataType: 'json',
+			data:{
+				"action" : "ask",
+				"query" : "[[Category:People]] [[Organization::"+orgName+"]]",
+				"format" : "json"
+			},
+			beforeSend: function(jqXHR, settings){
+
+			}, 
+			success: function(data, textStatus, jqXHR){
+				for(var person in data["query"]["results"]){
+					personnel.push(person);
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+
+			}
+		});
+		return personnel;
 	}
 
 	OrgChart.prototype.drawChart = function(orgName, graphDiv, width, height, alignment, color) {
@@ -212,6 +241,12 @@ window.OrgChart = function() {
 		self.alignment = (alignment === "vertical" ? "vertical" : "horizontal");
 
 		$(".orgchart-graph-container").css("border", "1px solid "+color);
+
+	    var tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .html(function(d) {
+         return self.listPeople(d); })
+        .direction('e');
 
 		// set up the zoom behavior.
 		self.zoom = d3.behavior.zoom()
@@ -226,6 +261,7 @@ window.OrgChart = function() {
 		      .attr("pointer-events", "all")
 		  .append("svg:g")
 		      .call(self.zoom)
+
 		      .on("dblclick.zoom", null);
 
 		  svg.append("svg:rect")
@@ -235,10 +271,11 @@ window.OrgChart = function() {
 
 		  svg.append("svg:g")
 		     .attr("id", "moveable");	
-	  
+	  	  svg.call(tip);
 		d3.select("#moveable").append("svg:g").attr("id", "links");
 		d3.select("#moveable").append("svg:g").attr("id", "nodes");
-		d3.select("#moveable").append("svg:g").attr("id", "markers")
+		d3.select("#moveable").append("svg:g").attr("id", "markers");
+
 		// initialize the tree.
 		self.tree = d3.layout.tree()
 		  .separation(function(a,b) {
@@ -258,7 +295,7 @@ window.OrgChart = function() {
 		// this is on the data side, not on the drawing side
 
 		var currentOrg = self.assembleData(orgName);
-//		self.spanTree(currentOrg, {'maxBreadth':0, 'maxDepth':0});
+		var stats = self.spanTree(self.orgChartData, {'maxBreadth':1, 'maxDepth':1});
 
 		// if an error node has been set
 		if(self.error && (self.errorLinks.length > 0)){	
@@ -356,6 +393,7 @@ window.OrgChart = function() {
 		    .y(function(d) { return d.y; })
 	   		.interpolate("basis")// uses a basis type line - see d3js.org
 	    	.tension(0.75);// arbitrarily chosen tension
+
 		var allLinks = svg.select("#links").selectAll("pathlink")
 		.data(self.links)
 		.enter().append("svg:path")
@@ -394,7 +432,7 @@ window.OrgChart = function() {
 		.attr("class", "node");
 
 		// draw stuff inside the node.
-		allNodes.append("svg:rect")
+		var box = allNodes.append("svg:rect")
 		.attr("x", function(d) { return -1*self.nodeWidth/2; })
 		.attr("y", function(d) { return -1*self.nodeHeight/2; })
 		.attr("width", self.nodeWidth)
@@ -426,12 +464,11 @@ window.OrgChart = function() {
             window.open(wiki_url,'_blank'); 			
 		});
 
-
 		allNodes.append("svg:image")
 		.attr("width", this.imageWidth)
 		.attr("height", this.imageWidth)
 		.attr("x", -1*self.nodeWidth/2+this.imagePadding/2)
-		.attr("y", -1*self.nodeHeight/2+this.imagePadding/2)
+		.attr("y", -1*self.nodeHeight/4)
 		.each(function(d) {
 			self.queryForImage(d.img, d3.select(this),d.local);
 		})
@@ -444,6 +481,38 @@ window.OrgChart = function() {
 	        }
 		});
 
+		allNodes.append("svg:image")
+		.attr("width",this.imageWidth/3)
+		.attr("height",this.imageWidth/3)
+		.attr("x", self.nodeWidth/2-this.imagePadding*3/2)
+		.attr("y", -1*this.imagePadding/2)
+		.each(function(d){
+			var num = d.people.length;
+			if(num > 0){
+				self.queryForImage(self.imagePath+'person-avatar-blue.png', d3.select(this),true);
+			}
+			else{
+				self.queryForImage(self.imagePath+'person-avatar-grey.png', d3.select(this),true);
+			}
+		})
+        .on('mouseover', function(d){
+        	self.currentNode = d;
+        	tip.show(d);
+        })
+        .on('mouseout', tip.hide);
+
+
+		allNodes.append("svg:text")
+		.attr("text-anchor", "end")
+		.text(function(d){
+			return d.people.length;
+		})
+		.style("font-family", "Verdana")
+		.style("font-size", "9pt")
+		.style("font-weight", "bold")
+		.attr("x", self.nodeWidth/2-this.imagePadding/4)
+		.attr("y", -1*this.imagePadding/2)
+		
 		allNodes.append("svg:text")
 		.attr("text-anchor", "start")
 		.text(function(d) { 
@@ -460,7 +529,8 @@ window.OrgChart = function() {
 		.attr("x", -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding)
 		.attr("y", (-1*self.nodeHeight/4))
 		.attr("dy", ".5em")	// see bost.ocks.org/mike/d3/workshop/#114
-		.attr("id", "titleLabel");
+		.attr("id", "titleLabel")
+		.call(self.textWrap, 0.9*(this.nodeWidth-(this.imageWidth*3/2)), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
 
 		var list = allNodes.append("svg:text")
 		.attr("text-anchor", "start")
@@ -471,12 +541,19 @@ window.OrgChart = function() {
 		.style("font-size", "11pt")
 		.style("font-style", "italic")
 		.attr("fill", function(d) { return d.focused ? "white" : "black"; })
+		.attr("x", -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding)
 		.attr("y", function(d) {
+			var node = d3.select(this.parentNode);
+			var topText = node.select("#titleLabel").node();
+			var textbox = topText.getBBox();
+			return -1*self.nodeHeight/4 + textbox.height;
+
 			// Issue exists in IE that constructs different heights for text. 
 			// Selected arbitrary static number that seems to be setting a fixed text height for chrome and IE
-			return 7;
+//			return 7;
 		})
-		.call(self.textWrap, 0.9*(this.nodeWidth-this.imageWidth), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
+		.attr("dy", ".5em")	// see bost.ocks.org/mike/d3/workshop/#114
+		.call(self.textWrap, 0.9*(this.nodeWidth-(this.imageWidth*3/2)), -1*self.nodeWidth/2 + self.imageWidth + self.imagePadding);
 		// do some calculations to get proper zoom and translate
 		var regExp = /-*[0-9]+(.[0-9]+)*/g;
 		for(var list_index=0; list_index<list.length; list_index++){
@@ -529,9 +606,10 @@ window.OrgChart = function() {
 			var translate_x = self.width/2 - focus_x*scaleFactor;
 			var translate_y = self.height/2 + focus_y*scaleFactor;	
 		}
-
+		translate_y = translate_y - 115;
 		self.zoom.scale(scaleFactor);
 		self.zoom.translate([translate_x, translate_y]);
+		// move top node closer to the top
 		d3.select("#moveable").attr("transform", "translate("+translate_x+", "+translate_y+") scale("+scaleFactor+")");
 	}
 	// this method adapted from bl.ocks.org/mbostock/7555321
@@ -561,6 +639,7 @@ window.OrgChart = function() {
 
 	OrgChart.prototype.redrawZoom = function() {
 		var self = this;
+//		console.log(self.currentNode);
 		self.Zoompos = d3.event.scale;
 		d3.select("#moveable").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	}
@@ -601,21 +680,34 @@ window.OrgChart = function() {
 		// if the node cannot be found, return null
 		return null;
 	}
-/*
+
 	OrgChart.prototype.spanTree = function(org, stats){
 		var self = this;
 		if("children" in org){
-			if(org["children"] != null){				
+			if(org["children"] != null){
+				stats.maxDepth++;
+				stats.maxBreadth = org["children"].length;
 				for(var sibling = 0; sibling<org["children"].length; sibling++){
-					var childStats = self.spanTree(org, stats);
-//					stats.maxBreadth = Math.max(5, 10);
-//					stats.maxDepth = Math.max(5, 10);
+					var childStats = self.spanTree(org["children"][sibling], stats);
+					stats.maxBreadth = Math.max(stats.maxBreadth, childStats.maxBreadth);
+					stats.maxDepth =  Math.max(stats.maxDepth, childStats.maxDepth);
 				}
 			}
 		}
 		return stats;
 	}
-*/
+
+	OrgChart.prototype.listPeople = function(org){
+		var people = org.people
+		var html = '<h4>'+org.displayName+'</h4>';
+		html += '<ul>';
+		for(var id=0; id<people.length; id++){
+			html+='<li>'+people[id]+'</li>';
+		}
+		html += '</ul>';
+		return html;
+	}
+
 	OrgChart.prototype.markAsError = function(node){
 		var self = this;
 		// get the index of the node in the array of nodes
