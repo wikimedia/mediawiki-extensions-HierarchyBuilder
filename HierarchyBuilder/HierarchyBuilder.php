@@ -142,7 +142,6 @@ function parent($parser) {
 		//wikiLog('', 'parent', "hierarchyPropertyName = $hierarchyPropertyName");
 		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
 	}
-	wikiLog('', 'parent', "output = $output");
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
 
@@ -156,7 +155,7 @@ function children($parser) {
 		$output = "";
 	} else {
 		wikiLog('', 'children', 'Starting real work');
-		
+
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
@@ -164,6 +163,8 @@ function children($parser) {
 	
 		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
 		$output = implode($delimiter, $output);
+
+		wikiLog('', 'children', "output = $output");
 	}	
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
@@ -742,7 +743,7 @@ END;
 		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
 		
 		if ($rootPageName == $target) {
-			$childenList = array();
+			$childrenList = array();
 			foreach($children as $child) {
 				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth."*");
 				$childRoot = $childRootAndChildren[0];
@@ -752,7 +753,7 @@ END;
 			return $childrenList;
 		} else {
 			foreach ($children as $child) {
-				$childrenList = HierarchyBuilder::getChildrenFromHierarchyHelper($children, $depth."*", $target);
+				$childrenList = HierarchyBuilder::getChildrenFromHierarchyHelper($child, $depth."*", $target);
 				if (count($childrenList) > 0) {
 					return $childrenList;
 				}
