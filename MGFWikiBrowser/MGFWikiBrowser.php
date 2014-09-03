@@ -91,8 +91,9 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 				"apiURL" => $row->iw_api,
 				"contentURL" => $row->iw_url,
 				"logoURL" => $row->logo_url,
-				"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false"),
-				"server" => $row->server
+				"searchableWiki" => $row->viki_searchable,
+				"server" => $row->server,
+				"mgf_wiki" => $row->mgf_wiki
 			);
 		}
 
@@ -102,25 +103,17 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		$databaseResultsJSON = addslashes(json_encode($databaseResults));
 		global $wgOut;
 
+		$output->addHTML("<div id='MGFWikiBrowser'></div>");
 
-// 		global $wgServer, $wgScriptPath;
-// 		$apiurl = $wgServer . $wgScriptPath . "/api.php";
+		$script=<<<END
+mw.loader.using(['ext.MGFWikiBrowser'], function() {
+	MGFWikiBrowser.initWithWikiData("$databaseResultsJSON");
 
-// 		$script=<<<END
-// mw.loader.using(['ext.MGFWikiBrowser'], function() {
-// //	MGFWikiBrowser.initializeMWS("$apiurl");
-// //	g.initializeMWS("$apiurl");
+});
+END;
 
-// 	$(document).ready(function() {
-// 		var g = new MGFWikiBrowser("diff", "$apiurl");
-// 		g.initializeMWS("#mw-content-text");
-// 	});
-// });
-// END;
+		$script = '<script type="text/javascript">' . $script . "</script>";
+		$output->addScript($script);
 
-// 		$script = '<script type="text/javascript">' . $script . "</script>";
-// 		$output->addScript($script);
-
-		$output->addHTML(...);
 	}
 }

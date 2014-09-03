@@ -24,5 +24,5 @@
 
 $messages['en'] = array(
 	'mgfwikibrowser-desc' => 'Browse all MGF wikis listed in the shared interwiki table.',
-	'mgfwikibrowser' => 'mgfwikibrowser'
+	'mgfwikibrowser' => 'MGF Shared Interwiki Table Browser'
 );
