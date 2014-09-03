@@ -122,6 +122,46 @@ function sectionNumber($parser) {
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
 
+/**
+ * This parser function will return a list of the immediate children of a given
+ * page within a hierarchy on a page. The list of chilren will be delimited by
+ * a specified character or the ',' character by default if no delimiter is given.
+ */
+function parent($parser) {
+	$params = func_get_args();
+	if (count($params) != 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
+	}
+	return $parser->insertStripItem($output, $parser->mStripState);
+}
+
+/**
+ * This parser function will return the immediate parent of a given page within
+ * a hierarchy on a page.
+ */
+function children($parser) {
+	$params = func_get_args();
+	if (count($params) < 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		$delimiter = $params[4]; // this could be null or not set or something like that
+	
+		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		$output = implode($delimiter, $output);
+	}	
+	return $parser->insertStripItem($output, $parser->mStripState);
+}
+
+
+
 function hierarchyBreadcrumb($parser) {
 	$params = func_get_args();
 	if (count($params) < 4) {
@@ -169,7 +209,7 @@ class HierarchyBuilder {
 	 * $hierarchyPageName is the name of the page containing the hierarchy from
 	 *     which to retrieve numberings.
 	 * $hierarchyPropertyName is the name of the property on the hierarchy page
-	 *     which contains the hierarchy data. ex: hierarchy data.
+	 *     which contains the hierarchy data. ex: Hierarchy Data.
 	 *
 	 * This function returns the section number of a target page within a hierarchy.
 	 */
@@ -177,6 +217,30 @@ class HierarchyBuilder {
 		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
 		$pageSectionNumber = HierarchyBuilder::getSectionNumberFromHierarchy("hierarchy_root", $hierarchy, $targetPageName);
 		return $pageSectionNumber;
+	}
+
+	/**
+	 * $targetPageName is the name of the target page for which we want the list
+	 *     of immediate children.
+	 * $hierarchyPageName is the name of the page containing the hierarchy from
+	 *     which to retrieve the list of children.
+	 * $hierarchyPropertyName is the name of the property on the hierarchy page
+	 *     which contains the hierarchy data. ex: Hierarchy Data.
+	 */
+	public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+
+	}
+
+	/**
+	 * $targetPageName is the name of the target page for which we want the
+	 *     immediate parent in the hierarchy/
+	 * $hierarchyPageName is the name of the page containing the hierarchy from
+	 *     which to retrieve the immediate parent of the target page.
+	 * $hierarchyPropertyName is the name of hte property on the hierarchy page
+	 *    Which contains the hierarhcy data. ex: HierarchyData.
+	 */
+	public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+
 	}
 
 	/**
