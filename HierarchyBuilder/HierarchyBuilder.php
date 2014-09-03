@@ -137,9 +137,6 @@ function parent($parser) {
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
-		//wikiLog('', 'parent', "pageName = $pageName");
-		//wikiLog('', 'parent', "hierarchyPageName = $hierarchyPageName");
-		//wikiLog('', 'parent', "hierarchyPropertyName = $hierarchyPropertyName");
 		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
 	}
 	return $parser->insertStripItem($output, $parser->mStripState);
@@ -154,8 +151,6 @@ function children($parser) {
 	if (count($params) < 4) {
 		$output = "";
 	} else {
-		wikiLog('', 'children', 'Starting real work');
-
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
@@ -163,8 +158,6 @@ function children($parser) {
 	
 		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
 		$output = implode($delimiter, $output);
-
-		wikiLog('', 'children', "output = $output");
 	}	
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
