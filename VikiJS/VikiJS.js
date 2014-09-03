@@ -118,6 +118,7 @@ window.VIKI = (function(my) {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
 				contentURL : this.serverURL + mw.config.get("wgScript") + "/",
+				// TODO: change contentURL to value of wgArticlePath
 				logoURL : myLogoURL,
 				searchableWiki : true
 			}
@@ -1117,7 +1118,7 @@ window.VIKI = (function(my) {
 			index = self.searchableWikiIndexForName(wikiTitle);
 			var wiki = self.allWikis[index];
 			url = wiki.contentURL + (pageTitle.split(" ").join("_"));
-
+			// TODO: change implementation of url here to use contentURL which contains $1
 			return self.createWikiNode(pageTitle, url, wiki);
 		}
 
@@ -1125,6 +1126,7 @@ window.VIKI = (function(my) {
 			var self = this;
 
 			pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
+			// TODO: change implementation of pageTitle here to use contentURL which contains $1
 			var wiki = self.allWikis[wikiIndex];
 
 			return self.createWikiNode(pageTitle, url, wiki);
@@ -1642,6 +1644,7 @@ window.VIKI = (function(my) {
 			var self = this;
 			for(var i = 0; i < self.allWikis.length; i++)
 				if(url.indexOf(self.allWikis[i]["contentURL"]) != -1)
+					// TODO: change this implementation to find contentURL minus the $1
 					return i;
 			return -1;
 		}
