@@ -78,7 +78,6 @@ function efVikiIWLinks_AddResource (& $parser) {
 }
 
 function addVikiTablesToDatabase($updater) {
-	wfErrorLog("addVikiTablesToDatabase called.\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
 	$updater->addExtensionField('interwiki', 'logo_url',
 			__DIR__ . '/AddLogoURL.sql', true);
 	$updater->addExtensionField('interwiki', 'viki_searchable',
@@ -89,8 +88,6 @@ function addVikiTablesToDatabase($updater) {
 
 function efVikiIWLinks_Setup($params) {
 
-	wfErrorLog("efVikiIWLinks_Setup called \n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
-
 	// access database and get wikis from interwiki links table
 
 	$dbr = wfGetDB( DB_SLAVE );
@@ -99,7 +96,6 @@ function efVikiIWLinks_Setup($params) {
 		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
 		'mgf_wiki = true'
 	);
-	wfErrorLog("database result:\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
 
 
 	// turn into JSON
@@ -107,8 +103,6 @@ function efVikiIWLinks_Setup($params) {
 	$databaseResults = array();
 
 	foreach($result as $row) {
-		wfErrorLog(print_r($row, true) . "\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");		
-
 		$databaseResults[] = array(
 			"wikiTitle" => $row->iw_prefix,
 			"apiURL" => $row->iw_api,
@@ -118,9 +112,6 @@ function efVikiIWLinks_Setup($params) {
 			"server" => $row->server
 		);
 	}
-
-	wfErrorLog("wikiTestArray:\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
-	wfErrorLog(print_r($databaseResults, true) . "\n", "/var/www/html/jyj_logs/DEBUG_VikiIWLinks.out");
 
 	$databaseResultsJSON = addslashes(json_encode($databaseResults));
 	global $wgOut;
