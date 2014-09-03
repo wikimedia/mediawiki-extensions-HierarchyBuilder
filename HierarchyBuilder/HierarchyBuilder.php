@@ -137,9 +137,9 @@ function parent($parser) {
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
-		wikiLog('', 'parent', "pageName = $pageName");
-		wikiLog('', 'parent', "hierarchyPageName = $hierarchyPageName");
-		wikiLog('', 'parent', "hierarchyPropertyName = $hierarchyPropertyName");
+		//wikiLog('', 'parent', "pageName = $pageName");
+		//wikiLog('', 'parent', "hierarchyPageName = $hierarchyPageName");
+		//wikiLog('', 'parent', "hierarchyPropertyName = $hierarchyPropertyName");
 		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
 	}
 	wikiLog('', 'parent', "output = $output");
@@ -155,6 +155,8 @@ function children($parser) {
 	if (count($params) < 4) {
 		$output = "";
 	} else {
+		wikiLog('', 'children', 'Starting real work');
+		
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
@@ -614,6 +616,8 @@ END;
 
 		$root = $rootAndChildren[0]; // this is just the root row of this hierarchy (or subhierarchy)
 		$children = array_slice($rootAndChildren, 1); // this is a list of direct children hierarchies of the root. It might be an empty list though
+		//wikiLog('HierarchyBuilder', 'getSectionNumberFromHierarchyHelper', 'wikiTextHierarchy = '. $wikiTextHierarchy);
+		//wikiLog('HierarchyBuilder', 'getSectionNumberFromHierarchyHelper', 'depth = '. $depth);
 
 		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
 		//$rootDisplayName = HierarchyBuilder::getPageDisplayName($rootPageName, $displayNameProperty);
@@ -649,10 +653,12 @@ END;
 	 * child that is equal to $target. The target is a simple page name and the
 	 * requirement is that a matching row must consist only of a single link to
 	 * the target page. (eg: [[$target]]) We do not yet support non-page rows.
+	 * If the target is not contained in the hierarchy OR the target is already
+	 * root level in the hierarchy, then we return the empty string.
 	 */
 	public static function getParentFromHierarchy($wikiTextHierarchy, $target) {
-		wikiLog('HierarchyBuilder', 'getParentFromHierarchy', "started");
 		$parent = HierarchyBuilder::getParentFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", $target);
+		$parent = $parent == "hierarchy_root" ? "" : $parent;
 		return $parent;
 	}
 
@@ -673,31 +679,23 @@ END;
 	 * regex and children loops.
 	 */
 	private static function getParentFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
-		wikiLog('HierarchyBuilder', 'getParentFromHierarchyBuilder', "target = $target");
-
 		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
 		$root = $rootAndChildren[0];
 		$children = array_slice($rootAndChildren, 1);
 
-		wikiLog('HierarchyBuilder', 'getParentFromHierarchyBuilder', "rootAndChildren = ". count($rootAndChildren));
-
 		if (count($children) > 0) {
-			wikiLog('HierarchyBuilder', 'getParentFromHierarchyBuilder', "We have Children");
 			foreach($children as $child) {
-				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth+"*");
+				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth."*");
 				$childRoot = $childRootAndChildren[0];
 				$childRootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($childRoot, false);
 				if ($childRootPageName == $target) {
 					$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
-					wikiLog('HierarchyBuilder', 'getParentFromHierarchyBuilder', "match = $rootPageName");
 					return $rootPageName;
 				}
 			}
 
 			foreach($children as $child) {
-				wikiLog('HierarchyBuilder', 'getParentFromHierarchyBuilder', "recurse on child: $child");
-
-				$targetParent = HierarchyBuilder::getParentFromHierarchyHelper($child, $depth+"*", $target);
+				$targetParent = HierarchyBuilder::getParentFromHierarchyHelper($child, $depth."*", $target);
 				if ($targetParent != "") {
 					return $targetParent;
 				}
@@ -746,7 +744,7 @@ END;
 		if ($rootPageName == $target) {
 			$childenList = array();
 			foreach($children as $child) {
-				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth+"*");
+				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth."*");
 				$childRoot = $childRootAndChildren[0];
 				$childRootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($childRoot, false);
 				array_push($childrenList, $childRootPageName);
@@ -754,7 +752,7 @@ END;
 			return $childrenList;
 		} else {
 			foreach ($children as $child) {
-				$childrenList = HierarchyBuilder::getChildrenFromHierarchyHelper($children, $depth+"*", $target);
+				$childrenList = HierarchyBuilder::getChildrenFromHierarchyHelper($children, $depth."*", $target);
 				if (count($childrenList) > 0) {
 					return $childrenList;
 				}
