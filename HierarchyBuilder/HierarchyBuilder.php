@@ -517,10 +517,8 @@ END;
 	 * We do not yet support non-page rows.
 	 */
 	public static function getSectionNumberFromHierarchy($hierarchyRoot, $wikiTextHierarchy, $target) {
-		$hierarchyHtml = Html::openElement('ul') . 
-			self::getSectionNumberFromHierarchyHelper("[[".$hierarchyRoot."]]" . "\n" . $wikiTextHierarchy, "", "", $target) . 
-			Html::closeElement('ul');
-		return $hierarchyHtml;
+		$sectionNumber = self::getSectionNumberFromHierarchyHelper("[[".$hierarchyRoot."]]" . "\n" . $wikiTextHierarchy, "", "", $target);
+		return $sectionNumber;
 	}
 	
 	/**
