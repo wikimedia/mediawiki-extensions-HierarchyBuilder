@@ -600,18 +600,9 @@ END;
 	 * to the target page. (eg: [[$target]]) We do not yet support non-page rows.
 	 */
 	private static function getSectionNumberFromHierarchyHelper($wikiTextHierarchy, $depth, $sectionNumber, $target){
-		//$nextDepth = "\n" . $depth . "*";
-		//$r1 = "/\*/"; // this guy finds * characters
-		//$regex = preg_replace($r1, "\\*", $nextDepth) . "(?!\\*)"; // this is building the regex that will be used later
-		//$regex = "/" . $regex . "/"; 
-		//// actually split the hierarchy into root and children
-		//$rootAndChildren = preg_split($regex, $wikiTextHierarchy);
 		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
-
 		$root = $rootAndChildren[0]; // this is just the root row of this hierarchy (or subhierarchy)
 		$children = array_slice($rootAndChildren, 1); // this is a list of direct children hierarchies of the root. It might be an empty list though
-		//wikiLog('HierarchyBuilder', 'getSectionNumberFromHierarchyHelper', 'wikiTextHierarchy = '. $wikiTextHierarchy);
-		//wikiLog('HierarchyBuilder', 'getSectionNumberFromHierarchyHelper', 'depth = '. $depth);
 
 		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
 		//$rootDisplayName = HierarchyBuilder::getPageDisplayName($rootPageName, $displayNameProperty);
@@ -759,7 +750,13 @@ END;
 	/**
 	 * $wikiTextHierarchy is the hierarchy that we want to split into root, and
 	 *     the root's child subhierarchies.
-	 * $depth is the current depth within the hierarchy.
+	 * $depth is the current depth of the hierarchy root. It can be interpreted 
+	 *     as the depth of the root of the $wikiTextHierarchy root when viewed 
+	 *     as a subhierarchy within another hierarchy.
+	 *
+	 * This function takes a hierarchy and splits it into the root, and each of
+	 * of the root's child subhierarchies. These are returned as an array with
+	 * the root first and each of the root's child subhierarchies in order.  
 	 */
 	private static function splitHierarchy($wikiTextHierarchy, $depth) {
 		$nextDepth = "\n" . $depth . "*";
