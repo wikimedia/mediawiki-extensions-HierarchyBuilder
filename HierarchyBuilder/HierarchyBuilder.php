@@ -138,6 +138,10 @@ function parent($parser) {
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
 		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		if ($output != "") {
+			$output = "[[$output]]";
+		}
+		$output = $parser->recursiveTagParse($output);
 	}
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
@@ -157,7 +161,11 @@ function children($parser) {
 		$delimiter = $params[4]; // this could be null or not set or something like that
 	
 		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		$output = array_map(function($child) {
+			return "[[$child]]";
+		}, $output);
 		$output = implode($delimiter, $output);
+		$output = $parser->recursiveTagParse($output);
 	}	
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
