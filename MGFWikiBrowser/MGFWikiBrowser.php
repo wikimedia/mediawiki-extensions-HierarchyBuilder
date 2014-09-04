@@ -46,17 +46,6 @@ $wgSpecialPages['MGFWikiBrowser'] = 'SpecialMGFWikiBrowser';
 $wgSpecialPagesGroups['MGFWikiBrowser'] = 'other';
 $wgExtensionMessagesFiles['MGFWikiBrowser'] = __DIR__ . '/MGFWikiBrowser.i18n.php';
 
-$wgResourceModules['ext.MGFWikiBrowser'] = array(
-	'localBasePath' => __DIR__,
-	'remoteExtPath' => 'MGFWikiBrowser',
-	'styles' => array(
-		'MGFWikiBrowser.css'
-	),
-	'scripts' => array(
-		'MGFWikiBrowser.js'
-	)
-);
-
 class SpecialMGFWikiBrowser extends SpecialPage {
 	function __construct() {
 		parent::__construct('MGFWikiBrowser');
@@ -66,9 +55,7 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		$output = $this->getOutput();
 		$this->setHeaders();
 
-		$output->addModules('ext.MGFWikiBrowser');
-
-	// access database and get wikis from interwiki links table
+	// access database and get wikis from shared interwiki table
 
 		$dbr = wfGetDB( DB_SLAVE );
 		$result = $dbr->select(
@@ -76,16 +63,10 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 			array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
 			'mgf_wiki = true'
 		);
-		wfErrorLog("database result:\n", "/var/www/html/jyj_logs/DEBUG_MGFWikiBrowser.out");
-
-
-		// turn into JSON
 
 		$databaseResults = array();
 
 		foreach($result as $row) {
-			wfErrorLog(print_r($row, true) . "\n", "/var/www/html/jyj_logs/DEBUG_MGFWikiBrowser.out");		
-
 			$databaseResults[] = array(
 				"wikiTitle" => $row->iw_prefix,
 				"apiURL" => $row->iw_api,
@@ -97,23 +78,37 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 			);
 		}
 
-		wfErrorLog("databaseResults:\n", "/var/www/html/jyj_logs/DEBUG_MGFWikiBrowser.out");
-		wfErrorLog(print_r($databaseResults, true) . "\n", "/var/www/html/jyj_logs/DEBUG_MGFWikiBrowser.out");
+		$wikitext =<<<END
+{| class="wikitable sortable" border="1"
+|+ Shared Interwiki Table
+|-
+! scope="col" | Wiki Title
+! scope="col" | Server
+! scope="col" | Content URL
+! scope="col" | API URL
+! scope="col" | Logo
+! scope="col" | VIKI Searchable
 
-		$databaseResultsJSON = addslashes(json_encode($databaseResults));
-		global $wgOut;
-
-		$output->addHTML("<div id='MGFWikiBrowser'></div>");
-
-		$script=<<<END
-mw.loader.using(['ext.MGFWikiBrowser'], function() {
-	MGFWikiBrowser.initWithWikiData("$databaseResultsJSON");
-
-});
 END;
 
-		$script = '<script type="text/javascript">' . $script . "</script>";
-		$output->addScript($script);
+		foreach($databaseResults as $wiki) {
+			$wikitext .= "|-\n|";
+			$wikitext .= $wiki["wikiTitle"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["server"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["contentURL"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["apiURL"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["logoURL"];
+			$wikitext .= " || ";
+			$wikitext .= ($wiki["searchableWiki"] == 1 ? "YES" : "NO");
+			$wikitext .= "\n";
+		}
+
+		$wikitext .= "|}";
+		$output->addWikitext($wikitext);
 
 	}
 }
