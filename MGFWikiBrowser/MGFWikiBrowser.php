@@ -60,17 +60,18 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		$dbr = wfGetDB( DB_SLAVE );
 		$result = $dbr->select(
 			'interwiki',
-			array('iw_prefix', 'iw_trans', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+			array('iw_prefix', 'mgf_title', 'iw_trans', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
 			'mgf_wiki = true',
 			__METHOD__,
-			array('ORDER BY' => 'server ASC, iw_prefix ASC')
+			array('ORDER BY' => 'server ASC, mgf_title ASC')
 		);
 
 		$databaseResults = array();
 
 		foreach($result as $row) {
 			$databaseResults[] = array(
-				"wikiTitle" => $row->iw_prefix,
+				"iw_prefix" => $row->iw_prefix,
+				"wikiName" => $row->mgf_title,
 				"iw_trans" => $row->iw_trans,
 				"apiURL" => $row->iw_api,
 				"contentURL" => $row->iw_url,
@@ -85,19 +86,22 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 {| class="wikitable sortable" border="1"
 |+ Shared Interwiki Table
 |-
-! scope="col" | Wiki Title
+! scope="col" | Wiki Prefix
+! scope="col" | Wiki Name
 ! scope="col" | iw_trans
 ! scope="col" | Server
 ! scope="col" | Content URL
 ! scope="col" | API URL
 ! scope="col" | Logo
-! scope="col" | VIKI Searchable
+! scope="col" | VIKI?
 
 END;
 
 		foreach($databaseResults as $wiki) {
 			$wikitext .= "|-\n|";
-			$wikitext .= $wiki["wikiTitle"];
+			$wikitext .= $wiki["iw_prefix"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["wikiName"];
 			$wikitext .= " || ";
 			$wikitext .= $wiki["iw_trans"];
 			$wikitext .= " || ";
