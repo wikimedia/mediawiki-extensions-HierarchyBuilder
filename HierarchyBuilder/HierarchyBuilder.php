@@ -226,11 +226,75 @@ class HierarchyBuilder {
 	 *     which to retrieve the list of children.
 	 * $hierarchyPropertyName is the name of the property on the hierarchy page
 	 *     which contains the hierarchy data. ex: Hierarchy Data.
+	 *
+	 * This function searches a specified hierarchy for the direct children of 
+	 * a particular page. The search proceeds by searching the hierarchy top 
+	 * down to find the target page, and then looping further to identify the 
+	 * immediate children. Once the loop to find immediate children finds a row 
+	 * which has depth less than or equal to the target then the search is 
+	 * complete. If there are no immediate children in the hierarchy for the 
+	 * specified target page, or if the target page is not included in the
+	 * hierarchy at all, then this function returns an empty array. 
+	 *
 	 */
-	public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+	/*public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
 		$hierarchy = HierarchyBuilder::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
 		$pageChildren = HierarchyBuilder::getChildrenFromHierarchy($hierarchy, $targetPageName);
 		return $pageChildren;
+	}*/
+	public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$hierarchyRows = preg_split("/\n/", $hierarchy);
+
+		$currentPagePattern = "/\[\[".$targetPageName."\]\]/";
+
+		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
+			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
+			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
+			if ($num_matches > 0) { // found the current page on this row of the hierarchy
+				$children = self::getChildren($hierarchyRows, $row, $i);
+				return $children;
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * $hierarchyRows is an array representation of a wikitext hierarchy where 
+	 *     each row in the hierarchy is a separate element of the array.
+	 * $row is a specific row of the hierarchy given by $hierarchyRows.
+	 * $row_i is the index of $row in $hierarchyRows.
+	 * 
+	 * This function will find the immediate children of $row within $hierarchyRows
+	 * and return the pageNames of those children. The immediate children are 
+	 * defined to be any rows which come after $row with depth exactly equal to 
+	 * one greater than the depth of $row AND which come before the first subsequent
+	 * row with depth less than or equal to the depth of $row.
+	 * 
+	 * Note: If no immediate children of $row are found, then an empty array is
+	 * returned instead of a list of children;
+	 */
+	private static function getChildren($hierarchyRows, $row, $row_i) {
+		// figure out what the depth of the current page is. if we can't find any depth (leading *s) then set the depth to 0 indicating failure.
+		$currentDepth = self::getDepthOfHierarchyRow($row);
+		
+		// figure out who the immediate children are based on depth being 1 more than the current depth
+		$children = array();
+		for ($child_i = $row_i+1; $child_i < count($hierarchyRows); $child_i++) { // run backwards through all the previous rows
+			$childRow = $hierarchyRows[$child_i];
+			$childDepth = self::getDepthOfHierarchyRow($childRow);
+
+			if ($childDepth <= $currentDepth) { // if we've run out of rows that are deeper than the currentrow then it's impossible to find more direct children
+				return $children;
+			} elseif ($childDepth > $currentDepth+1) { // if the depth is more than 1 deeper than the current row then this is not an immediate child and we should continue searching
+				continue;
+			} else {
+				array_push($children, self::getPageNameFromHierarchyRow($childRow));
+			}
+		}
+
+		return $children;
 	}
 
 	/**
@@ -727,10 +791,10 @@ END;
 	 * non-page rows. If we cannot find a row with a direct child equal to $target,
 	 * then we return an empty array.
 	 */
-	public static function getChildrenFromHierarchy($wikiTextHierarchy, $target) {
+	/*public static function getChildrenFromHierarchy($wikiTextHierarchy, $target) {
 		$children = HierarchyBuilder::getChildrenFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", $target);
 		return $children;
-	}
+	}*/
 
 	/**
 	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
@@ -744,7 +808,7 @@ END;
 	 * non-page rows. If we cannot find a row with a direct child equal to 
 	 * $target, then we return an empty array.
 	 */
-	private static function getChildrenFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
+	/*private static function getChildrenFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
 		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
 		$root = $rootAndChildren[0];
 		$children = array_slice($rootAndChildren, 1);
@@ -770,7 +834,7 @@ END;
 		}
 
 		return array();
-	}
+	}*/
 
 	/**
 	 * $wikiTextHierarchy is the hierarchy that we want to split into root, and
