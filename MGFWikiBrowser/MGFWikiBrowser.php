@@ -61,7 +61,9 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		$result = $dbr->select(
 			'interwiki',
 			array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
-			'mgf_wiki = true'
+			'mgf_wiki = true',
+			__METHOD__,
+			array('ORDER BY' => 'server ASC, iw_prefix ASC')
 		);
 
 		$databaseResults = array();
