@@ -240,6 +240,13 @@ class HierarchyBuilder {
 	 *     which to retrieve the immediate parent of the target page.
 	 * $hierarchyPropertyName is the name of hte property on the hierarchy page
 	 *     which contains the hierarhcy data. ex: HierarchyData.
+	 *
+	 * This function searches a specified hierarchy for the direct parent of a
+	 * particular page. The search proceeds by searching the hierarchy top down
+	 * to find the target page, and then looping back upwards to identify the 
+	 * immediate parent. If there is no immediate parent in the hierarchy for
+	 * the specified target page, or if the target page is not included in the
+	 * hierarchy at all, then this function returns the empty string. 
 	 */
 	/*public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
 		$hierarchy = HierarchyBuilder::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
@@ -659,11 +666,11 @@ END;
 	 * If the target is not contained in the hierarchy OR the target is already
 	 * root level in the hierarchy, then we return the empty string.
 	 */
-	public static function getParentFromHierarchy($wikiTextHierarchy, $target) {
+	/*public static function getParentFromHierarchy($wikiTextHierarchy, $target) {
 		$parent = HierarchyBuilder::getParentFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", $target);
 		$parent = $parent == "hierarchy_root" ? "" : $parent;
 		return $parent;
-	}
+	}*/
 
 	/**
 	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
@@ -681,7 +688,7 @@ END;
 	 * to this function to optimize it, particularly with regard to it's use of
 	 * regex and children loops.
 	 */
-	private static function getParentFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
+	/*private static function getParentFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
 		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
 		$root = $rootAndChildren[0];
 		$children = array_slice($rootAndChildren, 1);
@@ -707,7 +714,7 @@ END;
 
 		// if we can't find the target's parent then we return an empty string.
 		return "";		
-	}
+	}*/
 
 	/**
 	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
