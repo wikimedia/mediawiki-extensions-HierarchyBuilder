@@ -239,12 +239,30 @@ class HierarchyBuilder {
 	 * $hierarchyPageName is the name of the page containing the hierarchy from
 	 *     which to retrieve the immediate parent of the target page.
 	 * $hierarchyPropertyName is the name of hte property on the hierarchy page
-	 *    Which contains the hierarhcy data. ex: HierarchyData.
+	 *     which contains the hierarhcy data. ex: HierarchyData.
 	 */
-	public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+	/*public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
 		$hierarchy = HierarchyBuilder::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
 		$pageParent = HierarchyBuilder::getParentFromHierarchy($hierarchy, $targetPageName);
 		return $pageParent;
+	}*/
+	public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$hierarchyRows = preg_split("/\n/", $hierarchy);
+		
+		$currentPagePattern = "/\[\[".$targetPageName."\]\]/";
+		// loop through the hierarchyRows looking for the row containing the currentPage
+		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
+			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
+			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
+			if ($num_matches > 0) { // found the current page on this row of the hierarchy
+				// get the parent of the current row in the hierarchy. Note that if there is no hierarchical parent, then the parent will be empty.
+				$parent = self::getParent($hierarchyRows, $row, $i);
+				return $parent;
+			}
+		}
+
+		return "";
 	}
 
 	/**
