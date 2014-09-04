@@ -60,7 +60,7 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		$dbr = wfGetDB( DB_SLAVE );
 		$result = $dbr->select(
 			'interwiki',
-			array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+			array('iw_prefix', 'iw_trans', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
 			'mgf_wiki = true',
 			__METHOD__,
 			array('ORDER BY' => 'server ASC, iw_prefix ASC')
@@ -71,6 +71,7 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 		foreach($result as $row) {
 			$databaseResults[] = array(
 				"wikiTitle" => $row->iw_prefix,
+				"iw_trans" => $row->iw_trans,
 				"apiURL" => $row->iw_api,
 				"contentURL" => $row->iw_url,
 				"logoURL" => $row->logo_url,
@@ -85,6 +86,7 @@ class SpecialMGFWikiBrowser extends SpecialPage {
 |+ Shared Interwiki Table
 |-
 ! scope="col" | Wiki Title
+! scope="col" | iw_trans
 ! scope="col" | Server
 ! scope="col" | Content URL
 ! scope="col" | API URL
@@ -96,6 +98,8 @@ END;
 		foreach($databaseResults as $wiki) {
 			$wikitext .= "|-\n|";
 			$wikitext .= $wiki["wikiTitle"];
+			$wikitext .= " || ";
+			$wikitext .= $wiki["iw_trans"];
 			$wikitext .= " || ";
 			$wikitext .= $wiki["server"];
 			$wikitext .= " || ";
