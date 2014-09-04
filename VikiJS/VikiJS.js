@@ -1101,7 +1101,7 @@ window.VIKI = (function(my) {
 
 			node = self.newNode();
 			shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
-			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,20)+"...");
+			node.displayName = (shortURL.length < 20 ? shortURL : shortURL.substring(0,20)+"...");
 			node.fullDisplayName = url;
 			node.type = self.EXTERNAL_PAGE_TYPE;
 			node.URL = url;
