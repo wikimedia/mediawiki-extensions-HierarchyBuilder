@@ -110,7 +110,7 @@ window.VIKI = (function(my) {
 					node.displayName = node.displayName.length < 20 ? node.displayName : node.displayName.substring(0,20)+"...";
 
 				}
-				vikiObject.hookCompletion(this.hookName, { "redrawN" : false });
+				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 				return;
 			}
 
@@ -118,6 +118,7 @@ window.VIKI = (function(my) {
 				formula = formula.replace("$"+element, queryParameters[element]);
 			});
 
+			formula = decodeURIComponent(formula);
 			node.displayName = formula.length < 20 ? formula : formula.substring(0,20)+"...";
 			node.fullDisplayName = formula;
 			// vikiObject.redrawNode(node);
