@@ -16,7 +16,6 @@ window.OrgChart = function() {
 	this.error = false;// is this chart cyclical?
 	this.errorLinks = new Array();
 	this.Visited = new Array();// contains a list of organization names visited while building the chart
-	this.orgTreeData = null;// contains organization tree data built in method drawChart made global
 	this.nodes = null;
 	this.links = null;
 	this.orgChartData = null;// contains organization chart data built in method assembleData made global
@@ -27,7 +26,12 @@ window.OrgChart = function() {
 
 		var self = this;
 		// gets all parents
-		var orgChartData = self.queryForParents(orgName, null);
+		var orgChartData = self.queryForParents(orgName, null, Infinity);
+		if(self.error){
+			self.Visited = new Array();
+			orgChartData = self.queryForParents(orgName, null, 2);	
+			self.Visited.pop();
+		}
 		var currentOrg = orgChartData;
 		// since there is a search on both the parent and children of the viewed organization
 		// it will appear in the Visited array twice. Find the name in the array and remove it
@@ -50,13 +54,15 @@ window.OrgChart = function() {
 		return currentOrg;
 	}
 
-	OrgChart.prototype.queryForParents = function(orgName, orgChartData) {
+	OrgChart.prototype.queryForParents = function(orgName, orgChartData, depth) {
 		var self = this;
 		var regExp = /1.2[0-9]/g;
 		var mwVersion = mw.config.get("wgVersion").match(regExp)[0];
 		// check to see if orgName has been seen before 
 		var seen = self.isVisited(orgName);
 		// if it has not, then query the child
+		if(depth != Infinity)
+			depth--;
 		if(!seen) {
 			jQuery.ajax({
 				async: false,
@@ -82,13 +88,13 @@ window.OrgChart = function() {
 						// has this organization been visited before?
 						var seenAgain = self.isVisited(sname);
 						// if not, build the node, set the children, and query for the parent
-						if(!seenAgain){
+						if(!seenAgain && (depth > -1)){
 							var newOrg = self.newNode(result["Short Name"][0], orgName, data);
 							if(orgChartData)
 								newOrg["children"] = [ orgChartData ];
 							orgChartData = newOrg;
 							if(result["Parent"][0]) {
-								orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData);
+								orgChartData = self.queryForParents(result["Parent"][0]["fulltext"], orgChartData, depth);
 							}
 						}
 					}
@@ -100,9 +106,10 @@ window.OrgChart = function() {
 
 		}
 		// if orgName has been seen before, then a recursive orgChart has been discovered
-		else {
+		else if(depth == Infinity){
 			// set error as true
 			self.error = true;
+
 		}
 		return orgChartData;
 	}
@@ -157,15 +164,25 @@ window.OrgChart = function() {
 
 	OrgChart.prototype.newNode = function(name, displayName, data){
 		var self = this;
+		var website_regex =   '((http|https):\/\/[a-zA-Z0-9._\-\/]*)',
+			mediawiki_regex = '((http|https):\/\/[a-zA-Z0-9._\-\/]*\/index.php\/)',
+			image_regex =     '[a-zA-Z0-9\_\ ]*\.(png|jpg|jpeg|gif)';
 		var result = data["query"]["results"][displayName]["printouts"];
+		var node = {};
+		for(var attr in result){
+			if(result[attr].length == 1)
+				node.name = result[attr][0];
+			else
+				node.attr = result[attr];
+		}
 		return {
 			"name" : name,
-			"displayName": displayName,			
-			"longName" : result["Long Name"][0],
+			"displayName": displayName,
+			"description" : result["Long Name"][0],
 			"people" : self.queryForPersonnel(displayName),
 			"website" : result["Website"][0],
 			"img" : result["Logo Link"][0],
-			"wikiurl" : data["query"]["results"][displayName]["fullurl"],
+			"wikipage" : data["query"]["results"][displayName]["fullurl"],
 			"status":"normal",
 			"local":false
 		}
@@ -200,7 +217,6 @@ window.OrgChart = function() {
 					imageElement.attr("xlink:href",imgURL);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-// ->
 					alert("failed query for image");
 				}
 			});
@@ -244,15 +260,22 @@ window.OrgChart = function() {
 
 	    var tip = d3.tip()
         .attr('class', 'd3-tip')
+//        .offset([10, -10])
         .html(function(d) {
-         return self.listPeople(d); })
+  	    	return self.popup(d); })
         .direction('e');
 
 		// set up the zoom behavior.
 		self.zoom = d3.behavior.zoom()
-		   .on("zoom", self.redrawZoom)
+		   .on("zoom", function(){
+		   		if(self.currentNode != null){
+//		   			$('#'+self.currentNode.name).click();
+//		   			$('#'+self.currentNode.name).trigger('mouseout');
+//		   			$('#'+self.currentNode.name).trigger('mouseover');
+		        }
+		   		self.redrawZoom();		   			
+		   	})
 		   .scaleExtent([self.MIN_SCALE, self.MAX_SCALE]);
-
 		// set up the SVG canvas.
 		var svg = d3.select("#"+graphDiv)
 		   .append("svg:svg")
@@ -295,7 +318,6 @@ window.OrgChart = function() {
 		// this is on the data side, not on the drawing side
 
 		var currentOrg = self.assembleData(orgName);
-		var stats = self.spanTree(self.orgChartData, {'maxBreadth':1, 'maxDepth':1});
 
 		// if an error node has been set
 		if(self.error && (self.errorLinks.length > 0)){	
@@ -323,7 +345,6 @@ window.OrgChart = function() {
 				self.markAsError(target);
 				forgedLinks.push({'source':source,'target':target});
 		}
-
 		// query for data.
 		if(self.error){
 			for(var errIndex = 0; errIndex < forgedLinks.length; errIndex++){
@@ -459,7 +480,7 @@ window.OrgChart = function() {
 		.attr("stroke-width", 1)
 		.on("click", function(d){
 			// if the background is clicked
-			var wiki_url = d.wikiurl;
+			var wiki_url = d.wikipage;
 			// open the wiki page of the organization in a new tab
             window.open(wiki_url,'_blank'); 			
 		});
@@ -486,6 +507,7 @@ window.OrgChart = function() {
 		.attr("height",this.imageWidth/3)
 		.attr("x", self.nodeWidth/2-this.imagePadding*3/2)
 		.attr("y", -1*this.imagePadding/2)
+		.attr("id", function(d){return d.name;})
 		.each(function(d){
 			var num = d.people.length;
 			if(num > 0){
@@ -499,7 +521,14 @@ window.OrgChart = function() {
         	self.currentNode = d;
         	tip.show(d);
         })
-        .on('mouseout', tip.hide);
+        .on('mouseout', function(d){
+        	self.currentNode = null;
+        	tip.hide(d);
+        })
+        .on('click', function(d){
+        	tip.hide(d);
+        	tip.show(d);
+        });
 
 
 		allNodes.append("svg:text")
@@ -535,7 +564,7 @@ window.OrgChart = function() {
 		var list = allNodes.append("svg:text")
 		.attr("text-anchor", "start")
 		.text(function(d) {
-			return d.longName;
+			return d.description;
 		})
 		.style("font-family", "Verdana")
 		.style("font-size", "11pt")
@@ -606,7 +635,7 @@ window.OrgChart = function() {
 			var translate_x = self.width/2 - focus_x*scaleFactor;
 			var translate_y = self.height/2 + focus_y*scaleFactor;	
 		}
-		translate_y = translate_y - 115;
+		translate_y = 25;//translate_y - 115;
 		self.zoom.scale(scaleFactor);
 		self.zoom.translate([translate_x, translate_y]);
 		// move top node closer to the top
@@ -637,9 +666,8 @@ window.OrgChart = function() {
 		});
 	}
 
-	OrgChart.prototype.redrawZoom = function() {
+	OrgChart.prototype.redrawZoom = function() {		
 		var self = this;
-//		console.log(self.currentNode);
 		self.Zoompos = d3.event.scale;
 		d3.select("#moveable").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	}
@@ -681,23 +709,7 @@ window.OrgChart = function() {
 		return null;
 	}
 
-	OrgChart.prototype.spanTree = function(org, stats){
-		var self = this;
-		if("children" in org){
-			if(org["children"] != null){
-				stats.maxDepth++;
-				stats.maxBreadth = org["children"].length;
-				for(var sibling = 0; sibling<org["children"].length; sibling++){
-					var childStats = self.spanTree(org["children"][sibling], stats);
-					stats.maxBreadth = Math.max(stats.maxBreadth, childStats.maxBreadth);
-					stats.maxDepth =  Math.max(stats.maxDepth, childStats.maxDepth);
-				}
-			}
-		}
-		return stats;
-	}
-
-	OrgChart.prototype.listPeople = function(org){
+	OrgChart.prototype.popup = function(org){
 		var people = org.people
 		var html = '<h4>'+org.displayName+'</h4>';
 		html += '<ul>';
