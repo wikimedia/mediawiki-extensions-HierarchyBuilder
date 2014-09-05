@@ -926,6 +926,7 @@ window.VIKI = (function(my) {
 				        	categories = categories.substring(0, categories.length-2);
 				        }
 			        	alert(categories);
+			        	self.showCategories(node.categories);
 			        },
 			        'hide': function(t) {
 			        	node = d3.select(t).datum();
@@ -1090,6 +1091,59 @@ window.VIKI = (function(my) {
 				originNode.visited = true;
 				self.callHooks("AfterVisitNodeHook", [originNode]);
 			}
+		}
+
+		my.VikiJS.prototype.showCategories = function(categories) {
+			self.log(categories);
+
+			var categoriesHTML = "\
+			<div id='categoryDiv'>\
+				<fieldset>\
+					<legend>Categories</legend>\
+					<table id='categoryTable'>\
+						<tbody>\
+				";
+
+			for(var i = 0; i < categories.length; i++) {
+				// categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"'></td><td>"+categories[i]+"</td></tr>";
+				categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"' name='"+categories[i]+"' value=false><label for='"+categories[i]+"'>"+categories[i]+"</label></td></tr>";
+			}
+
+			categoriesHTML += "</tbody></table></fieldset></div>";
+
+			vex.dialog.open({
+					message: "Select categories to hide:",
+					input:categoriesHTML,
+					contentCSS: {
+						width : '300px'
+					},
+					afterOpen: function($vexContent) {
+						$(".categoryCheckbox").each(function() {
+							var checkbox = $(this);
+							var category = checkbox.attr("name");
+							checkbox.click(function() {
+								self.log("Clicked "+category);
+								if(checkbox.prop('checked')) {
+									checkbox.prop('value', true);
+									self.log('true');
+								}
+								else {
+									checkbox.prop('value', true);
+									self.log("false");
+								}
+							});
+						});
+					},
+					callback: function(data) {
+						self.log("callback triggered");
+						self.log(data);
+						if(data) {
+							// TODO: data is a dictionary of checked keys e.g. { "Foos" : true }
+							// Use this
+						}
+					},
+					showCloseButton : true
+				});
 		}
 
 		/****************************************************************************************************************************
