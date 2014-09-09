@@ -158,7 +158,7 @@ function children($parser) {
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
-		$delimiter = $params[4]; // this could be null or not set or something like that
+		$delimiter = $params[4] == "" ? "," : $params[4]; // this could be null or not set or something like that
 	
 		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
 		$output = array_map(function($child) {
