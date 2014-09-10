@@ -204,23 +204,18 @@ function children($parser) {
 		$output = "";
 		if (count($children) > 0) {
 			if (isset($template)) {
-				$output = "{{{$introtemplate}}}"
-					.implode(array_map(function($child) use ($template, $link) {
-						if ($link == "none") {
-							return "{{".$template."|$child}}";
-						} else {
-							return "{{".$template."|[[$child]]}}";
-						}
-					}, $children), "") 
-					. "{{{$outrotemplate}}}";
+				$intro = isset($introtemplate) ? "{{{$introtemplate}}}" : "";
+				$outro = isset($outrotemplate) ? "{{{$outrotemplate}}}" : "";
+				$templateChildrenString = implode(array_map(function($child) use ($template, $link) {
+					return $link == "none" ? "{{".$template."|$child}}" : "{{".$template."|[[$child]]}}";
+				}, $children), "");
+				
+				$output = $intro . $templateChildrenString . $outro;
 			} else {
-				$output = implode(array_map(function($child) use ($template, $link) {
-					if ($link == "none") {
-						return $child;
-					} else {
-						return "[[$child]]";
-					}
+				$childrenString = implode(array_map(function($child) use ($template, $link) {
+					return $link == "none" ? $child : "[[$child]]";
 				}, $children), $delimiter);
+				$output = $childrenString;
 			}
 		}
 
