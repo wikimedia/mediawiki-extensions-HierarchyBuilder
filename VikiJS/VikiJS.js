@@ -118,7 +118,7 @@ window.VIKI = (function(my) {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
 				// contentURL : this.serverURL + mw.config.get("wgScript") + "/",
-				contentURL: mw.config.get("wgArticlePath"),
+				contentURL: mw.config.get("wgServer")+mw.config.get("wgArticlePath"),
 				logoURL : myLogoURL,
 				searchableWiki : true
 			}
