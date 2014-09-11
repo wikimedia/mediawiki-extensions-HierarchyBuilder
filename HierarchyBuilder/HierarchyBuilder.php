@@ -128,20 +128,42 @@ function sectionNumber($parser) {
  * This parser function will return a list of the immediate children of a given
  * page within a hierarchy on a page. The list of chilren will be delimited by
  * a specified character or the ',' character by default if no delimiter is given.
+ *
+ * 3 unnamed mandatory args:
+ *  - pagename
+ *  - hierarchy page
+ *  - hierarchy property
+ *
+ * 1 named optional arg:
+ *  - link = [none]
+ *
+ * Example invokations:
+ * {{#parent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property}}
+ * {{#parent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property|link=none}}
  */
 function parent($parser) {
 	$params = func_get_args();
-	if (count($params) != 4) {
+	if (count($params) < 4) {
 		$output = "";
 	} else {
+		// mandatory args
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
-		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
-		if ($output != "") {
-			$output = "[[$output]]";
+		// optional args (just link=none)
+		$optional_params = array_slice($params, 4);
+		$optional_params = parseParams($optional_params);
+		$link = isset($optional_params[HierarchyBuilder::link]) ? $optional_params[HierarchyBuilder::link] : "";
+
+		// find the parent
+		$parent = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		
+		// format the parent for return according to the optional arg
+		if ($parent != "") {
+			$parent = $link == "none" ? $parent : "[[$parent]]";
 		}
-		$output = $parser->recursiveTagParse($output);
+		
+		$output = $parser->recursiveTagParse($parent);
 	}
 	return $parser->insertStripItem($output, $parser->mStripState);
 }
@@ -156,70 +178,65 @@ function parent($parser) {
  *  - hierarchy property
  *
  * 5 named optional args:
- *  - sep = 
- *  - template = 
- *  - introtemplate = 
- *  - outrotemplate = 
- *  - link = 
+ *  - sep = [, | ; | ... ]
+ *  - template = any template taking a single param
+ *  - introtemplate = any template with no params
+ *  - outrotemplate = any tempalte with no params
+ *  - link = [none]
  *
- * Example of new invocation:
- * {{#children|pagename|hierarchy page|hierarchy property|sep=,|template=X|introtemplate=Y|outrotemplate=Z|link=none}}
+ * Example invokations:
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property}}
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,}}
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|link=none}}
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|link=none}}
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|introtemplate=Y|outrotemplate=Z|link=none}}
  */
 function children($parser) {
 	$params = func_get_args();
 	if (count($params) < 4) {
 		$output = "";
 	} else {
+		// mandatory arguments
 		$pageName = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
-
+		
+		// optional args in any order
 		$optional_params = array_slice($params, 4);
 		$optional_params = parseParams($optional_params);
-		$delimiter = ",";
-		if (isset($optional_params[HierarchyBuilder::separator])) {
-			$delimiter = $optional_params[HierarchyBuilder::separator] == "" ? "," : $optional_params[HierarchyBuilder::separator];
+		if (isset($optional_params[HierarchyBuilder::separator]) && $optional_params[HierarchyBuilder::separator] != "") {
+			//$delimiter = $optional_params[HierarchyBuilder::separator] == "" ? "," : $optional_params[HierarchyBuilder::separator];
+			$delimiter = $optional_params[HierarchyBuilder::separator];
+		} else {
+			$delimiter = ",";
 		}
-		if (isset($optional_params[HierarchyBuilder::template])) {
-			$template = $optional_params[HierarchyBuilder::template];
-		}
-		if (isset($optional_params[HierarchyBuilder::introtemplate])) {
-			$introtemplate = $optional_params[HierarchyBuilder::introtemplate];
-		}
-		if (isset($optional_params[HierarchyBuilder::outrotemplate])) {
-			$outrotemplate = $optional_params[HierarchyBuilder::outrotemplate];
-		}
-		if (isset($optional_params[HierarchyBuilder::link])) {
-			$link = $optional_params[HierarchyBuilder::link];
-		}
+		$template = isset($optional_params[HierarchyBuilder::template]) ? $optional_params[HierarchyBuilder::template] : "";
+		$introtemplate = isset($optional_params[HierarchyBuilder::introtemplate]) ? $optional_params[HierarchyBuilder::introtemplate] : "";
+		$outrotemplate = isset($optional_params[HierarchyBuilder::outrotemplate]) ? $optional_params[HierarchyBuilder::outrotemplate] : "";
+		$link = isset($optional_params[HierarchyBuilder::link]) ? $optional_params[HierarchyBuilder::link] : "";
 
-		wikiLog("","children","sep = $delimiter");
-		wikiLog("","children","template = $template");
-		wikiLog("","children","intro = $introtemplate");
-		wikiLog("","children","outro = $outrotemplate");
-		wikiLog("","children","link = $link");
-
+		// find the page children
 		$children = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
 
+		// format the output according to the optional params
 		$output = "";
 		if (count($children) > 0) {
-			if (isset($template)) {
-				$intro = isset($introtemplate) ? "{{{$introtemplate}}}" : "";
-				$outro = isset($outrotemplate) ? "{{{$outrotemplate}}}" : "";
+			if ($template != "") {
+				$intro = $introtemplate != "" ? "{{{$introtemplate}}}" : "";
+				$outro = $outrotemplate != "" ? "{{{$outrotemplate}}}" : "";
 				$templateChildrenString = implode(array_map(function($child) use ($template, $link) {
 					return $link == "none" ? "{{".$template."|$child}}" : "{{".$template."|[[$child]]}}";
 				}, $children), "");
 				
 				$output = $intro . $templateChildrenString . $outro;
 			} else {
-				$childrenString = implode(array_map(function($child) use ($template, $link) {
+				$childrenString = implode(array_map(function($child) use ($link) {
 					return $link == "none" ? $child : "[[$child]]";
 				}, $children), $delimiter);
+
 				$output = $childrenString;
 			}
 		}
-
-		//wikiLog("", "children", "output = $output");
 		
 		/*
 		//apply the template to each of the children independently and concatenate them
