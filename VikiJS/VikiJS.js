@@ -117,7 +117,8 @@ window.VIKI = (function(my) {
 			thisWikiData = {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
-				contentURL : this.serverURL + mw.config.get("wgScript") + "/",
+				// contentURL : this.serverURL + mw.config.get("wgScript") + "/",
+				contentURL: mw.config.get("wgArticlePath"),
 				logoURL : myLogoURL,
 				searchableWiki : true
 			}
@@ -1116,7 +1117,7 @@ window.VIKI = (function(my) {
 			
 			index = self.searchableWikiIndexForName(wikiTitle);
 			var wiki = self.allWikis[index];
-			url = wiki.contentURL + (pageTitle.split(" ").join("_"));
+			url = wiki.contentURL.substring(0, wiki.contentURL.indexOf("$1")) + (pageTitle.split(" ").join("_"));
 
 			return self.createWikiNode(pageTitle, url, wiki);
 		}
@@ -1124,7 +1125,9 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.createWikiNodeFromExternalLink = function(url, wikiIndex) {
 			var self = this;
 
-			pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
+			// pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
+			strippedContentURL = self.allWikis[wikiIndex].contentURL.substring(0, self.allWikis[wikiIndex].contentURL.indexOf("$1"));
+			pageTitle = url.replace(strippedContentURL, "").split("_").join(" ");
 			var wiki = self.allWikis[wikiIndex];
 
 			return self.createWikiNode(pageTitle, url, wiki);
@@ -1640,9 +1643,12 @@ window.VIKI = (function(my) {
 		
 		my.VikiJS.prototype.indexOfWikiForURL = function(url) {
 			var self = this;
-			for(var i = 0; i < self.allWikis.length; i++)
-				if(url.indexOf(self.allWikis[i]["contentURL"]) != -1)
+			for(var i = 0; i < self.allWikis.length; i++) {
+				strippedContentURL = self.allWikis[i].contentURL.substring(0, self.allWikis[i].contentURL.indexOf("$1"));
+				// if(url.indexOf(self.allWikis[i]["contentURL"]) != -1)
+				if(url.indexOf(strippedContentURL) != -1)
 					return i;
+			}
 			return -1;
 		}
 		
