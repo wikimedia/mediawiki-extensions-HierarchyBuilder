@@ -37,7 +37,7 @@ window.VIKI = (function(my) {
 			if(node.pageTitle.indexOf("?") != -1) {
 				newNodePageTitle = newNode.pageTitle.substring(0, node.pageTitle.indexOf("?"));
 				if(newNodePageTitle === originNode.pageTitle)
-					newNode.isSelfLink = true;
+					newNode.unadded = true;
 			}
 
 			vikiObject.hookCompletion(hookName);
