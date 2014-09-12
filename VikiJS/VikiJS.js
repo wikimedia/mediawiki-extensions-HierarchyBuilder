@@ -253,8 +253,10 @@ window.VIKI = (function(my) {
 		        	"<li id=\"getinfo\" >Visit Page</li>"+
 					"<li id=\"elaborate\" class=\"elaborate-"+self.ID+"\">Elaborate</li>"+
 					"<li id=\"categories\">Show Categories</li>"+
+					"<hr>"+// separator
 					"<li id=\"hide\">Hide Node</li>"+
 					"<li id=\"hideHub\">Hide Hub</li>"+
+					"<li id=\"hideByCategory\">Hide By Category</li>"+
 					"<hr>"+// separator
 		        	"<li id=\"showall\">Show All</li>"+
 			    	"</ul></div></div>"
@@ -879,10 +881,12 @@ window.VIKI = (function(my) {
 			        if(node.nonexistentPage) {
 			        	$('#getinfo', menu).remove();
 			        	$('#categories', menu).remove();
+			        	$('#hideByCateogry', menu).remove();
 			        }
-			        if(node.type == self.EXTERNAL_PAGE_TYPE)
+			        if(node.type == self.EXTERNAL_PAGE_TYPE) {
 			        	$('#categories', menu).remove();
-
+			        	$('#hideByCateogry', menu).remove();
+			        }
 			        return menu;
 		      	},
 		      	// activate after the menu shows
@@ -925,8 +929,12 @@ window.VIKI = (function(my) {
 			        	else {
 				        	categories = categories.substring(0, categories.length-2);
 				        }
-			        	alert(categories);
-			        	self.showCategories(node.categories);
+			        	// alert(categories);
+			        	self.showCategories(node.categories, false);
+			        },
+			        'hideByCategory': function(t) {
+			        	node = d3.select(t).datum();
+						self.showCategories(node.categories, true);
 			        },
 			        'hide': function(t) {
 			        	node = d3.select(t).datum();
@@ -1093,7 +1101,7 @@ window.VIKI = (function(my) {
 			}
 		}
 
-		my.VikiJS.prototype.showCategories = function(categories) {
+		my.VikiJS.prototype.showCategories = function(categories, showHideable) {
 			self.log(categories);
 
 			var categoriesHTML = "\
@@ -1111,7 +1119,8 @@ window.VIKI = (function(my) {
 
 			categoriesHTML += "</tbody></table></fieldset></div>";
 
-			vex.dialog.open({
+			if(showHideable) {
+				vex.dialog.open({
 					message: "Select categories to hide:",
 					input:categoriesHTML,
 					contentCSS: {
@@ -1140,10 +1149,30 @@ window.VIKI = (function(my) {
 						if(data) {
 							// TODO: data is a dictionary of checked keys e.g. { "Foos" : true }
 							// Use this
+
 						}
 					},
 					showCloseButton : true
 				});
+			}
+			else {
+				vex.open({
+					content:categoriesHTML,
+					contentCSS: {
+						width: '200px'
+					},
+					afterOpen: function($vexContent) {
+						$vexContent.append("\
+<style>\
+	.categoryCheckbox {\
+		visibility: hidden;\
+	}\
+</style>\
+"
+						);
+					}
+				});
+			}
 		}
 
 		/****************************************************************************************************************************
@@ -1640,6 +1669,14 @@ window.VIKI = (function(my) {
 			for(var i = 0; i < nodesToRemove.length; i++) {
 				self.hideNode(nodesToRemove[i]);
 				self.redraw(true);
+
+				// self.NodeSelection =
+				// 	self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
+				// self.LinkSelection =
+				// 	self.LinkSelection.data(self.Links);
+
+				// self.NodeSelection.exit().remove();
+				// self.LinkSelection.exit().remove();
 			}
 
 			self.redraw(true);
@@ -1759,7 +1796,6 @@ window.VIKI = (function(my) {
 	    				scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
 					}
 					
-					// self.redraw(true);
 					return true;
 				}
 			}
