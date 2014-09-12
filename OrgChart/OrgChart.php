@@ -53,8 +53,8 @@ $wgResourceModules['ext.OrgChart'] = array(
 		'd3-tip.min.css'
 	),
 	'scripts' => array(
-		'd3.v3.min.js',
-		'd3-tip.min.js',
+		'd3.v3.js',
+		'd3-tip.js',
 		'OrgChart.js'
 	)
 );
