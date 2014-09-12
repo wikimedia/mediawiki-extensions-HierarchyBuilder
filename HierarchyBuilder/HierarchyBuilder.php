@@ -204,17 +204,20 @@ function children($parser) {
 		// optional args in any order
 		$optional_params = array_slice($params, 4);
 		$optional_params = parseParams($optional_params);
-		if (isset($optional_params[HierarchyBuilder::separator]) && $optional_params[HierarchyBuilder::separator] != "") {
-			//$delimiter = $optional_params[HierarchyBuilder::separator] == "" ? "," : $optional_params[HierarchyBuilder::separator];
-			$delimiter = $optional_params[HierarchyBuilder::separator];
-		} else {
-			$delimiter = ",";
-		}
 		$template = isset($optional_params[HierarchyBuilder::template]) ? $optional_params[HierarchyBuilder::template] : "";
 		$introtemplate = isset($optional_params[HierarchyBuilder::introtemplate]) ? $optional_params[HierarchyBuilder::introtemplate] : "";
 		$outrotemplate = isset($optional_params[HierarchyBuilder::outrotemplate]) ? $optional_params[HierarchyBuilder::outrotemplate] : "";
 		$link = isset($optional_params[HierarchyBuilder::link]) ? $optional_params[HierarchyBuilder::link] : "";
-
+		if (isset($optional_params[HierarchyBuilder::separator])) {
+			//$delimiter = $optional_params[HierarchyBuilder::separator] == "" ? "," : $optional_params[HierarchyBuilder::separator];
+			$delimiter = $optional_params[HierarchyBuilder::separator];
+		} else {
+			if ($template != "") {
+				$delimiter = "";
+			} else {
+				$delimiter = ",";
+			}
+		}
 		// find the page children
 		$children = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
 
@@ -222,11 +225,11 @@ function children($parser) {
 		$output = "";
 		if (count($children) > 0) {
 			if ($template != "") {
-				$intro = $introtemplate != "" ? "{{{$introtemplate}}}" : "";
-				$outro = $outrotemplate != "" ? "{{{$outrotemplate}}}" : "";
+				$intro = $introtemplate != "" ? "{{{$introtemplate}}}\n" : "";
+				$outro = $outrotemplate != "" ? "\n{{{$outrotemplate}}}" : "";
 				$templateChildrenString = implode(array_map(function($child) use ($template, $link) {
 					return $link == "none" ? "{{".$template."|$child}}" : "{{".$template."|[[$child]]}}";
-				}, $children), "");
+				}, $children), "$delimiter\n");
 				
 				$output = $intro . $templateChildrenString . $outro;
 			} else {
@@ -237,7 +240,6 @@ function children($parser) {
 				$output = $childrenString;
 			}
 		}
-		
 		/*
 		//apply the template to each of the children independently and concatenate them
 		$command = implode(array_map(function($child) use ($template) {
@@ -263,7 +265,6 @@ function children($parser) {
 		}, $children);
 		$output = implode($output, $delimiter);
 		*/
-
 		$output = $parser->recursiveTagParse($output);
 	}	
 	return $parser->insertStripItem($output, $parser->mStripState);
