@@ -41,7 +41,7 @@ if (version_compare(SF_VERSION, '2.5.2', 'lt')) {
 # credits
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'HierarchyBuilder',
-	'version' => '1.5',
+	'version' => '1.8',
 	'author' => "Cindy Cicalese",
 	'descriptionmsg' => 'hierarchybuilder-desc'
 );
@@ -93,11 +93,81 @@ $wgResourceModules['ext.HierarchyBuilder.select'] = array(
 
 function efHierarchyBuilderSetup (& $parser) {
 	$parser->setFunctionHook('hierarchyBreadcrumb', 'hierarchyBreadcrumb');
+	$parser->setFunctionHook('sectionNumber', 'sectionNumber');
+	$parser->setFunctionHook('parent', 'parent');
+	$parser->setFunctionHook('children', 'children');
 	$parser->setHook('hierarchy', 'renderHierarchy');
 	global $sfgFormPrinter;
 	$sfgFormPrinter->registerInputType('EditHierarchy');
 	$sfgFormPrinter->registerInputType('SelectFromHierarchy');
 	return true;
+}
+
+/**
+ * This parser function will give the section number of a page in a hierarchy.
+ * The three required arguments are (in order): 
+ *   - Full page name
+ *   - Full page name of the page containing the hierarchy
+ *   - Property name of the property containing the hierarchy data
+ */
+function sectionNumber($parser) {
+	//wikiLog('', 'getPageNumbering', "started");
+	$params = func_get_args();
+	if (count($params) != 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		$output = HierarchyBuilder::getPageSectionNumber($pageName, $hierarchyPageName, $hierarchyPropertyName);
+	}
+	return $parser->insertStripItem($output, $parser->mStripState);
+}
+
+/**
+ * This parser function will return a list of the immediate children of a given
+ * page within a hierarchy on a page. The list of chilren will be delimited by
+ * a specified character or the ',' character by default if no delimiter is given.
+ */
+function parent($parser) {
+	$params = func_get_args();
+	if (count($params) != 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		$output = HierarchyBuilder::getPageParent($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		if ($output != "") {
+			$output = "[[$output]]";
+		}
+		$output = $parser->recursiveTagParse($output);
+	}
+	return $parser->insertStripItem($output, $parser->mStripState);
+}
+
+/**
+ * This parser function will return the immediate parent of a given page within
+ * a hierarchy on a page.
+ */
+function children($parser) {
+	$params = func_get_args();
+	if (count($params) < 4) {
+		$output = "";
+	} else {
+		$pageName = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		$delimiter = $params[4] == "" ? "," : $params[4]; // this could be null or not set or something like that
+	
+		$output = HierarchyBuilder::getPageChildren($pageName, $hierarchyPageName, $hierarchyPropertyName);
+		$output = array_map(function($child) {
+			return "[[$child]]";
+		}, $output);
+		$output = implode($delimiter, $output);
+		$output = $parser->recursiveTagParse($output);
+	}	
+	return $parser->insertStripItem($output, $parser->mStripState);
 }
 
 function hierarchyBreadcrumb($parser) {
@@ -115,16 +185,10 @@ function hierarchyBreadcrumb($parser) {
 			$displayNameProperty = $params[4];
 		}
 
-		//wikiLog("", "hierarchyBreadcrumb", "currentPage = ".var_export($currentPage, true));
-		//wikiLog("", "hierarchyBreadcrumb", "hierarchyPage = ".var_export($hierarchyPage, true));
-		//wikiLog("", "hierarchyBreadcrumb", "hierarchyProperty = ".var_export($hierarchyProperty, true));
-		//wikiLog("", "hierarchyBreadcrumb", "displayNameProperty = ".var_export($displayNameProperty, true));
-
 		$hierarchyBuilder = new HierarchyBuilder;
 		$output = $hierarchyBuilder->hierarchyBreadcrumb($currentPage,
 			$hierarchyPage, $hierarchyProperty, $displayNameProperty);
 		$output = $parser->recursiveTagParse($output);
-		//wikiLog("", "hierarchyBreadcrumb", "output = ".var_export($output, true));
 	}
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
@@ -146,6 +210,139 @@ class HierarchyBuilder {
 
 	const pageNamePattern = "/\[\[(.*)\]\]/"; // pattern to extract the pageName from a wikitext hierarchy row
 	const depthPattern = "/^(\**)/"; // pattern to extract the leading *s to determine the current row's depth in the wikitext hierarchy.
+
+	/**
+	 * $targetPageName is the name of the target page for which you want the 
+	 *     auto-number in the given hierarchyPage returned.
+	 * $hierarchyPageName is the name of the page containing the hierarchy from
+	 *     which to retrieve numberings.
+	 * $hierarchyPropertyName is the name of the property on the hierarchy page
+	 *     which contains the hierarchy data. ex: Hierarchy Data.
+	 *
+	 * This function returns the section number of a target page within a hierarchy.
+	 */
+	public static function getPageSectionNumber($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$pageSectionNumber = HierarchyBuilder::getSectionNumberFromHierarchy($hierarchy, $targetPageName);
+		return $pageSectionNumber;
+	}
+
+	/**
+	 * $targetPageName is the name of the target page for which we want the list
+	 *     of immediate children.
+	 * $hierarchyPageName is the name of the page containing the hierarchy from
+	 *     which to retrieve the list of children.
+	 * $hierarchyPropertyName is the name of the property on the hierarchy page
+	 *     which contains the hierarchy data. ex: Hierarchy Data.
+	 *
+	 * This function searches a specified hierarchy for the direct children of 
+	 * a particular page. The search proceeds by searching the hierarchy top 
+	 * down to find the target page, and then looping further to identify the 
+	 * immediate children. Once the loop to find immediate children finds a row 
+	 * which has depth less than or equal to the target then the search is 
+	 * complete. If there are no immediate children in the hierarchy for the 
+	 * specified target page, or if the target page is not included in the
+	 * hierarchy at all, then this function returns an empty array. 
+	 *
+	 */
+	/*public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = HierarchyBuilder::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$pageChildren = HierarchyBuilder::getChildrenFromHierarchy($hierarchy, $targetPageName);
+		return $pageChildren;
+	}*/
+	public static function getPageChildren($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$hierarchyRows = preg_split("/\n/", $hierarchy);
+
+		$currentPagePattern = "/\[\[".$targetPageName."\]\]/";
+
+		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
+			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
+			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
+			if ($num_matches > 0) { // found the current page on this row of the hierarchy
+				$children = self::getChildren($hierarchyRows, $row, $i);
+				return $children;
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * $hierarchyRows is an array representation of a wikitext hierarchy where 
+	 *     each row in the hierarchy is a separate element of the array.
+	 * $row is a specific row of the hierarchy given by $hierarchyRows.
+	 * $row_i is the index of $row in $hierarchyRows.
+	 * 
+	 * This function will find the immediate children of $row within $hierarchyRows
+	 * and return the pageNames of those children. The immediate children are 
+	 * defined to be any rows which come after $row with depth exactly equal to 
+	 * one greater than the depth of $row AND which come before the first subsequent
+	 * row with depth less than or equal to the depth of $row.
+	 * 
+	 * Note: If no immediate children of $row are found, then an empty array is
+	 * returned instead of a list of children;
+	 */
+	private static function getChildren($hierarchyRows, $row, $row_i) {
+		// figure out what the depth of the current page is. if we can't find any depth (leading *s) then set the depth to 0 indicating failure.
+		$currentDepth = self::getDepthOfHierarchyRow($row);
+		
+		// figure out who the immediate children are based on depth being 1 more than the current depth
+		$children = array();
+		for ($child_i = $row_i+1; $child_i < count($hierarchyRows); $child_i++) { // run backwards through all the previous rows
+			$childRow = $hierarchyRows[$child_i];
+			$childDepth = self::getDepthOfHierarchyRow($childRow);
+
+			if ($childDepth <= $currentDepth) { // if we've run out of rows that are deeper than the currentrow then it's impossible to find more direct children
+				return $children;
+			} elseif ($childDepth > $currentDepth+1) { // if the depth is more than 1 deeper than the current row then this is not an immediate child and we should continue searching
+				continue;
+			} else {
+				array_push($children, self::getPageNameFromHierarchyRow($childRow));
+			}
+		}
+
+		return $children;
+	}
+
+	/**
+	 * $targetPageName is the name of the target page for which we want the
+	 *     immediate parent in the hierarchy/
+	 * $hierarchyPageName is the name of the page containing the hierarchy from
+	 *     which to retrieve the immediate parent of the target page.
+	 * $hierarchyPropertyName is the name of hte property on the hierarchy page
+	 *     which contains the hierarhcy data. ex: HierarchyData.
+	 *
+	 * This function searches a specified hierarchy for the direct parent of a
+	 * particular page. The search proceeds by searching the hierarchy top down
+	 * to find the target page, and then looping back upwards to identify the 
+	 * immediate parent. If there is no immediate parent in the hierarchy for
+	 * the specified target page, or if the target page is not included in the
+	 * hierarchy at all, then this function returns the empty string. 
+	 */
+	/*public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = HierarchyBuilder::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$pageParent = HierarchyBuilder::getParentFromHierarchy($hierarchy, $targetPageName);
+		return $pageParent;
+	}*/
+	public static function getPageParent($targetPageName, $hierarchyPageName, $hierarchyPropertyName) {
+		$hierarchy = self::getPropertyFromPage($hierarchyPageName, $hierarchyPropertyName);
+		$hierarchyRows = preg_split("/\n/", $hierarchy);
+		
+		$currentPagePattern = "/\[\[".$targetPageName."\]\]/";
+		// loop through the hierarchyRows looking for the row containing the currentPage
+		for ($i = 0; $i < sizeof($hierarchyRows); $i++) {
+			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
+			$num_matches = preg_match_all($currentPagePattern, $row, $matches); // look to see if this row is the one with our page
+			if ($num_matches > 0) { // found the current page on this row of the hierarchy
+				// get the parent of the current row in the hierarchy. Note that if there is no hierarchical parent, then the parent will be empty.
+				$parent = self::getParent($hierarchyRows, $row, $i);
+				return $parent;
+			}
+		}
+
+		return "";
+	}
 
 	/**
 	 * $currentPage is the name of the page in the hierarchy we're currently viewing
@@ -186,13 +383,18 @@ class HierarchyBuilder {
 	}
 
 	/**
-	 * $hierarchyRows is an array representation of a wikitext hierarchy where each row in the hierarchy is a separate element of the array.
+	 * $hierarchyRows is an array representation of a wikitext hierarchy where 
+	 *     each row in the hierarchy is a separate element of the array.
 	 * $row is a specific row of the hierarchy given by $hierarchyRows.
 	 * $row_i is the index of $row in $hierarchyRows.
 	 * 
-	 * This function will find the hierarchical parent of $row within $hierarchyRows and return the pageName of that parent.
-	 * The hierarchical parent is defined to be the first row of $hierarchyRows which preceeds $row and has a depth that is equal to one less than the depth of $row. 
-	 * Note: If no hierarchical parent of $row is found, then the empty string is returned;
+	 * This function will find the hierarchical parent of $row within $hierarchyRows
+	 * and return the pageName of that parent. The hierarchical parent is defined
+	 * to be the first row of $hierarchyRows which preceeds $row and has a depth
+	 * that is equal to one less than the depth of $row. 
+	 * 
+	 * Note: If no hierarchical parent of $row is found, then the empty string 
+	 * is returned;
 	 */
 	private function getParent($hierarchyRows, $row, $row_i) {
 		// figure out what the depth of the current page is. if we can't find any depth (leading *s) then set the depth to 0 indicating failure.
@@ -214,7 +416,8 @@ class HierarchyBuilder {
 	}
 
 	/**
-	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format, which is to say, leading *s and a page name within [[]] delimiters.
+	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format,
+	 *     which is to say, leading *s and a page name within [[]] delimiters.
 	 * 
 	 * This function will return the first pageName (link) found within $hierarchyRow
 	 */
@@ -225,7 +428,8 @@ class HierarchyBuilder {
 	}
 
 	/**
-	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format, which is to say, leading *s and a page name within [[]] delimiters.
+	 * $hierarchyRow is assumed to be a row of a hierarchy in wikitext format, 
+	 *     which is to say, leading *s and a page name within [[]] delimiters.
 	 *
 	 * This function will return the number of leading *s as the depth of $hierarchyRow.
 	 */
@@ -284,6 +488,15 @@ class HierarchyBuilder {
 			$displayNameProperty = "";
 		}
 
+		if (isset($attributes["numbered"])) {
+			$numbered = htmlspecialchars($attributes["numbered"]);
+			if ($numbered === "numbered") {
+				$numbered = "true";
+			}
+		} else {
+			$numbered = "false";
+		}
+
 		//wikiLog("HierarchyBuilder", "renderHierarchy", "direct input: " . print_r($input, true));
 		$input = $parser->recursiveTagParse($input, $frame); // this looks like it gets the property but it eats all the links.
 		//wikiLog("HierarchyBuilder", "renderHierarchy", "tag-parsed input: " . print_r($input, true));
@@ -317,7 +530,7 @@ class HierarchyBuilder {
 
 		$script =<<<END
 mw.loader.using(['ext.HierarchyBuilder.render'], function () {
-	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed);
+	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed, $numbered);
 });
 END;
 
@@ -417,6 +630,241 @@ END;
 		}
 		return $page;
 	}
+
+	/**
+	 * $hierarchy is a wikitext formatted hierarchy
+	 *
+	 * This function will search through the hierarchy to find all the page names
+	 * (defined by [[]] syntax) and return them as an array without [[]] syntax.
+	 *
+	 * This function will return an array of all the page names found, otherwise
+	 * an empty array will be returned when no page names are found.
+	 */
+	public static function collectPageNamesFromHierarchy($hierarchy) {
+		// use a regex to find all of the page names
+		$numMatches = preg_match_all(HierarchyBuilder::pageNamePattern, $hierarchy, $matches);
+		return ($numMatches > 0 ? $matches[1] : array());
+	}
+
+	/**
+	 * $hierarchy is a wikitext formatted hierarchy
+	 * $displayNameProperty is the name of the property containing the display name
+	 *
+	 * This function will run through the hierarchy and for each pageName link
+	 * found, it will find the displayName for that pageName, and then update
+	 * the link syntax so that the displayName will be shown instead.
+	 * 
+	 * ex: [[pageName]] -> [[pageName | displayName]]
+	 */
+	public static function updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty) {
+		$hierarchyPageNames = self::collectPageNamesFromHierarchy($hierarchy);
+		foreach ($hierarchyPageNames as $pageName) {
+			$displayName = self::getPageDisplayName($pageName, $displayNameProperty);
+			$pageNameLink = "[[".$pageName."]]";
+			$displayNameLink = "[[".$pageName." | ".$displayName."]]";
+			$hierarchy = str_replace($pageNameLink, $displayNameLink, $hierarchy);
+		}
+		return $hierarchy;
+	}
+
+	/**
+	 * $hierarchyRoot is the root row of the hierarchy.
+	 * $wikiTextHierarchy is a string containing the hierarchy in wikitext.
+	 * $target is a string containing the page name of a page for which we
+	 *     require the section number.
+	 *
+	 * This function will search a hierarchy for a target page name and will 
+	 * return the section number for the row which contains that page. The 
+	 * target is a simple page name and the requirement is that a matching row 
+	 * must consist only of a single link to the target page. (eg: [[$target]]) 
+	 * We do not yet support non-page rows.
+	 */
+	public static function getSectionNumberFromHierarchy($wikiTextHierarchy, $target) {
+		$sectionNumber = self::getSectionNumberFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", "", $target);
+		return $sectionNumber;
+	}
+	
+	/**
+	 * $wikiTextHierarchy is a string containing the hierarchy in wikitext.
+	 * $depth is a string containing the number of stars equal to the current 
+	 *     depth in the hierarchy.
+	 * $sectionNumber is the section number of the root of the current subhierarchy.
+	 * $target is the string page name of the page we're searching the hierarchy for.
+	 *
+	 * This function will recursively traverse the given hierarchy/subhierarchy
+	 * and search for the given target row. The target is a simple page name and
+	 * the requirement is that a matching row must consist only of a single link
+	 * to the target page. (eg: [[$target]]) We do not yet support non-page rows.
+	 */
+	private static function getSectionNumberFromHierarchyHelper($wikiTextHierarchy, $depth, $sectionNumber, $target){
+		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
+		$root = $rootAndChildren[0]; // this is just the root row of this hierarchy (or subhierarchy)
+		$children = array_slice($rootAndChildren, 1); // this is a list of direct children hierarchies of the root. It might be an empty list though
+
+		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
+		//$rootDisplayName = HierarchyBuilder::getPageDisplayName($rootPageName, $displayNameProperty);
+
+		// if we are staring at the target then return the current section number for the target
+		if ($rootPageName == $target) {
+			return $sectionNumber;
+		}
+
+		// if there are children, then recurse on each one searching for the target
+		if (count($children) > 0) {
+			$numberSuffix = 1;
+			foreach($children as $child) {
+				$childNumber = $sectionNumber == "" ? $numberSuffix++ : $sectionNumber . "." . $numberSuffix++;
+				$targetNumber = self::getSectionNumberFromHierarchyHelper($child, $depth."*", $childNumber, $target);
+				// if we find the target in this child branch then we can return the target section number
+				if ($targetNumber != "") {
+					return $targetNumber;
+				}
+			}
+		}
+		
+		// if we can't find the target then we can't find the target then return an empty section number
+		return "";
+	}
+
+	/**
+	 * $hierarchyRoot is the root of the hierarchy
+	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
+	 * $target is the page name of the page for which we require the parent.
+	 *
+	 * This function will search the hierarchy for the row which has a direct 
+	 * child that is equal to $target. The target is a simple page name and the
+	 * requirement is that a matching row must consist only of a single link to
+	 * the target page. (eg: [[$target]]) We do not yet support non-page rows.
+	 * If the target is not contained in the hierarchy OR the target is already
+	 * root level in the hierarchy, then we return the empty string.
+	 */
+	/*public static function getParentFromHierarchy($wikiTextHierarchy, $target) {
+		$parent = HierarchyBuilder::getParentFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", $target);
+		$parent = $parent == "hierarchy_root" ? "" : $parent;
+		return $parent;
+	}*/
+
+	/**
+	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
+	 * $depth is the current depth within the hierarchy.
+	 * $target is the page name of the page for which we require the parent.
+	 * 
+	 * This function will recursively search the hierarchy for the row that has
+	 * a direct child that is equal to $target. The target is a simple page name
+	 * and the requirement is that a matching row must consist only of a single 
+	 * link to the target page. (eg: [[$target]]) We do not yet support non-page
+	 * rows. If we cannot find a row with a direct child equal to $target, then
+	 * we return an empty string.
+	 *
+	 * Note: This recursive search is not very efficient. We need to come back
+	 * to this function to optimize it, particularly with regard to it's use of
+	 * regex and children loops.
+	 */
+	/*private static function getParentFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
+		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
+		$root = $rootAndChildren[0];
+		$children = array_slice($rootAndChildren, 1);
+
+		if (count($children) > 0) {
+			foreach($children as $child) {
+				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth."*");
+				$childRoot = $childRootAndChildren[0];
+				$childRootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($childRoot, false);
+				if ($childRootPageName == $target) {
+					$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
+					return $rootPageName;
+				}
+			}
+
+			foreach($children as $child) {
+				$targetParent = HierarchyBuilder::getParentFromHierarchyHelper($child, $depth."*", $target);
+				if ($targetParent != "") {
+					return $targetParent;
+				}
+			}
+		}
+
+		// if we can't find the target's parent then we return an empty string.
+		return "";		
+	}*/
+
+	/**
+	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
+	 * $target is the page name of the page for which we want the direct children.
+	 *
+	 * This function will search through the hierarchy and return a list of the
+	 * direct children of the row that equals $target. The target is a simple 
+	 * page name and the requirement is that a matching row must consist only of
+	 * a single link to the target page. (eg: [[$target]]) We do not yet support 
+	 * non-page rows. If we cannot find a row with a direct child equal to $target,
+	 * then we return an empty array.
+	 */
+	/*public static function getChildrenFromHierarchy($wikiTextHierarchy, $target) {
+		$children = HierarchyBuilder::getChildrenFromHierarchyHelper("[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", $target);
+		return $children;
+	}*/
+
+	/**
+	 * $wikiTextHierarchy is the wikitext formatted hierarchy.
+	 * $depth is the current depth within the hierarchy.
+	 * $target is the page name of the page for which we want the direct children.
+	 *
+	 * This function will recursively search through the hierarchy and return a
+	 * list of the direct children of the $target. The target is a simple page 
+	 * name and the requirement is that a matching row must consist only of a 
+	 * single link to the target page. (eg: [[$target]]) We do not yet support 
+	 * non-page rows. If we cannot find a row with a direct child equal to 
+	 * $target, then we return an empty array.
+	 */
+	/*private static function getChildrenFromHierarchyHelper($wikiTextHierarchy, $depth, $target) {
+		$rootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
+		$root = $rootAndChildren[0];
+		$children = array_slice($rootAndChildren, 1);
+
+		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($root, false);
+		
+		if ($rootPageName == $target) {
+			$childrenList = array();
+			foreach($children as $child) {
+				$childRootAndChildren = HierarchyBuilder::splitHierarchy($child, $depth."*");
+				$childRoot = $childRootAndChildren[0];
+				$childRootPageName = HierarchyBuilder::getPageNameFromHierarchyRow($childRoot, false);
+				array_push($childrenList, $childRootPageName);
+			}
+			return $childrenList;
+		} else {
+			foreach ($children as $child) {
+				$childrenList = HierarchyBuilder::getChildrenFromHierarchyHelper($child, $depth."*", $target);
+				if (count($childrenList) > 0) {
+					return $childrenList;
+				}
+			}
+		}
+
+		return array();
+	}*/
+
+	/**
+	 * $wikiTextHierarchy is the hierarchy that we want to split into root, and
+	 *     the root's child subhierarchies.
+	 * $depth is the current depth of the hierarchy root. It can be interpreted 
+	 *     as the depth of the root of the $wikiTextHierarchy root when viewed 
+	 *     as a subhierarchy within another hierarchy.
+	 *
+	 * This function takes a hierarchy and splits it into the root, and each of
+	 * of the root's child subhierarchies. These are returned as an array with
+	 * the root first and each of the root's child subhierarchies in order.  
+	 */
+	private static function splitHierarchy($wikiTextHierarchy, $depth) {
+		$nextDepth = "\n" . $depth . "*";
+		$r1 = "/\*/"; // this guy finds * characters
+		$regex = preg_replace($r1, "\\*", $nextDepth) . "(?!\\*)"; // this is building the regex that will be used later
+		$regex = "/" . $regex . "/"; 
+		// actually split the hierarchy into root and children
+		$rootAndChildren = preg_split($regex, $wikiTextHierarchy);
+		
+		return $rootAndChildren;
+	}
 }
 
 class EditHierarchy extends SFFormInput {
@@ -443,15 +891,15 @@ class EditHierarchy extends SFFormInput {
 
 
 		//wikiLog("EditHierarchy", "setupJsInitAttribs", var_export($this, true));
-		/*wikiLog("EditHierarchy", "setupJsInitAttribs", "mOtherArgs");
+		/*//wikiLog("EditHierarchy", "setupJsInitAttribs", "mOtherArgs");
 		foreach($this->mOtherArgs as $key => $value) {
 			$value = var_export($value, true);
-			wikiLog("EditHierarchy","setupJsInitAttribs",  $key . " => " . $value);
+			//wikiLog("EditHierarchy","setupJsInitAttribs",  $key . " => " . $value);
 		}
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Name = " . $this->mOtherArgs['semantic_property']);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Name = " . $this->mOtherArgs['semantic_property']);
 		$title = Title::newFromText($this->mCategory);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "title: " . $title);
-		wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Values = " . var_export($this->getPropertyValues($title, $this->mOtherArgs['semantic_property'])));	*/
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "title: " . $title);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "Semantic Property Values = " . var_export($this->getPropertyValues($title, $this->mOtherArgs['semantic_property'])));	*/
 
 
 		$params = array();
@@ -491,6 +939,10 @@ class EditHierarchy extends SFFormInput {
 		}
 
 		$hierarchy = $this->mCurrentValue; // I don't use the call below anymore because now we have wikiText, not HTML
+
+		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames($hierarchy, $displayNameProperty);
+		//wikiLog("EditHierarchy", "setupJsInitAttribs", "updatedHierarchy = " . str_replace("'", "", $hierarchy));
+
 		/*$hierarchy = HierarchyBuilder::parseHierarchy($this->mCurrentValue,
 			$displayNameProperty, $pages,
 			function ($pageName, $displayNameProperty, &$pages) {
@@ -507,7 +959,6 @@ class EditHierarchy extends SFFormInput {
 					Html::element('span', array('style' => 'display:none'), $pageName) .
 					Html::closeElement('a');
 			});*/
-
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -526,7 +977,7 @@ class EditHierarchy extends SFFormInput {
 				wfMessage('hierarchybuilder-unusedpages')->text()
 		);
 		return json_encode($jsattribs);
-	}
+	}	
 
 	public function getHtmlText() {
 
@@ -614,16 +1065,16 @@ class SelectFromHierarchy extends SFFormInput {
 		}
 
 		
-		$params = array();
+		/*$params = array();
 		$params[] = "[[$this->mPageName]]";
 		$params[] = "?$this->mPropertyName";
 		$params[] = "mainlabel=-";
 		$params[] = "headers=hide";
 		$params[] = "limit=1";
 		$output = SMWQueryProcessor::getResultFromFunctionParams($params,
-			SMW_OUTPUT_WIKI); // maybe also call getPropertyFromPage
-		//$output = HierarchyBuilder::getPropertyFromPage($this->mPageName, $this->mPropertyName);
-
+			SMW_OUTPUT_WIKI); // maybe also call getPropertyFromPage*/
+		$hierarchy = HierarchyBuilder::getPropertyFromPage($this->mPageName, $this->mPropertyName);
+		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames($hierarchy, $displaynameproperty);
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "output: " . var_export($output, true));
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPageName: " . var_export($this->mPageName, true));
 		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "mPropertyName: " . var_export($this->mPropertyName, true));
@@ -649,11 +1100,13 @@ class SelectFromHierarchy extends SFFormInput {
 					Html::element('span', array('style' => 'display:none'),
 					$pageName) .  Html::closeElement('a');
 			});*/
-		$hierarchy = str_replace("<br />", "\n", trim($output));
+		//$hierarchy = str_replace("<br />", "\n", trim($output));
 
-		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . var_export($hierarchy, true));
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "hierarchy = " . print_r($hierarchy, true));
 
 		$selected_items = array_map('trim', explode(",", $this->mCurrentValue));
+
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "selected_items = " . print_r($selected_items, true));
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -666,6 +1119,9 @@ class SelectFromHierarchy extends SFFormInput {
 			'is_mandatory' => array_key_exists('mandatory', $this->mOtherArgs),
 			'collapsed' => $this->mCollapsed == "true" ? true : false
 		);
+
+		//wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "jsonencode = ".print_r(json_encode($jsattribs), true));
+
 		return json_encode($jsattribs);
 	}
 

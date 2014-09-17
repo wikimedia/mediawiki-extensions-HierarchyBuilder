@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,15 +31,23 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of MITRE_VIKI is only compatible with MediaWiki 1.21 or above.');
+if (!defined('VIKIJS_VERSION')) {
+	die("<b>Error:</b> The extension MITRE_VIKI requires VikiJS to be installed first. Be sure that VikiJS is included on a line ABOVE the line where you've included MITRE_VIKI.");
+}
+
+if (version_compare($wgVersion, '1.22', 'lt')) {
+	die('<b>Error:</b> This version of MITRE_VIKI is only compatible with MediaWiki 1.22 or above.');
 }
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'MITRE_VIKI',
-	'version' => '1.0',
-	'author' => 'Jason Ji'
+	'version' => '1.0.3',
+	'author' => 'Jason Ji',
+	'descriptionmsg' => 'mitreviki-desc'
 );
+
+$wgExtensionMessagesFiles['MITRE_VIKI'] =
+	__DIR__ . '/MITRE_VIKI.i18n.php';
 
 $wgResourceModules['ext.MITRE_VIKI'] = array(
 	'localBasePath' => dirname(__FILE__),
@@ -55,9 +63,9 @@ if(!isset($VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks = array();
 
 if(array_key_exists('ExternalNodeHook', $VikiJS_Function_Hooks))
-	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'MITRE_VIKI.mitre_matchIcons';
+	$VikiJS_Function_Hooks['ExternalNodeHook'][] = 'VIKI.MITRE_VIKI.mitre_matchIcons';
 else
-	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('MITRE_VIKI.mitre_matchIcons');
+	$VikiJS_Function_Hooks['ExternalNodeHook'] = array('VIKI.MITRE_VIKI.mitre_matchIcons');
 
 $wgHooks['ParserFirstCallInit'][] = 'efMITRE_VIKI_Setup';
 
