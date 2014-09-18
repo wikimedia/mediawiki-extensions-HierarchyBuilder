@@ -3,7 +3,7 @@
 <?php
 
 fclose(STDOUT);
-$STDOUT = fopen('/tmp/importImages_application.log', 'wb');
+$STDOUT = fopen('/tmp/verifyImages_application.log', 'wb');
 
 echo ("Start of importImages log..." . "\n");
 
@@ -22,6 +22,7 @@ echo ("Beginning import...\n");
 echo (date('l jS \of F Y h:i:s A'). "\n");
 $globalStartIndex = 0;
 $globalLimitCount = 500;
+$missingFiles = array();
 
 //$startPage = "%28U%29_Enterprise_Production_Management_BPM_%281-page%29.pdf";
 //$startPage = "AISSWArchitecture.JPG";
@@ -60,11 +61,16 @@ for($index=0; $index < $size; $index++) {
 	$pos = strrpos($title, "/");
 
 
-   	$xml = file_get_contents($title);
+   	//$xml = file_get_contents($title);
 	$name = substr($title, $pos+1);
 	$startPage = $name;
 	$filename = $saveDir . urldecode($name);
-	file_put_contents($filename, $xml);
+	//file_put_contents($filename, $xml);
+	if(!file_exists($filename)) {
+	   echo("***** FILE NOT FOUND: " . $filename. "\n");
+	   array_push($missingFiles, $filename);
+	}
+
 }
 
 $globalStartIndex += $size;
@@ -78,3 +84,7 @@ if( $size < $globalLimitCount) {
 echo ("Migration Complete. Processed " . $globalStartIndex . " files."); 
 echo (date('l jS \of F Y h:i:s A'). "\n");
 
+foreach($missingFiles as $missingFile) {
+   echo("Missing: " . $missingFile . "\n");
+}
+echo("Count:" . count($missingFiles) . "\n");
