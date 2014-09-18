@@ -1707,6 +1707,7 @@ window.VIKI = (function(my) {
 
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
 				self.Nodes.push(self.HiddenNodes[i]);
+				self.HiddenNodes[i].index = self.Nodes.length-1;
 				self.HiddenNodes[i].hidden = false;
 			}
 			self.HiddenNodes = new Array();
