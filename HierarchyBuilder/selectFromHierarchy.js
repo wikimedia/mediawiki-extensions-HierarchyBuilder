@@ -85,8 +85,8 @@
 						//console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
 						var element_name = $(this).children("span:first").text();
 						//console.log("[selectFromHierarchy.js][init] " + element_name);
-						if (obj.isSelectedHierarchyComponent(element_name,
-							selected_components)) {
+						if (obj.isSelectedHierarchyComponent(element_name, selected_components) 
+							&& $.inArray("[["+element_name+"]]", updated_selected_components) == -1) {
 							updated_selected_components.push(
 								"[[" + element_name + "]]");
 						}
@@ -177,6 +177,7 @@
 								//$(this).text().trim();
 								$(this).children("span:first").text();
 							obj.checkNode(element_name, input_id);
+							obj.processDups(jqDivId, element_name, "check");
 						});
 					});
 					$(jqDivId).bind("uncheck_node.jstree", function (event, data) {
@@ -185,6 +186,7 @@
 								//$(this).text().trim();
 								$(this).children("span:first").text();
 							obj.uncheckNode(element_name, input_id);
+							obj.processDups(jqDivId, element_name, "uncheck");
 						});
 					});
 				}
@@ -218,6 +220,8 @@
 						selected_components.push(page_name);
 						selected_components.sort();
 					}
+					console.log("[checkNode] " + "selected_components = ");
+					console.log(selected_components);
 					cur_value = selected_components.join(",");
 				}
 				$("#" + input_id).val(cur_value);
@@ -238,6 +242,33 @@
 					cur_value = selected_components.join(",");
 				}
 				$("#" + input_id).val(cur_value);
+			},
+
+			/**
+			 * jqDivId is the divId of the hierarchy or something like that.
+			 * element_name is the name of the element who's duplicates we're 
+			 *     trying to handle.
+			 * input_id is the id of the input thing we hide stuff in.
+			 * action is a string either "check" or "uncheck" which indicates
+			 *     how duplicate rows should be processed.
+			 *
+			 * This function will run through all the other unselected hierarchy
+			 * elements searching for duplicates of the given element. If any
+			 * are found then we check those elements too.
+			 */
+			processDups: function(jqDivId, element_name, action) {
+				action = action == "check" ? "check_node" : "uncheck_node";
+				status = action == "check_node" ? "jstree-unchecked" : "jstree-checked";
+				$(jqDivId + "* li").each(function() {
+					var parent = $(this);
+					$(this).children("a").each(function() {
+						//var cur_element_name = $(this).text().trim();
+						var cur_element_name = $(this).children("span:first").text();
+						if (cur_element_name == element_name && parent.hasClass(status)) {
+							$(jqDivId).jstree(action, parent);
+						}
+					});
+				});			
 			},
 
 			/**
