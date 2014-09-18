@@ -446,9 +446,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
 
 						return d.source.x + r*Math.cos(angle);
-						//return d.source.x + (width/2)*Math.cos(angle);
-						//return d.source.x + boundaryRadius*Math.cos(angle);
 					});
+
 					self.LinkSelection.attr("y1", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -463,9 +462,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
 
 						return d.source.y + r*Math.sin(angle);
-						//return d.source.y + (height/2)*Math.sin(angle);
-						//return d.source.y + boundaryRadius*Math.sin(angle);
 					});
+
 					self.LinkSelection.attr("x2", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -480,9 +478,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
 
 						return d.target.x + r*Math.cos(Math.PI+angle);
-						//return d.target.x + (width/2)*Math.cos(Math.PI + angle);
-						//return d.target.x + boundaryRadius*Math.cos(Math.PI + angle);
 					});
+
 					self.LinkSelection.attr("y2", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -497,7 +494,6 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
 						return d.target.y + r*Math.sin(Math.PI + angle);
 						return d.target.y + (height/2)*Math.sin(Math.PI + angle);
-						//return d.target.y + boundaryRadius*Math.sin(Math.PI + angle);
 					});
 				}
 			}
@@ -1150,6 +1146,8 @@ window.VIKI = (function(my) {
 							// TODO: data is a dictionary of checked keys e.g. { "Foos" : true }
 							// Use this
 
+							self.hideByCategories(Object.keys(data));
+
 						}
 					},
 					showCloseButton : true
@@ -1609,6 +1607,8 @@ window.VIKI = (function(my) {
 			node.hidden = true;
 			self.HiddenNodes.push(node);
 			self.Nodes.splice(node.index, 1);
+			for(var i = node.index; i < self.Nodes.length; i++)
+				self.Nodes[i].index--;
 
 			// 2. Remove any associated links from Links array and store into hidden links array.
 			// Also store into recentHiddenLinks so we can remove them from LinkMap.
@@ -1667,8 +1667,8 @@ window.VIKI = (function(my) {
 			}
 
 			for(var i = 0; i < nodesToRemove.length; i++) {
+				// self.hideNodeAndRedraw(nodesToRemove[i]);
 				self.hideNode(nodesToRemove[i]);
-				self.redraw(true);
 
 				// self.NodeSelection =
 				// 	self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
