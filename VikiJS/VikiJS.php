@@ -31,7 +31,7 @@
 * refreshLinks.php after setting this flag.
 */
 
-define('VIKIJS_VERSION', '1.2');
+define('VIKIJS_VERSION', '1.5');
 
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
@@ -51,13 +51,12 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiJS',
-	'version' => '1.4',
+	'version' => VIKIJS_VERSION,
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
 );
  
-$wgExtensionMessagesFiles['VikiJS'] =
-	__DIR__ . '/VikiJS.i18n.php';
+$wgExtensionMessagesFiles['VikiJS'] = __DIR__ . '/VikiJS.i18n.php';
 
 $wgResourceModules['ext.VikiJS'] = array(
 	'localBasePath' => dirname(__FILE__),
@@ -76,29 +75,21 @@ $wgResourceModules['ext.VikiJS'] = array(
 	)
 );
 
-$wgHooks['LanguageGetMagic'][] = 'wfExtensionVikiJS_Magic';
 $wgHooks['ParserFirstCallInit'][] = 'efVikiJSParserFunction_Setup';
 
 $wgAPIModules['getSiteLogo'] = 'ApiGetSiteLogo';
-// $wgAPIModules['getTitleIcons'] = 'ApiGetTitleIcons';
 $wgAPIModules['getContentNamespaces'] = 'ApiGetContentNamespaces';
+
 
 function efVikiJSParserFunction_Setup (& $parser) {
 	$parser->setFunctionHook('vikijs', 'vikijs');
 	return true;
 }
 
-function wfExtensionVikiJS_Magic(& $magicWords, $langCode) {
-	$magicWords['vikijs'] = array (0, 'vikijs');
-	return true;
-}
-
 function vikijs($parser, $pageTitles, $width, $height) {
 	$myparams = func_get_args();
 	array_shift($myparams);
-	foreach($myparams as $value)
-		wfErrorLog("$value\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
-	wfErrorLog("$value\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
+	
 	$paramDictionary = vikiJS_parseParameters($myparams);
 
 	$pageTitles = $paramDictionary["pageTitles"];
@@ -175,13 +166,11 @@ EOT;
 		$outputObject = $parser->getOutput();
 
 		foreach(self::$modules as $name) {
-			wfErrorLog("Adding module name: $name\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
 			$outputObject->addModules($name);
 		}
 
 		$index = 0;
 		foreach(self::$functionHooks as $hook) {
-			// wfErrorLog("About to call hook: $hook with params: " . print_r(self::$functionHookParams[$index], true) . "\n", "/var/www/html/jyj_logs/DEBUG_VikiJS.out");
 			call_user_func_array($hook, self::$functionHookParams[$index]);
 			$index++;
 		}
