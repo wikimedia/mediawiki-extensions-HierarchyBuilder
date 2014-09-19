@@ -47,6 +47,9 @@ window.VIKI = (function(my) {
 		this.INCOMING_LINK_COLOR = this.PETER_RIVER_COLOR;
 		this.OUTGOING_LINK_COLOR = this.SUNFLOWER_COLOR;
 		this.BIDIRECTIONAL_LINK_COLOR = this.EMERALD_COLOR;
+		this.HIDE_HUB = 0;
+		this.HIDE_INCOMING = 1;
+		this.HIDE_OUTGOING = 2;
 
 		/****************************************************************************************************************************
 		 * Mutable Global Variables
@@ -257,6 +260,8 @@ window.VIKI = (function(my) {
 					"<li id=\"hide\">Hide Node</li>"+
 					"<li id=\"hideHub\">Hide Hub</li>"+
 					"<li id=\"hideByCategory\">Hide By Category</li>"+
+					"<li id=\"hideIncoming\">Hide Incoming Links</li>"+
+					"<li id=\"hideOutgoing\">Hide Outgoing Links</li>"+
 					"<hr>"+// separator
 		        	"<li id=\"showall\">Show All</li>"+
 			    	"</ul></div></div>"
@@ -872,8 +877,11 @@ window.VIKI = (function(my) {
 			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage || (node.type === self.WIKI_PAGE_TYPE && !node.searchable)) {
 			          $('.elaborate-'+self.ID, menu).remove();
 			        }
-			        if(!node.elaborated)
+			        if(!node.elaborated) {
 			        	$('#hideHub', menu).remove();
+			        	$('#hideIncoming', menu).remove();
+			        	$('#hideOutgoing', menu).remove();
+			        }
 			        if(node.nonexistentPage) {
 			        	$('#getinfo', menu).remove();
 			        	$('#categories', menu).remove();
@@ -882,6 +890,12 @@ window.VIKI = (function(my) {
 			        if(node.type == self.EXTERNAL_PAGE_TYPE) {
 			        	$('#categories', menu).remove();
 			        	$('#hideByCategory', menu).remove();
+			        }
+			        if(node.hidingOutgoing) {
+			        	$('#hideOutgoing', menu).remove();
+			        }
+			        if(node.hidingIncoming) {
+			        	$('#hideIncoming', menu).remove();
 			        }
 			        return menu;
 		      	},
@@ -925,21 +939,26 @@ window.VIKI = (function(my) {
 			        	else {
 				        	categories = categories.substring(0, categories.length-2);
 				        }
-			        	// alert(categories);
 			        	self.showCategories(node.categories, false);
 			        },
 			        'hideByCategory': function(t) {
 			        	node = d3.select(t).datum();
 						self.showCategories(node.categories, true);
 			        },
+			        'hideIncoming' : function(t) {
+			        	node = d3.select(t).datum();
+			        	self.hideIncomingLinks(node);
+			        },
+			        'hideOutgoing' : function(t) {
+						node = d3.select(t).datum();
+						self.hideOutgoingLinks(node);
+			        },
 			        'hide': function(t) {
 			        	node = d3.select(t).datum();
-
 						self.hideNodeAndRedraw(node);
 			        },
 			        'hideHub': function(t) {
 			        	node = d3.select(t).datum();
-
 			        	self.hideHub(node);
 			        },
 			        'showall': function(t) {
@@ -1643,19 +1662,24 @@ window.VIKI = (function(my) {
 			if(!node.elaborated)
 				return;
 
+			self.hideCluster(node, self.HIDE_HUB);
+		}
+
+		my.VikiJS.prototype.hideCluster = function(node, hideType) {
 			// Iterate Links to identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
 
 			var nodesToRemove = new Array();
-			nodesToRemove.push(node);
+			if(hideType == self.HIDE_HUB)
+				nodesToRemove.push(node);
 
 			for(var i = 0; i < self.Links.length; i++) {
 				link = self.Links[i];
 				if(link.source === node) {
-					if(self.numberOfConnections(link.target) == 1)
+					if(self.numberOfConnections(link.target) == 1 || hideType == self.HIDE_OUTGOING)
 						nodesToRemove.push(link.target);
 				}
 				else if(link.target === node) {
-					if(self.numberOfConnections(link.source) == 1)
+					if(self.numberOfConnections(link.source) == 1 || hideType == self.HIDE_INCOMING)
 						nodesToRemove.push(link.source);
 				}
 			}
@@ -1665,6 +1689,18 @@ window.VIKI = (function(my) {
 			}
 
 			self.redraw(true);
+		}
+
+		my.VikiJS.prototype.hideIncomingLinks = function(node) {
+			self.log("hideIncomingLinks for "+node.pageTitle);
+			self.hideCluster(node, self.HIDE_INCOMING);
+			node.hidingIncoming = true;
+		}
+
+		my.VikiJS.prototype.hideOutgoingLinks = function(node) {
+			self.log("hideOutgoingLinks for "+node.pageTitle);
+			self.hideCluster(node, self.HIDE_OUTGOING);
+			node.hidingOutgoing = true;
 		}
 
 		my.VikiJS.prototype.hideByCategories = function(categories) {
@@ -1725,6 +1761,11 @@ window.VIKI = (function(my) {
 
 			self.HiddenLinks = new Array();
 			
+			self.Nodes.forEach(function(node) { 
+				node.hidingIncoming = false; 
+				node.hidingOutgoing = false; 
+			});
+
 			self.redraw(true);
 
 		}
