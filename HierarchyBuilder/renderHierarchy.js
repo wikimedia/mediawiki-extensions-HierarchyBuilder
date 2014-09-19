@@ -104,7 +104,6 @@
 					var childNumber = numberPrefix === "" ? $numberSuffix++ : numberPrefix + "." + $numberSuffix++;
 					var numberedChild = childNumber + " " + $children.first().html();
 					$children.first().text(numberedChild);
-					console.log($children.first().text());
 					//returnString += numberPrefix + $children.first().text() + "\n";
 
 					var $sublist = $children.filter("ul");
