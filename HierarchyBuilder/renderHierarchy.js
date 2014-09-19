@@ -102,7 +102,7 @@
 					var $children = $(this).contents();
 
 					var childNumber = numberPrefix === "" ? $numberSuffix++ : numberPrefix + "." + $numberSuffix++;
-					var numberedChild = childNumber + " " + $children.first().html();
+					var numberedChild = childNumber + " " + $children.first().text();
 					$children.first().text(numberedChild);
 					//returnString += numberPrefix + $children.first().text() + "\n";
 
