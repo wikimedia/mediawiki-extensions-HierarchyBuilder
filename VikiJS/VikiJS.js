@@ -877,11 +877,11 @@ window.VIKI = (function(my) {
 			        if(node.nonexistentPage) {
 			        	$('#getinfo', menu).remove();
 			        	$('#categories', menu).remove();
-			        	$('#hideByCateogry', menu).remove();
+			        	$('#hideByCategory', menu).remove();
 			        }
 			        if(node.type == self.EXTERNAL_PAGE_TYPE) {
 			        	$('#categories', menu).remove();
-			        	$('#hideByCateogry', menu).remove();
+			        	$('#hideByCategory', menu).remove();
 			        }
 			        return menu;
 		      	},
@@ -1066,6 +1066,7 @@ window.VIKI = (function(my) {
 					self.showError("Error fetching inside visitNode - AJAX request (query page). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
+			intraNode.visited = true;
 
 			function wikiPageCheckSuccessHandler(data, textStatus, jqXHR, originNode) {
 
@@ -1092,82 +1093,75 @@ window.VIKI = (function(my) {
 					}
 				}
 
-				originNode.visited = true;
 				self.callHooks("AfterVisitNodeHook", [originNode]);
 			}
 		}
 
-		my.VikiJS.prototype.showCategories = function(categories, showHideable) {
-			self.log(categories);
+		my.VikiJS.prototype.showCategories = function(categories, hideByCategory) {
 
-			var categoriesHTML = "\
-			<div id='categoryDiv'>\
-				<fieldset>\
-					<legend>Categories</legend>\
-					<table id='categoryTable'>\
-						<tbody>\
-				";
+			if(hideByCategory) {		// Hide By Category
+				var categoriesHTML = "\
+				<div id='categoryDiv'>\
+					<fieldset>\
+						<legend>Categories</legend>\
+						<table id='categoryContainer'>\
+							<tbody>\
+					";
 
-			for(var i = 0; i < categories.length; i++) {
-				// categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"'></td><td>"+categories[i]+"</td></tr>";
-				categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"' name='"+categories[i]+"' value=false><label for='"+categories[i]+"'>"+categories[i]+"</label></td></tr>";
-			}
+				for(var i = 0; i < categories.length; i++) {
+					categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"' name='"+categories[i]+"' value=false><label for='"+categories[i]+"'>"+categories[i]+"</label></td></tr>";
+				}
 
-			categoriesHTML += "</tbody></table></fieldset></div>";
+				categoriesHTML += "</tbody></table></fieldset></div>";
 
-			if(showHideable) {
 				vex.dialog.open({
 					message: "Select categories to hide:",
 					input:categoriesHTML,
 					contentCSS: {
-						width : '300px'
+						"min-width" : '250px',
+						"width" : "auto",
+						"display" : "table"
 					},
 					afterOpen: function($vexContent) {
 						$(".categoryCheckbox").each(function() {
 							var checkbox = $(this);
-							var category = checkbox.attr("name");
 							checkbox.click(function() {
-								self.log("Clicked "+category);
-								if(checkbox.prop('checked')) {
-									checkbox.prop('value', true);
-									self.log('true');
-								}
-								else {
-									checkbox.prop('value', true);
-									self.log("false");
-								}
+								value = checkbox.prop('checked');
+								checkbox.prop('value', value);
 							});
 						});
 					},
 					callback: function(data) {
-						self.log("callback triggered");
-						self.log(data);
 						if(data) {
-							// TODO: data is a dictionary of checked keys e.g. { "Foos" : true }
-							// Use this
-
 							self.hideByCategories(Object.keys(data));
-
 						}
 					},
 					showCloseButton : true
 				});
+
 			}
-			else {
+
+			else {			// Show Categories
+
+				var categoriesHTML = "\
+				<div id='categoryDiv'>\
+					<fieldset>\
+						<legend>Categories</legend>\
+						<ul id='categoryContainer'>\
+					";
+
+				for(var i = 0; i < categories.length; i++) {
+					categoriesHTML += "<li>"+categories[i]+"</li>";
+				}
+
+				categoriesHTML += "</ul>";
+
 				vex.open({
 					content:categoriesHTML,
 					contentCSS: {
-						width: '200px'
-					},
-					afterOpen: function($vexContent) {
-						$vexContent.append("\
-<style>\
-	.categoryCheckbox {\
-		visibility: hidden;\
-	}\
-</style>\
-"
-						);
+						"min-width": '150px',
+						"width": "auto",
+						"display" : "table"
 					}
 				});
 			}
@@ -1667,17 +1661,25 @@ window.VIKI = (function(my) {
 			}
 
 			for(var i = 0; i < nodesToRemove.length; i++) {
-				// self.hideNodeAndRedraw(nodesToRemove[i]);
 				self.hideNode(nodesToRemove[i]);
-
-				// self.NodeSelection =
-				// 	self.NodeSelection.data(self.Nodes, function(d) { return d.identifier});
-				// self.LinkSelection =
-				// 	self.LinkSelection.data(self.Links);
-
-				// self.NodeSelection.exit().remove();
-				// self.LinkSelection.exit().remove();
 			}
+
+			self.redraw(true);
+		}
+
+		my.VikiJS.prototype.hideByCategories = function(categories) {
+			var self = this;
+			categories.forEach(function(category) {
+				self.log("hide "+category);
+
+				var nodesInThisCategory = self.Nodes.filter(function(node) { return node.categories ? node.categories.indexOf(category) != -1 : false; });
+				self.log(nodesInThisCategory);
+
+				nodesInThisCategory.forEach(function(node) {
+					self.hideNode(node);
+				});
+
+			});
 
 			self.redraw(true);
 		}
@@ -1722,7 +1724,7 @@ window.VIKI = (function(my) {
 			}
 
 			self.HiddenLinks = new Array();
-
+			
 			self.redraw(true);
 
 		}
