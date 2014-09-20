@@ -25,7 +25,7 @@ if (version_compare(SF_VERSION, '2.4.2', 'lt')) {
 # credits
 $wgExtensionCredits['semantic'][] = array (
   'name' => 'SF_MII_Input_Type',
-  'version' => '1.2',
+  'version' => '1.3',
   'author' => "Cindy Cicalese",
   'description' => "Enter an MII SUI with LDAP help"
 );
@@ -66,7 +66,7 @@ class ApiMIISUI extends ApiBase{
   public function getAllowedParams() {
     return array(
       'substr' => null,
-      'limit' => 10
+      'limit' => 30
     );
   }
 
@@ -79,10 +79,6 @@ class ApiMIISUI extends ApiBase{
 
   public function getDescription() {
     return "get matching MII SUIs for provided parameter";
-  }
-
-  public function getVersion() {
-    return __CLASS__ . ": 1.2";
   }
 
   private function getMatchingMIISUIs($value, $limit) {
@@ -99,10 +95,11 @@ class ApiMIISUI extends ApiBase{
     $value = escapeshellcmd($value);
 
     $searchstring = "ou=People,o=mitre.org";
-    $searchfilter= "(|(sn=$value*)(uid=$value*))";
+    $searchfilter=
+        "(|(sn=$value*)(mitrepreferredname=$value*)(givenname=$value*)(uid=$value*))";
     $returnfields = array("sn", "mitrepreferredname", "givenname", "uid");
     $ldap_result = @ldap_search($ldapconn, $searchstring, $searchfilter,
-      $returnfields);
+      $returnfields, 0, $limit);
     @ldap_unbind();
 
     if (!$ldap_result) {
@@ -113,6 +110,7 @@ class ApiMIISUI extends ApiBase{
     if ($entries["count"] < $limit) {
       $limit = $entries["count"];
     }
+    $choices = array();
     for ($i = 0; $i < $limit; $i++) {
       $sn = $entries[$i]['sn'][0];
       if (isset($entries[$i]['mitrepreferredname'])) {
@@ -124,9 +122,13 @@ class ApiMIISUI extends ApiBase{
         $fn = $entries[$i]['givenname'][0];
       }
       $uid = $entries[$i]['uid'][0];
+      $choices[$fn . " " . $sn . " (" . $uid . ")"] = $uid;
+    }
+    ksort($choices);
+    foreach ($choices as $label => $value) {
       $miisuis[] = array(
-        "label" => $fn . " " . $sn . " (" . $uid . ")",
-        "value" => $uid
+        "label" => $label,
+        "value" => $value
       );
     }
 

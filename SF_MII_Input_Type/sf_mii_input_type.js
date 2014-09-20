@@ -52,7 +52,7 @@ jQuery(document).ready(function() {
         },
         search: function() {
           var term = extractLast(this.value);
-          if (term.length < 3) {
+          if (term.length < 1) {
             return false;
           }
         },
@@ -71,7 +71,7 @@ jQuery(document).ready(function() {
     } else {
       jQuery(this)
       .autocomplete({
-        minLength: 3,
+        minLength: 1,
         delay: 400,
         source: function(request, response) {
           jQuery.ajax({
