@@ -1675,11 +1675,11 @@ window.VIKI = (function(my) {
 			for(var i = 0; i < self.Links.length; i++) {
 				link = self.Links[i];
 				if(link.source === node) {
-					if(self.numberOfConnections(link.target) == 1 || hideType == self.HIDE_OUTGOING)
+					if(hideType == self.HIDE_OUTGOING || (hideType == self.HIDE_HUB && self.numberOfConnections(link.target) == 1))
 						nodesToRemove.push(link.target);
 				}
 				else if(link.target === node) {
-					if(self.numberOfConnections(link.source) == 1 || hideType == self.HIDE_INCOMING)
+					if(hideType == self.HIDE_INCOMING || (hideType == self.HIDE_HUB && self.numberOfConnections(link.source) == 1))
 						nodesToRemove.push(link.source);
 				}
 			}
