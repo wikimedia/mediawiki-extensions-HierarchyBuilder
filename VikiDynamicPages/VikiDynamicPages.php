@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiDynamicPages',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikidynamicpages-desc'
 );
@@ -74,6 +74,11 @@ if(array_key_exists('BeforeVisitNodeHook', $VikiJS_Function_Hooks))
 	$VikiJS_Function_Hooks['BeforeVisitNodeHook'][] = 'VIKI.VikiDynamicPages.processQueryString';
 else
 	$VikiJS_Function_Hooks['BeforeVisitNodeHook'] = array('VIKI.VikiDynamicPages.processQueryString');
+
+if(array_key_exists('NewWikiNodeCreatedHook', $VikiJS_Function_Hooks))
+	$VikiJS_Function_Hooks['NewWikiNodeCreatedHook'][] = 'VIKI.VikiDynamicPages.checkForSelfLink';
+else
+	$VikiJS_Function_Hooks['NewWikiNodeCreatedHook'] = array('VIKI.VikiDynamicPages.checkForSelfLink');
 
 $wgHooks['ParserFirstCallInit'][] = 'efVikiDynamicPages_AddResource';
 
