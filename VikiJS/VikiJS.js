@@ -1779,7 +1779,7 @@ window.VIKI = (function(my) {
 				link = self.HiddenLinks[i];
 				self.Links.push(link);
 				self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
-				self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+				self.LinkMap[link.target.identifier + "," + link.source.identifier] = link;
 			}
 
 			self.HiddenLinks = new Array();
