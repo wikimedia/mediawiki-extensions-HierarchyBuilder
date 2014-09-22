@@ -13,7 +13,7 @@ window.WikiVersionTool = function(){}
 
 WikiVersionTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
 	
-	window.onload = function(e){        
+	$(function(e){        
 			var vikiObject = [];
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
@@ -21,7 +21,7 @@ WikiVersionTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wi
 			getIWLinksTable(vikiObject);
 //			mitre_getAllWikis(vikiObject) 
 			
-	}; 
+	}); 
 }
 
 
@@ -96,8 +96,15 @@ function fillDropdown(dropdownName, vikiObject) {
 		var wikiVObject = [];
 		wikiVObject.wiki1 = $('#wiki1s')[0].value;
 		wikiVObject.wiki2 = $('#wiki2s')[0].value;
-		wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
-		wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
+		if($('#wiki1s')[0]['selectedOptions'] !== undefined){
+			wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
+			wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
+		} else {
+			var ind1 = $('#wiki1s')[0]['selectedIndex']
+			var ind2 = $('#wiki2s')[0]['selectedIndex']
+			wikiVObject.wiki1Name = $('#wiki1s')[0][ind1]['text']
+			wikiVObject.wiki2Name = $('#wiki2s')[0][ind2]['text']
+		}
 		getGeneralWikiInfo(wikiVObject);	
 	    getComparativeWikis(wikiVObject);
 	});
@@ -144,7 +151,7 @@ window.getIWLinksTable = function(vikiObject){
 							allWikisArray.push(wiki);
 	
 						} else {
-							console.log(allWikis[i])
+							// console.log(allWikis[i])
 						}
 
 
