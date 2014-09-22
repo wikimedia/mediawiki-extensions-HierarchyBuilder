@@ -1635,15 +1635,24 @@ window.VIKI = (function(my) {
 			}
 
 			// 3. Remove links from LinkMap.
-			var linkMapKeys = Object.keys(self.LinkMap);
+			// var linkMapKeys = Object.keys(self.LinkMap);
 
-			for(var i = 0; i < linkMapKeys.length; i++) {
-				var linkMapKey = linkMapKeys[i].split(",");
-				for(var j = 0; j < recentHiddenLinks.length; j++) {
-					if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
-						delete self.LinkMap[linkMapKeys[i]];
-					}
-				}
+			// for(var i = 0; i < linkMapKeys.length; i++) {
+			// 	var linkMapKey = linkMapKeys[i].split(",");
+			// 	for(var j = 0; j < recentHiddenLinks.length; j++) {
+			// 		if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
+			// 			delete self.LinkMap[linkMapKeys[i]];
+			// 		}
+			// 	}
+			// }
+
+			for(var i = 0; i < recentHiddenLinks.length; i++) {
+				var key = recentHiddenLinks[i].source.identifier+","+recentHiddenLinks[i].target.identifier;
+				var reverse = recentHiddenLinks[i].target.identifier+","+recentHiddenLinks[i].source.identifier;
+				if(self.LinkMap[key])
+					delete self.LinkMap[key];
+				if(self.LinkMap[reverse])
+					delete self.LinkMap[reverse];
 			}
 
 			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
@@ -1666,7 +1675,10 @@ window.VIKI = (function(my) {
 		}
 
 		my.VikiJS.prototype.hideCluster = function(node, hideType) {
-			// Iterate Links to identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+			// hideCluster is the same call for hideHub, hideIncomingLinks and hideOutgoingLinks.
+			// We iterate links to check all nodes participating in those links which are connected to the passed-in node.
+			// If hideHub was the caller, identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+			// If hideIncomingLinks or hideOutgoingLInks was the caller, just identify all connected nodes.
 
 			var nodesToRemove = new Array();
 			if(hideType == self.HIDE_HUB)
@@ -1674,7 +1686,18 @@ window.VIKI = (function(my) {
 
 			for(var i = 0; i < self.Links.length; i++) {
 				link = self.Links[i];
-				if(link.source === node) {
+				
+				// hideHub doesn't care about bidirectionality of links, but hideIncomingLinks and hideOutgoingLinks do.
+				if(link.bidirectional && (link.source == node || link.target == node) && hideType != self.HIDE_HUB) {
+					thisNode = link.source == node ? link.target : link.source;
+					// Only want to hide bidirectional links if BOTH hideIncoming and hideOutgoing will be the case for the passed-in node.
+					// Thus, if hideType is HIDE_INCOMING and the node is already hidingOutgoing, hide this bidirectional link.
+					// Same if hideType is HIDE_OUTGOING and the node is already hidingIncoming.
+					if((hideType == self.HIDE_INCOMING && node.hidingOutgoing) || (hideType == self.HIDE_OUTGOING && node.hidingIncoming)) {
+						nodesToRemove.push(thisNode);
+					}
+				}
+				else if(link.source === node) {
 					if(hideType == self.HIDE_OUTGOING || (hideType == self.HIDE_HUB && self.numberOfConnections(link.target) == 1))
 						nodesToRemove.push(link.target);
 				}
@@ -1686,6 +1709,11 @@ window.VIKI = (function(my) {
 
 			for(var i = 0; i < nodesToRemove.length; i++) {
 				self.hideNode(nodesToRemove[i]);
+			}
+
+			if(hideType == self.HIDE_INCOMING || hideType == self.HIDE_OUTGOING) {
+				self.SelectedNodeIndex = node.index;
+				self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
 			}
 
 			self.redraw(true);
@@ -1706,22 +1734,17 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.hideByCategories = function(categories) {
 			var self = this;
 			categories.forEach(function(category) {
-				self.log("hide "+category);
-
 				var nodesInThisCategory = self.Nodes.filter(function(node) { return node.categories ? node.categories.indexOf(category) != -1 : false; });
-				self.log(nodesInThisCategory);
 
 				nodesInThisCategory.forEach(function(node) {
 					self.hideNode(node);
 				});
-
 			});
 
 			self.redraw(true);
 		}
 
 		my.VikiJS.prototype.unhideNode = function(identifier) {
-
 			var index = -1;
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
 				if(self.HiddenNodes[i].identifier == identifier) {
