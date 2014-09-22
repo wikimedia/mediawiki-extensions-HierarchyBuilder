@@ -1645,17 +1645,6 @@ window.VIKI = (function(my) {
 			}
 
 			// 3. Remove links from LinkMap.
-			// var linkMapKeys = Object.keys(self.LinkMap);
-
-			// for(var i = 0; i < linkMapKeys.length; i++) {
-			// 	var linkMapKey = linkMapKeys[i].split(",");
-			// 	for(var j = 0; j < recentHiddenLinks.length; j++) {
-			// 		if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
-			// 			delete self.LinkMap[linkMapKeys[i]];
-			// 		}
-			// 	}
-			// }
-
 			for(var i = 0; i < recentHiddenLinks.length; i++) {
 				var key = recentHiddenLinks[i].source.identifier+","+recentHiddenLinks[i].target.identifier;
 				var reverse = recentHiddenLinks[i].target.identifier+","+recentHiddenLinks[i].source.identifier;
@@ -1665,9 +1654,7 @@ window.VIKI = (function(my) {
 					delete self.LinkMap[reverse];
 			}
 
-			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
-			// self.SelectedNodeIndex = 0;
-			// self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
+			// 4. Set selected node to none and display "No Node Selected" since the old selected node is now hidden.
 			self.SelectedNodeIndex = -1;
 			self.displayNoNodeSelected();
 
