@@ -128,6 +128,9 @@ window.VIKI = (function(my) {
 
 			self.allWikis.push(thisWikiData);
 
+			// Show a placeholder that says "No Node Selected"
+			self.displayNoNodeSelected();
+
 			// Set up the slider div.
 			initializeSliderDiv();
 
@@ -1056,6 +1059,13 @@ window.VIKI = (function(my) {
 
 			jQuery("#"+self.SubDetailsDiv).html(info);
 		}
+
+		my.VikiJS.prototype.displayNoNodeSelected = function() {
+			var self = this;
+
+			var info = "<h4 id='vikijs-header'>(No Node Selected)</h4>";
+			jQuery("#"+self.SubDetailsDiv).html(info);
+		}
 		
 		my.VikiJS.prototype.visitNode = function(intraNode) {
 			var self = this;
@@ -1656,8 +1666,10 @@ window.VIKI = (function(my) {
 			}
 
 			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
-			self.SelectedNodeIndex = 0;
-			self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
+			// self.SelectedNodeIndex = 0;
+			// self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
+			self.SelectedNodeIndex = -1;
+			self.displayNoNodeSelected();
 
 		}
 
