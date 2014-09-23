@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiDynamicPages',
-	'version' => '1.1',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikidynamicpages-desc'
 );
