@@ -242,7 +242,7 @@ window.VIKI = (function(my) {
 			}
 
 			function initializeContextMenu() {
-				// Ensure the entire graph div doesn't trigger context menu - only nodes.
+				// Ensure the background graph div doesn't trigger context menu - only nodes and the covering rect.
 				foo = $('#'+self.GraphDiv);
 				$('#'+self.GraphDiv).on('contextmenu', function() {
 					return false;
@@ -251,7 +251,7 @@ window.VIKI = (function(my) {
 				$('body').append(
 					"<div class=\"contextMenu\" id=\"menu-"+self.ID+"\"><ul>"+
 					// the dynamic menu title (node name)
-					"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+					"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
 					"<hr>"+ // separator
 					// actual navigable menu
 					"<div class=\"options\" >"+
@@ -270,6 +270,15 @@ window.VIKI = (function(my) {
 			    	"</ul></div></div>"
 					);
 				
+				$('body').append(
+					"<div class=\"contextMenu\" id=\"backgroundMenu-"+self.ID+"\"><ul>"+
+					"<li id=\"backgroundMenu-"+self.ID+"\" class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
+					"<hr>"+
+					"<div class=\"options\">"+
+					"<li id=\"showall\">Show All</li>"+
+					"</ul></div></div>"
+					);
+
 				$("#name").css("text-align", "center");
 			}
 
@@ -291,7 +300,7 @@ window.VIKI = (function(my) {
 				      .on("dblclick.zoom", null)
 
 				svg.append("svg:rect")
-				   .attr("id", self.ID)
+				   .attr("id", "rect-"+self.ID)
 				   .attr("width", self.width)
 				   .attr("height", self.height)
 				   .attr("fill", "white");
@@ -414,7 +423,7 @@ window.VIKI = (function(my) {
 
 				self.NodeSelection =
 					svg.select("#nodes-"+self.ID).selectAll(".node-"+self.ID);
-		
+
 				function tick() {
 
 					// Explicit detection for IE10 and IE11, which requires this patch to fix SVG markers.
@@ -620,6 +629,7 @@ window.VIKI = (function(my) {
 			self.LinkSelection.exit().remove();
 
 			newNodes.attr("class", "node-"+this.ID);
+
 			newNodes.on("click", function(d) {
 				self.SelectedNodeIndex = d.index;
 				self.displayNodeInfo(d);
@@ -634,7 +644,7 @@ window.VIKI = (function(my) {
 				self.redraw(false);
 			});
 
-			self.prepareContextMenu();
+			self.prepareContextMenus();
 
 			var drag = self.Force.drag()
 			   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -845,7 +855,32 @@ window.VIKI = (function(my) {
 			   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 		}
 
-		my.VikiJS.prototype.prepareContextMenu = function() {
+		my.VikiJS.prototype.prepareContextMenus = function() {
+			var self = this;
+
+			$('#rect-'+self.ID).contextMenu('backgroundMenu-'+this.ID, {
+				onShowMenu : function(e, menu) {
+					self.Force.stop();
+					return menu;
+				},
+		      	onExitMenu: function(e,menu) {
+		      		self.Force.start();
+		      	},
+		      	itemStyle: {
+			        fontFamily : 'sans serif',
+			        fontSize: '13px',
+			        backgroundColor : '#FFFFFF'
+		        },
+		        menuStyle: {
+		        	width: '80px'
+		        },
+		        bindings: {
+		        	'showall' : function(t) {
+		        		self.showAllNodes();
+		        	}
+		        }
+			});
+
 	        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
 	        	// activate before the menu shows
 	        	onShowMenu: function(e, menu) {
@@ -1127,7 +1162,7 @@ window.VIKI = (function(my) {
 		}
 
 		my.VikiJS.prototype.showCategories = function(categories, hideByCategory) {
-
+			var self = this;
 			if(hideByCategory) {		// Hide By Category
 				var categoriesHTML = "\
 				<div id='categoryDiv'>\
@@ -1152,6 +1187,7 @@ window.VIKI = (function(my) {
 						"display" : "table"
 					},
 					afterOpen: function($vexContent) {
+						self.Force.stop();
 						$(".categoryCheckbox").each(function() {
 							var checkbox = $(this);
 							checkbox.click(function() {
@@ -1191,6 +1227,9 @@ window.VIKI = (function(my) {
 						"min-width": '150px',
 						"width": "auto",
 						"display" : "table"
+					},
+					afterOpen: function($vexContent) {
+						self.Force.stop();
 					}
 				});
 			}
