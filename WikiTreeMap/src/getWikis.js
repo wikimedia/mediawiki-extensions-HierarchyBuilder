@@ -1,7 +1,7 @@
 window.getIWLinksTable = function(vikiObject){
 	
    jQuery.ajax({
-      url: 'http://gestalt-ed.mitre.org/robopedia/api.php?action=iwlinks&format=json',
+      url: 'http://gestalt-ed.mitre.org/robopedia/api.php?action=iwtable&format=json',
       dataType: 'jsonp',
       beforeSend: function (jqXHR, settings) {
          url = settings.url;
@@ -12,7 +12,7 @@ window.getIWLinksTable = function(vikiObject){
 	//	fillDropdown('#wikis', vikiObject);
 	//			 console.log(data);
 
-				 allWikis = data["iwlinks"]["wikiIWArray"];
+				 allWikis = data["iwtable"]["wikiIWArray"];
 				 allWikisArray = [];
 
 				 for(var i in allWikis) {
@@ -37,7 +37,7 @@ window.getIWLinksTable = function(vikiObject){
 							allWikisArray.push(wiki);
 	
 						} else {
-							console.log(allWikis[i])
+							// console.log(allWikis[i])
 						}
 
 

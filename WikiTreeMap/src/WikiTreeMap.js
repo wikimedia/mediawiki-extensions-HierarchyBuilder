@@ -18,7 +18,7 @@ window.WikiTreeMap = function() {
 
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
 	
-	window.onload = function(e){        
+	$(function(e){        
 
 		if (wiki !== ""){
 //			$('#selectAWiki').hide();						
@@ -47,7 +47,7 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 			getIWLinksTable(vikiObject);
 //			mitre_getAllWikis(vikiObject) 
 		}
-    }; 
+    }); 
 
 }
 
@@ -92,7 +92,12 @@ function fillDropdown(dropdownName, vikiObject) {
 	$('#loadData').click(function(e){
 	    var elmDiv = $(dropdownName);
 	    elmValue = elmDiv[0].value;        
-		elmLabel = elmDiv[0]['selectedOptions'][0]['label'];
+	    if(elmDiv[0]['selectedOptions']!== undefined){
+			elmLabel = elmDiv[0]['selectedOptions'][0]['label'];
+	    } else {
+	    	var indVal = elmDiv[0]['selectedIndex']
+			elmLabel = elmDiv[0][indVal]['text']
+	    }
 	    jsonData = {"name":"allcategories", "children" : []};
 		$('div.wikitreemap-graph-container').append("<h2>" + elmLabel + "</h2>");
 		vikiObject.elmLabel = elmLabel;

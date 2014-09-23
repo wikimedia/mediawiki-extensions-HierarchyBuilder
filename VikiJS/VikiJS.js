@@ -47,6 +47,9 @@ window.VIKI = (function(my) {
 		this.INCOMING_LINK_COLOR = this.PETER_RIVER_COLOR;
 		this.OUTGOING_LINK_COLOR = this.SUNFLOWER_COLOR;
 		this.BIDIRECTIONAL_LINK_COLOR = this.EMERALD_COLOR;
+		this.HIDE_HUB = 0;
+		this.HIDE_INCOMING = 1;
+		this.HIDE_OUTGOING = 2;
 
 		/****************************************************************************************************************************
 		 * Mutable Global Variables
@@ -118,12 +121,15 @@ window.VIKI = (function(my) {
 				wikiTitle : this.THIS_WIKI,
 				apiURL : this.myApiURL,
 				// contentURL : this.serverURL + mw.config.get("wgScript") + "/",
-                contentURL: mw.config.get("wgServer")+mw.config.get("wgArticlePath"),
+				contentURL: mw.config.get("wgServer")+mw.config.get("wgArticlePath"),
 				logoURL : myLogoURL,
 				searchableWiki : true
 			}
 
 			self.allWikis.push(thisWikiData);
+
+			// Show a placeholder that says "No Node Selected"
+			self.displayNoNodeSelected();
 
 			// Set up the slider div.
 			initializeSliderDiv();
@@ -236,7 +242,7 @@ window.VIKI = (function(my) {
 			}
 
 			function initializeContextMenu() {
-				// Ensure the entire graph div doesn't trigger context menu - only nodes.
+				// Ensure the background graph div doesn't trigger context menu - only nodes and the covering rect.
 				foo = $('#'+self.GraphDiv);
 				$('#'+self.GraphDiv).on('contextmenu', function() {
 					return false;
@@ -245,7 +251,7 @@ window.VIKI = (function(my) {
 				$('body').append(
 					"<div class=\"contextMenu\" id=\"menu-"+self.ID+"\"><ul>"+
 					// the dynamic menu title (node name)
-					"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Name</li>"+
+					"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
 					"<hr>"+ // separator
 					// actual navigable menu
 					"<div class=\"options\" >"+
@@ -253,13 +259,26 @@ window.VIKI = (function(my) {
 		        	"<li id=\"getinfo\" >Visit Page</li>"+
 					"<li id=\"elaborate\" class=\"elaborate-"+self.ID+"\">Elaborate</li>"+
 					"<li id=\"categories\">Show Categories</li>"+
+					"<hr>"+// separator
 					"<li id=\"hide\">Hide Node</li>"+
 					"<li id=\"hideHub\">Hide Hub</li>"+
+					"<li id=\"hideByCategory\">Hide By Category</li>"+
+					"<li id=\"hideIncoming\">Hide Incoming Links</li>"+
+					"<li id=\"hideOutgoing\">Hide Outgoing Links</li>"+
 					"<hr>"+// separator
 		        	"<li id=\"showall\">Show All</li>"+
 			    	"</ul></div></div>"
 					);
 				
+				$('body').append(
+					"<div class=\"contextMenu\" id=\"backgroundMenu-"+self.ID+"\"><ul>"+
+					"<li id=\"backgroundMenu-"+self.ID+"\" class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
+					"<hr>"+
+					"<div class=\"options\">"+
+					"<li id=\"showall\">Show All</li>"+
+					"</ul></div></div>"
+					);
+
 				$("#name").css("text-align", "center");
 			}
 
@@ -281,7 +300,7 @@ window.VIKI = (function(my) {
 				      .on("dblclick.zoom", null)
 
 				svg.append("svg:rect")
-				   .attr("id", self.ID)
+				   .attr("id", "rect-"+self.ID)
 				   .attr("width", self.width)
 				   .attr("height", self.height)
 				   .attr("fill", "white");
@@ -379,7 +398,7 @@ window.VIKI = (function(my) {
 				d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
 					
 				self.Force = d3.layout.force();
-				self.Force.gravity(0.4)
+				self.Force.gravity(0.2)
 				self.Force.linkStrength(1.25)
 				// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 				// The edge between to clusters is stretched from the polarity between the adjacent clusters.
@@ -404,7 +423,7 @@ window.VIKI = (function(my) {
 
 				self.NodeSelection =
 					svg.select("#nodes-"+self.ID).selectAll(".node-"+self.ID);
-		
+
 				function tick() {
 
 					// Explicit detection for IE10 and IE11, which requires this patch to fix SVG markers.
@@ -444,9 +463,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
 
 						return d.source.x + r*Math.cos(angle);
-						//return d.source.x + (width/2)*Math.cos(angle);
-						//return d.source.x + boundaryRadius*Math.cos(angle);
 					});
+
 					self.LinkSelection.attr("y1", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -461,9 +479,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(angle)*Math.cos(angle)) + (a*a*Math.sin(angle)*Math.sin(angle)) );
 
 						return d.source.y + r*Math.sin(angle);
-						//return d.source.y + (height/2)*Math.sin(angle);
-						//return d.source.y + boundaryRadius*Math.sin(angle);
 					});
+
 					self.LinkSelection.attr("x2", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -478,9 +495,8 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
 
 						return d.target.x + r*Math.cos(Math.PI+angle);
-						//return d.target.x + (width/2)*Math.cos(Math.PI + angle);
-						//return d.target.x + boundaryRadius*Math.cos(Math.PI + angle);
 					});
+
 					self.LinkSelection.attr("y2", function(d) {
 
 						var dy = d.target.y - d.source.y;
@@ -495,7 +511,6 @@ window.VIKI = (function(my) {
 						var r = a*b / Math.sqrt( (b*b*Math.cos(Math.PI+angle)*Math.cos(Math.PI+angle)) + (a*a*Math.sin(Math.PI+angle)*Math.sin(Math.PI+angle)) );
 						return d.target.y + r*Math.sin(Math.PI + angle);
 						return d.target.y + (height/2)*Math.sin(Math.PI + angle);
-						//return d.target.y + boundaryRadius*Math.sin(Math.PI + angle);
 					});
 				}
 			}
@@ -555,15 +570,15 @@ window.VIKI = (function(my) {
 						// do something about this error, but then increment contentNamespacesFetched so it can continue to work.
 						// default to just NS 0 (main).
 						self.showError("Timeout for content namespace fetch for "+wikiTitle+". Defaulting to NS 0 (main).");
-						actuallySearchableWikis[index].contentNamespaces = [0];
-						self.contentNamespacesFetched++;
-						if(self.contentNamespacesFetched == self.searchableCount) {
-							self.populateInitialGraph();				
-						}
 					}
 					else {
 						self.showError("Error fetching inside getContentNamespacesForWikiAtIndex for "+wikiTitle+" - AJAX request. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 					}
+					actuallySearchableWikis[index].contentNamespaces = [0];
+						self.contentNamespacesFetched++;
+						if(self.contentNamespacesFetched == self.searchableCount) {
+							self.populateInitialGraph();				
+						}
 				}
 			});
 		
@@ -613,7 +628,8 @@ window.VIKI = (function(my) {
 			self.NodeSelection.exit().remove();
 			self.LinkSelection.exit().remove();
 
-			newNodes.attr("class", "node-"+this.ID);
+			newNodes.attr("class", "vikijs-node node-"+this.ID);
+
 			newNodes.on("click", function(d) {
 				self.SelectedNodeIndex = d.index;
 				self.displayNodeInfo(d);
@@ -628,7 +644,7 @@ window.VIKI = (function(my) {
 				self.redraw(false);
 			});
 
-			self.prepareContextMenu();
+			self.prepareContextMenus();
 
 			var drag = self.Force.drag()
 			   .on("dragstart", function() { d3.event.sourceEvent.stopPropagation(); });
@@ -680,7 +696,7 @@ window.VIKI = (function(my) {
 			});
 
 			var newImages = newNodes.append("svg:image");
-			newImages.attr("class", "icon");
+			newImages.attr("class", "vikijs-icon icon");
 
 
 			var allImages = self.NodeSelection.selectAll(".icon");
@@ -839,7 +855,32 @@ window.VIKI = (function(my) {
 			   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 		}
 
-		my.VikiJS.prototype.prepareContextMenu = function() {
+		my.VikiJS.prototype.prepareContextMenus = function() {
+			var self = this;
+
+			$('#rect-'+self.ID).contextMenu('backgroundMenu-'+this.ID, {
+				onShowMenu : function(e, menu) {
+					self.Force.stop();
+					return menu;
+				},
+		      	onExitMenu: function(e,menu) {
+		      		self.Force.start();
+		      	},
+		      	itemStyle: {
+			        fontFamily : 'sans serif',
+			        fontSize: '13px',
+			        backgroundColor : '#FFFFFF'
+		        },
+		        menuStyle: {
+		        	width: '80px'
+		        },
+		        bindings: {
+		        	'showall' : function(t) {
+		        		self.showAllNodes();
+		        	}
+		        }
+			});
+
 	        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
 	        	// activate before the menu shows
 	        	onShowMenu: function(e, menu) {
@@ -874,15 +915,26 @@ window.VIKI = (function(my) {
 			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage || (node.type === self.WIKI_PAGE_TYPE && !node.searchable)) {
 			          $('.elaborate-'+self.ID, menu).remove();
 			        }
-			        if(!node.elaborated)
+			        if(!node.elaborated) {
 			        	$('#hideHub', menu).remove();
+			        	$('#hideIncoming', menu).remove();
+			        	$('#hideOutgoing', menu).remove();
+			        }
 			        if(node.nonexistentPage) {
 			        	$('#getinfo', menu).remove();
 			        	$('#categories', menu).remove();
+			        	$('#hideByCategory', menu).remove();
 			        }
-			        if(node.type == self.EXTERNAL_PAGE_TYPE)
+			        if(node.type == self.EXTERNAL_PAGE_TYPE) {
 			        	$('#categories', menu).remove();
-
+			        	$('#hideByCategory', menu).remove();
+			        }
+			        if(node.hidingOutgoing) {
+			        	$('#hideOutgoing', menu).remove();
+			        }
+			        if(node.hidingIncoming) {
+			        	$('#hideIncoming', menu).remove();
+			        }
 			        return menu;
 		      	},
 		      	// activate after the menu shows
@@ -914,27 +966,26 @@ window.VIKI = (function(my) {
 			        },
 			        'categories': function(t) {
 			        	node = d3.select(t).datum();
-
-			        	var categories = "Categories: ";
-			        	for(var i = 0; i < node.categories.length; i++) {
-			        		categories+= node.categories[i]+", ";
-			        	}
-			        	if(node.categories.length == 0) {
-			        		categories += "No categories";
-			        	}
-			        	else {
-				        	categories = categories.substring(0, categories.length-2);
-				        }
-			        	alert(categories);
+			        	self.showCategories(node.categories, false);
+			        },
+			        'hideByCategory': function(t) {
+			        	node = d3.select(t).datum();
+						self.showCategories(node.categories, true);
+			        },
+			        'hideIncoming' : function(t) {
+			        	node = d3.select(t).datum();
+			        	self.hideIncomingLinks(node);
+			        },
+			        'hideOutgoing' : function(t) {
+						node = d3.select(t).datum();
+						self.hideOutgoingLinks(node);
 			        },
 			        'hide': function(t) {
 			        	node = d3.select(t).datum();
-
 						self.hideNodeAndRedraw(node);
 			        },
 			        'hideHub': function(t) {
 			        	node = d3.select(t).datum();
-
 			        	self.hideHub(node);
 			        },
 			        'showall': function(t) {
@@ -1032,6 +1083,13 @@ window.VIKI = (function(my) {
 
 			jQuery("#"+self.SubDetailsDiv).html(info);
 		}
+
+		my.VikiJS.prototype.displayNoNodeSelected = function() {
+			var self = this;
+
+			var info = "<h4 id='vikijs-header'>(No Node Selected)</h4>";
+			jQuery("#"+self.SubDetailsDiv).html(info);
+		}
 		
 		my.VikiJS.prototype.visitNode = function(intraNode) {
 			var self = this;
@@ -1061,6 +1119,7 @@ window.VIKI = (function(my) {
 					self.showError("Error fetching inside visitNode - AJAX request (query page). jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown = "+errorThrown);
 				}
 			});
+			intraNode.visited = true;
 
 			function wikiPageCheckSuccessHandler(data, textStatus, jqXHR, originNode) {
 
@@ -1087,8 +1146,83 @@ window.VIKI = (function(my) {
 					}
 				}
 
-				originNode.visited = true;
 				self.callHooks("AfterVisitNodeHook", [originNode]);
+			}
+		}
+
+		my.VikiJS.prototype.showCategories = function(categories, hideByCategory) {
+			var self = this;
+			if(hideByCategory) {		// Hide By Category
+				var categoriesHTML = "\
+				<div id='categoryDiv'>\
+					<fieldset>\
+						<legend>Categories</legend>\
+						<table id='categoryContainer'>\
+							<tbody>\
+					";
+
+				for(var i = 0; i < categories.length; i++) {
+					categoriesHTML += "<tr><td><input type='checkbox' class='categoryCheckbox' id='"+categories[i]+"' name='"+categories[i]+"' value=false><label for='"+categories[i]+"'>"+categories[i]+"</label></td></tr>";
+				}
+
+				categoriesHTML += "</tbody></table></fieldset></div>";
+
+				vex.dialog.open({
+					message: "Select categories to hide:",
+					input:categoriesHTML,
+					contentCSS: {
+						"min-width" : '250px',
+						"width" : "auto",
+						"display" : "table"
+					},
+					afterOpen: function($vexContent) {
+						self.Force.stop();
+						$(".categoryCheckbox").each(function() {
+							var checkbox = $(this);
+							checkbox.click(function() {
+								value = checkbox.prop('checked');
+								checkbox.prop('value', value);
+							});
+						});
+					},
+					callback: function(data) {
+						if(data) {
+							self.hideByCategories(Object.keys(data));
+						}
+					},
+					showCloseButton : true
+				});
+
+			}
+
+			else {			// Show Categories
+				var categoriesHTML = "\
+				<div id='categoryDiv'>\
+					<fieldset>\
+						<legend>Categories</legend>\
+						<ul id='categoryContainer'>\
+					";
+
+				if(categories.length == 0)
+					categories.push("No categories");
+
+				for(var i = 0; i < categories.length; i++) {
+					categoriesHTML += "<li>"+categories[i]+"</li>";
+				}
+
+				categoriesHTML += "</ul>";
+
+				vex.open({
+					content:categoriesHTML,
+					contentCSS: {
+						"min-width": '150px',
+						"width": "auto",
+						"display" : "table"
+					},
+					afterOpen: function($vexContent) {
+						self.Force.stop();
+					}
+				});
 			}
 		}
 
@@ -1101,7 +1235,7 @@ window.VIKI = (function(my) {
 
 			node = self.newNode();
 			shortURL = url.replace("http://", "").replace("https://", "").replace("www.", "");
-			node.displayName = (shortURL.length < 15 ? shortURL : shortURL.substring(0,20)+"...");
+			node.displayName = (shortURL.length < 20 ? shortURL : shortURL.substring(0,20)+"...");
 			node.fullDisplayName = url;
 			node.type = self.EXTERNAL_PAGE_TYPE;
 			node.URL = url;
@@ -1118,13 +1252,11 @@ window.VIKI = (function(my) {
 			index = self.searchableWikiIndexForName(wikiTitle);
 			var wiki = self.allWikis[index];
 			url = wiki.contentURL.substring(0, wiki.contentURL.indexOf("$1")) + (pageTitle.split(" ").join("_"));
-
 			return self.createWikiNode(pageTitle, url, wiki);
 		}
 
 		my.VikiJS.prototype.createWikiNodeFromExternalLink = function(url, wikiIndex) {
 			var self = this;
-
 			// pageTitle = url.replace(self.allWikis[wikiIndex]["contentURL"], "").split("_").join(" ");
 			strippedContentURL = self.allWikis[wikiIndex].contentURL.substring(0, self.allWikis[wikiIndex].contentURL.indexOf("$1"));
 			pageTitle = url.replace(strippedContentURL, "").split("_").join(" ");
@@ -1528,6 +1660,8 @@ window.VIKI = (function(my) {
 			node.hidden = true;
 			self.HiddenNodes.push(node);
 			self.Nodes.splice(node.index, 1);
+			for(var i = node.index; i < self.Nodes.length; i++)
+				self.Nodes[i].index--;
 
 			// 2. Remove any associated links from Links array and store into hidden links array.
 			// Also store into recentHiddenLinks so we can remove them from LinkMap.
@@ -1541,20 +1675,18 @@ window.VIKI = (function(my) {
 			}
 
 			// 3. Remove links from LinkMap.
-			var linkMapKeys = Object.keys(self.LinkMap);
-
-			for(var i = 0; i < linkMapKeys.length; i++) {
-				var linkMapKey = linkMapKeys[i].split(",");
-				for(var j = 0; j < recentHiddenLinks.length; j++) {
-					if(parseInt(linkMapKey[0]) == recentHiddenLinks[j].source.identifier || parseInt(linkMapKey[1]) == recentHiddenLinks[j].target.identifier) {
-						delete self.LinkMap[linkMapKeys[i]];
-					}
-				}
+			for(var i = 0; i < recentHiddenLinks.length; i++) {
+				var key = recentHiddenLinks[i].source.identifier+","+recentHiddenLinks[i].target.identifier;
+				var reverse = recentHiddenLinks[i].target.identifier+","+recentHiddenLinks[i].source.identifier;
+				if(self.LinkMap[key])
+					delete self.LinkMap[key];
+				if(self.LinkMap[reverse])
+					delete self.LinkMap[reverse];
 			}
 
-			// 4. Set selected node to the first node in the array (arbitrarily) to avoid possibility that the selected node index is now out of bounds!
-			self.SelectedNodeIndex = 0;
-			self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
+			// 4. Set selected node to none and display "No Node Selected" since the old selected node is now hidden.
+			self.SelectedNodeIndex = -1;
+			self.displayNoNodeSelected();
 
 		}
 
@@ -1568,33 +1700,80 @@ window.VIKI = (function(my) {
 			if(!node.elaborated)
 				return;
 
-			// Iterate Links to identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+			self.hideCluster(node, self.HIDE_HUB);
+		}
+
+		my.VikiJS.prototype.hideCluster = function(node, hideType) {
+			// hideCluster is the same call for hideHub, hideIncomingLinks and hideOutgoingLinks.
+			// We iterate links to check all nodes participating in those links which are connected to the passed-in node.
+			// If hideHub was the caller, identify all nodes connected to this node which aren't connected to any others (i.e. leaf nodes).
+			// If hideIncomingLinks or hideOutgoingLInks was the caller, just identify all connected nodes.
 
 			var nodesToRemove = new Array();
-			nodesToRemove.push(node);
+			if(hideType == self.HIDE_HUB)
+				nodesToRemove.push(node);
 
 			for(var i = 0; i < self.Links.length; i++) {
 				link = self.Links[i];
-				if(link.source === node) {
-					if(self.numberOfConnections(link.target) == 1)
+				
+				// hideHub doesn't care about bidirectionality of links, but hideIncomingLinks and hideOutgoingLinks do.
+				if(link.bidirectional && (link.source == node || link.target == node) && hideType != self.HIDE_HUB) {
+					thisNode = link.source == node ? link.target : link.source;
+					// Only want to hide bidirectional links if BOTH hideIncoming and hideOutgoing will be the case for the passed-in node.
+					// Thus, if hideType is HIDE_INCOMING and the node is already hidingOutgoing, hide this bidirectional link.
+					// Same if hideType is HIDE_OUTGOING and the node is already hidingIncoming.
+					if((hideType == self.HIDE_INCOMING && node.hidingOutgoing) || (hideType == self.HIDE_OUTGOING && node.hidingIncoming)) {
+						nodesToRemove.push(thisNode);
+					}
+				}
+				else if(link.source === node) {
+					if(hideType == self.HIDE_OUTGOING || (hideType == self.HIDE_HUB && self.numberOfConnections(link.target) == 1))
 						nodesToRemove.push(link.target);
 				}
 				else if(link.target === node) {
-					if(self.numberOfConnections(link.source) == 1)
+					if(hideType == self.HIDE_INCOMING || (hideType == self.HIDE_HUB && self.numberOfConnections(link.source) == 1))
 						nodesToRemove.push(link.source);
 				}
 			}
 
 			for(var i = 0; i < nodesToRemove.length; i++) {
 				self.hideNode(nodesToRemove[i]);
-				self.redraw(true);
+			}
+
+			if(hideType == self.HIDE_INCOMING || hideType == self.HIDE_OUTGOING) {
+				self.SelectedNodeIndex = node.index;
+				self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
 			}
 
 			self.redraw(true);
 		}
 
-		my.VikiJS.prototype.unhideNode = function(identifier) {
+		my.VikiJS.prototype.hideIncomingLinks = function(node) {
+			self.log("hideIncomingLinks for "+node.pageTitle);
+			self.hideCluster(node, self.HIDE_INCOMING);
+			node.hidingIncoming = true;
+		}
 
+		my.VikiJS.prototype.hideOutgoingLinks = function(node) {
+			self.log("hideOutgoingLinks for "+node.pageTitle);
+			self.hideCluster(node, self.HIDE_OUTGOING);
+			node.hidingOutgoing = true;
+		}
+
+		my.VikiJS.prototype.hideByCategories = function(categories) {
+			var self = this;
+			categories.forEach(function(category) {
+				var nodesInThisCategory = self.Nodes.filter(function(node) { return node.categories ? node.categories.indexOf(category) != -1 : false; });
+
+				nodesInThisCategory.forEach(function(node) {
+					self.hideNode(node);
+				});
+			});
+
+			self.redraw(true);
+		}
+
+		my.VikiJS.prototype.unhideNode = function(identifier) {
 			var index = -1;
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
 				if(self.HiddenNodes[i].identifier == identifier) {
@@ -1618,6 +1797,7 @@ window.VIKI = (function(my) {
 
 			for(var i = 0; i < self.HiddenNodes.length; i++) {
 				self.Nodes.push(self.HiddenNodes[i]);
+				self.HiddenNodes[i].index = self.Nodes.length-1;
 				self.HiddenNodes[i].hidden = false;
 			}
 			self.HiddenNodes = new Array();
@@ -1628,10 +1808,15 @@ window.VIKI = (function(my) {
 				link = self.HiddenLinks[i];
 				self.Links.push(link);
 				self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
-				self.LinkMap[link.source.identifier + "," + link.target.identifier] = link;
+				self.LinkMap[link.target.identifier + "," + link.source.identifier] = link;
 			}
 
 			self.HiddenLinks = new Array();
+			
+			self.Nodes.forEach(function(node) { 
+				node.hidingIncoming = false; 
+				node.hidingOutgoing = false; 
+			});
 
 			self.redraw(true);
 
@@ -1707,7 +1892,6 @@ window.VIKI = (function(my) {
 	    				scope[scopeSplit[scopeSplit.length - 1]](self, parameters, hookName);
 					}
 					
-					// self.redraw(true);
 					return true;
 				}
 			}

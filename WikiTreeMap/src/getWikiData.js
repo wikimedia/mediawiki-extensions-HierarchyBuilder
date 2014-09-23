@@ -62,7 +62,8 @@ function getUnused(vikiObject){
         dataType: 'jsonp',
         async: false,
         success: function (data, textStatus, jqXHR) {
-     	    var unused = data.query.querypage.results;			if(unused.length){
+     	    var unused = data.query.querypage.results;
+			if(unused.length){
 				var tabulation = tabulate(unused, ["Unused Categories:"]);
 				setTimeout(function() {
 		  			 $('div.wikitreemap-graph-container').append(tabulation);
