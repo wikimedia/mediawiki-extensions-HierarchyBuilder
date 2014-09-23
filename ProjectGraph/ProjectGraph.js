@@ -194,7 +194,7 @@ window.ProjectGraph = function() {
 
 		if ((chargeNumbers == null || chargeNumbers.length == 0) &&
 			(employeeNumbers == null || employeeNumbers.length == 0)) {
-			alert("No charge number or employee number provided");
+			self.errorAlert("No charge number or employee number provided");
 			return;
 		}
 
@@ -214,12 +214,12 @@ window.ProjectGraph = function() {
 
 		if (this.FiscalYear == null ||
 			this.FiscalYear.length == 0) {
-			alert("You must supply a fiscal year.");
+			self.errorAlert("You must supply a fiscal year.");
 			return;
 		} else {
 			var yearpattern = /^[0-9]{4}$/;
 			if (!yearpattern.test(this.FiscalYear)) {
-				alert("Year invalid. Must be of the form YYYY.");
+				self.errorAlert("Year invalid. Must be of the form YYYY.");
 				return;
 			}
 		}
@@ -878,8 +878,7 @@ window.ProjectGraph = function() {
 			self.FiscalYear);
 
 		if (delivery == null) {
-			$("#projectgraph-errors-panel").css("visibility", "visible");
-			$("#projectgraph-errors-panel").html("<p>Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+this.FiscalYear+"</p>");
+			self.errorself.errorAlert("Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+this.FiscalYear);
 			return null;
 		} else {
 			this.parseTaskStaff(taskNode, delivery);
@@ -930,7 +929,7 @@ window.ProjectGraph = function() {
 		var tasks = self.queryStaffTasks(personNode.employeeNumber, 
 			self.FiscalYear);
 		if (tasks == null) {
-			alert("Error getting data for employee " + personNode.employeeNumber +
+			self.errorAlert("Error getting data for employee " + personNode.employeeNumber +
 				" for fiscal year " + this.FiscalYear);
 		} else {
 			this.parseStaffTasks(personNode, tasks);
@@ -1050,9 +1049,9 @@ window.ProjectGraph = function() {
 		        },
 		        'tags': function(t){
 					if(node.tags==null)
-						alert("Tags have not been loaded yet");
+						self.errorAlert("Tags have not been loaded yet");
 		        	else
-						alert(node.tags.join());
+						self.errorAlert(node.tags.join());
 		        }
 	        }
 		});
@@ -1242,6 +1241,11 @@ window.ProjectGraph = function() {
 		this.redraw(true);
 	}
 	
+	ProjectGraph.prototype.errorself.errorAlert = function(msg){
+		$("#projectgraph-errors-panel").css("visibility", "visible");
+		$("#projectgraph-errors-panel").html("<p>"+msg+"</p>");	
+	}
+
 	ProjectGraph.prototype.log = function(text) {
 		if( (window['console'] !== undefined) )
 			console.log( text );
@@ -1282,7 +1286,7 @@ window.ProjectGraph = function() {
 				});
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				alert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
+				self.errorAlert("Unable to fetch project charges. This is typically due to an MII data stream outage.");
 			}
 		});
 		return tasks;
