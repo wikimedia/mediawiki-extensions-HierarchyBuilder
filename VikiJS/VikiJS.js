@@ -398,7 +398,7 @@ window.VIKI = (function(my) {
 				d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
 					
 				self.Force = d3.layout.force();
-				self.Force.gravity(0.4)
+				self.Force.gravity(0.2)
 				self.Force.linkStrength(1.25)
 				// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 				// The edge between to clusters is stretched from the polarity between the adjacent clusters.
@@ -628,7 +628,7 @@ window.VIKI = (function(my) {
 			self.NodeSelection.exit().remove();
 			self.LinkSelection.exit().remove();
 
-			newNodes.attr("class", "node-"+this.ID);
+			newNodes.attr("class", "vikijs-node node-"+this.ID);
 
 			newNodes.on("click", function(d) {
 				self.SelectedNodeIndex = d.index;
@@ -696,7 +696,7 @@ window.VIKI = (function(my) {
 			});
 
 			var newImages = newNodes.append("svg:image");
-			newImages.attr("class", "icon");
+			newImages.attr("class", "vikijs-icon icon");
 
 
 			var allImages = self.NodeSelection.selectAll(".icon");
