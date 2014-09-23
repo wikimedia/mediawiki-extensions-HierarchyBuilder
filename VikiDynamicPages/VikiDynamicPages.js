@@ -107,6 +107,8 @@ window.VIKI = (function(my) {
 						VIKI.VikiDynamicPages.errorFlags[node.wikiTitle] = {};
 					VIKI.VikiDynamicPages.errorFlags[node.wikiTitle][node.pageTitle] = true;
 
+					node.displayName = node.displayName.length < 20 ? node.displayName : node.displayName.substring(0,20)+"...";
+
 				}
 				vikiObject.hookCompletion(this.hookName, { "redraw" : false });
 				return;
@@ -116,7 +118,8 @@ window.VIKI = (function(my) {
 				formula = formula.replace("$"+element, queryParameters[element]);
 			});
 
-			node.displayName = formula;
+			formula = decodeURIComponent(formula);
+			node.displayName = formula.length < 20 ? formula : formula.substring(0,20)+"...";
 			node.fullDisplayName = formula;
 			// vikiObject.redrawNode(node);
 			vikiObject.hookCompletion(VIKI.VikiDynamicPages.hookName, { "redrawNode" : true, "node" : node });

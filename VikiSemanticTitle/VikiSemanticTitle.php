@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiSemanticTitle',
-	'version' => '1.1',
+	'version' => '1.1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikisemantictitle-desc'
 );
@@ -121,13 +121,6 @@ class ApiGetDisplayTitle extends ApiBase {
 		if(array_key_exists($namespace, $wgSemanticTitleProperties)) {
 
 			$displayNameProperty = $wgSemanticTitleProperties[$namespace];
-
-			// $params = array("[[$pageTitle]]", "?$displayNameProperty=");
-			// $result = SMWQueryProcessor::getResultFromFunctionParams( $params, SMW_OUTPUT_WIKI );
-			// wfErrorLog(print_r($result, true) . "\n", "/var/www/html/DEBUG_VikiSemanticTitle.out");
-
-			// Get the semantic title from the title property via SMW API.
-			// (Any better way to do this?)
 
 			$api = new ApiMain(
 				new DerivativeRequest(

@@ -41,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.0.3',
+	'version' => '1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikiiwlinks-desc'
 );
@@ -78,7 +78,6 @@ function efVikiIWLinks_AddResource (& $parser) {
 }
 
 function addVikiTablesToDatabase($updater) {
-	wfErrorLog("addVikiTablesToDatabase called.\n", "/var/www/html/DEBUG_VikiIWLinks.out");
 	$updater->addExtensionField('interwiki', 'logo_url',
 			__DIR__ . '/AddLogoURL.sql', true);
 	$updater->addExtensionField('interwiki', 'viki_searchable',
@@ -89,44 +88,37 @@ function addVikiTablesToDatabase($updater) {
 
 function efVikiIWLinks_Setup($params) {
 
-	wfErrorLog("efVikiIWLinks_Setup called \n", "/var/www/html/DEBUG_VikiIWLinks.out");
-
 	// access database and get wikis from interwiki links table
 
 	$dbr = wfGetDB( DB_SLAVE );
 	$result = $dbr->select(
 		'interwiki',
-		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable'),
-		'viki_searchable = true OR viki_searchable = false'
+		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+		'mgf_wiki = true'
 	);
-	wfErrorLog("database result:\n", "var/www/html/DEBUG_VikiIWLinks.out");
 
 
 	// turn into JSON
 
-	$wikiTestArray = array();
+	$databaseResults = array();
 
 	foreach($result as $row) {
-		wfErrorLog(print_r($row, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");		
-
-		$wikiTestArray[] = array(
+		$databaseResults[] = array(
 			"wikiTitle" => $row->iw_prefix,
 			"apiURL" => $row->iw_api,
 			"contentURL" => $row->iw_url,
 			"logoURL" => $row->logo_url,
-			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false")
+			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false"),
+			"server" => $row->server
 		);
 	}
 
-	wfErrorLog("wikiTestArray:\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-	wfErrorLog(print_r($wikiTestArray, true) . "\n", "/var/www/html/DEBUG_VikiIWLinks.out");
-
-	$wikiTestArrayJSON = addslashes(json_encode($wikiTestArray));
+	$databaseResultsJSON = addslashes(json_encode($databaseResults));
 	global $wgOut;
 
 	$script = <<<END
 mw.loader.using('ext.VikiIWLinks', function() {
-	VIKI.VikiIWLinks.viki_parseWikiData("$wikiTestArrayJSON");	
+	VIKI.VikiIWLinks.viki_parseWikiData("$databaseResultsJSON");	
 });
 END;
 
