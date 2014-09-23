@@ -49,14 +49,14 @@ $wgResourceModules['ext.WikiUserTool'] = array(
 	'localBasePath' => dirname(__FILE__),
 	'remoteExtPath' => 'WikiUserTool',
 	'styles' => array(
-		'WikiVersionTool.css'
+		'style/heatmap.css'
 	),
 	'scripts' => array(
 		'lib/d3.v3.min.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
-		'src/getWikis.js',
+		'src/getWikis2.js',
 	)
 );
 
