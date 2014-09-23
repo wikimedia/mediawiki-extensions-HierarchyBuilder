@@ -49,7 +49,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiTitleIcon',
-	'version' => '1.1',
+	'version' => '1.1.1',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikititleicon-desc'
 );
@@ -89,8 +89,6 @@ class ApiGetTitleIcons extends ApiBase {
 	}
 	
 	public function execute() {
-		wfErrorLog("==========================================\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-
 		$pageTitle = $this->getMain()->getVal('pageTitle');
 
 		global $TitleIcon_TitleIconPropertyName;
@@ -98,9 +96,6 @@ class ApiGetTitleIcons extends ApiBase {
 
 		$pageNameWithSpaces = str_replace('_', ' ', $pageTitle);
 		$titleIconWithSpaces = str_replace('+', ' ', $myTitleIconName);
-
-		wfErrorLog("Title Icon terminology: $myTitleIconName\n", "/var/www/html/DEBUG_getTitleIcon2.out");
-		wfErrorLog("pageTitle = $pageTitle\n", "/var/www/html/DEBUG_getTitleIcon2.out");
 		
 		$api = new ApiMain(
 			new DerivativeRequest(
@@ -135,7 +130,6 @@ class ApiGetTitleIcons extends ApiBase {
 		$titleIconURLs = array();
 		
 		foreach($titleIconNames as $name) {
-			wfErrorLog("$name\n", "/var/www/html/DEBUG_getTitleIcon2.out");
 			
 			$api = new ApiMain(
 				new DerivativeRequest(
@@ -154,7 +148,6 @@ class ApiGetTitleIcons extends ApiBase {
 			$data = $api->getResultData();
 			$key = array_shift(array_keys($data["query"]["pages"]));
 			$url = $data["query"]["pages"][$key]["imageinfo"][0]["url"];
-			wfErrorLog("$key --> $url\n", "/var/www/html/DEBUG_getTitleIcon2.out");
 			$titleIconURLs[] = $url;
 		}
 

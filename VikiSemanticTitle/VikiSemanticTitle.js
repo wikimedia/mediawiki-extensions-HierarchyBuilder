@@ -61,7 +61,7 @@ window.VIKI = (function(my) {
 			if(node.semanticTitle !== semanticTitle) {
 
 				// node.pageTitle = data["getDisplayTitle"]["result"];
-				node.displayName = semanticTitle.length < 15 ? semanticTitle : semanticTitle.substring(0,15)+"...";
+				node.displayName = semanticTitle.length < 20 ? semanticTitle : semanticTitle.substring(0,20)+"...";
 				node.fullDisplayName = semanticTitle + " ("+node.pageTitle+")";
 			}
 			node.semanticQueried = true;

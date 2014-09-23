@@ -25,3 +25,9 @@
 $messages['en'] = array(
 	'vikijs-desc' => 'Draws a graph from wiki pages or web pages'
 );
+
+$magicWords = array();
+
+$magicWords['en'] = array(
+	'vikijs' => array(0, 'vikijs')
+	);
