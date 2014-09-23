@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'wikiversiontool-desc' => 'Draws a comparison table of Wiki versions'
+	'wikitreemap-desc' => 'Draws a comparison table of Wiki versions'
 );

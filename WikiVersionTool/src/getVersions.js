@@ -73,12 +73,12 @@ function fillDropdown(dropdownName, vikiObject) {
 
 	// populates the wiki dropdown menu for version comparisons, except for non-working wikis
   	vikiObject.activeWikis.forEach(function(d) {
-		if(d.wikiTitle==="CTS" || d.wikiTitle==="J85d-jobs" || d.wikiTitle==="Energy Tools"){
+		if(d.wikiName==="CTS" || d.wikiName==="J85D Jobs" || d.wikiName==="Energy Tools"){
 //			console.log(d.wikiTitle);
 		} else {
 //	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
-	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
-	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
+	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
+	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
 		}
     });
 
@@ -137,6 +137,8 @@ window.getIWLinksTable = function(vikiObject){
 									contentURL: allWikis[i]["contentURL"],
 									logoURL: allWikis[i]["logoURL"],
 									searchableWiki : allWikis[i]["searchableWiki"],
+									server : allWikis[i]["server"],
+		                            wikiName : allWikis[i]["wikiName"]
 								  };
 						if(allWikis[i]['searchableWiki']!== undefined ){
 

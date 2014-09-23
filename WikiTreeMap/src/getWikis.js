@@ -23,6 +23,8 @@ window.getIWLinksTable = function(vikiObject){
 									contentURL: allWikis[i]["contentURL"],
 									logoURL: allWikis[i]["logoURL"],
 									searchableWiki : allWikis[i]["searchableWiki"],
+                           server : allWikis[i]["server"],
+                           wikiName : allWikis[i]["wikiName"]
 								  };
 						if(allWikis[i]['searchableWiki']!== undefined ){
 

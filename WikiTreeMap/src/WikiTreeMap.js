@@ -67,11 +67,14 @@ function fillDropdown(dropdownName, vikiObject) {
     $(dropdownName).append('<option value="' + "http://mitrepedia.mitre.org/api.php" + '">' + "MITREpedia" + '</option>');
 
 
+
+
+
 	// populates the wiki dropdown menu for version comparisons, except for non-working wikis
   	vikiObject.activeWikis.forEach(function(d) {
-		if(d.wikiTitle==="CTS" || d.wikiTitle==="J85d-jobs" || d.wikiTitle==="Energy Tools"){
+		if(d.wikiName==="CTS" || d.wikiName==="J85D Jobs" || d.wikiName==="Energy Tools"){
 		} else {
-	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
+	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
 		}
     });
 
