@@ -966,17 +966,6 @@ window.VIKI = (function(my) {
 			        },
 			        'categories': function(t) {
 			        	node = d3.select(t).datum();
-
-			        	var categories = "Categories: ";
-			        	for(var i = 0; i < node.categories.length; i++) {
-			        		categories+= node.categories[i]+", ";
-			        	}
-			        	if(node.categories.length == 0) {
-			        		categories += "No categories";
-			        	}
-			        	else {
-				        	categories = categories.substring(0, categories.length-2);
-				        }
 			        	self.showCategories(node.categories, false);
 			        },
 			        'hideByCategory': function(t) {
@@ -1207,13 +1196,15 @@ window.VIKI = (function(my) {
 			}
 
 			else {			// Show Categories
-
 				var categoriesHTML = "\
 				<div id='categoryDiv'>\
 					<fieldset>\
 						<legend>Categories</legend>\
 						<ul id='categoryContainer'>\
 					";
+
+				if(categories.length == 0)
+					categories.push("No categories");
 
 				for(var i = 0; i < categories.length; i++) {
 					categoriesHTML += "<li>"+categories[i]+"</li>";
