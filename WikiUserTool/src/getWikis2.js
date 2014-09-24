@@ -62,7 +62,8 @@ function buildHeatmap(vikiObject){
 
 
 	  var xAxis = d3.svg.axis()
-			.scale(x);
+			.scale(x)
+            .orient("top");
 
 
 	  var colorScale = d3.scale.quantile()
@@ -105,7 +106,21 @@ function buildHeatmap(vikiObject){
 //    .style("text-anchor", "start");
 
 
-
+  			// svg.append("g")
+     //            .attr("class", "x axis")
+     //            .attr("transform", "translate(0," + height+20 + ")")
+     //            .attr("transform", "rotate(0)")
+     //            .call(xAxis)
+     //          .selectAll("text")
+     //            // .attr("x", function(d,i) { return (x(d.row)) * gridSize; })
+     //            // .attr("y", function(d) { return (d.col-1) * gridSize; })
+     //            .attr("y", 0)
+     //            .attr("x", function(d){
+     //            	return x(d)*gridSize
+     //            })
+     //            .attr("dy", ".35em")
+     //            .attr("transform", "rotate(0)")
+     //            .style("text-anchor", "start");
 
 		// These are the users
           var timeLabels = svg.selectAll(".timeLabel")
@@ -118,21 +133,22 @@ function buildHeatmap(vikiObject){
                 .attr("y", 0)
                 .style("text-anchor", "middle")
                 .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                .attr("id", "user")
 
 
-		timeLabels.selectAll("text")
-			.attr("y", 0)
-			.attr("x", 0)
-			.attr("dy", ".35em")
-			.attr("transform", "rotate(180)")
-			.style("text-anchor", "start");
-//			    .attr("transform", "rotate(90)")
-//				.attr("transform", function(d, i) {return "rotate(-45,0,0)";});
+		// timeLabels.selectAll("text")
+		// 	.attr("y", 0)
+		// 	.attr("x", 0)
+		// 	.attr("dy", ".35em")
+		// 	.attr("transform", "rotate(180)")
+			// .style("text-anchor", "start")
+			//     .attr("transform", "rotate(90)")
+			// 	.attr("transform", function(d, i) {return "rotate(-45,0,0)";});
 
-//                .attr("class", function(d, i) { return ((i >= 7 && i <= 16) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); })
-//				.attr("transform", function(d) {
-//					return "rotate(90)" 
-//                });
+   //             .attr("class", function(d, i) { return ((i >= 7 && i <= 16) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); })
+			// 	.attr("transform", function(d) {
+			// 		return "rotate(90)" 
+   //             });
 
 
           var heatMap = svg.selectAll(".hour")

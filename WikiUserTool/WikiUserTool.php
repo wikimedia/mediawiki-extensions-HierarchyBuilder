@@ -52,7 +52,7 @@ $wgResourceModules['ext.WikiUserTool'] = array(
 		'style/heatmap.css'
 	),
 	'scripts' => array(
-		'lib/d3.v3.min.js',
+		'lib/d3.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
