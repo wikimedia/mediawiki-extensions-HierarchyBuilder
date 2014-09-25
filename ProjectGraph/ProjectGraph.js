@@ -878,7 +878,7 @@ window.ProjectGraph = function() {
 			self.FiscalYear);
 
 		if (delivery == null) {
-			self.errorself.errorAlert("Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+this.FiscalYear);
+			self.errorAlert("Error getting data for task "+taskNode.chargeNumber+" for fiscal year "+this.FiscalYear);
 			return null;
 		} else {
 			this.parseTaskStaff(taskNode, delivery);
@@ -1241,7 +1241,7 @@ window.ProjectGraph = function() {
 		this.redraw(true);
 	}
 	
-	ProjectGraph.prototype.errorself.errorAlert = function(msg){
+	ProjectGraph.prototype.errorAlert = function(msg){
 		$("#projectgraph-errors-panel").css("visibility", "visible");
 		$("#projectgraph-errors-panel").html("<p>"+msg+"</p>");	
 	}
