@@ -54,7 +54,6 @@ $wgResourceModules['ext.OrgChart'] = array(
 	),
 	'scripts' => array(
 		'javascript/d3.v3.js',
-		'javascript/opentip-native.js',
 		'javascript/ractive.js',
 		'javascript/OrgChart.js'
 	)
