@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'OrgChart',
-	'version' => '0.2',
+	'version' => '0.3',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'orgchart-desc'
 );
@@ -49,11 +49,14 @@ $wgResourceModules['ext.OrgChart'] = array(
 	'localBasePath' => dirname(__FILE__),
 	'remoteExtPath' => 'OrgChart',
 	'styles' => array(
-		'OrgChart.css'
+		'stylesheets/OrgChart.css',
+		'stylesheets/tipsy.css'
 	),
 	'scripts' => array(
-		'd3.v3.min.js',
-		'OrgChart.js'
+		'javascript/d3.v3.js',
+		'javascript/opentip-native.js',
+		'javascript/ractive.js',
+		'javascript/OrgChart.js'
 	)
 );
 
@@ -79,6 +82,7 @@ function orgchart($parser) {
 	foreach($myparams as $value)
 		wfErrorLog("$value\n", "/var/www/html/DEBUG_OrgChart.out");
 	wfErrorLog("$value\n", "/var/www/html/DEBUG_OrgChart.out");
+	$filename = __DIR__ . "/config/template.html";
 	$paramDictionary = orgChart_parseParameters($myparams);
 
 	$orgName = array_key_exists("orgName", $paramDictionary) ? $paramDictionary["orgName"] : null;
@@ -119,8 +123,7 @@ class OrgChart {
 
 	private static $pqnum = 0;
 
-	function display($parser, $orgName, $width, $height, $alignment, $color) {
-
+	function display($parser, $orgName, $width, $height, $alignment, $color, $template) {
 		$div = "OrgChart_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$output = <<<EOT
@@ -148,7 +151,16 @@ END;
 		return $output;
 	}
 }
+/*
+class ApiGetTemplate extends ApiBase {
 
+	public function getDescription(){
+		return "";
+	}	
+}
+class ApiGetConfig extends ApiBase {
+
+}*/
 class ApiGetOrgParent extends ApiBase {
 	public function __construct( $main, $action ) {
 		parent::__construct( $main, $action );
