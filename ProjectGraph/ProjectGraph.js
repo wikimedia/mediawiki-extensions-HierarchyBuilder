@@ -1051,7 +1051,7 @@ window.ProjectGraph = function() {
 					if(node.tags==null)
 						self.errorAlert("Tags have not been loaded yet");
 		        	else
-						self.errorAlert(node.tags.join());
+						alert(node.tags.join());
 		        }
 	        }
 		});
