@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'OrgChart',
-	'version' => '0.3',
+	'version' => '0.4',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'orgchart-desc'
 );
