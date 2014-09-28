@@ -19,7 +19,7 @@ function wfExtensionBCard_Setup(& $parser) {
 
 	global $BCard_ServerName;
 	if (!isset($BCard_ServerName)) {
-		$BCard_ServerName = "ldapprod.mitre.org";
+		$BCard_ServerName = "ldap-prod.mitre.org";
 	}
 
 	global $BCard_ServerPort;
