@@ -1,71 +1,21 @@
-// Code Procedure: 
-// On window load, query the IW links table with function getIWLinksTable
-// use the list of IW Table APIs to grab the logs of each of the wikis, up to a year with function getWikiLogs
-// aggregate that data into wikiVObject, propogating aggregate figures up the tree using function propogateStats
-// build heatmap using function buildHeatmap
+var getWiki = function(wikiObject){
+	makeWikiVis(wikiObject)
+}
 
 
-// 1 month: 2.62974e9
+var makeWikiVis = function(vikiObject){
 
-// 2 months: 5.259e+9
-var logMils = 5.259e+9;
-// 6 months: 1.578e+10
-// 1 year: 3.156e+10
+	getIWTableWiki(vikiObject)
 
-// 5 days 4.32e+8
-// var logSize = 4.32e+8;
-
-window.WikiUserTool = function(){};
+}
 
 
+// in order to get wiki as the row and user as the column, the cells have to be
+// one for each wiki-user combination, not one for each day-user combination. 
+// This change will involve making 'wikiTitle' the row
 
 
-
-
-
-WikiUserTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki, user, logSize) {
-	
-// This is the controller, where the chart is drawn based on the arguments provided. 
-// Arguments for wiki can be "All", or any wiki name. 
-// Arguments for user can be "All", or any user name. 
-// Arguments for logSize can be in number of days. 
-
-// When the page loads: 
-// 	if user = all and wiki = all, call the original heatmap
-// 	if user = all and wiki = Wiki, call the Wiki heatmap
-//	if user = User and wiki = all, call the User heatmap
-
-
-	$(function(e){      
-
-		var vikiObject = [];
-			vikiObject.graphDiv = graphDiv;
-			vikiObject.divwidth = divwidth;
-			vikiObject.divheight = divheight;
-			vikiObject.rowName = 'user';
-			vikiObject.colName = 'day';
-			vikiObject.wiki = wiki;
-			vikiObject.user = user;
-			vikiObject.days = parseInt(logSize);
-			vikiObject.logMils = parseInt(logSize)*8.64e+7; // converting to milliseconds
-
-
-		if(user === "All" && wiki === "All"){
-			getIWTable(vikiObject);
-		} else if(user === "All"){
-			getWiki(vikiObject)
-		} else if(wiki === "All"){
-			getUser(vikiObject)
-		} 
-
-			
-	}); 
-};
-
-
-
-
-function buildHeatmap(vikiObject){
+function buildHeatmapWiki(vikiObject){
 	var gs;
 	vikiObject.colName === 'day' ? gs = 32 : gs = 32;
 	var margin = { top: 100, right: 100, bottom: 100, left: 100 },
@@ -78,29 +28,30 @@ function buildHeatmap(vikiObject){
           colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
 		  cols = vikiObject.objAry.colNames,
 		  rows = vikiObject.objAry.rowNames;
-//          days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-//          times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
 	
+
+    // var wikiList = []
+    // 	wikiList.push(vikiObject.wiki)
+
 
 	 // make sure there are only as many days rendered as specified
 	var maxDays = vikiObject.days
-	var filterDays = function(element){
-		return  element.col >= 1 && element.col <= maxDays
-	}
+	// var filterDays = function(element){
+	// 	return  element.col >= 1 && element.col <= maxDays
+	// }
 
-	var filData = vikiObject.objAry.filter(filterDays)
+	// var filData = vikiObject.objAry.filter(filterDays)
 
-	var data = filData.sort(function(a,b){
+	var data = vikiObject.objAry.sort(function(a,b){
 			if(a.col > b.col){return 1}	
 			if(a.col < b.col){return -1}
 			return 0;
 	});
 
-	// making a list of wikis to display
 	data.forEach(function(d){
 		if(d.logs !== undefined){
 			var wikis = d.logs.map(function(l){
-				return l.wiki
+				return l.action
 			})
 		var wikiSet = wikis.filter(function(elem, pos) {
 		   			return wikis.indexOf(elem) == pos;
@@ -143,9 +94,9 @@ var mousemove = function(d) {
 	 d3.select("#tooltip #category")
 	    .text("User: " + d.row);
 	 d3.select("#tooltip #subcategory")
-	    .text("Days Ago: " + d.col);
+	    .text("Wiki: " + d.col);
 	 d3.select("#tooltip #pages")
-	    .text("Wikis: " + d.wikis.join(", "));
+	    .text("Actions: " + d.wikis.join(", "));
 	 d3.select("#tooltip #logEvents")
 	    .text("# of Log Events: " + d.value);
      d3.select("#tooltip").classed("hidden", false);  	
@@ -184,6 +135,18 @@ var mouseout = function() {
           .attr("height", height + margin.top + margin.bottom)
           .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+	    // Adding on the user, wiki, and number of days
+		var userHtml = "<h2>Last " + vikiObject.days + " Days: " + vikiObject.wiki + " </h2>"
+		// var wikiHtml = "<h2>Wiki: " + vikiObject.wiki + " </h2>"
+		// var daysHtml = "<h2>Last " + vikiObject.wiki + " Days</h2>"
+	    $('#wiki1').append(userHtml)
+	 //    $('#wiki1').append(wikiHtml)
+	 //    $('#wiki1').append(daysHtml)
+
+
 
 
 		// these are the days
@@ -265,39 +228,9 @@ var mouseout = function() {
 };
 
 
-var magicFun = function(vikiObject){
-	// imagine a function that goes through each wiki, mapping the wiki names. 
-	// it also goes through each log, mapping log objects to a list of users, and a list of days
-	// it also adds a count to the object, with the user, day, and count
 
 
-	var wikiObj = vikiObject.activeWikis.map(function(o){
-		return o.wikiName
-	})
-
-	// loop thorugh all the wikis
-	// 		for each wiki, have a function that returns all the users in that wiki's log
-	//			so, there should be a mapping function that returns the user of each object
-
-		var wikiSet = []
-		var userObj = vikiObject.activeWikis.map(function(o){
-			if(wikiSet.indexOf(l.user)===-1){
-				var ws = []
-				var wikiUser = o.logs.map(function(l){
-					if(ws.indexOf(l.user)===-1){
-						ws.push(l.user)
-					}
-					return ws
-				})
-			}
-			return wikiSet
-		})
-}
-
-
-function propogateStats(vikiObject){
-
-// magicFun(vikiObject)
+function propogateStatsWiki(vikiObject){
 
 
 // add all the logs to an array
@@ -324,10 +257,10 @@ function propogateStats(vikiObject){
 			allLogs.push(l);
 		})
 	})
-	vikiObject.objAry = populate(allLogs, vikiObject.rowName, 'daysAgo');
+	vikiObject.objAry = populateWiki(allLogs, vikiObject.rowName, 'wiki');
 
 	// the two keys to filter on
-	function populate(ary, key1, key2){
+	function populateWiki(ary, key1, key2){
 		var lAry = [];
 		var result = {};
 		lAry.rowNames = [];
@@ -337,7 +270,7 @@ function propogateStats(vikiObject){
 			var val1 = l[key1];
 			var val2 = l[key2];		
 			function containsObj(element){
-				return (element['row'] === val1 && element['col'] === parseInt(val2));
+				return (element['row'] === val1 && element['col'] === (val2));
 			}
 			var obj = lAry.filter(containsObj);
 			// if it's in the array, add the value to the representative object
@@ -345,7 +278,7 @@ function propogateStats(vikiObject){
 
 				var lObject = {
 				  'row' : val1,
-				  'col' : parseInt(val2),
+				  'col' : (val2),
 				  'value' : 1,
 				  'logs' : []
 				}
@@ -363,10 +296,12 @@ function propogateStats(vikiObject){
 	}
 
 	// populating an array of days the length of the user input
-	if(vikiObject.colName === 'day'){
-		var colCount = vikiObject.days;
-		for(var i = 1; i <= colCount; i++){vikiObject.objAry.colNames.push(i)}
-	}
+	// if(vikiObject.colName === 'day'){
+	// 	var colCount = vikiObject.days;
+		// for(var i = 1; i <= colCount; i++){
+			vikiObject.objAry.colNames.push(vikiObject.wiki)
+		// }
+	// }
 
 	// sorting that array, just to be sure
 	vikiObject.objAry.colNames.sort(function(a,b){
@@ -388,22 +323,25 @@ function propogateStats(vikiObject){
 
 		// for each day, find all the objects with that day
 		// if there aren't any events on that day, add an empty value
-		for(i = 1; i <= (colCount); i++){
 
-			function containsC(element){
-				return (element['col'] === (i));
-			}
-			var cObj = rowElms.filter(containsC);		
-			if(cObj.length < 1){
-			  vikiObject.objAry.push(
-				{
-				  'row' : r, 
-				  'col' : i,
-				  'value' : 0
-				}
-			  )
-			}
-		}				
+		// we have a wiki name, and we want to go through each user and find out if we've missed any. 
+		// this step may not be necessary actually. 
+		// for(i = 1; i <= (colCount); i++){
+
+		// 	function containsC(element){
+		// 		return (element['col'] === (i));
+		// 	}
+		// 	var cObj = rowElms.filter(containsC);		
+		// 	if(cObj.length < 1){
+		// 	  vikiObject.objAry.push(
+		// 		{
+		// 		  'row' : r, 
+		// 		  'col' : vikiObject.wiki,
+		// 		  'value' : 0
+		// 		}
+		// 	  )
+		// 	}
+		// }				
 
 	})
 
@@ -415,23 +353,28 @@ function propogateStats(vikiObject){
 
 
 
-function populateWikiLogs(vikiObject){
+function populateWikiLogsWiki(vikiObject){
+
+	vikiObject.activeWikis = vikiObject.activeWikis.filter(function(w){
+		return w.wikiTitle === vikiObject.wiki
+	})
+
+
 	vikiObject.i = 0;
 	vikiObject.activeWikis.forEach(function(d){
 		d.wUrl = d.apiURL + "?action=query&list=logevents&format=json&lelimit=500"	
 		d.full = false;
 		d.logs = [];
 	})
-	incrementalRecursiveQuery(vikiObject);
+	wikiQuery(vikiObject)
+//	incrementalRecursiveQueryWiki(vikiObject);
 };
 
 
-// This query will take in the vikiObject. It will have a counter attribute for the array index and a flag for the log time.
-// Take in the vikiObject. if the log counter is on the last index and the log flag is true, call the next function. 
-// otherwise, find the index, and check that wiki. If the flag for that wiki is true, increment the index. 
-// if the log flag is false, query for more logs. On success of the query, add the logs and determine if the log flag should 
-// be changed. If so, do so and increment the index. If not, call this same function with the next wUrl. 
-function incrementalRecursiveQuery(vikiObject){
+
+
+
+function wikiQuery(vikiObject){
 
 	// if the increment is not equal to the vikiObject.activeWikis.length, run a query on the wiki at i
 	// otherwise call the next function
@@ -462,36 +405,36 @@ function incrementalRecursiveQuery(vikiObject){
 								  var qCont = data['query-continue'].logevents.lestart;
 								  var newQuery = vikiObject.activeWikis[vikiObject.i].wUrl.split("&lestart=")[0] + "&lestart=" + qCont;
  								  vikiObject.activeWikis[vikiObject.i].wUrl = newQuery;
-								  incrementalRecursiveQuery(vikiObject);
+								  incrementalRecursiveQueryWiki(vikiObject);
 
 							  } else if(data["query-continue"].logevents.hasOwnProperty("lecontinue")){
 								  var qCont = data['query-continue'].logevents.lecontinue;
 								  var newQuery = vikiObject.activeWikis[vikiObject.i].wUrl.split("&lecontinue=")[0] + "&lecontinue=" + qCont;
  								  vikiObject.activeWikis[vikiObject.i].wUrl = newQuery;
-								  incrementalRecursiveQuery(vikiObject);
+								  incrementalRecursiveQueryWiki(vikiObject);
 							  } else {
 								  // if there is no more log data, mark the log as full and increment the index
 								  vikiObject.activeWikis[vikiObject.i].full = true;
 								  vikiObject.i += 1;
-								  incrementalRecursiveQuery(vikiObject);
+								  incrementalRecursiveQueryWiki(vikiObject);
 							  }
 				
 							} else {
 								  // if there is no 'query continue', increment the index and flag the logs
 								  vikiObject.activeWikis[vikiObject.i].full = true;
 								  vikiObject.i += 1;
-								  incrementalRecursiveQuery(vikiObject);							  
+								  incrementalRecursiveQueryWiki(vikiObject);							  
 							}		  
 						} else {
 							// Log is full to the brim. Call the next wiki. 
 							vikiObject.i += 1;
-							incrementalRecursiveQuery(vikiObject);
+							incrementalRecursiveQueryWiki(vikiObject);
 						}
 					} else {
 						    // if there is no 'query', increment the index and flag the logs
 						    vikiObject.activeWikis[vikiObject.i].full = true;
 						    vikiObject.i += 1;
-						    incrementalRecursiveQuery(vikiObject);							  
+						    incrementalRecursiveQueryWiki(vikiObject);							  
 					}
 				},
 				error: function (jqXHR, textStatus, errorThrown) {
@@ -504,8 +447,99 @@ function incrementalRecursiveQuery(vikiObject){
 
 
 	} else {
-		propogateStats(vikiObject);
-		buildHeatmap(vikiObject)
+		propogateStatsWiki(vikiObject);
+		buildHeatmapWiki(vikiObject)
+	}
+
+
+
+
+};
+
+
+
+
+
+// This query will take in the vikiObject. It will have a counter attribute for the array index and a flag for the log time.
+// Take in the vikiObject. if the log counter is on the last index and the log flag is true, call the next function. 
+// otherwise, find the index, and check that wiki. If the flag for that wiki is true, increment the index. 
+// if the log flag is false, query for more logs. On success of the query, add the logs and determine if the log flag should 
+// be changed. If so, do so and increment the index. If not, call this same function with the next wUrl. 
+function incrementalRecursiveQueryWiki(vikiObject){
+
+	// if the increment is not equal to the vikiObject.activeWikis.length, run a query on the wiki at i
+	// otherwise call the next function
+	if(vikiObject.i !== vikiObject.activeWikis.length){
+	
+			jQuery.ajax({
+				url: vikiObject.activeWikis[vikiObject.i].wUrl,
+				dataType: 'jsonp',
+				async: false,
+				success: function (data, textStatus, jqXHR) {
+					// populate the logs
+					if(data.hasOwnProperty("query") && data.query.logevents.length > 0){
+						data.query.logevents.forEach(function(l){
+							// make sure each log is not older than the log limit before pushing
+							if( (Date.parse(Date()) - Date.parse(l.timestamp)) <= vikiObject.logMils   ){
+								vikiObject.activeWikis[vikiObject.i].logs.push(l)	
+							} else {
+								vikiObject.activeWikis[vikiObject.i].full = true;
+							}
+
+						})
+						if(!vikiObject.activeWikis[vikiObject.i].full){
+							// if there are any more log events, then
+							if (data.hasOwnProperty("query-continue")){        
+							  // if it has a 'lecontinue', query that
+							  if(data["query-continue"].logevents.hasOwnProperty("lestart")){
+
+								  var qCont = data['query-continue'].logevents.lestart;
+								  var newQuery = vikiObject.activeWikis[vikiObject.i].wUrl.split("&lestart=")[0] + "&lestart=" + qCont;
+ 								  vikiObject.activeWikis[vikiObject.i].wUrl = newQuery;
+								  incrementalRecursiveQueryWiki(vikiObject);
+
+							  } else if(data["query-continue"].logevents.hasOwnProperty("lecontinue")){
+								  var qCont = data['query-continue'].logevents.lecontinue;
+								  var newQuery = vikiObject.activeWikis[vikiObject.i].wUrl.split("&lecontinue=")[0] + "&lecontinue=" + qCont;
+ 								  vikiObject.activeWikis[vikiObject.i].wUrl = newQuery;
+								  incrementalRecursiveQueryWiki(vikiObject);
+							  } else {
+								  // if there is no more log data, mark the log as full and increment the index
+								  vikiObject.activeWikis[vikiObject.i].full = true;
+								  vikiObject.i += 1;
+								  incrementalRecursiveQueryWiki(vikiObject);
+							  }
+				
+							} else {
+								  // if there is no 'query continue', increment the index and flag the logs
+								  vikiObject.activeWikis[vikiObject.i].full = true;
+								  vikiObject.i += 1;
+								  incrementalRecursiveQueryWiki(vikiObject);							  
+							}		  
+						} else {
+							// Log is full to the brim. Call the next wiki. 
+							vikiObject.i += 1;
+							incrementalRecursiveQueryWiki(vikiObject);
+						}
+					} else {
+						    // if there is no 'query', increment the index and flag the logs
+						    vikiObject.activeWikis[vikiObject.i].full = true;
+						    vikiObject.i += 1;
+						    incrementalRecursiveQueryWiki(vikiObject);							  
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+		//		   error(textStatus);
+				}
+			}); 	
+		
+
+
+
+
+	} else {
+		propogateStatsWiki(vikiObject);
+		buildHeatmapWiki(vikiObject)
 	}
 
 
@@ -518,7 +552,7 @@ function incrementalRecursiveQuery(vikiObject){
 
 
 
-window.getIWTable = function(vikiObject){
+window.getIWTableWiki = function(vikiObject){
    var serverURL = mw.config.get("wgServer");
    var myApiURL = serverURL + mw.config.get("wgScriptPath") +"/api.php";	
    var iwLinksURL = myApiURL + "?action=iwtable&format=json" 
@@ -572,7 +606,7 @@ window.getIWTable = function(vikiObject){
 				})
 //				fillDropdown('#IWwikis', vikiObject);
 //				getWikiLogs(vikiObject);
-				populateWikiLogs(vikiObject);
+				populateWikiLogsWiki(vikiObject);
     },
       error: function(jqXHR, textStatus, errorThrown) {
          alert("Unable to fetch list of wikis. jqXHR = "+jqXHR+", textStatus = "+textStatus+", errorThrown="+errorThrown);
