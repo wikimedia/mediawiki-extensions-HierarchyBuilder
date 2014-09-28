@@ -1,5 +1,27 @@
 <?php
 
+/*
+ * Copyright (c) 2014 The MITRE Corporation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'BCard',
 	'version' => '1.8',
@@ -9,9 +31,9 @@ $wgExtensionCredits['parserhook'][] = array (
 );
 
 $wgHooks['ParserFirstCallInit'][] = 'wfExtensionBCard_Setup';
-$wgHooks['LanguageGetMagic'][] = 'wfExtensionBCard_Magic';
 
 $wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.php';
+$wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.magic.php';
 
 function wfExtensionBCard_Setup(& $parser) {
 	$parser->setFunctionHook('bcardfieldlist', 'bcardfieldlist');
@@ -42,12 +64,6 @@ function wfExtensionBCard_Setup(& $parser) {
 		$BCard_Filter = "(|(uid=PERSON)(employeenumber=PERSON))";
 	}
 
-	return true;
-}
-
-function wfExtensionBCard_Magic(& $magicWords, $langCode) {
-	$magicWords['bcardfieldlist'] = array (0, 'bcardfieldlist');
-	$magicWords['bcard'] = array (0, 'bcard');
 	return true;
 }
 
@@ -142,35 +158,41 @@ class BCard {
 			return false;
 		}
 
-		global $BCard_ServerName, $BCard_ServerPort;
-		$ldapconn = ldap_connect($BCard_ServerName, $BCard_ServerPort);
-		if ($ldapconn == false) {
-			return false;
-		}
-
-		ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
-		ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
-
-		global $BCard_UseTLS;
-		if ($BCard_UseTLS) {
-			ldap_start_tls($ldapconn);
-		}
-
-		global $BCard_SearchString;
-		$searchstring = $BCard_SearchString;
-
-		global $BCard_Filter;
-		$filter = str_replace("PERSON", $person, $BCard_Filter);
-
-		$result = ldap_search($ldapconn, $searchstring, $filter);
-
-		if ($result == false) {
+		$entries = array();
+		try {
+			global $BCard_ServerName, $BCard_ServerPort;
+			$ldapconn = ldap_connect($BCard_ServerName, $BCard_ServerPort);
+			if ($ldapconn == false) {
+				return false;
+			}
+	
+			ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
+			ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
+	
+			global $BCard_UseTLS;
+			if ($BCard_UseTLS) {
+				ldap_start_tls($ldapconn);
+			}
+	
+			global $BCard_SearchString;
+			$searchstring = $BCard_SearchString;
+	
+			global $BCard_Filter;
+			$filter = str_replace("PERSON", $person, $BCard_Filter);
+	
+			$result = ldap_search($ldapconn, $searchstring, $filter);
+	
+			if ($result == false) {
+				ldap_unbind($ldapconn);
+				return false;
+			}
+	
+			$entries = ldap_get_entries($ldapconn, $result);
 			ldap_unbind($ldapconn);
+
+		} catch (Exception $e) {
 			return false;
 		}
-
-		$entries = ldap_get_entries($ldapconn, $result);
-		ldap_unbind($ldapconn);
 
 		if (count($entries) > 1) {
 			return $entries[0];
