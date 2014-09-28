@@ -2,7 +2,7 @@
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'BCard',
-	'version' => '1.7',
+	'version' => '1.8',
 	'author' => 'Cindy Cicalese',
 	'descriptionmsg' => 'bcard-desc',
 	'url' => 'http://gestalt.mitre.org/gestaltd/index.php/BCard'
@@ -13,14 +13,35 @@ $wgHooks['LanguageGetMagic'][] = 'wfExtensionBCard_Magic';
 
 $wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.php';
 
-$BCard_SearchString = "ou=People,o=mitre.org";
-$BCard_Filter = "(|(uid=PERSON)(employeenumber=PERSON))";
-$BCard_ServerNames = "ldap://ldap-int1.mitre.org:3890";
-$BCard_UseTLS = false;
-
 function wfExtensionBCard_Setup(& $parser) {
 	$parser->setFunctionHook('bcardfieldlist', 'bcardfieldlist');
 	$parser->setFunctionHook('bcard', 'bcard');
+
+	global $BCard_ServerName;
+	if (!isset($BCard_ServerName)) {
+		$BCard_ServerName = "ldapprod.mitre.org";
+	}
+
+	global $BCard_ServerPort;
+	if (!isset($BCard_ServerPort)) {
+		$BCard_ServerPort = 389;
+	}
+
+	global $BCard_UseTLS;
+	if (!isset($BCard_UseTLS)) {
+		$BCard_UseTLS = false;
+	}
+
+	global $BCard_SearchString;
+	if (!isset($BCard_SearchString)) {
+		$BCard_SearchString = "ou=People,o=mitre.org";
+	}
+
+	global $BCard_Filter;
+	if (!isset($BCard_Filter)) {
+		$BCard_Filter = "(|(uid=PERSON)(employeenumber=PERSON))";
+	}
+
 	return true;
 }
 
@@ -121,8 +142,8 @@ class BCard {
 			return false;
 		}
 
-		global $BCard_ServerNames;
-		$ldapconn = ldap_connect($BCard_ServerNames);
+		global $BCard_ServerName, $BCard_ServerPort;
+		$ldapconn = ldap_connect($BCard_ServerName, $BCard_ServerPort);
 		if ($ldapconn == false) {
 			return false;
 		}
