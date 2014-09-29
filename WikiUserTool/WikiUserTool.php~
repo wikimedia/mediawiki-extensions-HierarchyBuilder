@@ -49,17 +49,14 @@ $wgResourceModules['ext.WikiUserTool'] = array(
 	'localBasePath' => dirname(__FILE__),
 	'remoteExtPath' => 'WikiUserTool',
 	'styles' => array(
-		'style/heatmap.css',
-		'style/WikiTreeMap.css'
+		'style/heatmap.css'
 	),
 	'scripts' => array(
-		'lib/d3.v3.js',
+		'lib/d3.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',
 		'src/getWikis2.js',
-		'src/userView.js',
-		'src/wikiView.js',
 	)
 );
 
@@ -76,7 +73,7 @@ function wfExtensionWikiUserTool_Magic(& $magicWords, $langCode) {
 	return true;
 }
 
-function wikiusertool($parser, $width, $height, $wiki, $user, $logSize) {
+function wikiusertool($parser, $width, $height, $wiki) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	foreach($myparams as $value)
@@ -86,10 +83,8 @@ function wikiusertool($parser, $width, $height, $wiki, $user, $logSize) {
 
 	$width = $paramDictionary["width"];
 	$height = $paramDictionary["height"];
-	$wiki = $paramDictionary["wiki"];
-	$user = $paramDictionary["user"];
-	$logSize = $paramDictionary["logSize"];
-	
+	//$wiki = $paramDictionary["wiki"];
+
 	$wikiUserTool = new WikiUserTool;
 
 	if(!$width)
@@ -97,7 +92,7 @@ function wikiusertool($parser, $width, $height, $wiki, $user, $logSize) {
 	if(!$height)
 		$height = 600;
 
-	$output = $wikiUserTool->display($parser, $width, $height, $wiki, $user, $logSize);
+	$output = $wikiUserTool->display($parser, $width, $height, $wiki);
 	$parser->disableCache();
 	return array($parser->insertStripItem($output, $parser->mStripState),
 		'noparse' => false);
@@ -127,7 +122,7 @@ class WikiUserTool {
 
 	private static $pqnum = 0;
 
-	function display($parser, $width, $height, $wiki, $user, $logSize) {
+	function display($parser, $width, $height, $wiki) {
 
 		$div = "WikiUserTool_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
@@ -141,6 +136,7 @@ class WikiUserTool {
 <div id="clearButton"></div>
 
 
+<h1></h1>	
 <table>
 <tr><td width="100%" ><div class="wikiusertool-graph-container" id="$graphdiv" style="width: $width; height: $height; border-color: #ffffff;">
 </div>
@@ -150,7 +146,6 @@ class WikiUserTool {
   <p><strong id="category"></strong></p>
   <p><span id="subcategory"></span></p>
   <p><span id="pages"></span></p>
-  <p><span id="logEvents"></span></p>
 </div>
 <div id="fullTable">
 </div>
@@ -163,7 +158,7 @@ mw.loader.using(['ext.WikiUserTool'], function () {
 	$(document).ready(function() {
 
 		var g = new WikiUserTool();
-		g.drawChart("$graphdiv", "$width", "$height", "$wiki", "$user", "$logSize");
+		g.drawChart("$graphdiv", "$width", "$height", "$wiki");
 	});
 });
 END;
