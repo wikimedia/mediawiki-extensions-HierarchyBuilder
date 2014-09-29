@@ -13,7 +13,7 @@ window.WikiVersionTool = function(){}
 
 WikiVersionTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
 	
-	$(function(e){        
+	window.onload = function(e){        
 			var vikiObject = [];
 				vikiObject.graphDiv = graphDiv;
 				vikiObject.divwidth = divwidth;
@@ -21,7 +21,7 @@ WikiVersionTool.prototype.drawChart = function(graphDiv, divwidth, divheight, wi
 			getIWLinksTable(vikiObject);
 //			mitre_getAllWikis(vikiObject) 
 			
-	}); 
+	}; 
 }
 
 
@@ -73,12 +73,12 @@ function fillDropdown(dropdownName, vikiObject) {
 
 	// populates the wiki dropdown menu for version comparisons, except for non-working wikis
   	vikiObject.activeWikis.forEach(function(d) {
-		if(d.wikiName==="CTS" || d.wikiName==="J85D Jobs" || d.wikiName==="Energy Tools"){
+		if(d.wikiTitle==="CTS" || d.wikiTitle==="J85d-jobs" || d.wikiTitle==="Energy Tools"){
 //			console.log(d.wikiTitle);
 		} else {
 //	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
-	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
-	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
+	        $('#wiki1s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
+	        $('#wiki2s').append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
 		}
     });
 
@@ -96,15 +96,8 @@ function fillDropdown(dropdownName, vikiObject) {
 		var wikiVObject = [];
 		wikiVObject.wiki1 = $('#wiki1s')[0].value;
 		wikiVObject.wiki2 = $('#wiki2s')[0].value;
-		if($('#wiki1s')[0]['selectedOptions'] !== undefined){
-			wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
-			wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
-		} else {
-			var ind1 = $('#wiki1s')[0]['selectedIndex']
-			var ind2 = $('#wiki2s')[0]['selectedIndex']
-			wikiVObject.wiki1Name = $('#wiki1s')[0][ind1]['text']
-			wikiVObject.wiki2Name = $('#wiki2s')[0][ind2]['text']
-		}
+		wikiVObject.wiki1Name = $('#wiki1s')[0]['selectedOptions'][0]['label']
+		wikiVObject.wiki2Name = $('#wiki2s')[0]['selectedOptions'][0]['label']
 		getGeneralWikiInfo(wikiVObject);	
 	    getComparativeWikis(wikiVObject);
 	});
@@ -126,7 +119,7 @@ window.getIWLinksTable = function(vikiObject){
 	//	fillDropdown('#wikis', vikiObject);
 	//			 console.log(data);
 
-				 allWikis = data["iwtable"]["wikiIWArray"];
+				 allWikis = data["iwlinks"]["wikiIWArray"];
 				 allWikisArray = [];
 
 				 for(var i in allWikis) {
@@ -137,8 +130,6 @@ window.getIWLinksTable = function(vikiObject){
 									contentURL: allWikis[i]["contentURL"],
 									logoURL: allWikis[i]["logoURL"],
 									searchableWiki : allWikis[i]["searchableWiki"],
-									server : allWikis[i]["server"],
-		                            wikiName : allWikis[i]["wikiName"]
 								  };
 						if(allWikis[i]['searchableWiki']!== undefined ){
 
@@ -153,7 +144,7 @@ window.getIWLinksTable = function(vikiObject){
 							allWikisArray.push(wiki);
 	
 						} else {
-							// console.log(allWikis[i])
+							console.log(allWikis[i])
 						}
 
 

@@ -18,7 +18,7 @@ window.WikiTreeMap = function() {
 
 WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) {
 	
-	$(function(e){        
+	window.onload = function(e){        
 
 		if (wiki !== ""){
 //			$('#selectAWiki').hide();						
@@ -45,9 +45,9 @@ WikiTreeMap.prototype.drawChart = function(graphDiv, divwidth, divheight, wiki) 
 				vikiObject.divwidth = divwidth;
 				vikiObject.divheight = divheight;
 			getIWLinksTable(vikiObject);
-//			mitre_getAllWikis(vikiObject) 
+			mitre_getAllWikis(vikiObject) 
 		}
-    }); 
+    }; 
 
 }
 
@@ -67,14 +67,11 @@ function fillDropdown(dropdownName, vikiObject) {
     $(dropdownName).append('<option value="' + "http://mitrepedia.mitre.org/api.php" + '">' + "MITREpedia" + '</option>');
 
 
-
-
-
 	// populates the wiki dropdown menu for version comparisons, except for non-working wikis
   	vikiObject.activeWikis.forEach(function(d) {
-		if(d.wikiName==="CTS" || d.wikiName==="J85D Jobs" || d.wikiName==="Energy Tools"){
+		if(d.wikiTitle==="CTS" || d.wikiTitle==="J85d-jobs" || d.wikiTitle==="Energy Tools"){
 		} else {
-	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiName + " (" + d.server + ")"+ '</option>');
+	        $(dropdownName).append('<option value="' + d.apiURL + '">' + d.wikiTitle + '</option>');
 		}
     });
 
@@ -95,12 +92,7 @@ function fillDropdown(dropdownName, vikiObject) {
 	$('#loadData').click(function(e){
 	    var elmDiv = $(dropdownName);
 	    elmValue = elmDiv[0].value;        
-	    if(elmDiv[0]['selectedOptions']!== undefined){
-			elmLabel = elmDiv[0]['selectedOptions'][0]['label'];
-	    } else {
-	    	var indVal = elmDiv[0]['selectedIndex']
-			elmLabel = elmDiv[0][indVal]['text']
-	    }
+		elmLabel = elmDiv[0]['selectedOptions'][0]['label'];
 	    jsonData = {"name":"allcategories", "children" : []};
 		$('div.wikitreemap-graph-container').append("<h2>" + elmLabel + "</h2>");
 		vikiObject.elmLabel = elmLabel;

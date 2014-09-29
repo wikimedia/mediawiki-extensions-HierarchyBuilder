@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'WikiTreeMap',
-	'version' => '0.1',
+	'version' => '1.0',
 	'author' => 'Alex Lyte',
 	'descriptionmsg' => 'wikitreemap-desc'
 );
@@ -52,7 +52,7 @@ $wgResourceModules['ext.WikiTreeMap'] = array(
 		'WikiTreeMap.css'
 	),
 	'scripts' => array(
-		'lib/d3.v3.min.js',
+		'lib/d3.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',

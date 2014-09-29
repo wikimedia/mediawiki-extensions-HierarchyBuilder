@@ -12,7 +12,7 @@ window.getIWLinksTable = function(vikiObject){
 	//	fillDropdown('#wikis', vikiObject);
 	//			 console.log(data);
 
-				 allWikis = data["iwtable"]["wikiIWArray"];
+				 allWikis = data["iwlinks"]["wikiIWArray"];
 				 allWikisArray = [];
 
 				 for(var i in allWikis) {
@@ -23,8 +23,6 @@ window.getIWLinksTable = function(vikiObject){
 									contentURL: allWikis[i]["contentURL"],
 									logoURL: allWikis[i]["logoURL"],
 									searchableWiki : allWikis[i]["searchableWiki"],
-                           server : allWikis[i]["server"],
-                           wikiName : allWikis[i]["wikiName"]
 								  };
 						if(allWikis[i]['searchableWiki']!== undefined ){
 
@@ -39,7 +37,7 @@ window.getIWLinksTable = function(vikiObject){
 							allWikisArray.push(wiki);
 	
 						} else {
-							// console.log(allWikis[i])
+							console.log(allWikis[i])
 						}
 
 

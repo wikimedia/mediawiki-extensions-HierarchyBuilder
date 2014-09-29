@@ -1,0 +1,18 @@
+<rect x="-185" y="-75" width="370" height="150" fill="{{ status=='focused' ? '#2ecc71' : status=='error' ? 'red' : 'white' }}" stroke="black" stroke-width="1" 
+	onclick="window.open('{{wikipage}}','_blank');">
+</rect>
+<image width="80" height="80" x="-175" y="-37.5" id="{{uid+'_logoLink'}}" 
+	xlink:href="{{ queryImage(properties.logoLink, uid+'_logoLink', false)}}" 
+	onclick="location.href = '{{properties.website}}';"
+	></image>
+<image width="26.666666666666668" height="26.666666666666668" x="155" y="-10" id="{{uid+'_tooltip'}}"
+	xlink:href="{{ size(properties.longName) > 0 ? queryImage('person-avatar-blue.png', uid+'_tooltip', true) : queryImage('person-avatar-grey.png', uid+'_tooltip', true) }}"
+	>
+</image>
+<text text-anchor="start" fill="black" x="-85" y="-37.5" dy=".5em" id="titleLabel" style="font-family: Verdana; font-size: 20pt; font-weight: bold;">
+{{ textWrap(uid,properties.shortName) }}
+</text>
+<text text-anchor="start" fill="black" x="-85" style="font-family: Verdana; font-size: 11pt; font-style: italic;" y="-5.078125" dy=".5em">
+{{ textWrap(uid,properties.longName) }}
+</text>
+<text text-anchor="end" x="180" y="-10" style="font-family: Verdana; font-size: 9pt; font-weight: bold;">{{ size(properties.longName) }}</text>

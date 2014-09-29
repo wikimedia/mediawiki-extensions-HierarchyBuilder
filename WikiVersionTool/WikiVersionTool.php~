@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'WikiVersionTool',
-	'version' => '1.0',
+	'version' => '0.1',
 	'author' => 'Alex Lyte',
 	'descriptionmsg' => 'wikiversiontool-desc'
 );
@@ -52,7 +52,7 @@ $wgResourceModules['ext.WikiVersionTool'] = array(
 		'WikiVersionTool.css'
 	),
 	'scripts' => array(
-		'lib/d3.js',
+		'lib/d3.v3.min.js',
 		'lib/d3.tip.v0.6.3.js',
 		'lib/es5-shim.min.js',
 		'lib/es5-sham.min.js',

@@ -120,12 +120,12 @@ function buildHeatmap(vikiObject){
                 .attr("transform", "translate(" + gridSize / 2 + ", -6)")
 
 
-		timeLabels.selectAll("text")
-			.attr("y", 0)
-			.attr("x", 0)
-			.attr("dy", ".35em")
-			.attr("transform", "rotate(180)")
-			.style("text-anchor", "start");
+				timeLabels.selectAll("text")
+					.attr("y", 0)
+					.attr("x", 0)
+					.attr("dy", ".35em")
+					.attr("transform", "rotate(180)")
+					.style("text-anchor", "start");
 //			    .attr("transform", "rotate(90)")
 //				.attr("transform", function(d, i) {return "rotate(-45,0,0)";});
 

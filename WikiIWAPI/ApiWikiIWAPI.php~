@@ -32,8 +32,7 @@ class IWAPI extends ApiBase {
 			"contentURL" => $row->iw_url,
 			"logoURL" => $row->logo_url,
 			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false"),
-			"wikiName" => $row->mgf_title,
-			"server"  => $row->server
+			"wikiName" => $row->mgf_title
 		);
 	}
 

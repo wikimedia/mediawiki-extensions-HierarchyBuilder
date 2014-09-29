@@ -1,32 +1,69 @@
 <?php
 
+/*
+ * Copyright (c) 2014 The MITRE Corporation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'BCard',
-	'version' => '1.7',
+	'version' => '1.8',
 	'author' => 'Cindy Cicalese',
 	'descriptionmsg' => 'bcard-desc',
 	'url' => 'http://gestalt.mitre.org/gestaltd/index.php/BCard'
 );
 
 $wgHooks['ParserFirstCallInit'][] = 'wfExtensionBCard_Setup';
-$wgHooks['LanguageGetMagic'][] = 'wfExtensionBCard_Magic';
 
 $wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.php';
-
-$BCard_SearchString = "ou=People,o=mitre.org";
-$BCard_Filter = "(|(uid=PERSON)(employeenumber=PERSON))";
-$BCard_ServerNames = "ldap://ldap-int1.mitre.org:3890";
-$BCard_UseTLS = false;
+$wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.magic.php';
 
 function wfExtensionBCard_Setup(& $parser) {
 	$parser->setFunctionHook('bcardfieldlist', 'bcardfieldlist');
 	$parser->setFunctionHook('bcard', 'bcard');
-	return true;
-}
 
-function wfExtensionBCard_Magic(& $magicWords, $langCode) {
-	$magicWords['bcardfieldlist'] = array (0, 'bcardfieldlist');
-	$magicWords['bcard'] = array (0, 'bcard');
+	global $BCard_ServerName;
+	if (!isset($BCard_ServerName)) {
+		$BCard_ServerName = "ldap-prod.mitre.org";
+	}
+
+	global $BCard_ServerPort;
+	if (!isset($BCard_ServerPort)) {
+		$BCard_ServerPort = 389;
+	}
+
+	global $BCard_UseTLS;
+	if (!isset($BCard_UseTLS)) {
+		$BCard_UseTLS = false;
+	}
+
+	global $BCard_SearchString;
+	if (!isset($BCard_SearchString)) {
+		$BCard_SearchString = "ou=People,o=mitre.org";
+	}
+
+	global $BCard_Filter;
+	if (!isset($BCard_Filter)) {
+		$BCard_Filter = "(|(uid=PERSON)(employeenumber=PERSON))";
+	}
+
 	return true;
 }
 
@@ -121,8 +158,8 @@ class BCard {
 			return false;
 		}
 
-		global $BCard_ServerNames;
-		$ldapconn = ldap_connect($BCard_ServerNames);
+		global $BCard_ServerName, $BCard_ServerPort;
+		$ldapconn = ldap_connect($BCard_ServerName, $BCard_ServerPort);
 		if ($ldapconn == false) {
 			return false;
 		}
@@ -141,7 +178,7 @@ class BCard {
 		global $BCard_Filter;
 		$filter = str_replace("PERSON", $person, $BCard_Filter);
 
-		$result = ldap_search($ldapconn, $searchstring, $filter);
+		$result = @ldap_search($ldapconn, $searchstring, $filter);
 
 		if ($result == false) {
 			ldap_unbind($ldapconn);
