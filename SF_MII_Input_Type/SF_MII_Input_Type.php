@@ -99,6 +99,7 @@ class ApiMIISUI extends ApiBase{
 
 
 		if (!$ldap_result) {
+			ldap_unbind($ldapconn);
 			return $miisuis;
 		}
 
