@@ -59,7 +59,7 @@ class LDAPAuthorization {
 				if (!isset($LDAPAuthorization_Auth)) {
 					$LDAPAuthorization_Auth =
 						array("departmentnumber" => "J85D");
-				{
+				}
 				foreach ($LDAPAuthorization_Auth as $authkey => $authvalue) {
 					if ($key == $authkey && $value[0] == $authvalue) {
 						return true;
