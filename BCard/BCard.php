@@ -33,7 +33,7 @@ $wgExtensionCredits['parserhook'][] = array (
 $wgHooks['ParserFirstCallInit'][] = 'wfExtensionBCard_Setup';
 
 $wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.php';
-$wgExtensionMessagesFiles['BCard'] = __DIR__ . '/BCard.i18n.magic.php';
+$wgExtensionMessagesFiles['BCardMagic'] = __DIR__ . '/BCard.i18n.magic.php';
 
 function wfExtensionBCard_Setup(& $parser) {
 	$parser->setFunctionHook('bcardfieldlist', 'bcardfieldlist');
