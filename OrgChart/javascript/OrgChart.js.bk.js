@@ -258,6 +258,13 @@ window.OrgChart = function() {
   	    	return self.tooltip(d, template); })
         .direction('e');
 
+	    var tip = d3.tip()
+        .attr('class', 'd3-tip')
+//        .offset([10, -10])
+        .html(function(d) {
+  	    	return self.popup(d); })
+        .direction('e');
+
 		// set up the zoom behavior.
 		self.zoom = d3.behavior.zoom()
 		   .on("zoom", function(){
