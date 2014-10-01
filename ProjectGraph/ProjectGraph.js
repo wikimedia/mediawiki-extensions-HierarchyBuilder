@@ -605,7 +605,7 @@ window.ProjectGraph = function() {
 			var link = self.findLink(d.id,
 				self.SelectedNode);
 			if (link == null) {
-				return "none";
+				return 0;
 			}
 			var SelectedNode = self.Nodes[self.SelectedNode];
 			var scaledHoursPct = 0;
