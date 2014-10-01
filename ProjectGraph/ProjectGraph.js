@@ -447,7 +447,7 @@ window.ProjectGraph = function() {
 	
 		var newNodes = this.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "projectgraph_node-"+this.ID);
+		newNodes.attr("class", "projectgraph-node projectgraph_node-"+this.ID);
 		newNodes.on("click", function(d) {
 			self.SelectedNode = d.id;
 			self.displayNodeInfo(d);
@@ -503,7 +503,7 @@ window.ProjectGraph = function() {
 		});
 		
 		var newImages = newNodes.append("svg:image");
-		newImages.attr("class", "icon");
+		newImages.attr("class", "projectgraph-icon icon");
 		newImages.attr("xlink:href", function(d) {
 			return d.imageURL;
 		});
