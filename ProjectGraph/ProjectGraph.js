@@ -173,15 +173,15 @@ window.ProjectGraph = function() {
 		});
 		// the html for the context menu
 		$('body').append(
-			"<div class=\"contextMenu\" id=\"menu-"+this.ID+"\"><ul>"+
+			"<div class=\"contextMenu\" id=\"projectgraph_menu-"+this.ID+"\"><ul>"+
 			// the dynamic menu title (node name)
-			"<li id=\"name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
+			"<li id=\"projectgraph_name-"+this.ID+"\"  class=\"header\" style=\"text-align: center;\">Name</li>"+
 			// actual navigable menu
 			"<div class=\"options\" >"+
-			"<li id=\"freeze\" class=\"freeze-"+this.ID+"\">Freeze</li>"+
+			"<li id=\"freeze\" class=\"projectgraph_freeze-"+this.ID+"\">Freeze</li>"+
         	"<li id=\"getinfo\" >Get Info</li>"+
 			"<li id=\"tags\">Display Tags</li>"+
-			"<li id=\"elaborate\" class=\"elaborate-"+this.ID+"\">Elaborate</li>"+
+			"<li id=\"elaborate\" class=\"projectgraph_elaborate-"+this.ID+"\">Elaborate</li>"+
 			"<li id=\"hide\">Hide</li>"+
 			"<hr>"+// separator
         	"<li id=\"showall\">Show All</li>"+
@@ -259,23 +259,23 @@ window.ProjectGraph = function() {
 			   .append("svg:svg")
 			      .attr("width", self.width)
 			      .attr("height", self.height)
-			      .attr("id", self.ID)
+			      .attr("id", "projectgraph_"+self.ID)
 			      .attr("pointer-events", "all")
 			   .append("svg:g")
 			      .call(self.zoom)
 			      .on("dblclick.zoom", null)
 			self.SVG = svg
 			svg.append("svg:rect")
-			   .attr("id", self.ID)
+			   .attr("id", "projectgraph_"+self.ID)
 			   .attr("width", self.width)
 			   .attr("height", self.height)
 			   .attr("fill", "white");
 
 			svg.append("svg:g")
-			      .attr("id", "moveable-"+self.ID);
+			      .attr("id", "projectgraph_moveable-"+self.ID);
 
-			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "links-"+self.ID);
-			d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
+			d3.select("#projectgraph_moveable-"+self.ID).append("svg:g").attr("id", "projectgraph_links-"+self.ID);
+			d3.select("#projectgraph_moveable-"+self.ID).append("svg:g").attr("id", "projectgraph_nodes-"+self.ID);
 				
 			self.Force = d3.layout.force();
 			self.Force.gravity(0.02)
@@ -298,10 +298,10 @@ window.ProjectGraph = function() {
 			self.Force.on("tick", tick);
 
 			self.LinkSelection =
-				svg.select("#links-"+self.ID).selectAll(".link-"+self.ID);
+				svg.select("#projectgraph_links-"+self.ID).selectAll(".projectgraph_link-"+self.ID);
 
 			self.NodeSelection =
-				svg.select("#nodes-"+self.ID).selectAll(".node-"+self.ID);
+				svg.select("#projectgraph_nodes-"+self.ID).selectAll(".projectgraph_node-"+self.ID);
 
 			
 	
@@ -377,14 +377,14 @@ window.ProjectGraph = function() {
 	ProjectGraph.prototype.zoomed = function() {
 		var self = this;
 	// access the element movable and move to the scale and translation vectors
-		d3.select("#moveable-"+this.ID).attr("transform",
+		d3.select("#projectgraph_moveable-"+this.ID).attr("transform",
 	        "translate(" + self.zoom.translate() + ")" +
 	        "scale(" + self.zoom.scale() + ")"
 	    );
 	}
 	ProjectGraph.prototype.redrawZoom = function() {		
 		self.Zoompos = d3.event.scale;
-		d3.select("#moveable-"+self.ID).attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
+		d3.select("#projectgraph_moveable-"+self.ID).attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
 		// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 		$("#"+self.SliderDiv).slider("value",self.Zoompos);
 	}
@@ -418,7 +418,7 @@ window.ProjectGraph = function() {
 		this.LinkSelection.exit().remove();
 
 		var newLinks = this.LinkSelection.enter().append("svg:line");
-		newLinks.attr("class", "link-"+this.ID);
+		newLinks.attr("class", "projectgraph_link-"+this.ID);
 		newLinks.style("stroke", "#23A4FF");
 		this.LinkSelection.style("stroke-width", function(d) {
 			if (typeof d.source.id !== 'undefined') {
@@ -447,7 +447,7 @@ window.ProjectGraph = function() {
 	
 		var newNodes = this.NodeSelection.enter().append("svg:g");
 		
-		newNodes.attr("class", "node-"+this.ID);
+		newNodes.attr("class", "projectgraph_node-"+this.ID);
 		newNodes.on("click", function(d) {
 			self.SelectedNode = d.id;
 			self.displayNodeInfo(d);
@@ -554,8 +554,8 @@ window.ProjectGraph = function() {
 
 		var newHourBarBacks = newNodes.append("svg:rect");
 		var newHourBarFills = newNodes.append("svg:rect");
-		newHourBarBacks.attr("class", "hourbarback-"+this.ID);
-		newHourBarFills.attr("class", "hourbarfill-"+this.ID);
+		newHourBarBacks.attr("class", "projectgraph_hourbarback-"+this.ID);
+		newHourBarFills.attr("class", "projectgraph_hourbarfill-"+this.ID);
 		var x = function(d) {			
 			if (d.type == self.PROJECT_TYPE) {
 				return -1*self.MAX_BAR_WIDTH/2;		// center bar under folder
@@ -578,8 +578,8 @@ window.ProjectGraph = function() {
 
 		// get the selected node
 		var selected = this.findNode('id',this.SelectedNode, this);
-		var allHourBarBacks = d3.selectAll(".hourbarback-"+this.ID);
-		var allHourBarFills = d3.selectAll(".hourbarfill-"+this.ID);
+		var allHourBarBacks = d3.selectAll(".projectgraph_hourbarback-"+this.ID);
+		var allHourBarFills = d3.selectAll(".projectgraph_hourbarfill-"+this.ID);
 		var backcolor = function(d) {
 
 			var link = self.findLink(d.id,
@@ -768,7 +768,7 @@ window.ProjectGraph = function() {
 	ProjectGraph.prototype.hideLinks = function(node, store){
 		var self = this;
 		// use d3 to select all of the links (can be rebuilt as a loop?)
-		d3.selectAll(".link-"+this.ID).filter(function(l){
+		d3.selectAll(".projectgraph_link-"+this.ID).filter(function(l){
 			// if the node id matches either the source id, or the target id
 			if((node.id == l.source.id)||(node.id == l.target.id)){
 				// store the link in an array (store) to be re-added later
@@ -988,22 +988,22 @@ window.ProjectGraph = function() {
 			freeze.fix = true;
 		}
 		// set the title of the menu to the name
-		$('#name-'+this.ID).html(node.displayName);
+		$('#projectgraph_name-'+this.ID).html(node.displayName);
 		// toggle the menu option between freeze and unfreeze
-		$('.freeze-'+this.ID).html(freeze.toggle);
+		$('.projectgraph_freeze-'+this.ID).html(freeze.toggle);
 		// toggle the project on staff and projects 
 		if(node.type==this.PROJECT_TYPE){ 
-			$('.elaborate-'+this.ID).html("Get Staff");
+			$('.projectgraph_elaborate-'+this.ID).html("Get Staff");
 		}
 		else if (node.type == this.PERSON_TYPE) { 
-			$('.elaborate-'+this.ID).html("Get Projects");
+			$('.projectgraph_elaborate-'+this.ID).html("Get Projects");
 		}
 		// the actual menu code
-        $('.node-'+this.ID).contextMenu('menu-'+this.ID, {
+        $('.projectgraph_node-'+this.ID).contextMenu('projectgraph_menu-'+this.ID, {
         	// activate before the menu shows
         	onShowMenu: function(e, menu) {
 		        if (node.elaborated) {
-		          $('.elaborate-'+self.ID, menu).remove();
+		          $('.projectgraph_elaborate-'+self.ID, menu).remove();
 		        }
 		        return menu;
 	      	},
