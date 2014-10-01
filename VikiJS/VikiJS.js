@@ -249,15 +249,15 @@ window.VIKI = (function(my) {
 				});
 
 				$('body').append(
-					"<div class=\"contextMenu\" id=\"menu-"+self.ID+"\"><ul>"+
+					"<div class=\"contextMenu\" id=\"viki_menu-"+self.ID+"\"><ul>"+
 					// the dynamic menu title (node name)
-					"<li id=\"name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
+					"<li id=\"viki_name-"+self.ID+"\"  class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
 					"<hr>"+ // separator
 					// actual navigable menu
 					"<div class=\"options\" >"+
-					"<li id=\"freeze\" class=\"freeze-"+self.ID+"\">Freeze</li>"+
+					"<li id=\"freeze\" class=\"viki_freeze-"+self.ID+"\">Freeze</li>"+
 		        	"<li id=\"getinfo\" >Visit Page</li>"+
-					"<li id=\"elaborate\" class=\"elaborate-"+self.ID+"\">Elaborate</li>"+
+					"<li id=\"elaborate\" class=\"viki_elaborate-"+self.ID+"\">Elaborate</li>"+
 					"<li id=\"categories\">Show Categories</li>"+
 					"<hr>"+// separator
 					"<li id=\"hide\">Hide Node</li>"+
@@ -271,8 +271,8 @@ window.VIKI = (function(my) {
 					);
 				
 				$('body').append(
-					"<div class=\"contextMenu\" id=\"backgroundMenu-"+self.ID+"\"><ul>"+
-					"<li id=\"backgroundMenu-"+self.ID+"\" class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
+					"<div class=\"contextMenu\" id=\"viki_backgroundMenu-"+self.ID+"\"><ul>"+
+					"<li id=\"viki_backgroundMenu-"+self.ID+"\" class=\"header\" style=\"text-align: center; font-weight: bold;\">Options</li>"+
 					"<hr>"+
 					"<div class=\"options\">"+
 					"<li id=\"showall\">Show All</li>"+
@@ -293,20 +293,20 @@ window.VIKI = (function(my) {
 				   .append("svg:svg")
 				      .attr("width", self.width)
 				      .attr("height", self.height)
-				      .attr("id", self.ID)
+				      .attr("id", "viki_"+self.ID)
 				      .attr("pointer-events", "all")
 				   .append("svg:g")
 				      .call(self.zoom)
 				      .on("dblclick.zoom", null)
 
 				svg.append("svg:rect")
-				   .attr("id", "rect-"+self.ID)
+				   .attr("id", "viki_rect-"+self.ID)
 				   .attr("width", self.width)
 				   .attr("height", self.height)
 				   .attr("fill", "white");
 
 				svg.append("svg:g")
-				   .attr("id", "moveable-"+self.ID);
+				   .attr("id", "viki_moveable-"+self.ID);
 
 				defs = svg.append("defs");
 
@@ -394,8 +394,8 @@ window.VIKI = (function(my) {
 				.append("path")
 				   .attr("d", "M0,-8L-20,0L0,8");
 
-				d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "links-"+self.ID);
-				d3.select("#moveable-"+self.ID).append("svg:g").attr("id", "nodes-"+self.ID);
+				d3.select("#viki_moveable-"+self.ID).append("svg:g").attr("id", "viki_links-"+self.ID);
+				d3.select("#viki_moveable-"+self.ID).append("svg:g").attr("id", "viki_nodes-"+self.ID);
 					
 				self.Force = d3.layout.force();
 				self.Force.gravity(0.2)
@@ -419,10 +419,10 @@ window.VIKI = (function(my) {
 				self.Force.on("tick", tick);
 
 				self.LinkSelection =
-					svg.select("#links-"+self.ID).selectAll(".link-"+self.ID);
+					svg.select("#viki_links-"+self.ID).selectAll(".viki_link-"+self.ID);
 
 				self.NodeSelection =
-					svg.select("#nodes-"+self.ID).selectAll(".node-"+self.ID);
+					svg.select("#viki_nodes-"+self.ID).selectAll(".viki_node-"+self.ID);
 
 				function tick() {
 
@@ -628,7 +628,7 @@ window.VIKI = (function(my) {
 			self.NodeSelection.exit().remove();
 			self.LinkSelection.exit().remove();
 
-			newNodes.attr("class", "vikijs-node node-"+this.ID);
+			newNodes.attr("class", "vikijs-node viki_node-"+this.ID);
 
 			newNodes.on("click", function(d) {
 				self.SelectedNodeIndex = d.index;
@@ -728,7 +728,7 @@ window.VIKI = (function(my) {
 			   .attr("height", self.UNSELECTED_IMAGE_DIMENSION);
 
 			var newLinks = self.LinkSelection.enter().append("svg:line");
-			newLinks.attr("class", "link-"+this.ID);
+			newLinks.attr("class", "viki_link-"+this.ID);
 			self.LinkSelection.style("stroke-width", function(d) {
 				if (typeof d.source.index !== 'undefined') {
 					return d.source.index == self.SelectedNodeIndex ||
@@ -858,7 +858,7 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.prepareContextMenus = function() {
 			var self = this;
 
-			$('#rect-'+self.ID).contextMenu('backgroundMenu-'+this.ID, {
+			$('#viki_rect-'+self.ID).contextMenu('viki_backgroundMenu-'+this.ID, {
 				onShowMenu : function(e, menu) {
 					self.Force.stop();
 					return menu;
@@ -881,7 +881,7 @@ window.VIKI = (function(my) {
 		        }
 			});
 
-	        $('.node-'+self.ID).contextMenu('menu-'+this.ID, {
+	        $('.viki_node-'+self.ID).contextMenu('viki_menu-'+this.ID, {
 	        	// activate before the menu shows
 	        	onShowMenu: function(e, menu) {
 					self.Force.stop();
@@ -906,14 +906,14 @@ window.VIKI = (function(my) {
 					freeze.toggle = node.fix ? "Unfreeze" : "Freeze";
 
 					// set the title of the menu to the name
-					$('#name-'+self.ID).html(node.displayName);
+					$('#viki_name-'+self.ID).html(node.displayName);
 					// toggle the menu option between freeze and unfreeze
-					$('.freeze-'+self.ID).html(node.fix ? 'Unfreeze' : 'Freeze');
+					$('.viki_freeze-'+self.ID).html(node.fix ? 'Unfreeze' : 'Freeze');
 					// the actual menu code
 
 
 			        if (node.elaborated || node.type === self.EXTERNAL_PAGE_TYPE || node.nonexistentPage || (node.type === self.WIKI_PAGE_TYPE && !node.searchable)) {
-			          $('.elaborate-'+self.ID, menu).remove();
+			          $('.viki_elaborate-'+self.ID, menu).remove();
 			        }
 			        if(!node.elaborated) {
 			        	$('#hideHub', menu).remove();
@@ -1050,7 +1050,7 @@ window.VIKI = (function(my) {
 		my.VikiJS.prototype.zoomed = function() {
 			var self = this;
 			// access the element movable and move to the scale and translation vectors
-			d3.select("#moveable-"+this.ID).attr("transform",
+			d3.select("#viki_moveable-"+this.ID).attr("transform",
 			        "translate(" + self.zoom.translate() + ")" +
 			        "scale(" + self.zoom.scale() + ")"
 			    );
@@ -1058,7 +1058,7 @@ window.VIKI = (function(my) {
 
 		my.VikiJS.prototype.redrawZoom = function() {		
 			self.Zoompos = d3.event.scale;
-			d3.select("#moveable-"+self.ID).attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
+			d3.select("#viki_moveable-"+self.ID).attr("transform", "translate("+d3.event.translate+")" + " scale("+self.Zoompos+")");
 			// if you scroll via a scrollwheel inside the graph, then set the slider to the current scale 
 			$("#"+self.SliderDiv).slider("value",self.Zoompos);
 		}
