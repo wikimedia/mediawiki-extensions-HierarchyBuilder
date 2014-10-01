@@ -141,6 +141,8 @@ class ProjectGraph {
 
 		$parser->getOutput()->addModules('ext.ProjectGraph');
 		$parser->getOutput()->addModules('jquery.ui.slider');
+		
+		$divNum = self::$pqnum;
 		$div = "ProjectGraph_" . self::$pqnum++;
 		$graphdiv = $div . "_graph";
 		$detailsdiv = $div . "_details";
@@ -148,7 +150,7 @@ class ProjectGraph {
 		$sliderdiv = $detailsdiv . "_zoom_slider";
 		$output = <<<EOT
 <div align="center">
-<input type="text" id="searchbar"/>
+<input type="text" id="projectgraph-searchbar_$divNum"/>
 </div>
 <table>
 <tr><td><div class="projectgraph-graph-container" id="$graphdiv">

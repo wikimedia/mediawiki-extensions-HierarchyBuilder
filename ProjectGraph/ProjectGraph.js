@@ -61,15 +61,7 @@ window.ProjectGraph = function() {
 	var self = this;
 	ProjectGraph.prototype.drawGraph = function(chargeNumbers, employeeNumbers, fiscalYear, graphDiv,
 		detailsDiv, imagePath, personNames, initialWidth, initialHeight, resize) {
-		var self = this;
-		
-/***************************************************************************************/
-		// For now, hide the search bar because this section of code is untested.
-		// We want to prevent users from using the search bar until a future version
-		// of ProjectGraph where we're more comfortable with the tag search.
-		$("#searchbar").css("display", "none");		
-
-/***************************************************************************************/		
+		var self = this;	
 				
 		personNames = eval("("+personNames+")");
 		employeeNumbers = eval("("+employeeNumbers+")");
@@ -93,6 +85,14 @@ window.ProjectGraph = function() {
 		this.width = this.INITIAL_WIDTH;
 
 		var margin = 10;
+
+/***************************************************************************************/
+		// For now, hide the search bar because this section of code is untested.
+		// We want to prevent users from using the search bar until a future version
+		// of ProjectGraph where we're more comfortable with the tag search.
+		$("#projectgraph-searchbar_"+this.ID).css("display", "none");		
+
+/***************************************************************************************/	
 
 		// if the graph is resizable?
 		if(resize){
