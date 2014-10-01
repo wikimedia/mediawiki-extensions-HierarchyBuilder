@@ -1911,6 +1911,7 @@ window.VIKI = (function(my) {
 
 			if(parameters["redrawNode"] && parameters["redrawNode"] == true && parameters["node"]) {
 				self.redrawNode(parameters["node"]);
+				self.displayNodeInfo(self.Nodes[self.SelectedNodeIndex]);
 			}
 		}
 	}
