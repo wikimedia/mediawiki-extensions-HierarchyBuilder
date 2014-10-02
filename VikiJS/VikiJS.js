@@ -36,6 +36,8 @@ window.VIKI = (function(my) {
 		this.THIS_WIKI = "THIS WIKI";
 		this.MIN_SCALE = .2;
 		this.MAX_SCALE = 5;
+		this.GRAVITY = 0.2;
+		this.LINK_STRENGTH = 1.25;
 		this.LINK_OPACITY = 0.2;
 		this.HUB_LINK_LENGTH = 400;
 		this.LEAF_LINK_LENGTH = 150;
@@ -398,8 +400,8 @@ window.VIKI = (function(my) {
 				d3.select("#viki_moveable-"+self.ID).append("svg:g").attr("id", "viki_nodes-"+self.ID);
 					
 				self.Force = d3.layout.force();
-				self.Force.gravity(0.2)
-				self.Force.linkStrength(1.25)
+				self.Force.gravity(self.GRAVITY)
+				self.Force.linkStrength(self.LINK_STRENGTH)
 				// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 				// The edge between to clusters is stretched from the polarity between the adjacent clusters.
 				self.Force.linkDistance(
