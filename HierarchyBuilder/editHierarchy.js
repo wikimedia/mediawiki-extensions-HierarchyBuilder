@@ -33,29 +33,29 @@
 // is_disabled indicates whether editing should be disabled
 // is_mandatory indicates whether it is mandatory for a value to be returned
 //	 (currently not implemented)
-(function($) {
-	window.EditHierarchy_init = function (inputId, params) {
-		({
-			init: function(inputId, params) {
+( function( $ ) {
+	window.EditHierarchy_init = function( inputId, params ) {
+		( {
+			init: function( inputId, params ) {
 
 				//console.log("[editHierarchy.js][init] ");
 				//console.log(params);
 
 				var hierarchy = params.hierarchy;
-				if (hierarchy.length < 1) {
+				if ( hierarchy.length < 1 ) {
 					return;
 				}
 
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
 				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
-				hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
+				hierarchy = this.parseWikiTextToHtml( params.hierarchyroot, hierarchy );
 				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";
-			
+
 				var innerframeattr = "class='hierarchy_inner' width='50%;'";
 				var html = "<div class='hierarchy_outer'>";
 				html += params.message;
@@ -63,185 +63,224 @@
 					"<div id='" + hierarchyDivId + "'></div></td>" +
 					"<td " + innerframeattr + ">" +
 					"<div id='" + pageListDivId + "'></div></td></tr></table>";
-			
+
 				html += "</div>";
-			
+
 				jqDivId = "#" + jqDivId;
-				$(jqDivId).html(html);
-			
+				$( jqDivId )
+					.html( html );
+
 				hierarchyDivId = "#" + hierarchyDivId;
-				$(hierarchyDivId).html(hierarchy);
-			
+				$( hierarchyDivId )
+					.html( hierarchy );
+
 				var obj = this;
-	
-				$(hierarchyDivId + " * li").css("list-style-image", "none");
-				$(hierarchyDivId).bind("loaded.jstree", function (event, data) {
-					$(hierarchyDivId).jstree("open_all");
-				});
-				$(hierarchyDivId).bind("refresh.jstree", function (event, data) {
-					$(hierarchyDivId).jstree("open_all");
-				});
-				$(hierarchyDivId).bind("move_node.jstree", function (event, data) {
-					obj.saveList(inputId, hierarchyDivId);
-				});
-			
+
+				$( hierarchyDivId + " * li" )
+					.css( "list-style-image", "none" );
+				$( hierarchyDivId )
+					.bind( "loaded.jstree", function( event, data ) {
+						$( hierarchyDivId )
+							.jstree( "open_all" );
+					} );
+				$( hierarchyDivId )
+					.bind( "refresh.jstree", function( event, data ) {
+						$( hierarchyDivId )
+							.jstree( "open_all" );
+					} );
+				$( hierarchyDivId )
+					.bind( "move_node.jstree", function( event, data ) {
+						obj.saveList( inputId, hierarchyDivId );
+					} );
+
 				var plugins;
-				if (params.is_diabled) {
+				if ( params.is_diabled ) {
 					plugins = [ "themes", "html_data" ];
 				} else {
 					plugins = [ "themes", "html_data", "dnd", "crrm" ];
 				}
-			
-				$(hierarchyDivId).jstree({
-					"themes" : {
-						"theme": "apple",
-						"dots": true,
-						"icons": false
-					},
-					"crrm" : {
-						"move": {
-							"check_move": function(m) {
-								if (m.o.hasClass('hierarchy_root')) {
-									// don't let the user move the root node
-									return false;
-								}
-								if (m.r.hasClass('hierarchy_root')) {
-									// don't let the user move the node before or
-									// after the root node
-									if (m.p == "before" || m.p == "after") {
+
+				$( hierarchyDivId )
+					.jstree( {
+						"themes": {
+							"theme": "apple",
+							"dots": true,
+							"icons": false
+						},
+						"crrm": {
+							"move": {
+								"check_move": function( m ) {
+									if ( m.o.hasClass( 'hierarchy_root' ) ) {
+										// don't let the user move the root node
 										return false;
 									}
+									if ( m.r.hasClass( 'hierarchy_root' ) ) {
+										// don't let the user move the node before or
+										// after the root node
+										if ( m.p == "before" || m.p == "after" ) {
+											return false;
+										}
+									}
+									return true;
 								}
-								return true;
 							}
-						}
-					},
-					"dnd" : {
-						"drop_target" : false,
-						"drag_target" : false
-					},
-					"plugins" : plugins
-				});
-			
+						},
+						"dnd": {
+							"drop_target": false,
+							"drag_target": false
+						},
+						"plugins": plugins
+					} );
+
 				var pagelist = "<ul><li class='hierarchy_root'><a>" +
 					params.unusedpages + "</a><ul>";
-				for (var pagename in params.pages) {
-					pagelist += "<li><a>" + params.pages[pagename] + //+"</a></li>";
+				for ( var pagename in params.pages ) {
+					pagelist += "<li><a>" + params.pages[ pagename ] + //+"</a></li>";
 						"<span style='display:none'>" + pagename +
 						"</span></a></li>";
 				}
 				pagelist += "</ul></li></ul>";
-			
+
 				pageListDivId = "#" + pageListDivId;
-				$(pageListDivId).html(pagelist);
-			
-				$(pageListDivId + " * li").css("list-style-image", "none");
-				$(pageListDivId).bind("loaded.jstree", function (event, data) {
-					$(pageListDivId).jstree("open_all");
-				});
-				$(pageListDivId).bind("refresh.jstree", function (event, data) {
-					$(pageListDivId).jstree("open_all");
-				});
-				$(pageListDivId).bind("move_node.jstree", function (event, data) {
-					//console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
-					var mylist = $(pageListDivId + " .hierarchy_root > ul");
-					var listitems = mylist.find("li").get();
-					mylist.children().detach();
-					listitems.sort(function(a, b) {
-						var compA = $(a).text().toUpperCase();
-						var compB = $(b).text().toUpperCase();
-						return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-					});
-					$.each(listitems, function(idx, itm) {
-						itm.removeAttribute("class");
-						mylist.append(itm);
-					});
-					$(pageListDivId).jstree("refresh");
-					obj.saveList(inputId, hierarchyDivId);
-				});
-			
-				$(pageListDivId).jstree({
-					"themes" : {
-						"theme": "apple",
-						"dots": true,
-						"icons": false
-					},
-					"crrm" : {
-						"move": {
-							"check_move": function(m) {
-								if (m.o.hasClass('hierarchy_root')) {
-									// don't let the user move the root node
-									return false;
-								}
-								if (m.r.hasClass('hierarchy_root')) {
-									// don't let the user move the node before or
-									// after the root node
-									if (m.p == "before" || m.p == "after") {
+				$( pageListDivId )
+					.html( pagelist );
+
+				$( pageListDivId + " * li" )
+					.css( "list-style-image", "none" );
+				$( pageListDivId )
+					.bind( "loaded.jstree", function( event, data ) {
+						$( pageListDivId )
+							.jstree( "open_all" );
+					} );
+				$( pageListDivId )
+					.bind( "refresh.jstree", function( event, data ) {
+						$( pageListDivId )
+							.jstree( "open_all" );
+					} );
+				$( pageListDivId )
+					.bind( "move_node.jstree", function( event, data ) {
+						//console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
+						var mylist = $( pageListDivId + " .hierarchy_root > ul" );
+						var listitems = mylist.find( "li" )
+							.get();
+						mylist.children()
+							.detach();
+						listitems.sort( function( a, b ) {
+							var compA = $( a )
+								.text()
+								.toUpperCase();
+							var compB = $( b )
+								.text()
+								.toUpperCase();
+							return ( compA < compB ) ? -1 : ( compA > compB ) ? 1 : 0;
+						} );
+						$.each( listitems, function( idx, itm ) {
+							itm.removeAttribute( "class" );
+							mylist.append( itm );
+						} );
+						$( pageListDivId )
+							.jstree( "refresh" );
+						obj.saveList( inputId, hierarchyDivId );
+					} );
+
+				$( pageListDivId )
+					.jstree( {
+						"themes": {
+							"theme": "apple",
+							"dots": true,
+							"icons": false
+						},
+						"crrm": {
+							"move": {
+								"check_move": function( m ) {
+									if ( m.o.hasClass( 'hierarchy_root' ) ) {
+										// don't let the user move the root node
 										return false;
 									}
+									if ( m.r.hasClass( 'hierarchy_root' ) ) {
+										// don't let the user move the node before or
+										// after the root node
+										if ( m.p == "before" || m.p == "after" ) {
+											return false;
+										}
+									}
+									return true;
 								}
-								return true;
 							}
-						}
-					},
-					"dnd" : {
-						"drop_target" : false,
-						"drag_target" : false
-					},
-					"plugins" : plugins
-				});
+						},
+						"dnd": {
+							"drop_target": false,
+							"drag_target": false
+						},
+						"plugins": plugins
+					} );
 			},
-			
-			saveList: function(inputId, divId) {
-				var list = $(divId + " .hierarchy_root > ul").clone();
+
+			saveList: function( inputId, divId ) {
+				var list = $( divId + " .hierarchy_root > ul" )
+					.clone();
 
 				//console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
 
-				list.find("ins").remove();
-				list.find("li").removeAttr("class");
-				list.find("li").removeAttr("style");
-				list.find("ul").removeAttr("class");
-				list.find("ul").removeAttr("style");
-				list.find("a").replaceWith(function() {
-					//return "[[" + $(this).first().text() + "]]";
-					var pageName = $(this).children('span').first().text();
-					var pageLink = "[["+pageName+"]]";
-					return pageLink;
-				});
+				list.find( "ins" )
+					.remove();
+				list.find( "li" )
+					.removeAttr( "class" );
+				list.find( "li" )
+					.removeAttr( "style" );
+				list.find( "ul" )
+					.removeAttr( "class" );
+				list.find( "ul" )
+					.removeAttr( "style" );
+				list.find( "a" )
+					.replaceWith( function() {
+						//return "[[" + $(this).first().text() + "]]";
+						var pageName = $( this )
+							.children( 'span' )
+							.first()
+							.text();
+						var pageLink = "[[" + pageName + "]]";
+						return pageLink;
+					} );
 				//document.getElementById(inputId).value = "<ul>" + list.html() +
 				//	"</ul>";
 
 				//console.log(list.html());
 
 
-				var wikiText = this.parseHtmlToWikiText(list, "*");
+				var wikiText = this.parseHtmlToWikiText( list, "*" );
 				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
-				document.getElementById(inputId).value = wikiText;
+				document.getElementById( inputId )
+					.value = wikiText;
 				//console.log(wikiText);
 			},
-			
+
 			/**
 			 * uListRoot is a jquery object, representing the <ul> element of a list.
-			 * depth is a string composed of * characters denoting the current depth 
-			 *     within the hierarchy. (ex: "*" is the hierarchy root, "**" is direct 
+			 * depth is a string composed of * characters denoting the current depth
+			 *     within the hierarchy. (ex: "*" is the hierarchy root, "**" is direct
 			 *     children of the root)
 			 */
-			parseHtmlToWikiText: function(uListRoot, depth) {
+			parseHtmlToWikiText: function( uListRoot, depth ) {
 				var that = this;
 				var returnString = "";
-				
-				var cur = uListRoot[0];
-				$(cur).children($("li")).each(function() {
-					var $children = $(this).contents();
 
-					returnString += depth + $children.first().text() + "\n";
+				var cur = uListRoot[ 0 ];
+				$( cur )
+					.children( $( "li" ) )
+					.each( function() {
+						var $children = $( this )
+							.contents();
 
-					var $sublist = $children.filter("ul");
-					if ($sublist.size() > 0) {
-						returnString += that.parseHtmlToWikiText($sublist, depth+"*");	// recurse on the sublist				
-					}
-				});
+						returnString += depth + $children.first()
+							.text() + "\n";
+
+						var $sublist = $children.filter( "ul" );
+						if ( $sublist.size() > 0 ) {
+							returnString += that.parseHtmlToWikiText( $sublist, depth + "*" ); // recurse on the sublist				
+						}
+					} );
 				return returnString;
 			},
 
@@ -249,70 +288,71 @@
 			 * wikiTextHierarchy is a string containing a hierarchy in WikiText format.
 			 * Note: the given hierarchy must be well-formed.
 			 */
-			parseWikiTextToHtml: function(hierarchyRoot, wikiTextHierarchy) {
+			parseWikiTextToHtml: function( hierarchyRoot, wikiTextHierarchy ) {
 				// make sure to remove the leading * from the root node before starting the process
-				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper("[["+hierarchyRoot+" | "+hierarchyRoot+"]]" + "\n" + wikiTextHierarchy, "") + "</ul>";
+				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper( "[[" + hierarchyRoot + " | " + hierarchyRoot + "]]" + "\n" + wikiTextHierarchy, "" ) + "</ul>";
 				return hierarchyHtml;
 			},
 
 			/**
 			 * wikiTextHierarchy is a string containing a hierarchy in modified
 			 *     WikiText format. Specifically, the root node has no leading *s.
-			 * depth is a string composed of * characters denoting the current depth 
+			 * depth is a string composed of * characters denoting the current depth
 			 *     within the hierarchy.
 			 */
-			parseWikiTextToHtmlHelper: function(wikiTextHierarchy, depth) {
+			parseWikiTextToHtmlHelper: function( wikiTextHierarchy, depth ) {
 				// split the hierarchy into a list with the root and each child hierarchy in a list
 				// this constructs a regular expression to search for lines with exactly depth+1 leading *s
 				var nextDepth = "\n" + depth + "*";
-				var r1 = new RegExp("\\*", "g");
-				var regex = nextDepth.replace(r1, "\\*") + "(?!\\*)";
-				var r2 = new RegExp(regex);
+				var r1 = new RegExp( "\\*", "g" );
+				var regex = nextDepth.replace( r1, "\\*" ) + "(?!\\*)";
+				var r2 = new RegExp( regex );
 				// actually split the hierarchy into root and children
-				var rootAndChildren = wikiTextHierarchy.split(r2);
-				
-				var root = rootAndChildren[0];	// this is just the root row of this hierarchy
-				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
-				
+				var rootAndChildren = wikiTextHierarchy.split( r2 );
+
+				var root = rootAndChildren[ 0 ]; // this is just the root row of this hierarchy
+				var children = rootAndChildren.slice( 1 ); // this is a list of direct children hierarchies of the root. It might be an empty list though
+
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
 				var html = "";
-				if (depth === "") {
+				if ( depth === "" ) {
 					html = "<li class='hierarchy_root'>";
 				} else {
 					html = "<li>";
 				}
-					
-				var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
-				var pageLinkMatches = pageLinkRegex.exec(root);
-				var pageLink = (pageLinkMatches.length > 0 ? pageLinkMatches[2] : "");
-				var pageName = pageLink.split(" | ")[0];
-				var displayName = pageLink.split(" | ")[1] ? pageLink.split(" | ")[1] : pageName;
-				var rootRow = "<a>" + 
-						displayName +
-						"<span style=display:none>" + pageName + "</span>" +
-						"</a>"; 
-				html += rootRow; 
+
+				var pageLinkRegex = new RegExp( "(\\[\\[)(.*)(\\]\\])", "g" ); // regex to find a link ([[pageName | displayName]])
+				var pageLinkMatches = pageLinkRegex.exec( root );
+				var pageLink = ( pageLinkMatches.length > 0 ? pageLinkMatches[ 2 ] : "" );
+				var pageName = pageLink.split( " | " )[ 0 ];
+				var displayName = pageLink.split( " | " )[ 1 ] ? pageLink.split( " | " )[ 1 ] : pageName;
+				var rootRow = "<a>" +
+					displayName +
+					"<span style=display:none>" + pageName + "</span>" +
+					"</a>";
+				html += rootRow;
 
 				//console.log("[editHierarchy.js][init] pageName = \n" + pageName);
 				//console.log("[editHierarchy.js][init] displayName = \n" + displayName);
 				//console.log("[editHierarchy.js][init] row = \n" + row);
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
-				if (children.length > 0) {
+				if ( children.length > 0 ) {
 					html += "<ul>";
 					// add the html for each child to our string
-					for (var i = 0; i < children.length; i++) {
-						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
+					for ( var i = 0; i < children.length; i++ ) {
+						html += this.parseWikiTextToHtmlHelper( children[ i ], depth + "*" );
 					}
 					html += "</ul>";
 				}
 
-				html +=  "</li>";			
-				
+				html += "</li>";
+
 				// now that our html has the root and the list with the children in html format we can finally return it.
 				return html;
 			}
 
-		}).init(inputId, params);
+		} )
+		.init( inputId, params );
 	};
-}(jQuery));
+}( jQuery ) );
