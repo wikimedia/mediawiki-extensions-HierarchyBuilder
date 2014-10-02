@@ -36,89 +36,56 @@
 	window.selectFromHierarchyInit = function( inputId, params ) {
 		( {
 			init: function( inputId, params ) {
-				//console.log("[selectFromHierarchy.js][init] " + inputId);
-				//console.log("[selectFromHierarchy.js][init] ");
-				//console.log(JSON.stringify(params));
-				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
-				//console.log(params.selectedItems);
-
-				//var wikiText = "\*[[My University]]\n\*\*[[School of Arts and Sciences]]\n\*\*\*[[English Department]]\n\*\*\*[[Art Department]]\n\*\*\*[[Math Department]]\n\*\*[[School of Engineering]]\n\*\*\*[[Computer Engineering]]\n\*\*\*[[Electrical Engineering]]\n\*\*\*[[Mechanical Engineering]]";
-				//console.log(this.parseWikiTextToHtml(wikiText));
-
 				if ( params.hierarchy.length < 1 ) {
 					return;
 				}
 
 				var selectedComponents = params.selectedItems;
-
-				//this.getSelectedHierarchyComponents(inputId);
-				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selectedComponents));
-
-				//var hierarchy = $(params.hierarchy);
 				var hierarchy = params.hierarchy;
-				//console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
-				//var html = hierarchy.html();
 				var html = hierarchy;
-				//var ulId = params.divId + "ul";
-				//console.log("[selectFromHierarchy][init]" + html);
-				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
-				//	"</ul>";
-				//html = html.replace(/&nbsp;/gi, " ");
-				//html = html.replace(/&amp;#160;/gi, " ");
 				html = this.parseWikiTextToHtml( html );
-				//console.log("[selectFromHierarchy.js][init] output hierarchy = " + html);
-
+				
 				var jqDivId = "#" + params.divId;
 				$( jqDivId )
 					.html( html );
 				$( jqDivId + " * li" )
 					.css( "list-style-image", "none" );
-				//alert("after css on jqDivId");
-
-				//console.log($(jqDivId).html());
 
 				var updatedSelectedComponents = [];
 				var obj = this;
 				$( jqDivId + "* li" )
 					.each( function() {
-						//var parent = $(this);
 						$( this )
 							.children( "a" )
 							.each( function() {
-								//console.log("[selectFromHierarchy.js][init] anchor text " + $(this).text());
-								//var elementName = $(this).text().trim();
-								//console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
 								var elementName = $( this )
 									.children( "span:first" )
 									.text();
-								//console.log("[selectFromHierarchy.js][init] " + elementName);
+
 								if ( obj.isSelectedHierarchyComponent( elementName, selectedComponents ) && $.inArray( "[[" + elementName + "]]", updatedSelectedComponents ) === -1 ) {
 									updatedSelectedComponents.push(
 										"[[" + elementName + "]]" );
 								}
 							} );
 					} );
-				//alert("after updated components");
 				selectedComponents = updatedSelectedComponents;
-				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selectedComponents));
+
 				$( "#" + inputId )
 					.val( selectedComponents.join( "," ) );
+				
 				$( jqDivId )
 					.bind( "loaded.jstree", function( event, data ) {
-						//alert("in loaded.jstree binding" + $(jqDivId).html());
 						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, true, inputId, params.collapsed );
 						$( jqDivId )
 							.jstree( "open_all" );
 					} );
-				//alert("after loaded.jstree binding");
+
 				$( jqDivId )
 					.bind( "refresh.jstree", function( event, data ) {
-						//alert("in refresh.jstree binding" + $(jqDivId).html());
 						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, false, inputId, params.collapsed );
 					} );
-				//alert("after refresh.jstree binding");
 
 				$( jqDivId )
 					.jstree( {
@@ -140,12 +107,9 @@
 						},
 						"plugins": [ "themes", "html_data", "checkbox", "types" ]
 					} );
-
-				//alert("end of init" + $(jqDivId).html());
 			},
 
 			getSelectedHierarchyComponents: function( inputId ) {
-				//alert("getSelectedHierarchyComponents");
 				var curValue = $( "#" + inputId )
 					.val();
 				curValue = $.trim( curValue );
@@ -158,7 +122,6 @@
 
 			initializeTree: function( jqDivId, isDisabled, selectedComponents,
 				init, inputId, collapsed ) {
-				//alert("initializeTree");
 				var obj = this;
 				if ( collapsed ) {
 					$( jqDivId )
@@ -173,7 +136,6 @@
 						$( this )
 							.children( "a" )
 							.each( function() {
-								//var elementName = $(this).text().trim();
 								var elementName = $( this )
 									.children( "span:first" )
 									.text();
@@ -198,7 +160,6 @@
 							data.rslt.obj.children( "a" )
 								.each( function() {
 									var elementName =
-										//$(this).text().trim();
 										$( this )
 										.children( "span:first" )
 										.text();
@@ -211,7 +172,6 @@
 							data.rslt.obj.children( "a" )
 								.each( function() {
 									var elementName =
-										//$(this).text().trim();
 										$( this )
 										.children( "span:first" )
 										.text();
@@ -224,14 +184,10 @@
 
 			isSelectedHierarchyComponent: function( elementName,
 				selectedComponents ) {
-				//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + elementName);
 				if ( selectedComponents && selectedComponents.length > 0 ) {
 					var pageName = "[[" + elementName + "]]";
-					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + pageName + "\t" + JSON.stringify(selectedComponents));
-					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(pageName, selectedComponents));
 					var index = $.inArray( pageName, selectedComponents );
 					if ( index !== -1 ) {
-						//console.log("********************************************************************************************");
 						return true;
 					}
 				}
@@ -239,7 +195,6 @@
 			},
 
 			checkNode: function( elementName, inputId ) {
-				//alert("checkNode");
 				var selectedComponents =
 					this.getSelectedHierarchyComponents( inputId );
 				var pageName = "[[" + elementName + "]]";
@@ -250,17 +205,13 @@
 						selectedComponents.push( pageName );
 						selectedComponents.sort();
 					}
-					//console.log("[checkNode] " + "selectedComponents = ");
-					//console.log(selectedComponents);
 					curValue = selectedComponents.join( "," );
 				}
 				$( "#" + inputId )
 					.val( curValue );
-				//console.log("[selectFromHierarchy.js][checkNode] curValue = " + curValue);
 			},
 
 			uncheckNode: function( elementName, inputId ) {
-				//alert("uncheckNode");
 				var selectedComponents =
 					this.getSelectedHierarchyComponents( inputId );
 				var pageName = "[[" + elementName + "]]";
@@ -297,7 +248,6 @@
 						$( this )
 							.children( "a" )
 							.each( function() {
-								//var curElementName = $(this).text().trim();
 								var curElementName = $( this )
 									.children( "span:first" )
 									.text();
@@ -340,7 +290,7 @@
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
 				var html = "";
 				if ( depth !== "" ) {
-					html = "<li>"; // + root.replace("[[","<a>").replace("]]","</a>");
+					html = "<li>";
 
 					var pageLinkRegex = new RegExp( "(\\[\\[)(.*)(\\]\\])", "g" ); // regex to find a link ([[pageName | displayName]])
 					var pageLinkMatches = pageLinkRegex.exec( root );

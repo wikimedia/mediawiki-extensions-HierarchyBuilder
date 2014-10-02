@@ -37,20 +37,12 @@
 	window.editHierarchyInit = function( inputId, params ) {
 		( {
 			init: function( inputId, params ) {
-
-				//console.log("[editHierarchy.js][init] ");
-				//console.log(params);
-
 				var hierarchy = params.hierarchy;
 				if ( hierarchy.length < 1 ) {
 					return;
 				}
 
-				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
-				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
-				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
 				hierarchy = this.parseWikiTextToHtml( params.hierarchyroot, hierarchy );
-				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.divId;
 				var hierarchyDivId = jqDivId + "_hierarchy";
@@ -135,7 +127,7 @@
 				var pagelist = "<ul><li class='hierarchy_root'><a>" +
 					params.unusedpages + "</a><ul>";
 				for ( var pagename in params.pages ) {
-					pagelist += "<li><a>" + params.pages[ pagename ] + //+"</a></li>";
+					pagelist += "<li><a>" + params.pages[ pagename ] +
 						"<span style='display:none'>" + pagename +
 						"</span></a></li>";
 				}
@@ -159,7 +151,6 @@
 					} );
 				$( pageListDivId )
 					.bind( "move_node.jstree", function( event, data ) {
-						//console.log("[editHierarchy.js][init][move_node.jstree] " + "moving something");
 						var mylist = $( pageListDivId + " .hierarchy_root > ul" );
 						var listitems = mylist.find( "li" )
 							.get();
@@ -220,8 +211,6 @@
 				var list = $( divId + " .hierarchy_root > ul" )
 					.clone();
 
-				//console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
-
 				list.find( "ins" )
 					.remove();
 				list.find( "li" )
@@ -234,7 +223,6 @@
 					.removeAttr( "style" );
 				list.find( "a" )
 					.replaceWith( function() {
-						//return "[[" + $(this).first().text() + "]]";
 						var pageName = $( this )
 							.children( 'span' )
 							.first()
@@ -242,17 +230,11 @@
 						var pageLink = "[[" + pageName + "]]";
 						return pageLink;
 					} );
-				//document.getElementById(inputId).value = "<ul>" + list.html() +
-				//	"</ul>";
-
-				//console.log(list.html());
 
 				var wikiText = this.parseHtmlToWikiText( list, "*" );
-				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
 				document.getElementById( inputId )
 					.value = wikiText;
-				//console.log(wikiText);
 			},
 
 			/**
@@ -330,10 +312,6 @@
 					"<span style=display:none>" + pageName + "</span>" +
 					"</a>";
 				html += rootRow;
-
-				//console.log("[editHierarchy.js][init] pageName = \n" + pageName);
-				//console.log("[editHierarchy.js][init] displayName = \n" + displayName);
-				//console.log("[editHierarchy.js][init] row = \n" + row);
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if ( children.length > 0 ) {

@@ -102,7 +102,6 @@
 			 */
 			numberHtmlHelper: function( uListRoot, numberPrefix ) {
 				var that = this;
-				//var returnString = "";
 
 				var $numberSuffix = 1; // this is the subsection number for a particular child. It starts at one because the first child is numbered 1.
 
@@ -118,7 +117,6 @@
 							.text();
 						$children.first()
 							.text( numberedChild );
-						//returnString += numberPrefix + $children.first().text() + "\n";
 
 						var $sublist = $children.filter( "ul" );
 						if ( $sublist.size() > 0 ) {
