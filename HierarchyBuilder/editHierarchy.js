@@ -247,7 +247,6 @@
 
 				//console.log(list.html());
 
-
 				var wikiText = this.parseHtmlToWikiText( list, "*" );
 				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
@@ -278,7 +277,7 @@
 
 						var $sublist = $children.filter( "ul" );
 						if ( $sublist.size() > 0 ) {
-							returnString += that.parseHtmlToWikiText( $sublist, depth + "*" ); // recurse on the sublist				
+							returnString += that.parseHtmlToWikiText( $sublist, depth + "*" ); // recurse on the sublist
 						}
 					} );
 				return returnString;

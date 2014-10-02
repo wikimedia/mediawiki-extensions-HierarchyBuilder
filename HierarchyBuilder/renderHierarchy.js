@@ -122,7 +122,7 @@
 
 						var $sublist = $children.filter( "ul" );
 						if ( $sublist.size() > 0 ) {
-							that.numberHtmlHelper( $sublist, childNumber ); // recurse on the sublist				
+							that.numberHtmlHelper( $sublist, childNumber ); // recurse on the sublist
 						}
 					} );
 				return uListRoot;

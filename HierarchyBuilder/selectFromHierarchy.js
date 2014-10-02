@@ -260,7 +260,7 @@
 			},
 
 			uncheckNode: function( elementName, inputId ) {
-				//alert("uncheckNode");				
+				//alert("uncheckNode");
 				var selectedComponents =
 					this.getSelectedHierarchyComponents( inputId );
 				var pageName = "[[" + elementName + "]]";
