@@ -929,8 +929,8 @@ window.ProjectGraph = function() {
 		var tasks = self.queryStaffTasks(personNode.employeeNumber, 
 			self.FiscalYear);
 		if (tasks == null) {
-			self.errorAlert("Error getting data for employee " + personNode.employeeNumber +
-				" for fiscal year " + this.FiscalYear);
+			self.errorAlert("Unable to fetch data for employee " + personNode.employeeNumber +
+				" for fiscal year " + this.FiscalYear+". This is typically due to an MII data stream outage.");
 		} else {
 			this.parseStaffTasks(personNode, tasks);
 		}
