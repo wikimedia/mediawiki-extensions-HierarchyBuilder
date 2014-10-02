@@ -117,7 +117,7 @@
 									if ( m.r.hasClass( 'hierarchy_root' ) ) {
 										// don't let the user move the node before or
 										// after the root node
-										if ( m.p == "before" || m.p == "after" ) {
+										if ( m.p === "before" || m.p === "after" ) {
 											return false;
 										}
 									}
@@ -200,7 +200,7 @@
 									if ( m.r.hasClass( 'hierarchy_root' ) ) {
 										// don't let the user move the node before or
 										// after the root node
-										if ( m.p == "before" || m.p == "after" ) {
+										if ( m.p === "before" || m.p === "after" ) {
 											return false;
 										}
 									}
