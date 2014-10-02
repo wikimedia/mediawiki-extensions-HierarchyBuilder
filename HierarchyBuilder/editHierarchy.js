@@ -30,11 +30,11 @@
 //	 hierarchy
 // inputId is the id of a hidden form field in the document that is used
 //	 to pass the possibly modified hierarchy back when the form is saved
-// is_disabled indicates whether editing should be disabled
-// is_mandatory indicates whether it is mandatory for a value to be returned
+// isDisabled indicates whether editing should be disabled
+// isMandatory indicates whether it is mandatory for a value to be returned
 //	 (currently not implemented)
 ( function( $ ) {
-	window.EditHierarchy_init = function( inputId, params ) {
+	window.editHierarchyInit = function( inputId, params ) {
 		( {
 			init: function( inputId, params ) {
 
@@ -52,7 +52,7 @@
 				hierarchy = this.parseWikiTextToHtml( params.hierarchyroot, hierarchy );
 				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
-				var jqDivId = params.div_id;
+				var jqDivId = params.divId;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";
 
@@ -94,7 +94,7 @@
 					} );
 
 				var plugins;
-				if ( params.is_diabled ) {
+				if ( params.isDiabled ) {
 					plugins = [ "themes", "html_data" ];
 				} else {
 					plugins = [ "themes", "html_data", "dnd", "crrm" ];

@@ -916,7 +916,7 @@ class EditHierarchy extends SFFormInput {
 		$disabled, $other_args ) {
 		parent::__construct( $input_number, $cur_value, $input_name, $disabled,
 			$other_args );
-		$this->addJsInitFunctionData( 'EditHierarchy_init',
+		$this->addJsInitFunctionData( 'editHierarchyInit',
 			$this->setupJsInitAttribs() );
 	}
 
@@ -973,11 +973,11 @@ class EditHierarchy extends SFFormInput {
 		$this->mDivId = "hierarchy_$sfgFieldNum";
 		$this->mInputId = "input_$sfgFieldNum";
 		$jsattribs = array(
-			'div_id' => $this->mDivId,
+			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
 			'pages' => $pages,
-			'is_disabled' => $this->mIsDisabled,
-			'is_mandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
+			'isDisabled' => $this->mIsDisabled,
+			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'message' =>
 				wfMessage( 'hierarchybuilder-editmessage', $this->mCategory )->text(),
 			'hierarchyroot' =>
@@ -1084,7 +1084,7 @@ class SelectFromHierarchy extends SFFormInput {
 		$this->mDivId = "hierarchy_$sfgFieldNum";
 		$this->mInputId = "input_$sfgFieldNum";
 		$jsattribs = array(
-			'div_id' => $this->mDivId,
+			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
 			'selected_items' => $selected_items,
 			'is_disabled' => $this->mIsDisabled,
