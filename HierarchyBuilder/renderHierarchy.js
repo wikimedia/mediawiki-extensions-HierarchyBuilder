@@ -40,7 +40,7 @@
 
 				if(numbered) {
 					var $hierarchy = $(hierarchy);
-					var $hierarchy = this.numberHtml($hierarchy);
+					$hierarchy = this.numberHtml($hierarchy);
 					hierarchy = $hierarchy[0].outerHTML;	
 				}
 			
@@ -80,7 +80,7 @@
 			 * section numbers applied is then returned.
 			 */
 			numberHtml: function(uListRoot) {
-				list = uListRoot.clone();
+				var list = uListRoot.clone();
 				return this.numberHtmlHelper(list, "");
 			},
 
@@ -93,7 +93,7 @@
 			 */
 			numberHtmlHelper: function(uListRoot, numberPrefix) {
 				var that = this;
-				var returnString = "";
+				//var returnString = "";
 				
 				var $numberSuffix = 1; // this is the subsection number for a particular child. It starts at one because the first child is numbered 1.
 
@@ -114,6 +114,5 @@
 				return uListRoot;
 			}
 		}).render(divId, hierarchy, collapsed, numbered);
-		
-	}
+	};
 }(jQuery));

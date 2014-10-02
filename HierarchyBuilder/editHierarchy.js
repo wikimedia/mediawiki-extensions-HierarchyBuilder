@@ -28,15 +28,15 @@
 //	 the URL of the page
 // pages is a list of the pages that are candidates to be added to the
 //	 hierarchy
-// input_id is the id of a hidden form field in the document that is used
+// inputId is the id of a hidden form field in the document that is used
 //	 to pass the possibly modified hierarchy back when the form is saved
 // is_disabled indicates whether editing should be disabled
 // is_mandatory indicates whether it is mandatory for a value to be returned
 //	 (currently not implemented)
 (function($) {
-	window.EditHierarchy_init = function (input_id, params) {
+	window.EditHierarchy_init = function (inputId, params) {
 		({
-			init: function(input_id, params) {
+			init: function(inputId, params) {
 
 				//console.log("[editHierarchy.js][init] ");
 				//console.log(params);
@@ -49,7 +49,7 @@
 				//var hierarchy = "<ul><li class='hierarchy_root'><a>" +
 				//	params.hierarchyroot + "</a>" + hierarchy + "</li></ul>";
 				//console.log("[editHierarchy.js][init] input hierarchy = \n" + hierarchy);
-				var hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
+				hierarchy = this.parseWikiTextToHtml(params.hierarchyroot, hierarchy);
 				//console.log("[editHierarchy.js][init] output hierarchy = \n" + hierarchy);
 
 				var jqDivId = params.div_id;
@@ -82,7 +82,7 @@
 					$(hierarchyDivId).jstree("open_all");
 				});
 				$(hierarchyDivId).bind("move_node.jstree", function (event, data) {
-					obj.saveList(input_id, hierarchyDivId);
+					obj.saveList(inputId, hierarchyDivId);
 				});
 			
 				var plugins;
@@ -151,13 +151,13 @@
 						var compA = $(a).text().toUpperCase();
 						var compB = $(b).text().toUpperCase();
 						return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-					})
+					});
 					$.each(listitems, function(idx, itm) {
 						itm.removeAttribute("class");
 						mylist.append(itm);
 					});
 					$(pageListDivId).jstree("refresh");
-					obj.saveList(input_id, hierarchyDivId);
+					obj.saveList(inputId, hierarchyDivId);
 				});
 			
 				$(pageListDivId).jstree({
@@ -192,7 +192,7 @@
 				});
 			},
 			
-			saveList: function(input_id, divId) {
+			saveList: function(inputId, divId) {
 				var list = $(divId + " .hierarchy_root > ul").clone();
 
 				//console.log("[editHierarchy.js][saveList]: input hierarchy = \n" + list.html());
@@ -208,7 +208,7 @@
 					var pageLink = "[["+pageName+"]]";
 					return pageLink;
 				});
-				//document.getElementById(input_id).value = "<ul>" + list.html() +
+				//document.getElementById(inputId).value = "<ul>" + list.html() +
 				//	"</ul>";
 
 				//console.log(list.html());
@@ -217,7 +217,7 @@
 				var wikiText = this.parseHtmlToWikiText(list, "*");
 				//console.log("[editHierarchy.js][saveList]: output hierarchy = \n" + wikiText);
 
-				document.getElementById(input_id).value = wikiText;
+				document.getElementById(inputId).value = wikiText;
 				//console.log(wikiText);
 			},
 			
@@ -275,10 +275,11 @@
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
+				var html = "";
 				if (depth === "") {
-					var html = "<li class='hierarchy_root'>";
+					html = "<li class='hierarchy_root'>";
 				} else {
-					var html = "<li>";
+					html = "<li>";
 				}
 					
 				var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
@@ -298,7 +299,7 @@
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
-					html += "<ul>"
+					html += "<ul>";
 					// add the html for each child to our string
 					for (var i = 0; i < children.length; i++) {
 						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
@@ -312,6 +313,6 @@
 				return html;
 			}
 
-		}).init(input_id, params);
-	}
+		}).init(inputId, params);
+	};
 }(jQuery));

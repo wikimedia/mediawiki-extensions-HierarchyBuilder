@@ -26,17 +26,17 @@
 // - for each row in hierarchy, the first column is the level of indentation,
 //	 the second column is the name of the page, and the third column is
 //	 the URL of the page
-// input_id is the id of a hidden form field in the document that is used
+// inputId is the id of a hidden form field in the document that is used
 //	 to pass the possibly modified list of selected pages back when the form
 //	 is saved
 // is_disabled indicates whether editing should be disabled
 // is_mandatory indicates whether it is mandatory for a value to be returned
 //	 (currently not implemented)
 (function($) {
-	window.SelectFromHierarchy_init = function(input_id, params) {
+	window.SelectFromHierarchy_init = function(inputId, params) {
 		({
-			init: function(input_id, params) {
-				//console.log("[selectFromHierarchy.js][init] " + input_id);
+			init: function(inputId, params) {
+				//console.log("[selectFromHierarchy.js][init] " + inputId);
 				//console.log("[selectFromHierarchy.js][init] ");
 				//console.log(JSON.stringify(params));
 				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
@@ -49,17 +49,17 @@
 					return;
 				}
 
-				var selected_components = params.selected_items;
+				var selectedComponents = params.selected_items;
 
-					//this.getSelectedHierarchyComponents(input_id);
-				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
+					//this.getSelectedHierarchyComponents(inputId);
+				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selectedComponents));
 			
 				//var hierarchy = $(params.hierarchy);
 				var hierarchy = params.hierarchy;
 				//console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
 				//var html = hierarchy.html();
 				var html = hierarchy;
-				var ulId = params.div_id + "ul";
+				//var ulId = params.div_id + "ul";
 				//console.log("[selectFromHierarchy][init]" + html);
 				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
 				//	"</ul>";
@@ -75,38 +75,38 @@
 
 				//console.log($(jqDivId).html());
 
-				var updated_selected_components = new Array();
+				var updatedSelectedComponents = [];
 				var obj = this;
 				$(jqDivId + "* li").each(function() {
-					var parent = $(this);
+					//var parent = $(this);
 					$(this).children("a").each(function() {
 						//console.log("[selectFromHierarchy.js][init] anchor text " + $(this).text());
-						//var element_name = $(this).text().trim();
+						//var elementName = $(this).text().trim();
 						//console.log("ALDSJFALSKDJFALSKDJFALSKDJFALSDJF:\t" + $(this).first().text());
-						var element_name = $(this).children("span:first").text();
-						//console.log("[selectFromHierarchy.js][init] " + element_name);
-						if (obj.isSelectedHierarchyComponent(element_name, selected_components) 
-							&& $.inArray("[["+element_name+"]]", updated_selected_components) == -1) {
-							updated_selected_components.push(
-								"[[" + element_name + "]]");
+						var elementName = $(this).children("span:first").text();
+						//console.log("[selectFromHierarchy.js][init] " + elementName);
+						if (obj.isSelectedHierarchyComponent(elementName, selectedComponents) 
+							&& $.inArray("[["+elementName+"]]", updatedSelectedComponents) === -1) {
+							updatedSelectedComponents.push(
+								"[[" + elementName + "]]");
 						}
 					});
 				});
 								//alert("after updated components");
-				selected_components = updated_selected_components;
-				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selected_components));
-			 	$("#" + input_id).val(selected_components.join(","));
+				selectedComponents = updatedSelectedComponents;
+				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selectedComponents));
+			 	$("#" + inputId).val(selectedComponents.join(","));
 				$(jqDivId).bind("loaded.jstree", function (event, data) {
 								//alert("in loaded.jstree binding" + $(jqDivId).html());
 					obj.initializeTree(jqDivId, params.is_disabled,
-						selected_components, true, input_id, params.collapsed);
+						selectedComponents, true, inputId, params.collapsed);
 					$(jqDivId).jstree("open_all");
 				});
 								//alert("after loaded.jstree binding");
 				$(jqDivId).bind("refresh.jstree", function (event, data) {
 								//alert("in refresh.jstree binding" + $(jqDivId).html());
 					obj.initializeTree(jqDivId, params.is_disabled,
-						selected_components, false, input_id, params.collapsed);
+						selectedComponents, false, inputId, params.collapsed);
 				});
 								//alert("after refresh.jstree binding");
 
@@ -133,19 +133,19 @@
 								//alert("end of init" + $(jqDivId).html());
 			},
 			
-			getSelectedHierarchyComponents: function(input_id) {
+			getSelectedHierarchyComponents: function(inputId) {
 				//alert("getSelectedHierarchyComponents");
-				var cur_value = $("#" + input_id).val();
-				cur_value = $.trim(cur_value);
-				if (cur_value.length > 0) {
-					return cur_value.split(",");
+				var curValue = $("#" + inputId).val();
+				curValue = $.trim(curValue);
+				if (curValue.length > 0) {
+					return curValue.split(",");
 				} else {
 					return [];
 				}
 			},
 			
-			initializeTree: function(jqDivId, is_disabled, selected_components,
-				init, input_id, collapsed) {
+			initializeTree: function(jqDivId, is_disabled, selectedComponents,
+				init, inputId, collapsed) {
 				//alert("initializeTree");
 				var obj = this;
 				if (collapsed) {
@@ -156,10 +156,10 @@
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
-						//var element_name = $(this).text().trim();
-						var element_name = $(this).children("span:first").text();
-						if (obj.isSelectedHierarchyComponent(element_name,
-							selected_components)) {
+						//var elementName = $(this).text().trim();
+						var elementName = $(this).children("span:first").text();
+						if (obj.isSelectedHierarchyComponent(elementName,
+							selectedComponents)) {
 							$(jqDivId).jstree("check_node", parent);
 						}
 					});
@@ -173,34 +173,34 @@
 				if (init) {
 					$(jqDivId).bind("check_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
-							var element_name =
+							var elementName =
 								//$(this).text().trim();
 								$(this).children("span:first").text();
-							obj.checkNode(element_name, input_id);
-							obj.processDups(jqDivId, element_name, "check");
+							obj.checkNode(elementName, inputId);
+							obj.processDups(jqDivId, elementName, "check");
 						});
 					});
 					$(jqDivId).bind("uncheck_node.jstree", function (event, data) {
 						data.rslt.obj.children("a").each(function() {
-							var element_name =
+							var elementName =
 								//$(this).text().trim();
 								$(this).children("span:first").text();
-							obj.uncheckNode(element_name, input_id);
-							obj.processDups(jqDivId, element_name, "uncheck");
+							obj.uncheckNode(elementName, inputId);
+							obj.processDups(jqDivId, elementName, "uncheck");
 						});
 					});
 				}
 			},
 			
-			isSelectedHierarchyComponent: function(element_name,
-				selected_components) {
-				//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + element_name);
-				if (selected_components && selected_components.length > 0) {
-					var page_name = "[[" + element_name + "]]";
-					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + page_name + "\t" + JSON.stringify(selected_components));
-					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(page_name, selected_components));
-					var index = $.inArray(page_name, selected_components);
-					if (index != -1) {
+			isSelectedHierarchyComponent: function(elementName,
+				selectedComponents) {
+				//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] elementName = " + elementName);
+				if (selectedComponents && selectedComponents.length > 0) {
+					var pageName = "[[" + elementName + "]]";
+					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " + pageName + "\t" + JSON.stringify(selectedComponents));
+					//console.log("[selectFromHierarchy.js][isSelectedHierarchyComponent] " +  $.inArray(pageName, selectedComponents));
+					var index = $.inArray(pageName, selectedComponents);
+					if (index !== -1) {
 						//console.log("********************************************************************************************");
 						return true;
 					}
@@ -208,47 +208,47 @@
 				return false;
 			},
 			
-			checkNode: function(element_name, input_id) {
+			checkNode: function(elementName, inputId) {
 				//alert("checkNode");
-				var selected_components =
-					this.getSelectedHierarchyComponents(input_id);
-				var page_name = "[[" + element_name + "]]";
-				var cur_value = page_name;
-				if (selected_components.length > 0) {
-					var index = $.inArray(page_name, selected_components);
-					if (index == -1) {
-						selected_components.push(page_name);
-						selected_components.sort();
+				var selectedComponents =
+					this.getSelectedHierarchyComponents(inputId);
+				var pageName = "[[" + elementName + "]]";
+				var curValue = pageName;
+				if (selectedComponents.length > 0) {
+					var index = $.inArray(pageName, selectedComponents);
+					if (index === -1) {
+						selectedComponents.push(pageName);
+						selectedComponents.sort();
 					}
-					console.log("[checkNode] " + "selected_components = ");
-					console.log(selected_components);
-					cur_value = selected_components.join(",");
+					//console.log("[checkNode] " + "selectedComponents = ");
+					//console.log(selectedComponents);
+					curValue = selectedComponents.join(",");
 				}
-				$("#" + input_id).val(cur_value);
-				//console.log("[selectFromHierarchy.js][checkNode] cur_value = " + cur_value);
+				$("#" + inputId).val(curValue);
+				//console.log("[selectFromHierarchy.js][checkNode] curValue = " + curValue);
 			},
 			
-			uncheckNode: function(element_name, input_id) {
+			uncheckNode: function(elementName, inputId) {
 				//alert("uncheckNode");				
-				var selected_components =
-					this.getSelectedHierarchyComponents(input_id);
-				var page_name = "[[" + element_name + "]]";
-				var cur_value = "";
-				if (selected_components.length > 0) {
-					var index = $.inArray(page_name, selected_components);
-					if (index != -1) {
-						selected_components.splice(index, 1);
+				var selectedComponents =
+					this.getSelectedHierarchyComponents(inputId);
+				var pageName = "[[" + elementName + "]]";
+				var curValue = "";
+				if (selectedComponents.length > 0) {
+					var index = $.inArray(pageName, selectedComponents);
+					if (index !== -1) {
+						selectedComponents.splice(index, 1);
 					}
-					cur_value = selected_components.join(",");
+					curValue = selectedComponents.join(",");
 				}
-				$("#" + input_id).val(cur_value);
+				$("#" + inputId).val(curValue);
 			},
 
 			/**
 			 * jqDivId is the divId of the hierarchy or something like that.
-			 * element_name is the name of the element who's duplicates we're 
+			 * elementName is the name of the element who's duplicates we're 
 			 *     trying to handle.
-			 * input_id is the id of the input thing we hide stuff in.
+			 * inputId is the id of the input thing we hide stuff in.
 			 * action is a string either "check" or "uncheck" which indicates
 			 *     how duplicate rows should be processed.
 			 *
@@ -256,15 +256,15 @@
 			 * elements searching for duplicates of the given element. If any
 			 * are found then we check those elements too.
 			 */
-			processDups: function(jqDivId, element_name, action) {
-				action = action == "check" ? "check_node" : "uncheck_node";
-				status = action == "check_node" ? "jstree-unchecked" : "jstree-checked";
+			processDups: function(jqDivId, elementName, action) {
+				action = action === "check" ? "check_node" : "uncheck_node";
+				var status = action === "check_node" ? "jstree-unchecked" : "jstree-checked";
 				$(jqDivId + "* li").each(function() {
 					var parent = $(this);
 					$(this).children("a").each(function() {
-						//var cur_element_name = $(this).text().trim();
-						var cur_element_name = $(this).children("span:first").text();
-						if (cur_element_name == element_name && parent.hasClass(status)) {
+						//var curElementName = $(this).text().trim();
+						var curElementName = $(this).children("span:first").text();
+						if (curElementName === elementName && parent.hasClass(status)) {
 							$(jqDivId).jstree(action, parent);
 						}
 					});
@@ -300,8 +300,9 @@
 				var children = rootAndChildren.slice(1);	// this is a list of direct children hierarchies of the root. It might be an empty list though
 				
 				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
+				var html = "";
 				if (depth !== "") {
-					var html = "<li>";// + root.replace("[[","<a>").replace("]]","</a>");
+					html = "<li>";// + root.replace("[[","<a>").replace("]]","</a>");
 
 					var pageLinkRegex = new RegExp("(\\[\\[)(.*)(\\]\\])", "g"); // regex to find a link ([[pageName | displayName]])
 					var pageLinkMatches = pageLinkRegex.exec(root);
@@ -317,7 +318,7 @@
 
 				// if there are children, add an unordered-list element to contain them and recurse on each child
 				if (children.length > 0) {
-					html += "<ul>"
+					html += "<ul>";
 					// add the html for each child to our string
 					for (var i = 0; i < children.length; i++) {
 						html += this.parseWikiTextToHtmlHelper(children[i], depth+"*");
@@ -332,6 +333,6 @@
 				// now that our html has the root and the list with the children in html format we can finally return it.
 				return html;
 			}
-		}).init(input_id, params);
-	}
+		}).init(inputId, params);
+	};
 }(jQuery));
