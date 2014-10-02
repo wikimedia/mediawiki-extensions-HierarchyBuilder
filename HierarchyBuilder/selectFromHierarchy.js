@@ -21,7 +21,7 @@
  */
 
 // Display the hierarchy
-// div_id is the name of the div to render the hierarchy into
+// divId is the name of the div to render the hierarchy into
 // hierarchy is a 2 dimensional array of the data
 // - for each row in hierarchy, the first column is the level of indentation,
 //	 the second column is the name of the page, and the third column is
@@ -29,18 +29,18 @@
 // inputId is the id of a hidden form field in the document that is used
 //	 to pass the possibly modified list of selected pages back when the form
 //	 is saved
-// is_disabled indicates whether editing should be disabled
-// is_mandatory indicates whether it is mandatory for a value to be returned
+// isDisabled indicates whether editing should be disabled
+// isMandatory indicates whether it is mandatory for a value to be returned
 //	 (currently not implemented)
 ( function( $ ) {
-	window.SelectFromHierarchy_init = function( inputId, params ) {
+	window.selectFromHierarchyInit = function( inputId, params ) {
 		( {
 			init: function( inputId, params ) {
 				//console.log("[selectFromHierarchy.js][init] " + inputId);
 				//console.log("[selectFromHierarchy.js][init] ");
 				//console.log(JSON.stringify(params));
 				//console.log("[selectFromHierarchy.js][init] " + "selected = ");
-				//console.log(params.selected_items);
+				//console.log(params.selectedItems);
 
 				//var wikiText = "\*[[My University]]\n\*\*[[School of Arts and Sciences]]\n\*\*\*[[English Department]]\n\*\*\*[[Art Department]]\n\*\*\*[[Math Department]]\n\*\*[[School of Engineering]]\n\*\*\*[[Computer Engineering]]\n\*\*\*[[Electrical Engineering]]\n\*\*\*[[Mechanical Engineering]]";
 				//console.log(this.parseWikiTextToHtml(wikiText));
@@ -49,7 +49,7 @@
 					return;
 				}
 
-				var selectedComponents = params.selected_items;
+				var selectedComponents = params.selectedItems;
 
 				//this.getSelectedHierarchyComponents(inputId);
 				//console.log("[selectFromHierarchy][init] " + JSON.stringify(selectedComponents));
@@ -59,7 +59,7 @@
 				//console.log("[selectFromHierarchy.js][init] intput hierarchy = " + hierarchy);
 				//var html = hierarchy.html();
 				var html = hierarchy;
-				//var ulId = params.div_id + "ul";
+				//var ulId = params.divId + "ul";
 				//console.log("[selectFromHierarchy][init]" + html);
 				//html = "<ul id='" + ulId + "'>" + html.replace(/&nbsp;/gi, " ") +
 				//	"</ul>";
@@ -68,7 +68,7 @@
 				html = this.parseWikiTextToHtml( html );
 				//console.log("[selectFromHierarchy.js][init] output hierarchy = " + html);
 
-				var jqDivId = "#" + params.div_id;
+				var jqDivId = "#" + params.divId;
 				$( jqDivId )
 					.html( html );
 				$( jqDivId + " * li" )
@@ -106,7 +106,7 @@
 				$( jqDivId )
 					.bind( "loaded.jstree", function( event, data ) {
 						//alert("in loaded.jstree binding" + $(jqDivId).html());
-						obj.initializeTree( jqDivId, params.is_disabled,
+						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, true, inputId, params.collapsed );
 						$( jqDivId )
 							.jstree( "open_all" );
@@ -115,7 +115,7 @@
 				$( jqDivId )
 					.bind( "refresh.jstree", function( event, data ) {
 						//alert("in refresh.jstree binding" + $(jqDivId).html());
-						obj.initializeTree( jqDivId, params.is_disabled,
+						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, false, inputId, params.collapsed );
 					} );
 				//alert("after refresh.jstree binding");
@@ -156,7 +156,7 @@
 				}
 			},
 
-			initializeTree: function( jqDivId, is_disabled, selectedComponents,
+			initializeTree: function( jqDivId, isDisabled, selectedComponents,
 				init, inputId, collapsed ) {
 				//alert("initializeTree");
 				var obj = this;
@@ -184,7 +184,7 @@
 								}
 							} );
 					} );
-				if ( is_disabled ) {
+				if ( isDisabled ) {
 					$( jqDivId + "* li" )
 						.each( function() {
 							$.jstree._reference( jqDivId )

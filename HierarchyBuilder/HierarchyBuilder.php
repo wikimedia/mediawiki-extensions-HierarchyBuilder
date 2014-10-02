@@ -1032,7 +1032,7 @@ class SelectFromHierarchy extends SFFormInput {
 		$disabled, $other_args ) {
 		parent::__construct( $input_number, $cur_value, $input_name, $disabled,
 			$other_args );
-		$this->addJsInitFunctionData( 'SelectFromHierarchy_init',
+		$this->addJsInitFunctionData( 'selectFromHierarchyInit',
 			$this->setupJsInitAttribs() );
 	}
 
@@ -1086,9 +1086,9 @@ class SelectFromHierarchy extends SFFormInput {
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
-			'selected_items' => $selected_items,
-			'is_disabled' => $this->mIsDisabled,
-			'is_mandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
+			'selectedItems' => $selected_items,
+			'isDisabled' => $this->mIsDisabled,
+			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'collapsed' => $this->mCollapsed == "true" ? true : false
 		);
 
