@@ -58,7 +58,8 @@ $messages['en'] = array(
 );
 
 $messages['qqq'] = array(
-	'hierarchybuilder-desc' => '{{desc|name=Hierarchy Builder|url=http://www.mediawiki.org/wiki/Extension/Hierarchy_Builder}}',
+	'hierarchybuilder-desc' => '{{desc|name=Hierarchy Builder|' .
+'url=http://www.mediawiki.org/wiki/Extension/Hierarchy_Builder}}',
 	'hierarchybuilder-editmessage' =>
 		'Message to be displayed above hierarchy (edit form)',
 	'hierarchybuilder-hierarchyroot' =>
