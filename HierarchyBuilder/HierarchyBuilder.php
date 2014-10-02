@@ -23,19 +23,23 @@
  */
 
 if ( !defined( 'MEDIAWIKI' ) ) {
-	die( '<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.' );
+	die( '<b>Error:</b> This file is part of a MediaWiki extension and cannot' .
+		' be run standalone.' );
 }
 
 if ( version_compare( $wgVersion, '1.21', 'lt' ) ) {
-	die( '<b>Error:</b> This version of HierarchyBuilder is only compatible with MediaWiki 1.21 or above.' );
+	die( '<b>Error:</b> This version of HierarchyBuilder is only compatible ' .
+		'with MediaWiki 1.21 or above.' );
 }
 
 if ( !defined( 'SF_VERSION' ) ) {
-	die( '<b>Error:</b> HierarchyBuilder is a Semantic Forms extension so must be included after Semantic Forms.' );
+	die( '<b>Error:</b> HierarchyBuilder is a Semantic Forms extension so must' .
+		' be included after Semantic Forms.' );
 }
 
 if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
-	die( '<b>Error:</b> This version of HierarchyBuilder is only compatible with Semantic Forms 2.5.2 or above.' );
+	die( '<b>Error:</b> This version of HierarchyBuilder is only compatible with' .
+		' Semantic Forms 2.5.2 or above.' );
 }
 
 # credits
@@ -157,10 +161,15 @@ function parent( $parser ) {
 		// optional args (just link=none)
 		$optional_params = array_slice( $params, 4 );
 		$optional_params = parseParams( $optional_params );
-		$link = isset( $optional_params[HierarchyBuilder::LINK] ) ? $optional_params[HierarchyBuilder::LINK] : "";
+		if ( isset( $optional_params[HierarchyBuilder::LINK] ) ) {
+			$link = $optional_params[HierarchyBuilder::LINK];
+		} else {
+			$link = "";
+		}
 
 		// find the parent
-		$parent = HierarchyBuilder::getPageParent( $pageName, $hierarchyPageName, $hierarchyPropertyName );
+		$parent = HierarchyBuilder::getPageParent( $pageName, $hierarchyPageName,
+			$hierarchyPropertyName );
 
 		// format the parent for return according to the optional arg
 		if ( $parent != "" ) {
@@ -189,11 +198,12 @@ function parent( $parser ) {
  *  - link = [none]
  *
  * Example invokations:
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property}}
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,}}
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|link=none}}
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|link=none}}
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|introtemplate=Y|outrotemplate=Z|link=none}}
+ *  - {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property}}
+ *  - {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,}}
+ *  - {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|link=none}}
+ *  - {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|link=none}}
+ *  - {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|
+ *    introtemplate=Y|outrotemplate=Z|link=none}}
  */
 function children( $parser ) {
 	$params = func_get_args();
@@ -205,13 +215,37 @@ function children( $parser ) {
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
 
-		// optional args in any order
+		// look for all the optional args in any order. We really don't care if
+		// the right combination of optional parameters appears at this point.
+		// The logic for handling different parameter combinations will happen 
+		// after pulling children when we attempt to return results.
 		$optional_params = array_slice( $params, 4 );
 		$optional_params = parseParams( $optional_params );
-		$template = isset( $optional_params[HierarchyBuilder::TEMPLATE] ) ? $optional_params[HierarchyBuilder::TEMPLATE] : "";
-		$introtemplate = isset( $optional_params[HierarchyBuilder::INTROTEMPLATE] ) ? $optional_params[HierarchyBuilder::INTROTEMPLATE] : "";
-		$outrotemplate = isset( $optional_params[HierarchyBuilder::OUTROTEMPLATE] ) ? $optional_params[HierarchyBuilder::OUTROTEMPLATE] : "";
-		$link = isset( $optional_params[HierarchyBuilder::LINK] ) ? $optional_params[HierarchyBuilder::LINK] : "";
+		// look for the template parameter
+		if ( isset( $optional_params[HierarchyBuilder::TEMPLATE] ) ) {
+			$template = $optional_params[HierarchyBuilder::TEMPLATE];
+		} else {
+			$template = "";
+		}
+		// look for the introtemplate parameter
+		if ( isset( $optional_params[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+			$introTemplate = $optional_params[HierarchyBuilder::INTROTEMPLATE];
+		} else {
+			$introTemplate = "";
+		}
+		// look for the outrotemplate parameter
+		if ( isset( $optional_params[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+			$outroTemplate = $optional_params[HierarchyBuilder::OUTROTEMPLATE];
+		} else {
+			$outroTemplate = "";
+		}
+		// look for the link parameter
+		if ( isset( $optional_params[HierarchyBuilder::LINK] ) ) {
+			$link = $optional_params[HierarchyBuilder::LINK];
+		} else {
+			$link = "";
+		}
+		// look for the delimiter parameter
 		if ( isset( $optional_params[HierarchyBuilder::SEPARATOR] ) ) {
 			$delimiter = $optional_params[HierarchyBuilder::SEPARATOR];
 		} else {
@@ -221,6 +255,7 @@ function children( $parser ) {
 				$delimiter = ",";
 			}
 		}
+
 		// find the page children
 		$children = HierarchyBuilder::getPageChildren( $pageName, $hierarchyPageName,
 			$hierarchyPropertyName );
@@ -229,20 +264,36 @@ function children( $parser ) {
 		$output = "";
 		if ( count( $children ) > 0 ) {
 			if ( $template != "" ) {
-				$intro = $introtemplate != "" ? "{{{$introtemplate}}}\n" : "";
-				$outro = $outrotemplate != "" ? "\n{{{$outrotemplate}}}" : "";
+				$intro = $introTemplate != "" ? "{{{$introTemplate}}}\n" : "";
+				$outro = $outroTemplate != "" ? "\n{{{$outroTemplate}}}" : "";
 				$templateChildrenString = implode(
-					array_map( function( $child ) use ( $template, $link ) {
-						return $link == "none" ? "{{" . $template . "|$child}}" : "{{" . $template . "|[[$child]]}}";
-					}, $children ),
+					array_map(
+						function( $child ) use ( $template, $link ) {
+							if ( $link == "none" ) {
+								return "{{" . $template . "|$child}}";
+							} else {
+								return "{{" . $template . "|[[$child]]}}";
+							}
+							//return $link == "none"
+							//	? "{{" . $template . "|$child}}"
+							//	: "{{" . $template . "|[[$child]]}}";
+						},
+						$children
+					),
 					"$delimiter\n"
 				);
 
 				$output = $intro . $templateChildrenString . $outro;
 			} else {
-				$childrenString = implode( array_map( function( $child ) use ( $link ) {
-					return $link == "none" ? $child : "[[$child]]";
-				}, $children ), $delimiter );
+				$childrenString = implode(
+					array_map(
+						function( $child ) use ( $link ) {
+							return $link == "none" ? $child : "[[$child]]";
+						},
+						$children
+					),
+					$delimiter
+				);
 
 				$output = $childrenString;
 			}
