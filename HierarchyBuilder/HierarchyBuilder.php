@@ -159,10 +159,10 @@ function parent( $parser ) {
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
 		// optional args (just link=none)
-		$optional_params = array_slice( $params, 4 );
-		$optional_params = parseParams( $optional_params );
-		if ( isset( $optional_params[HierarchyBuilder::LINK] ) ) {
-			$link = $optional_params[HierarchyBuilder::LINK];
+		$optionalParams = array_slice( $params, 4 );
+		$optionalParams = parseParams( $optionalParams );
+		if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
+			$link = $optionalParams[HierarchyBuilder::LINK];
 		} else {
 			$link = "";
 		}
@@ -219,35 +219,35 @@ function children( $parser ) {
 		// the right combination of optional parameters appears at this point.
 		// The logic for handling different parameter combinations will happen 
 		// after pulling children when we attempt to return results.
-		$optional_params = array_slice( $params, 4 );
-		$optional_params = parseParams( $optional_params );
+		$optionalParams = array_slice( $params, 4 );
+		$optionalParams = parseParams( $optionalParams );
 		// look for the template parameter
-		if ( isset( $optional_params[HierarchyBuilder::TEMPLATE] ) ) {
-			$template = $optional_params[HierarchyBuilder::TEMPLATE];
+		if ( isset( $optionalParams[HierarchyBuilder::TEMPLATE] ) ) {
+			$template = $optionalParams[HierarchyBuilder::TEMPLATE];
 		} else {
 			$template = "";
 		}
 		// look for the introtemplate parameter
-		if ( isset( $optional_params[HierarchyBuilder::OUTROTEMPLATE] ) ) {
-			$introTemplate = $optional_params[HierarchyBuilder::INTROTEMPLATE];
+		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+			$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
 		} else {
 			$introTemplate = "";
 		}
 		// look for the outrotemplate parameter
-		if ( isset( $optional_params[HierarchyBuilder::OUTROTEMPLATE] ) ) {
-			$outroTemplate = $optional_params[HierarchyBuilder::OUTROTEMPLATE];
+		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+			$outroTemplate = $optionalParams[HierarchyBuilder::OUTROTEMPLATE];
 		} else {
 			$outroTemplate = "";
 		}
 		// look for the link parameter
-		if ( isset( $optional_params[HierarchyBuilder::LINK] ) ) {
-			$link = $optional_params[HierarchyBuilder::LINK];
+		if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
+			$link = $optionalParams[HierarchyBuilder::LINK];
 		} else {
 			$link = "";
 		}
 		// look for the delimiter parameter
-		if ( isset( $optional_params[HierarchyBuilder::SEPARATOR] ) ) {
-			$delimiter = $optional_params[HierarchyBuilder::SEPARATOR];
+		if ( isset( $optionalParams[HierarchyBuilder::SEPARATOR] ) ) {
+			$delimiter = $optionalParams[HierarchyBuilder::SEPARATOR];
 		} else {
 			if ( $template != "" ) {
 				$delimiter = "";
@@ -422,8 +422,8 @@ class HierarchyBuilder {
 		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
 			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
 			// look to see if this row is the one with our page
-			$num_matches = preg_match_all( $currentPagePattern, $row, $matches );
-			if ( $num_matches > 0 ) { // found the current page on this row of the hierarchy
+			$numMatches = preg_match_all( $currentPagePattern, $row, $matches );
+			if ( $numMatches > 0 ) { // found the current page on this row of the hierarchy
 				$children = self::getChildren( $hierarchyRows, $row, $i );
 				return $children;
 			}
@@ -436,7 +436,7 @@ class HierarchyBuilder {
 	 * $hierarchyRows is an array representation of a wikitext hierarchy where
 	 *	 each row in the hierarchy is a separate element of the array.
 	 * $row is a specific row of the hierarchy given by $hierarchyRows.
-	 * $row_i is the index of $row in $hierarchyRows.
+	 * $rowIdx is the index of $row in $hierarchyRows.
 	 *
 	 * This function will find the immediate children of $row within $hierarchyRows
 	 * and return the pageNames of those children. The immediate children are
@@ -447,7 +447,7 @@ class HierarchyBuilder {
 	 * Note: If no immediate children of $row are found, then an empty array is
 	 * returned instead of a list of children;
 	 */
-	private static function getChildren( $hierarchyRows, $row, $row_i ) {
+	private static function getChildren( $hierarchyRows, $row, $rowIdx ) {
 		// figure out what the depth of the current page is. if we can't find
 		// any depth (leading *s) then set the depth to 0 indicating failure.
 		$currentDepth = self::getDepthOfHierarchyRow( $row );
@@ -457,8 +457,8 @@ class HierarchyBuilder {
 		$children = array();
 		// run backwards through all the previous rows
 		$hierarchyRowsSize = count( $hierarchyRows );
-		for ( $child_i = $row_i + 1; $child_i < $hierarchyRowsSize; $child_i++ ) {
-			$childRow = $hierarchyRows[$child_i];
+		for ( $childIdx = $rowIdx + 1; $childIdx < $hierarchyRowsSize; $childIdx++ ) {
+			$childRow = $hierarchyRows[$childIdx];
 			$childDepth = self::getDepthOfHierarchyRow( $childRow );
 
 			if ( $childDepth <= $currentDepth ) {
@@ -505,8 +505,8 @@ class HierarchyBuilder {
 		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
 			$row = $hierarchyRows[$i]; // current row that we're looking at in the hierarchy
 			// look to see if this row is the one with our page
-			$num_matches = preg_match_all( $currentPagePattern, $row, $matches );
-			if ( $num_matches > 0 ) { // found the current page on this row of the hierarchy
+			$numMatches = preg_match_all( $currentPagePattern, $row, $matches );
+			if ( $numMatches > 0 ) { // found the current page on this row of the hierarchy
 				// Get the parent of the current row in the hierarchy.
 				// Note that if there is no hierarchical parent, then the parent
 				// will be empty.
@@ -538,18 +538,18 @@ class HierarchyBuilder {
 			// current row that we're looking at in the hierarchy
 			$row = $hierarchyRows[$i];
 			// look to see if this row is the one with our page
-			$num_matches = preg_match_all( $currentPagePattern, $row, $matches );
-			if ( $num_matches > 0 ) { // found the current page on this row of the hierarchy
+			$numMatches = preg_match_all( $currentPagePattern, $row, $matches );
+			if ( $numMatches > 0 ) { // found the current page on this row of the hierarchy
 				// go to the previous row and extract the page name if any
 				// previous row exists. Otherwise the previous page name is empty.
-				$prev_i = $i -1;
-				$previousRow = ( $prev_i >= 0 ? $hierarchyRows[$prev_i] : "" );
+				$prevIdx = $i -1;
+				$previousRow = ( $prevIdx >= 0 ? $hierarchyRows[$prevIdx] : "" );
 				$previous = self::getPageNameFromHierarchyRow( $previousRow );
 
 				// go to the next row and extract the page name if any next row
 				// exists. Otherwise the next page name is empty.
-				$next_i = $i + 1;
-				$nextRow = ( $next_i < count( $hierarchyRows ) ? $hierarchyRows[$next_i] : "" );
+				$nextIdx = $i + 1;
+				$nextRow = ( $nextIdx < count( $hierarchyRows ) ? $hierarchyRows[$nextIdx] : "" );
 				$next = self::getPageNameFromHierarchyRow( $nextRow );
 
 				// get the parent of the current row in the hierarchy.
@@ -567,7 +567,7 @@ class HierarchyBuilder {
 	 * $hierarchyRows is an array representation of a wikitext hierarchy where
 	 *	 each row in the hierarchy is a separate element of the array.
 	 * $row is a specific row of the hierarchy given by $hierarchyRows.
-	 * $row_i is the index of $row in $hierarchyRows.
+	 * $rowIdx is the index of $row in $hierarchyRows.
 	 *
 	 * This function will find the hierarchical parent of $row within $hierarchyRows
 	 * and return the pageName of that parent. The hierarchical parent is defined
@@ -577,7 +577,7 @@ class HierarchyBuilder {
 	 * Note: If no hierarchical parent of $row is found, then the empty string
 	 * is returned;
 	 */
-	private function getParent( $hierarchyRows, $row, $row_i ) {
+	private function getParent( $hierarchyRows, $row, $rowIdx ) {
 		// figure out what the depth of the current page is. if we can't find
 		// any depth (leading *s) then set the depth to 0 indicating failure.
 		$currentDepth = self::getDepthOfHierarchyRow( $row );
@@ -585,8 +585,8 @@ class HierarchyBuilder {
 		// figure out who the parent is based on depth being 1 less than the current depth
 		$parent = "";
 		// run backwards through all the previous rows
-		for ( $parent_i = $row_i -1; $parent_i >= 0; $parent_i-- ) {
-			$parentRow = $hierarchyRows[$parent_i];
+		for ( $parentIdx = $rowIdx -1; $parentIdx >= 0; $parentIdx-- ) {
+			$parentRow = $hierarchyRows[$parentIdx];
 			$parentDepth = self::getDepthOfHierarchyRow( $parentRow );
 
 			if ( $parentDepth == $currentDepth -1 ) {
@@ -605,9 +605,9 @@ class HierarchyBuilder {
 	 * This function will return the first pageName (link) found within $hierarchyRow
 	 */
 	private function getPageNameFromHierarchyRow( $hierarchyRow ) {
-		$num_matches = preg_match_all( self::PAGENAMEPATTERN, $hierarchyRow, $matches );
+		$numMatches = preg_match_all( self::PAGENAMEPATTERN, $hierarchyRow, $matches );
 		// give me the first subpattern match to be the name of the previous page
-		$pageName = ( $num_matches > 0 ? $matches[1][0] : "" );
+		$pageName = ( $numMatches > 0 ? $matches[1][0] : "" );
 		return $pageName;
 	}
 
@@ -618,8 +618,8 @@ class HierarchyBuilder {
 	 * This function will return the number of leading *s as the depth of $hierarchyRow.
 	 */
 	private function getDepthOfHierarchyRow( $hierarchyRow ) {
-		$num_matches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
-		$depth = ( $num_matches > 0 ? strlen( $matches[1][0] ) : 0 );
+		$numMatches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
+		$depth = ( $numMatches > 0 ? strlen( $matches[1][0] ) : 0 );
 		return $depth;
 	}
 
@@ -723,8 +723,8 @@ END;
 
 	private function anchorLinkHolders( $hierarchy ) {
 		$pattern = "#<!--LINK \d+:\d+-->#";
-		$num_matches = preg_match_all( $pattern, $hierarchy, $matches );
-		if ( $num_matches !== false ) {
+		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
+		if ( $numMatches !== false ) {
 			foreach ( $matches[0] as $link ) {
 				$hierarchy = str_replace( "$link", "<a>$link</a>", $hierarchy );
 			}
@@ -739,8 +739,8 @@ END;
 		$newlines = array( "\n", "\r" );
 		$hierarchy = str_replace( $newlines, "", $hierarchy );
 		$pattern = "/<a>([^<]*)<\/a>/i";
-		$num_matches = preg_match_all( $pattern, $hierarchy, $matches );
-		if ( $num_matches !== false ) {
+		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
+		if ( $numMatches !== false ) {
 			foreach ( $matches[1] as $pageName ) {
 				$link = $callback( trim( $pageName ), $displayNameProperty, $data );
 				$hierarchy = str_replace( "<a>$pageName</a>", $link, $hierarchy );
@@ -912,10 +912,10 @@ END;
 
 class EditHierarchy extends SFFormInput {
 
-	public function __construct( $input_number, $cur_value, $input_name,
-		$disabled, $other_args ) {
-		parent::__construct( $input_number, $cur_value, $input_name, $disabled,
-			$other_args );
+	public function __construct( $inputNumber, $curValue, $inputName,
+		$disabled, $otherArgs ) {
+		parent::__construct( $inputNumber, $curValue, $inputName, $disabled,
+			$otherArgs );
 		$this->addJsInitFunctionData( 'editHierarchyInit',
 			$this->setupJsInitAttribs() );
 	}
@@ -1028,10 +1028,10 @@ class EditHierarchy extends SFFormInput {
 
 class SelectFromHierarchy extends SFFormInput {
 
-	public function __construct( $input_number, $cur_value, $input_name,
-		$disabled, $other_args ) {
-		parent::__construct( $input_number, $cur_value, $input_name, $disabled,
-			$other_args );
+	public function __construct( $inputNumber, $curValue, $inputName,
+		$disabled, $otherArgs ) {
+		parent::__construct( $inputNumber, $curValue, $inputName, $disabled,
+			$otherArgs );
 		$this->addJsInitFunctionData( 'selectFromHierarchyInit',
 			$this->setupJsInitAttribs() );
 	}
@@ -1078,7 +1078,7 @@ class SelectFromHierarchy extends SFFormInput {
 		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy,
 			$displaynameproperty );
 
-		$selected_items = array_map( 'trim', explode( ",", $this->mCurrentValue ) );
+		$selectedItems = array_map( 'trim', explode( ",", $this->mCurrentValue ) );
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -1086,7 +1086,7 @@ class SelectFromHierarchy extends SFFormInput {
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
-			'selectedItems' => $selected_items,
+			'selectedItems' => $selectedItems,
 			'isDisabled' => $this->mIsDisabled,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'collapsed' => $this->mCollapsed == "true" ? true : false
