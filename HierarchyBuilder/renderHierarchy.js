@@ -30,45 +30,54 @@
  * collapsed is a Boolean that indicates if the tree should start collapsed
  * numbered is a boolean that indicates if the hierarchy should be auto-numbered
  */
-(function($) {
-	window.renderHierarchy = function(divId, hierarchy, collapsed, numbered) {
-		({
-			render: function(divId, hierarchy, collapsed, numbered) {
-				if (hierarchy.length < 1) {
+( function( $ ) {
+	window.renderHierarchy = function( divId, hierarchy, collapsed, numbered ) {
+		( {
+			render: function( divId, hierarchy, collapsed, numbered ) {
+				if ( hierarchy.length < 1 ) {
 					return;
 				}
 
-				if(numbered) {
-					var $hierarchy = $(hierarchy);
-					$hierarchy = this.numberHtml($hierarchy);
-					hierarchy = $hierarchy[0].outerHTML;	
+				if ( numbered ) {
+					var $hierarchy = $( hierarchy );
+					$hierarchy = this.numberHtml( $hierarchy );
+					hierarchy = $hierarchy[ 0 ].outerHTML;
 				}
-			
+
 				var jqDivId = "#" + divId;
-				$(jqDivId).html(hierarchy);
-				$(jqDivId + " * li").css("list-style-image", "none");
-				$(jqDivId).bind("loaded.jstree", function (event, data) {
-					if (collapsed) {
-						$(jqDivId).jstree("close_all");
-					} else {
-						$(jqDivId).jstree("open_all");
-					}
-				});
-				$(jqDivId).bind("refresh.jstree", function (event, data) {
-					if (collapsed) {
-						$(jqDivId).jstree("close_all");
-					} else {
-						$(jqDivId).jstree("open_all");
-					}
-				});
-				$(jqDivId).jstree({
-					"themes" : {
-						"theme": "apple",
-						"dots": true,
-						"icons": false
-					},
-					"plugins" : [ "themes", "html_data" ]
-				});
+				$( jqDivId )
+					.html( hierarchy );
+				$( jqDivId + " * li" )
+					.css( "list-style-image", "none" );
+				$( jqDivId )
+					.bind( "loaded.jstree", function( event, data ) {
+						if ( collapsed ) {
+							$( jqDivId )
+								.jstree( "close_all" );
+						} else {
+							$( jqDivId )
+								.jstree( "open_all" );
+						}
+					} );
+				$( jqDivId )
+					.bind( "refresh.jstree", function( event, data ) {
+						if ( collapsed ) {
+							$( jqDivId )
+								.jstree( "close_all" );
+						} else {
+							$( jqDivId )
+								.jstree( "open_all" );
+						}
+					} );
+				$( jqDivId )
+					.jstree( {
+						"themes": {
+							"theme": "apple",
+							"dots": true,
+							"icons": false
+						},
+						"plugins": [ "themes", "html_data" ]
+					} );
 			},
 
 			/**
@@ -79,9 +88,9 @@
 			 * to each row of the hierarchy. The resulting HTML hierarchy with
 			 * section numbers applied is then returned.
 			 */
-			numberHtml: function(uListRoot) {
+			numberHtml: function( uListRoot ) {
 				var list = uListRoot.clone();
-				return this.numberHtmlHelper(list, "");
+				return this.numberHtmlHelper( list, "" );
 			},
 
 			/**
@@ -91,28 +100,34 @@
 			 *     complete section number by using the numberPrefix as a suffix.
 			 *     (ex: 1.1 is used to create 1.1.1)
 			 */
-			numberHtmlHelper: function(uListRoot, numberPrefix) {
+			numberHtmlHelper: function( uListRoot, numberPrefix ) {
 				var that = this;
 				//var returnString = "";
-				
+
 				var $numberSuffix = 1; // this is the subsection number for a particular child. It starts at one because the first child is numbered 1.
 
-				var cur = uListRoot[0];
-				$(cur).children($("li")).each(function() {
-					var $children = $(this).contents();
+				var cur = uListRoot[ 0 ];
+				$( cur )
+					.children( $( "li" ) )
+					.each( function() {
+						var $children = $( this )
+							.contents();
 
-					var childNumber = numberPrefix === "" ? $numberSuffix++ : numberPrefix + "." + $numberSuffix++;
-					var numberedChild = childNumber + " " + $children.first().text();
-					$children.first().text(numberedChild);
-					//returnString += numberPrefix + $children.first().text() + "\n";
+						var childNumber = numberPrefix === "" ? $numberSuffix++ : numberPrefix + "." + $numberSuffix++;
+						var numberedChild = childNumber + " " + $children.first()
+							.text();
+						$children.first()
+							.text( numberedChild );
+						//returnString += numberPrefix + $children.first().text() + "\n";
 
-					var $sublist = $children.filter("ul");
-					if ($sublist.size() > 0) {
-						that.numberHtmlHelper($sublist, childNumber);	// recurse on the sublist				
-					}
-				});
+						var $sublist = $children.filter( "ul" );
+						if ( $sublist.size() > 0 ) {
+							that.numberHtmlHelper( $sublist, childNumber ); // recurse on the sublist				
+						}
+					} );
 				return uListRoot;
 			}
-		}).render(divId, hierarchy, collapsed, numbered);
+		} )
+		.render( divId, hierarchy, collapsed, numbered );
 	};
-}(jQuery));
+}( jQuery ) );
