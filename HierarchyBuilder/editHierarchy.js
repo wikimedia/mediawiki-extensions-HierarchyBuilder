@@ -20,25 +20,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Edit the hierarchy
- *
- * divId is the name of the div to render the hierarchy into
- * hierarchy is a 2 dimensional array of the data
- * - for each row in hierarchy, the first column is the level of indentation,
- *	 the second column is the name of the page, and the third column is
- *	 the URL of the page
- * pages is a list of the pages that are candidates to be added to the
- *	 hierarchy
- * inputId is the id of a hidden form field in the document that is used
- *	 to pass the possibly modified hierarchy back when the form is saved
- * isDisabled indicates whether editing should be disabled
- * isMandatory indicates whether it is mandatory for a value to be returned
- *	 (currently not implemented)
- */
 ( function( $ ) {
 	window.editHierarchyInit = function( inputId, params ) {
-		( {
+		( 
+		/**
+		 * @class EditHierarchy
+		 * 
+		 * This is actually an object literal which contains all of the necessary
+		 * functions for implementing the edit hierarchy functionality of the
+		 * HierarchyBuilder extension. 
+		 */
+ 		{
+ 			/**
+ 			 * Initialize the edit hierarchy user interface.
+ 			 *
+ 			 * @param {string} inputId The id of a hidden form field in the 
+ 			 *  document that is used to pass the possibly modified hierarchy
+ 			 *  back when the form is saved.
+			 * @param {Object} params Object containing the following named 
+			 *  parameters necessary for initializing and customizing the edit
+			 *  hierarchy interface.
+			 *  The params object contains the following fields:
+			 *   
+			 *   - divId - is the name of the div to render the hierarchy into
+			 *   - hierarchy - is a 2 dimensional array of the data. For each row
+			 *      in hierarchy, the first column is the level of indentation,
+			 *      the second column is the name of the page, and the third
+			 *      column is the URL of the page
+			 *   - pages - is a list of the pages that are candidates to be added
+			 *      to the hierarchy
+			 *   - isDisabled - indicates whether editing should be disabled
+			 *   - isMandatory - indicates whether it is mandatory for a value to
+			 *      be returned (currently not implemented)
+			 */
 			init: function( inputId, params ) {
 				var hierarchy = params.hierarchy;
 				if ( hierarchy.length < 1 ) {
@@ -210,6 +224,15 @@
 					} );
 			},
 
+			/**
+			 * Save the modified hierarchy in wikitext format.
+			 *
+			 * @param {string} inputId The id of a hidden field in which the
+			 *  hierarchy is stored so it can be saved when the save button
+			 *  is pressed.
+			 * @param {string} divId The id of the div element which contains
+			 *  the hierarchy which is being edited.
+			 */
 			saveList: function( inputId, divId ) {
 				var list = $( divId + " .hierarchy_root > ul" )
 					.clone();
