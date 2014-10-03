@@ -20,19 +20,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// Edit the hierarchy
-// divId is the name of the div to render the hierarchy into
-// hierarchy is a 2 dimensional array of the data
-// - for each row in hierarchy, the first column is the level of indentation,
-//	 the second column is the name of the page, and the third column is
-//	 the URL of the page
-// pages is a list of the pages that are candidates to be added to the
-//	 hierarchy
-// inputId is the id of a hidden form field in the document that is used
-//	 to pass the possibly modified hierarchy back when the form is saved
-// isDisabled indicates whether editing should be disabled
-// isMandatory indicates whether it is mandatory for a value to be returned
-//	 (currently not implemented)
+/**
+ * Edit the hierarchy
+ *
+ * divId is the name of the div to render the hierarchy into
+ * hierarchy is a 2 dimensional array of the data
+ * - for each row in hierarchy, the first column is the level of indentation,
+ *	 the second column is the name of the page, and the third column is
+ *	 the URL of the page
+ * pages is a list of the pages that are candidates to be added to the
+ *	 hierarchy
+ * inputId is the id of a hidden form field in the document that is used
+ *	 to pass the possibly modified hierarchy back when the form is saved
+ * isDisabled indicates whether editing should be disabled
+ * isMandatory indicates whether it is mandatory for a value to be returned
+ *	 (currently not implemented)
+ */
 ( function( $ ) {
 	window.editHierarchyInit = function( inputId, params ) {
 		( {
@@ -238,10 +241,15 @@
 			},
 
 			/**
-			 * uListRoot is a jquery object, representing the <ul> element of a list.
-			 * depth is a string composed of * characters denoting the current depth
-			 *     within the hierarchy. (ex: "*" is the hierarchy root, "**" is direct
-			 *     children of the root)
+			 * Convert an HTML formatted hierarchy into wikitext.
+			 *
+			 * @param {Object} uListRoot A jquery object representing the <ul>
+			 *  element of an unordered list.
+			 * @param {string} depth A string composed of * characters denoting
+			 *  the current depth within the hierarchy. 
+			 *  (ex: "*" is the hierarchy root, "**" is for the direct children
+			 *  of the root)
+			 * @return {string} Wikitext formatted hierarchy.
 			 */
 			parseHtmlToWikiText: function( uListRoot, depth ) {
 				var that = this;
@@ -266,8 +274,13 @@
 			},
 
 			/**
-			 * wikiTextHierarchy is a string containing a hierarchy in WikiText format.
+			 * Convert a wikitext formatted hierarchy into HTML.
+			 * 
 			 * Note: the given hierarchy must be well-formed.
+			 *
+			 * @param {string} wikiTextHierarchy is a string containing a 
+			 *  hierarchy in WikiText format.
+			 * @return {string} HTML formatted hierarchy.
 			 */
 			parseWikiTextToHtml: function( hierarchyRoot, wikiTextHierarchy ) {
 				// make sure to remove the leading * from the root node before starting the process
@@ -276,10 +289,15 @@
 			},
 
 			/**
-			 * wikiTextHierarchy is a string containing a hierarchy in modified
-			 *     WikiText format. Specifically, the root node has no leading *s.
-			 * depth is a string composed of * characters denoting the current depth
-			 *     within the hierarchy.
+			 * Recursive helper method for converting a wikitext formatted
+			 * hierarchy into HTML.
+			 *
+			 * @param {string} wikiTextHierarchy A hierarchy in modified wikitext
+			 *  format. Specifically, the root node has no leading *s.
+			 * @param {string} depth A string composed of * characters denoting
+			 *  the current depth within the hierarchy.
+			 * @return {string} HTML formatted hierarchy without the outer most
+			 *  <ul> HTML tags.
 			 */
 			parseWikiTextToHtmlHelper: function( wikiTextHierarchy, depth ) {
 				// split the hierarchy into a list with the root and each child hierarchy in a list
