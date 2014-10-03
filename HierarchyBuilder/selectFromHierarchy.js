@@ -24,10 +24,10 @@
 	/**
 	 * Global function to display the hierarchy.
 	 *
-	 * @param {string} inputId The id of a hidden form field in the 
+	 * @param {string} inputId The id of a hidden form field in the
 	 *  document that is used to pass the possibly modified list of selected
 	 *  hierarchy rows back when the form is saved.
-	 * @param {Object} params Object containing the following named 
+	 * @param {Object} params Object containing the following named
 	 *  parameters necessary for initializing and customizing the edit
 	 *  hierarchy interface.
 	 *  The params object contains the following fields:
@@ -42,7 +42,6 @@
 	 *      be returned (currently not implemented)
 	 */
 	window.selectFromHierarchyInit = function( inputId, params ) {
-		( 
 		/**
 		 * @class SelectFromHierarchy
 		 *
@@ -51,18 +50,18 @@
 		 * necessary functions for implementing the select from Hierarchy
 		 * functionality of the HierarchyBuilder extension.
 		 */
-		{
+		( {
 			/**
 			 * Initialize the select from hierarchy user interface.
 			 *
-		 	 * @param {string} inputId The id of a hidden form field in the 
-			 *  document that is used to pass the possibly modified list of 
+			 * @param {string} inputId The id of a hidden form field in the
+			 *  document that is used to pass the possibly modified list of
 			 *  selected hierarchy rows back when the form is saved.
-			 * @param {Object} params Object containing the following named 
+			 * @param {Object} params Object containing the following named
 			 *  parameters necessary for initializing and customizing the edit
 			 *  hierarchy interface.
 			 *  The params object contains the following fields:
-			 *   
+			 *
 			 *   - divId - is the name of the div to render the hierarchy into
 			 *   - hierarchy - is a 2 dimensional array of the data. For each row
 			 *      in hierarchy, the first column is the level of indentation,
@@ -173,7 +172,7 @@
 			 *  to be initialized.
 			 * @param {boolean} isDisabled A boolean indicating whether editing
 			 *  should be disabled.
-			 * @param {array} selectedComponents A list of the rows which should
+			 * @param {Array} selectedComponents A list of the rows which should
 			 *  be displayed as selected to begin with.
 			 * @param {string} inputId The id of the hidden form field used to
 			 *  store the possibly updated list of selected hierarchy rows.
@@ -247,7 +246,7 @@
 			 *
 			 * @param {string} elementName The row who's selected status is being
 			 *  determined.
-			 * @param {array} selectedComponents The list of currently seleccted
+			 * @param {Array} selectedComponents The list of currently seleccted
 			 *  hierarchy rows.
 			 *
 			 * @return {boolean} True if elementName is included in the array
@@ -349,10 +348,10 @@
 
 			/**
 			 * Convert a wikitext formatted hierarchy into HTML.
-			 * 
+			 *
 			 * Note: the given hierarchy must be well-formed.
 			 *
-			 * @param {string} wikiTextHierarchy is a string containing a 
+			 * @param {string} wikiTextHierarchy is a string containing a
 			 *  hierarchy in WikiText format.
 			 *
 			 * @return {string} HTML formatted hierarchy.

@@ -24,14 +24,14 @@
 	/**
 	 * Global function to initialize the edit hierarchy user interface.
 	 *
-	 * @param {string} inputId The id of a hidden form field in the 
+	 * @param {string} inputId The id of a hidden form field in the
 	 *  document that is used to pass the possibly modified hierarchy
 	 *  back when the form is saved.
-	 * @param {Object} params Object containing the following named 
+	 * @param {Object} params Object containing the following named
 	 *  parameters necessary for initializing and customizing the edit
 	 *  hierarchy interface.
 	 *  The params object contains the following fields:
-	 *   
+	 *
 	 *   - divId - is the name of the div to render the hierarchy into
 	 *   - hierarchy - is a 2 dimensional array of the data. For each row
 	 *      in hierarchy, the first column is the level of indentation,
@@ -44,27 +44,26 @@
 	 *      be returned (currently not implemented)
 	 */
 	window.editHierarchyInit = function( inputId, params ) {
-		( 
 		/**
 		 * @class EditHierarchy
-		 * 
+		 *
 		 * This is actually an object literal which is defined and used by the
 		 * global editHierarchyInit function which contains all of the necessary
 		 * functions for implementing the edit hierarchy functionality of the
 		 * HierarchyBuilder extension.
 		 */
- 		{
- 			/**
- 			 * Initialize the edit hierarchy user interface.
- 			 *
- 			 * @param {string} inputId The id of a hidden form field in the 
- 			 *  document that is used to pass the possibly modified hierarchy
- 			 *  back when the form is saved.
-			 * @param {Object} params Object containing the following named 
+		( {
+			/**
+			 * Initialize the edit hierarchy user interface.
+			 *
+			 * @param {string} inputId The id of a hidden form field in the
+			 *  document that is used to pass the possibly modified hierarchy
+			 *  back when the form is saved.
+			 * @param {Object} params Object containing the following named
 			 *  parameters necessary for initializing and customizing the edit
 			 *  hierarchy interface.
 			 *  The params object contains the following fields:
-			 *   
+			 *
 			 *   - divId - is the name of the div to render the hierarchy into
 			 *   - hierarchy - is a 2 dimensional array of the data. For each row
 			 *      in hierarchy, the first column is the level of indentation,
@@ -292,7 +291,7 @@
 			 * @param {Object} uListRoot A jquery object representing the <ul>
 			 *  element of an unordered list.
 			 * @param {string} depth A string composed of * characters denoting
-			 *  the current depth within the hierarchy. 
+			 *  the current depth within the hierarchy.
 			 *  (ex: "*" is the hierarchy root, "**" is for the direct children
 			 *  of the root)
 			 * @return {string} Wikitext formatted hierarchy.
@@ -321,10 +320,10 @@
 
 			/**
 			 * Convert a wikitext formatted hierarchy into HTML.
-			 * 
+			 *
 			 * Note: the given hierarchy must be well-formed.
 			 *
-			 * @param {string} wikiTextHierarchy is a string containing a 
+			 * @param {string} wikiTextHierarchy is a string containing a
 			 *  hierarchy in WikiText format.
 			 * @return {string} HTML formatted hierarchy.
 			 */

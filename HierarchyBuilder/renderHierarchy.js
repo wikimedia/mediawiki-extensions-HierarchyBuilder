@@ -36,15 +36,14 @@
 	 *  should be auto-numbered
 	 */
 	window.renderHierarchy = function( divId, hierarchy, collapsed, numbered ) {
-		(
 		/**
 		 * @class RenderHierarchy
 		 *
 		 * This is actually an object literal which is defined and used by the
 		 * global renderHierarchy function which contains all of the necessary
 		 * functions for rendering a hierarchy.
-		 */ 
-		{
+		 */
+		( {
 			/**
 			 * Render a hierarchy on a page.
 			 *
@@ -127,7 +126,7 @@
 			 *  level ul element of the entire HTML hierarchy.
 			 * @param {string} numberPrefix A string containing the immediate
 			 *  parent's complete section number. (ex: 1.1) This is used to
-			 *  construct the child's complete section number by using the 
+			 *  construct the child's complete section number by using the
 			 *  numberPrefix as a suffix. (ex: 1.1 is used to create 1.1.1)
 			 *
 			 * @return {Object} A jquery object representing the top level ul
