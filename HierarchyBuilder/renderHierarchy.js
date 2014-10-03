@@ -20,19 +20,44 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Display the hierarchy
- * divId is the name of the div to render the hierarchy into
- * hierarchy is a 2 dimensional array of the data
- * - for each row in hierarchy, the first column is the level of indentation,
- *	 the second column is the name of the page, and the third column is
- *	 the URL of the page
- * collapsed is a Boolean that indicates if the tree should start collapsed
- * numbered is a boolean that indicates if the hierarchy should be auto-numbered
- */
+
 ( function( $ ) {
+	/**
+	 * Gobal function to display a hierarchy.
+	 *
+	 * @param {string} divId Name of the div to render the hierarchy into
+	 * @param {string} hierarchy A 2 dimensional array of the data
+	 * - for each row in hierarchy, the first column is the level of indentation,
+	 *	 the second column is the name of the page, and the third column is
+	 *	 the URL of the page
+	 * @param {string} collapsed A Boolean that indicates if the tree should
+	 *  start collapsed
+	 * @param {string} numbered A boolean that indicates if the hierarchy
+	 *  should be auto-numbered
+	 */
 	window.renderHierarchy = function( divId, hierarchy, collapsed, numbered ) {
-		( {
+		(
+		/**
+		 * @class RenderHierarchy
+		 *
+		 * This is actually an object literal which is defined and used by the
+		 * global renderHierarchy function which contains all of the necessary
+		 * functions for rendering a hierarchy.
+		 */ 
+		{
+			/**
+			 * Render a hierarchy on a page.
+			 *
+			 * @param {string} divId Name of the div to render the hierarchy into
+			 * @param {string} hierarchy A 2 dimensional array of the data
+			 * - for each row in hierarchy, the first column is the level of
+			 *   indentation, the second column is the name of the page, and the
+			 *   third column is the URL of the page
+			 * @param {string} collapsed A Boolean that indicates if the tree
+			 *  should start collapsed
+			 * @param {string} numbered A boolean that indicates if the hierarchy
+			 *  should be auto-numbered
+			 */
 			render: function( divId, hierarchy, collapsed, numbered ) {
 				if ( hierarchy.length < 1 ) {
 					return;
@@ -81,12 +106,12 @@
 			},
 
 			/**
-			 * uListRoot is a jquery object, representing the top level <ul>
-			 *     element of the entire HTML hierarchy.
-			 *
 			 * This function takes an HTML hierarchy and applies section numbers
 			 * to each row of the hierarchy. The resulting HTML hierarchy with
 			 * section numbers applied is then returned.
+			 *
+			 * @param {Object} uListRoot A jquery object representing the top
+			 *  level ul element of the entire HTML hierarchy.
 			 */
 			numberHtml: function( uListRoot ) {
 				var list = uListRoot.clone();
@@ -94,11 +119,19 @@
 			},
 
 			/**
-			 * uListRoot is a jquery object, representing the <ul> element of a list.
-			 * numberPrefix is a string containing the immediate parent's complete
-			 *     section number. (ex: 1.1) This is used to construct the child's
-			 *     complete section number by using the numberPrefix as a suffix.
-			 *     (ex: 1.1 is used to create 1.1.1)
+			 * This is a helper function which recursively traverses a hierarchy
+			 * and computes and applies section numbers to the beginning of each
+			 * row in that hierarchy.
+			 *
+			 * @param {Object} uListRoot A jquery object representing the top
+			 *  level ul element of the entire HTML hierarchy.
+			 * @param {string} numberPrefix A string containing the immediate
+			 *  parent's complete section number. (ex: 1.1) This is used to
+			 *  construct the child's complete section number by using the 
+			 *  numberPrefix as a suffix. (ex: 1.1 is used to create 1.1.1)
+			 *
+			 * @return {Object} A jquery object representing the top level ul
+			 *  element of the HTML hierarchy with section numbers applied.
 			 */
 			numberHtmlHelper: function( uListRoot, numberPrefix ) {
 				var that = this;
