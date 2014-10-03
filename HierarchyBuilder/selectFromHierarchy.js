@@ -20,21 +20,58 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// Display the hierarchy
-// divId is the name of the div to render the hierarchy into
-// hierarchy is a 2 dimensional array of the data
-// - for each row in hierarchy, the first column is the level of indentation,
-//	 the second column is the name of the page, and the third column is
-//	 the URL of the page
-// inputId is the id of a hidden form field in the document that is used
-//	 to pass the possibly modified list of selected pages back when the form
-//	 is saved
-// isDisabled indicates whether editing should be disabled
-// isMandatory indicates whether it is mandatory for a value to be returned
-//	 (currently not implemented)
 ( function( $ ) {
+	/**
+	 * Global function to display the hierarchy.
+	 *
+	 * @param {string} inputId The id of a hidden form field in the 
+	 *  document that is used to pass the possibly modified list of selected
+	 *  hierarchy rows back when the form is saved.
+	 * @param {Object} params Object containing the following named 
+	 *  parameters necessary for initializing and customizing the edit
+	 *  hierarchy interface.
+	 *  The params object contains the following fields:
+	 *
+	 *   - divId - is the name of the div to render the hierarchy into
+	 *   - hierarchy - is a 2 dimensional array of the data. For each row
+	 *      in hierarchy, the first column is the level of indentation,
+	 *      the second column is the name of the page, and the third
+	 *      column is the URL of the page
+	 *   - isDisabled - indicates whether editing should be disabled
+	 *   - isMandatory - indicates whether it is mandatory for a value to
+	 *      be returned (currently not implemented)
+	 */
 	window.selectFromHierarchyInit = function( inputId, params ) {
-		( {
+		( 
+		/**
+		 * @class SelectFromHierarchy
+		 *
+		 * This is actually an object literal which is defined and used by the
+		 * global selectFromHierarchyInit function which contains all of the
+		 * necessary functions for implementing the select from Hierarchy
+		 * functionality of the HierarchyBuilder extension.
+		 */
+		{
+			/**
+			 * Initialize the select from hierarchy user interface.
+			 *
+		 	 * @param {string} inputId The id of a hidden form field in the 
+			 *  document that is used to pass the possibly modified list of 
+			 *  selected hierarchy rows back when the form is saved.
+			 * @param {Object} params Object containing the following named 
+			 *  parameters necessary for initializing and customizing the edit
+			 *  hierarchy interface.
+			 *  The params object contains the following fields:
+			 *   
+			 *   - divId - is the name of the div to render the hierarchy into
+			 *   - hierarchy - is a 2 dimensional array of the data. For each row
+			 *      in hierarchy, the first column is the level of indentation,
+			 *      the second column is the name of the page, and the third
+			 *      column is the URL of the page
+			 *   - isDisabled - indicates whether editing should be disabled
+			 *   - isMandatory - indicates whether it is mandatory for a value to
+			 *      be returned (currently not implemented)
+			 */
 			init: function( inputId, params ) {
 				if ( params.hierarchy.length < 1 ) {
 					return;
@@ -44,7 +81,7 @@
 				var hierarchy = params.hierarchy;
 				var html = hierarchy;
 				html = this.parseWikiTextToHtml( html );
-				
+
 				var jqDivId = "#" + params.divId;
 				$( jqDivId )
 					.html( html );
@@ -72,7 +109,7 @@
 
 				$( "#" + inputId )
 					.val( selectedComponents.join( "," ) );
-				
+
 				$( jqDivId )
 					.bind( "loaded.jstree", function( event, data ) {
 						obj.initializeTree( jqDivId, params.isDisabled,
@@ -109,6 +146,14 @@
 					} );
 			},
 
+			/**
+			 * Returns a list of the selected hierarchy rows so far.
+			 *
+			 * @params {string} inputId The id of the hidden form field used to
+			 *  store possibly updated list of selected hierarchy rows.
+			 *
+			 * @return {Array} Array containing the selected hierarchy rows.
+			 */
 			getSelectedHierarchyComponents: function( inputId ) {
 				var curValue = $( "#" + inputId )
 					.val();
@@ -120,6 +165,21 @@
 				}
 			},
 
+			/**
+			 * Initializes the displayed hierarchy to display the properly and
+			 * have the correct behaviors.
+			 *
+			 * @param {string} jqDivId The id of the div containing the hierarchy
+			 *  to be initialized.
+			 * @param {boolean} isDisabled A boolean indicating whether editing
+			 *  should be disabled.
+			 * @param {array} selectedComponents A list of the rows which should
+			 *  be displayed as selected to begin with.
+			 * @param {string} inputId The id of the hidden form field used to
+			 *  store the possibly updated list of selected hierarchy rows.
+			 * @param {boolean} collapsed A boolean to indicate whether the
+			 *  hierarchy should start out in collapsed or expanded form.
+			 */
 			initializeTree: function( jqDivId, isDisabled, selectedComponents,
 				init, inputId, collapsed ) {
 				var obj = this;
@@ -182,6 +242,17 @@
 				}
 			},
 
+			/**
+			 * Determine if a row has been selected or not.
+			 *
+			 * @param {string} elementName The row who's selected status is being
+			 *  determined.
+			 * @param {array} selectedComponents The list of currently seleccted
+			 *  hierarchy rows.
+			 *
+			 * @return {boolean} True if elementName is included in the array
+			 *  selectedComponents. False otherwise.
+			 */
 			isSelectedHierarchyComponent: function( elementName,
 				selectedComponents ) {
 				if ( selectedComponents && selectedComponents.length > 0 ) {
@@ -194,6 +265,14 @@
 				return false;
 			},
 
+			/**
+			 * Mark the specified hierarchy row as selected.
+			 *
+			 * @param {string} elementName The row which is being marked as
+			 *  having been selected.
+			 * @param {string} inputId The id of the hidden form field used to
+			 *  store the possibly updated list of selected hierarchy rows.
+			 */
 			checkNode: function( elementName, inputId ) {
 				var selectedComponents =
 					this.getSelectedHierarchyComponents( inputId );
@@ -211,6 +290,14 @@
 					.val( curValue );
 			},
 
+			/**
+			 * Mark the specified hierarchy row as unselected.
+			 *
+			 * @param {string} elementName The row which is being marked as
+			 *  having been unselected.
+			 * @param {string} inputId The id of the hidden form field used to
+			 *  store the possibly updated list of selected hierarchy rows.
+			 */
 			uncheckNode: function( elementName, inputId ) {
 				var selectedComponents =
 					this.getSelectedHierarchyComponents( inputId );
@@ -228,16 +315,17 @@
 			},
 
 			/**
-			 * jqDivId is the divId of the hierarchy or something like that.
-			 * elementName is the name of the element who's duplicates we're
-			 *     trying to handle.
-			 * inputId is the id of the input thing we hide stuff in.
-			 * action is a string either "check" or "uncheck" which indicates
-			 *     how duplicate rows should be processed.
-			 *
 			 * This function will run through all the other unselected hierarchy
 			 * elements searching for duplicates of the given element. If any
 			 * are found then we check those elements too.
+			 *
+			 * @param {string} jqDivId The divId that contains the hierarchy.
+			 * @param {string} elementName The name of the element who's duplicates
+			 *  we're trying to handle.
+			 * @param {string} inputId The id of the hidden form field used to
+			 *  store the possibly updated list of selected hierarcy rows.
+			 * @param {string} action A string who's value is either "check" or
+			 *  "uncheck" which indicates how duplicate rows should be processed.
 			 */
 			processDups: function( jqDivId, elementName, action ) {
 				action = action === "check" ? "check_node" : "uncheck_node";
@@ -260,8 +348,14 @@
 			},
 
 			/**
-			 * wikiTextHierarchy is a string containing a hierarchy in WikiText format.
+			 * Convert a wikitext formatted hierarchy into HTML.
+			 * 
 			 * Note: the given hierarchy must be well-formed.
+			 *
+			 * @param {string} wikiTextHierarchy is a string containing a 
+			 *  hierarchy in WikiText format.
+			 *
+			 * @return {string} HTML formatted hierarchy.
 			 */
 			parseWikiTextToHtml: function( wikiTextHierarchy ) {
 				var hierarchyHtml = this.parseWikiTextToHtmlHelper( wikiTextHierarchy, "" );
@@ -269,10 +363,15 @@
 			},
 
 			/**
-			 * wikiTextHierarchy is a string containing a hierarchy in modified
-			 *     WikiText format. Specifically, the root node has no leading *s.
-			 * depth is a string composed of * characters denoting the current depth
-			 *     within the hierarchy.
+			 * Recursive helper method for converting a wikitext formatted
+			 * hierarchy into HTML.
+			 *
+			 * @param {string} wikiTextHierarchy A hierarchy in modified wikitext
+			 *  format. Specifically, the root node has no leading *s.
+			 * @param {string} depth A string composed of * characters denoting
+			 *  the current depth within the hierarchy.
+			 *
+			 * @return {string} HTML formatted hierarchy.
 			 */
 			parseWikiTextToHtmlHelper: function( wikiTextHierarchy, depth ) {
 				// split the hierarchy into a list with the root and each child hierarchy in a list
