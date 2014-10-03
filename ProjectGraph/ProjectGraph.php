@@ -37,7 +37,7 @@ if (version_compare($wgVersion, '1.21', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'ProjectGraph',
-	'version' => '1.7.1',
+	'version' => '1.7.2',
 	'author' => array("Cindy Cicalese", "Jason Ji", "Austin Vecchio"),
 	'descriptionmsg' => 'projectgraph-desc'
 );
@@ -82,9 +82,7 @@ function wfExtensionProjectGraph_Magic(& $magicWords, $langCode) {
 function projectgraph($parser) {
 	$myparams = func_get_args();
 	array_shift($myparams);
-	foreach($myparams as $value)
-		wfErrorLog("$value\n", "/var/www/html/DEBUG_ProjectGraphParams.out");
-	wfErrorLog("$value\n", "/var/www/html/DEBUG_ProjectGraphParams.out");
+
 	$paramDictionary = parseParameters($myparams);
 
 	$projects = (array_key_exists("projectNum", $paramDictionary) ? $paramDictionary["projectNum"] : null);
@@ -203,43 +201,29 @@ END;
 	}
 
 	function getNamesFromLDAP($people) {
-		wfErrorLog("people: $people\n", "/var/www/html/DEBUG_ProjectGraph.out");
 		$ldapconn = @ldap_connect("ldap://ldap-int1.mitre.org:3890");
-		if(!$ldapconn)
-			wfErrorLog("no ldapconn\n", "/var/www/html/DEBUG_ProjectGraph.out");
-		else {
-			wfErrorLog("ldapconn successful \n", "/var/www/html/DEBUG_ProjectGraph.out");
+
+		if($ldapconn) {
 
 			@ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
 			@ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);
 
 			$employee_array = array_map('trim', explode(",",$people));
 			
-			wfErrorLog("array count: ", "/var/www/html/DEBUG_ProjectGraph.out");
-			wfErrorLog(count($employee_array), "/var/www/html/DEBUG_ProjectGraph.out");
-			wfErrorLog("\n", "/var/www/html/DEBUG_ProjectGraph.out");
 			$names = array();
 			foreach($employee_array as $person) {
-				wfErrorLog("current employee: $person\n", "/var/www/html/DEBUG_ProjectGraph.out");
 				$filter = "(|(employeenumber=$person))";
 				$result = @ldap_search($ldapconn, "ou=People, o=mitre.org", $filter);
-				if(!$result)
-					wfErrorLog("no result\n", "/var/www/html/DEBUG_ProjectGraph.out");
-				else {
-					wfErrorLog("result: $result\n", "/var/www/html/DEBUG_ProjectGraph.out");
+				
+				if($result) {
 					$entries = @ldap_get_entries($ldapconn, $result);
 
 					$new_name = $entries[0]['cn'][0];
 					$new_name = str_replace(",", ", ", $new_name);
 					array_push($names, $new_name);
-					wfErrorLog("name: $new_name\n", "/var/www/html/DEBUG_ProjectGraph.out");
 					
 				}
 			}
-			wfErrorLog("Final names array:\n", "/var/www/html/DEBUG_ProjectGraph.out");
-			wfErrorLog(count($names), "/var/www/html/DEBUG_ProjectGraph.out");
-			foreach($names as $var)
-				wfErrorLog("\t$var\n", "/var/www/html/DEBUG_ProjectGraph.out");
 
 			@ldap_close();
 		}
