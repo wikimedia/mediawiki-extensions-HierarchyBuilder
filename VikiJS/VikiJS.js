@@ -547,7 +547,8 @@ window.VIKI = (function(my) {
 				dataType : sameServer ? 'json' : 'jsonp',
 				data : {
 					action : 'getContentNamespaces',
-					format : 'json'
+					format : 'json',
+					redirects: 'true'
 				},
 				timeout: 5000,
 				beforeSend: function (jqXHR, settings) {
@@ -1109,7 +1110,8 @@ window.VIKI = (function(my) {
 					action: 'query',
 					prop: 'categories',
 					titles: intraNode.pageTitle,
-					format: 'json'
+					format: 'json',
+					redirects: 'true'
 				},
 				beforeSend: function (jqXHR, settings) {
 					url = settings.url;
@@ -1403,7 +1405,8 @@ window.VIKI = (function(my) {
 					prop: 'extlinks',
 					titles: node.pageTitle,
 					ellimit: 'max',
-					format: 'json'
+					format: 'json',
+					redirects: 'true'
 				},
 				beforeSend: function (jqXHR, settings) {
 					url = settings.url;
@@ -1425,7 +1428,8 @@ window.VIKI = (function(my) {
 					prop: 'links',
 					titles: node.pageTitle,
 					pllimit: 'max',
-					format: 'json'
+					format: 'json',
+					redirects: 'true'
 				},
 				beforeSend: function (jqXHR, settings) {
 					url = settings.url;
@@ -1446,7 +1450,8 @@ window.VIKI = (function(my) {
 					list: 'backlinks',
 					bltitle: node.pageTitle,
 					bllimit: 'max',
-					format: 'json'
+					format: 'json',
+					redirects: 'true'
 				},
 				beforeSend: function (jqXHR, settings) {
 					url = settings.url;
