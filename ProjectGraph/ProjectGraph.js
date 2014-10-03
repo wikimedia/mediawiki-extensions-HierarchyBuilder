@@ -29,8 +29,8 @@ window.ProjectGraph = function() {
 	this.SELECTED_IMAGE_DIMENSION = 30;
 	this.UNSELECTED_IMAGE_DIMENSION = 20;
 
-	this.MIN_SCALE = .3;
-	this.MAX_SCALE = 2;
+	this.MIN_SCALE = .2;
+	this.MAX_SCALE = 5;
 	this.LINK_OPACITY = 0.4;
 	this.STANDARD_BOX = 400;// standard box width/height
 	this.ZOOM_MULTIPLIER = -0.0005;// a multiplier for calculating zoom scope
@@ -145,16 +145,16 @@ window.ProjectGraph = function() {
 		// The lowest value of width or height is divided by 400 (standard) and then multiplied by the result
 		// of an equation formed from gathering data from several different view boxes (300px to 700px). 
 		// The input of this equation is also the lowest value of either height or width.
-		if(this.height>this.width){
-			this.Zoompos = this.width*(
-				this.width*this.ZOOM_MULTIPLIER
-				+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
-		}
-		else{
-			this.Zoompos = this.height*(
-				this.height*this.ZOOM_MULTIPLIER
-				+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
-		}
+		// if(this.height>this.width){
+		// 	this.Zoompos = this.width*(
+		// 		this.width*this.ZOOM_MULTIPLIER
+		// 		+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
+		// }
+		// else{
+		// 	this.Zoompos = this.height*(
+		// 		this.height*this.ZOOM_MULTIPLIER
+		// 		+this.ZOOM_CONSTANT)/this.STANDARD_BOX;
+		// }
 		// create a new zoom slider
 		var zoom_slider = $("#"+this.SliderDiv).slider(
 		{
@@ -278,7 +278,7 @@ window.ProjectGraph = function() {
 			d3.select("#projectgraph_moveable-"+self.ID).append("svg:g").attr("id", "projectgraph_nodes-"+self.ID);
 				
 			self.Force = d3.layout.force();
-			self.Force.gravity(0.02)
+			self.Force.gravity(0.2)
 			self.Force.linkStrength(1.25)
 			// link distance was made dynamic in respect to the increase in charge. As the nodes form a cluster, the edges are less likely to cross.
 			// The edge between to clusters is stretched from the polarity between the adjacent clusters.
@@ -929,8 +929,8 @@ window.ProjectGraph = function() {
 		var tasks = self.queryStaffTasks(personNode.employeeNumber, 
 			self.FiscalYear);
 		if (tasks == null) {
-			self.errorAlert("Error getting data for employee " + personNode.employeeNumber +
-				" for fiscal year " + this.FiscalYear);
+			self.errorAlert("Unable to fetch data for employee " + personNode.employeeNumber +
+				" for fiscal year " + this.FiscalYear+". This is typically due to an MII data stream outage.");
 		} else {
 			this.parseStaffTasks(personNode, tasks);
 		}
