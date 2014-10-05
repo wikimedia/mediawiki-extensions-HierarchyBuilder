@@ -142,31 +142,16 @@ abstract class PluggableAuth {
 		if ($instance) {
 			if ($instance->authenticate($user)) {
 				if (is_null($user->mId)) {
-					$username = $instance->getPreferredUsername();
-					$id = User::idFromName($username);
-					if ($id &&
-						isset($GLOBALS['PluggableAuth_MigrateUsers']) &&
-						$GLOBALS['PluggableAuth_MigrateUsers']) {
-						$user->mId = $id;
-						$user->loadFromDatabase();
-						self::updateUser($user, $instance->getRealName(),
-							$instance->getEmail());
-						$user->saveToCache();
-						wfDebug("Authenticated/migrated user: " . $username);
-					} else {
-						$name = self::getAvailableUsername($username);
-						$user->loadDefaults($name);
-						$user->mRealName = $instance->getRealName();
-						$user->mEmail = $instance->geEmail;
-						$user->mEmailAuthenticated = wfTimestamp();
-						$user->mTouched = wfTimestamp();
-						$user->addToDatabase();
-						self::updateName($user, $name);
-						self::updateUser($user, $instance->getRealName(),
-							$instance->getEmail());
-						wfDebug("Authenticated/created new user: " . $name);
-					}
+					$name = self::getAvailableUsername(
+						$instance->getPreferredUsername());
+					$user->loadDefaults($name);
+					$user->mRealName = $instance->getRealName();
+					$user->mEmail = $instance->getEmail();
+					$user->mEmailAuthenticated = wfTimestamp();
+					$user->mTouched = wfTimestamp();
+					$user->addToDatabase();
 					$instance->setExtraProperties($user);
+					wfDebug("Authenticated/created new user: " . $name);
 				} else {
 					$user->loadFromDatabase();
 					self::updateUser($user, $instance->getRealName(),
@@ -266,20 +251,6 @@ abstract class PluggableAuth {
 			$count++;
 		}
 		return $name . $count;
-	}
-
-	private static function updateName($user, $name) {
-		if ($user->mName != $name) {
-			$user->mName = $name;
-			$dbw = wfGetDB(DB_MASTER);
-			$dbw->update('user',
-				array( // SET
-					'user_name' => $name,
-				), array( // WHERE
-					'user_id' => $user->mId
-				), __METHOD__
-			);
-		}
 	}
 
 	private static function updateUser($user, $realname, $email) {

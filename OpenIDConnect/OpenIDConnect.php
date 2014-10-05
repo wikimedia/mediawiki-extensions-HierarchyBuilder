@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,49 +22,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-if (!defined('MEDIAWIKI')) {
-	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
-}
-
-if (version_compare($wgVersion, '1.23', 'lt')) {
-	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.23 or above.');
-}
-
-$wgExtensionCredits['other'][] = array (
-	'name' => 'OpenID Connect',
-	'version' => '1.5.1',
-	'author' => array(
-		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
-	),
-	'descriptionmsg' => 'openidconnect-desc',
-	'url' => 'https://www.mediawiki.org/wiki/Extension:OpenID_Connect',
-);
+$PluggableAuth_Class = 'OpenIDConnect';
 
 $wgAutoloadClasses['OpenIDConnect'] = __DIR__ . '/OpenIDConnect.class.php';
 $wgAutoloadClasses['OpenIDConnectClient'] =
 	__DIR__ . '/OpenID-Connect-PHP/OpenIDConnectClient.php5';
 
-$wgExtensionMessagesFiles['OpenIDConnect'] =
-	__DIR__ . '/OpenIDConnect.i18n.php';
-
-$wgExtensionMessagesFiles['SelectOpenIDConnectIssuer'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.i18n.php';
-
-$wgHooks['UserLoadFromSession'][] = 'OpenIDConnect::userLoadFromSession';
-$wgHooks['UserLogout'][] = 'OpenIDConnect::logout';
-$wgHooks['LoadExtensionSchemaUpdates'][] =
-	'OpenIDConnect::loadExtensionSchemaUpdates';
-$wgHooks['PersonalUrls'][] = 'OpenIDConnect::modifyLoginURLs';
-$wgHooks['SpecialPage_initList'][] = 'OpenIDConnect::modifyLoginSpecialPages';
-
-$wgSpecialPages['Userlogin'] = 'OpenIDConnectLogin';
-$wgAutoloadClasses['OpenIDConnectLogin'] =
-	__DIR__ . '/OpenIDConnectLogin.class.php';
-
-$wgSpecialPages['OpenIDConnectNotAuthorized'] = 'OpenIDConnectNotAuthorized';
-$wgAutoloadClasses['OpenIDConnectNotAuthorized'] =
-	__DIR__ . '/OpenIDConnectNotAuthorized.class.php';
-
 $wgSpecialPages['SelectOpenIDConnectIssuer'] = 'SelectOpenIDConnectIssuer';
 $wgAutoloadClasses['SelectOpenIDConnectIssuer'] =
 	__DIR__ . '/SelectOpenIDConnectIssuer.class.php';
+$wgExtensionMessagesFiles['SelectOpenIDConnectIssuer'] =
+	__DIR__ . '/SelectOpenIDConnectIssuer.i18n.php';
+$wgExtensionMessagesFiles['SelectOpenIDConnectIssuerAlias'] =
+	__DIR__ . '/SelectOpenIDConnectIssuer.alias.php';
+$wgWhitelistRead[] = "Special:SelectOpenIDConnectIssuer";
+
+$wgHooks['LoadExtensionSchemaUpdates'][] =
+	'OpenIDConnect::loadExtensionSchemaUpdates';

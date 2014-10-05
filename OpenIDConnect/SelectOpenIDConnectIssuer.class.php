@@ -30,6 +30,7 @@ class SelectOpenIDConnectIssuer extends UnlistedSpecialPage {
 
 	function execute($param) {
 
+wfDebug("SelectOpenIDConnectIssuer");
 		if (isset($GLOBALS['OpenIDConnect_Config']) &&
 			isset($_REQUEST['uri']) && isset($_REQUEST['query'])) {
 
