@@ -39,8 +39,6 @@ class OpenIDConnect extends PluggableAuth {
 
 		try {
 
-wfDebug("authenticate" . PHP_EOL);
-wfDebug(print_r($_SESSION, true) . PHP_EOL);
 			if (session_id() == '') {
 				wfSetupSession();
 			}
@@ -62,7 +60,6 @@ wfDebug(print_r($_SESSION, true) . PHP_EOL);
 							"uri" => urlencode($_SERVER['REQUEST_URI']),
 							"query" => urlencode($_SERVER['QUERY_STRING'])
 						);
-wfDebug("redirecting a second time" . PHP_EOL);
 						self::redirect("Special:SelectOpenIDConnectIssuer",
 							$params);
 						return false;
@@ -76,21 +73,17 @@ wfDebug("redirecting a second time" . PHP_EOL);
 	
 			} else {
 
-wfDebug("authenticating" . PHP_EOL);
 				if (!isset($GLOBALS['OpenIDConnect_Config'])) {
-wfDebug("no config" . PHP_EOL);
 					return false;
 				}
 	
 				$iss_count = count($GLOBALS['OpenIDConnect_Config']);
 	
 				if ($iss_count < 1) {
-wfDebug("iss_count < 1" . PHP_EOL);
 					return false;
 				}
 	
 				if ($iss_count == 1) {
-wfDebug("1 iss" . PHP_EOL);
 	
 					$iss = array_keys($GLOBALS['OpenIDConnect_Config']);
 					$iss = $iss[0];
@@ -106,13 +99,11 @@ wfDebug("1 iss" . PHP_EOL);
 					$clientsecret = $values['clientsecret'];
 	
 				} else {
-wfDebug("> 1 iss" . PHP_EOL);
 	
 					$params = array(
 						"uri" => urlencode($_SERVER['REQUEST_URI']),
 						"query" => urlencode($_SERVER['QUERY_STRING'])
 					);
-wfDebug("redirecting" . PHP_EOL);
 					$this->redirect("Special:SelectOpenIDConnectIssuer",
 						$params);
 					return false;
@@ -120,7 +111,6 @@ wfDebug("redirecting" . PHP_EOL);
 				}
 			}
 
-wfDebug("here");
 			$oidc = new OpenIDConnectClient($iss, $clientID, $clientsecret);
 			if (isset($_REQUEST['forcelogin'])) {
 				$oidc->addAuthParam(array('prompt' => 'login'));
