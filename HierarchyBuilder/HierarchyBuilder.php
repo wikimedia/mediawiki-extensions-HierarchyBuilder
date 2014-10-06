@@ -334,6 +334,31 @@ function children( $parser ) {
 	return $parser->insertStripItem( $output, $parser->mStripState );
 }
 
+/**
+ * This parser function displays a breadcrumb for a page within a hierarchy.
+ *
+ * The breadcrumb display consists of three pages:
+ *  - previous page in the hierarchy
+ *  - next page in the hierarchy
+ *  - hierarchical parent page in the hierarchy.
+ *
+ * There are 4 required parameters for this parser function:
+ *  - pagename - that page who's breadcrumb you want to display.
+ *  - hierarchy page - the page that has the hierarchy on it.
+ *  - hierarchy property - the property containing the hierarchy data on the
+ *    hierarchy page.
+ *  - display name property - the property for display names when using content
+ *    free page naming.
+ *
+ * Example Usage:
+ * @code
+ * {{#hierarchyBreadcrumb:{{FULLPAGENAME}}|Table of Contents|Hierarchy Data|Name}}
+ * @endcode
+ *
+ * @param $parser Parser
+ *
+ * @return string: Wikitext that displays the breadcrumb on the page.
+ */
 function hierarchyBreadcrumb( $parser ) {
 	$params = func_get_args();
 	if ( count( $params ) < 4 ) {
@@ -368,6 +393,13 @@ function renderHierarchy( $input, $attributes, $parser, $frame ) {
 		'noparse' => false );
 }
 
+/**
+ * Helper function for parsing a list of named parser function parameters.
+ *
+ * @param array $params: A list of named parameters (e.g. "array('sep=|', 'link=none'))
+ *
+ * @return array: Associative array of named parameters.
+ */
 function parseParams( $params ) {
 	$paramsArray = array();
 	foreach ( $params as $param ) {
@@ -376,6 +408,13 @@ function parseParams( $params ) {
 	return $paramsArray;
 }
 
+/**
+ * Helper function for parsing a single named parser function parameter.
+ *
+ * @param string $param: A single named parameter (e.g. 'link=none')
+ *
+ * @param array: A single element associative array containing the named parameter.
+ */
 function parseParam( $param ) {
 	$paramArray = array();
 	$ret = preg_split( '/=/', $param, 2 );
@@ -405,6 +444,11 @@ class HierarchyBuilder {
 	 * This function gives the section number for a target page within a
 	 * specific hierarchy on a particular page.
 	 *
+	 * Section numbers are not stored anywhere. The section number must be
+	 * dynamically computed for each row whenever it is needed. As a result, we
+	 * must retrieve the hierarchy that contains the page who's section number
+	 * is being computed.
+	 *
 	 * @param string $targetPageName: name of the target page for which you want
 	 *  the auto-number in the given hierarchyPage returned.
 	 * @param string $hierarchyPageName: name of the page containing the hierarchy
@@ -427,6 +471,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Returns the direct hierarchical children of a page in a hierarchy.
+	 *
 	 * This function searches a specified hierarchy for the direct children of
 	 * a particular page. The search proceeds by searching the hierarchy top
 	 * down to find the target page, and then looping further to identify the
@@ -469,6 +515,9 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Helper function that find the direct hierarchical children of a row within
+	 * a hierarchy represented as an array of rows.
+	 *
 	 * This function will find the immediate children of $row within $hierarchyRows
 	 * and return the pageNames of those children. The immediate children are
 	 * defined to be any rows which come after $row with depth exactly equal to
@@ -518,6 +567,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Returns the hierarchical parent of a page within a hierarchy.
+	 *
 	 * This function searches a specified hierarchy for the direct parent of a
 	 * particular page. The search proceeds by searching the hierarchy top down
 	 * to find the target page, and then looping back upwards to identify the
@@ -561,8 +612,11 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Compute and return the breadcrumb for a given page within a hierarchy.
+	 *
 	 * This function will compute and return the breadcrumb information for a
 	 * given page based on the position of that page within a specified hierarchy.
+	 * The returned breadcrumb will show the display name for the pages it contains.
 	 *
 	 * @param string $currentPage: Name of the page in the hierarchy that is 
 	 *  currently being viewed.
@@ -615,6 +669,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Find and return the hierarchical parent of a row within a hierarchy.
+	 *
 	 * This function will find the hierarchical parent of $row within $hierarchyRows
 	 * and return the pageName of that parent. The hierarchical parent is defined
 	 * to be the first row of $hierarchyRows which preceeds $row and has a depth
@@ -655,6 +711,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Find and return the page name from a hierarchy row.
+	 *
 	 * This function will return the first pageName (link) found within $hierarchyRow
 	 *
 	 * @param string $hierarchyRow: Assumed to be a row of a hierarchy in wikitext
@@ -670,6 +728,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Returns the depth of a row within a hierarchy.
+	 *
 	 * This function will return the number of leading *s in $hierarchyRow as
 	 * the depth of $hierarchyRow.
 	 *
@@ -685,6 +745,8 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * Return the wikitext formatted breadcrumb using the given information.
+	 * 
 	 * This function gives formatted wikitext for rendering a breadcrumb trail
 	 * on a wikipage including the previous page, the parent page, and the next
 	 * page within a hierarchy.
@@ -725,6 +787,26 @@ class HierarchyBuilder {
 		return $breadcrumb;
 	}
 
+	/**
+	 * Renders a wikitext formatted hierarchy on a page.
+	 *
+	 * This function implements the hierarchy tag extension for rendering a 
+	 * hierarchical representation of pages within a wiki. Hierarchy data is
+	 * taken as wikitext within the <hierarchy> tag, parsed into HTML and passed
+	 * to the javascript code for rendering.
+	 *
+	 * @param string $input: Wikitext hierarchy data
+	 * @param array $attributes: List of optional attributes for customizing the
+	 *  display of the hierarchy. The optional attributes are:
+	 *   - collapsed - the hierarchy should initially be collapsed
+	 *   - displaynameproperty - content free page naming is enabled and display
+	 *     names should be used instead of page names when displaying the hierarchy.
+	 *   - numbered - rows of the hierarchy should be given section numbers.
+	 * @param $parser: Parser 
+	 * @param $frame: Frame
+	 *
+	 * @return string: Html div that will contain the rendered hierarchy.
+	 */
 	public function renderHierarchy( $input, $attributes, $parser, $frame ) {
 		$hierarchyName = "HierarchyDiv" . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
@@ -818,6 +900,17 @@ END;
 		return $hierarchy;
 	}
 
+	/**
+	 * Parse a hierarchy into html.
+	 *
+	 * @param string $input: WikiText hierarchy.
+	 * @param string $displayNameProperty: Property containing page display names
+	 *  when content free page naming is enabled.
+	 * @param string $data: Dummy variable.
+	 * @param function $callback: Function for processing links.
+	 *
+	 * @return string: Updated HTML formatted hierarchy with functional links.
+	 */
 	public static function parseHierarchy( $input, $displayNameProperty, &$data,
 		$callback ) {
 		$hierarchy = htmlspecialchars_decode( $input );
@@ -885,6 +978,8 @@ END;
 	}
 
 	/**
+	 * Returns all the page names found in the hierarchy.
+	 *
 	 * This function will search through the hierarchy to find all the page names
 	 * (defined by [[]] syntax) and return them as an array without [[]] syntax.
 	 * 
@@ -900,6 +995,8 @@ END;
 	}
 
 	/**
+	 * Updates a hierarchy so page links are shown using their display names.
+	 *
 	 * This function will run through the hierarchy and for each pageName link
 	 * found, it will find the displayName for that pageName, and then update
 	 * the link syntax so that the displayName will be shown instead.
@@ -925,6 +1022,8 @@ END;
 	}
 
 	/**
+	 * Returns the section number for a page within a wikitext formatted hierarchy.
+	 *
 	 * This function will search a hierarchy for a target page name and will
 	 * return the section number for the row which contains that page. The
 	 * target is a simple page name and the requirement is that a matching row
@@ -945,6 +1044,9 @@ END;
 	}
 
 	/**
+	 * Helper function for traversing a wikitext formatted hierarchy and computing
+	 * a page's section number.
+	 *
 	 * This function will recursively traverse the given hierarchy/subhierarchy
 	 * and search for the given target row. The target is a simple page name and
 	 * the requirement is that a matching row must consist only of a single link
@@ -1039,6 +1141,12 @@ class EditHierarchy extends SFFormInput {
 		return 'hierarchy';
 	}
 
+	/**
+	 * Retrieves all the necessary information for the initialization of the 
+	 * javascript Edit Hierarchy user interface.
+	 *
+	 * @return array: JSON encoded parameters for calling editHierarchy JS code.
+	 */
 	protected function setupJsInitAttribs() {
 
 		if ( array_key_exists( 'category', $this->mOtherArgs ) ) {
@@ -1103,6 +1211,11 @@ class EditHierarchy extends SFFormInput {
 		return json_encode( $jsattribs );
 	}
 
+	/**
+	 * Get error messages for display.
+	 *
+	 * @return HTML::element: HTML formatted message for display.
+	 */
 	public function getHtmlText() {
 
 		if ( $this->mCategory == null ) {
@@ -1155,9 +1268,13 @@ class SelectFromHierarchy extends SFFormInput {
 		return 'hierarchySelect';
 	}
 
+	/**
+	 * Gets necessary information to initialize the parameters used to call the
+	 * select from hierarchy JS user interface code.
+	 *
+	 * @return string: JSON encoded parameters for select from hierarchy JS code.
+	 */
 	protected function setupJsInitAttribs() {
-		// wikiLog("SelectFromHierarchy", "setupJsInitAttribs", "starting");
-
 		if ( array_key_exists( 'pagename', $this->mOtherArgs ) ) {
 			$this->mPageName = $this->mOtherArgs["pagename"];
 		} else {
@@ -1210,6 +1327,9 @@ class SelectFromHierarchy extends SFFormInput {
 		return json_encode( $jsattribs );
 	}
 
+	/**
+	 * Gets eror messages for display.
+	 */
 	public function getHtmlText() {
 
 		if ( $this->mPageName == null ) {
