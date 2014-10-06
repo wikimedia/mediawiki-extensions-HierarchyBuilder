@@ -152,7 +152,6 @@ abstract class PluggableAuth {
 				if (is_null($id)) {
 					$user->loadDefaults($username);
 					$user->mName = $username;
-					$user->mId = $id;
 					$user->mRealName = $realname;
 					$user->mEmail = $email;
 					$user->mEmailAuthenticated = wfTimestamp();
