@@ -31,7 +31,7 @@
 * refreshLinks.php after setting this flag.
 */
 
-define('VIKIJS_VERSION', '1.5.1');
+define('VIKIJS_VERSION', '1.5.2');
 
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
@@ -151,6 +151,7 @@ class VikiJS {
 		$sliderdiv = $detailsdiv . "_zoom_slider";
 		
 		$output = <<<EOT
+<div id="$div">
 <table>
 <tr><td><div class="vikijs-graph-container" id="$graphdiv">
 </div></td></tr>
@@ -161,6 +162,7 @@ class VikiJS {
 <tr><td><div class="vikijs-errors-panel" id="$errorsdiv">
 </div></td></tr>
 </table>
+</div>
 EOT;
 		
 		$outputObject = $parser->getOutput();
