@@ -33,7 +33,7 @@ window.VIKI = (function(my) {
                mutations.forEach(function(m) {
                   if(m.type === 'attributes' && m.attributeName === 'class') {
                      if(vikiObject.containingDiv.css("display") !== 'none') {
-                        vikiObject.redraw();
+                        vikiObject.redraw(true);
                         vikiObject.divObserver.disconnect();
                      }
                      
