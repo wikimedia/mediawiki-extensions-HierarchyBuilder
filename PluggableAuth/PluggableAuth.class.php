@@ -140,22 +140,22 @@ abstract class PluggableAuth {
 	public static function login($user) {
 		$instance = self::getInstance();
 		if ($instance) {
-			if ($instance->authenticate($user)) {
-				if (is_null($user->mId)) {
-					$name = self::getAvailableUsername(
-						$instance->getPreferredUsername());
-					$user->loadDefaults($name);
-					$user->mRealName = $instance->getRealName();
-					$user->mEmail = $instance->getEmail();
+			if ($instance->authenticate($id, $username, $realname, $email)) {
+				if (is_null($id)) {
+					$user->loadDefaults($username);
+					$user->mName = $username;
+					$user->mId = $id;
+					$user->mRealName = $realname;
+					$user->mEmail = $email;
 					$user->mEmailAuthenticated = wfTimestamp();
 					$user->mTouched = wfTimestamp();
 					$user->addToDatabase();
-					$instance->setExtraProperties($user);
-					wfDebug("Authenticated/created new user: " . $name);
+					$instance->saveExtraAttributes($id);
+					wfDebug("Authenticated/created new user: " . $username);
 				} else {
+					$user->mId = $id;
 					$user->loadFromDatabase();
-					self::updateUser($user, $instance->getRealName(),
-						$instance->getEmail());
+					self::updateUser($user, $realname, $email);
 					$user->saveToCache();
 					wfDebug("Authenticated existing user: " . $user->mName);
 				}
@@ -214,17 +214,12 @@ abstract class PluggableAuth {
 		$GLOBALS['wgOut']->redirect($url);
 	}	
 
-    public abstract function authenticate(&$user);
+    public abstract function authenticate(&$id, &$username, &$realname,
+		&$email);
 
     public abstract function deauthenticate(&$user);
 
-    public abstract function setExtraProperties($user);
-
-	public abstract function getRealName();
-
-	public abstract function getEmail();
-
-	public abstract function getPreferredUsername();
+    public abstract function saveExtraAttributes($id);
 
 	private static function getInstance() {
 		if (isset($GLOBALS['PluggableAuth_Class']) &&
@@ -236,21 +231,6 @@ abstract class PluggableAuth {
 		wfDebug("Could not get authentication plugin instance.");
 		return false;
 
-	}
-
-	private static function getAvailableUsername($name) {
-		$nt = Title::makeTitleSafe(NS_USER, $name);
-		if (is_null($nt)) {
-			$name = "User";
-		} else if (is_null(User::idFromName($name))) {
-			return $nt->getText();
-		}
-		$name = $nt->getText();
-		$count = 1;
-		while (!is_null(User::idFromName($name . $count))) {
-			$count++;
-		}
-		return $name . $count;
 	}
 
 	private static function updateUser($user, $realname, $email) {

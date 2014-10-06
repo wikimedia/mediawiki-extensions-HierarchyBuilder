@@ -24,13 +24,10 @@
 
 class OpenIDConnect extends PluggableAuth {
 
-	var $realname;
-	var $email;
-	var $preferred_username;
 	var $subject;
 	var $issuer;
 
-	public function authenticate(&$user) {
+	public function authenticate(&$id, &$username, &$realname, &$email) {
 
 		if (!array_key_exists('SERVER_PORT', $_SERVER)) {
 			wfDebug("in authenticat, server port not set" . PHP_EOL);
@@ -116,24 +113,31 @@ class OpenIDConnect extends PluggableAuth {
 				$oidc->addAuthParam(array('prompt' => 'login'));
 			}
 			if ($oidc->authenticate()) {
-				$this->realname = $oidc->requestUserInfo("name");
-				$this->email = $oidc->requestUserInfo("email");
-				$this->preferred_username =
-					$oidc->requestUserInfo("preferred_username");
+
+				$username = $oidc->requestUserInfo("preferred_username");
+				$realname = $oidc->requestUserInfo("name");
+				$email = $oidc->requestUserInfo("email");
 				$this->subject = $oidc->requestUserInfo('sub');
 				$this->issuer = $oidc->getProviderURL();
-				$user->mId = $this->getId($this->subject, $this->issuer);
-				if (is_null($user->mId) &&
-					isset($GLOBALS['OpenIDConnect_MigrateUsers']) &&
+
+				$id = $this->getId($this->subject, $this->issuer);
+				if (!is_null($id)) {
+					return true;
+				}
+
+				if (isset($GLOBALS['OpenIDConnect_MigrateUsers']) &&
 					$GLOBALS['OpenIDConnect_MigrateUsers']) {
-					$username = $this->preferred_username;
-					$user->mId = $this->getMigratedId($username);
-					if (!is_null($user->mId)) {
-						$this->setExtraProperties($user);
+					$id = $this->getMigratedId($username);
+					if (!is_null($id)) {
+						$this->saveExtraAttributes($id);
 						wfDebug("Migrated user: " . $username);
+						return true;
 					}
 				}
+
+				$username = self::getAvailableUsername($username);
 				return true;
+
 			} else {
 				return false;
 			}
@@ -152,26 +156,14 @@ class OpenIDConnect extends PluggableAuth {
 		return true;
 	}
 
-	public function getRealName() {
-		return $this->realname;
-	}
-
-	public function getEmail() {
-		return $this->email;
-	}
-
-	public function getPreferredUsername() {
-		return $this->preferred_username;
-	}
-
-	public function setExtraProperties($user) {
+	public function saveExtraAttributes($id) {
 		$dbw = wfGetDB(DB_MASTER);
 		$dbw->update('user',
 			array( // SET
 				'subject' => $this->subject,
 				'issuer' => $this->issuer
 			), array( // WHERE
-				'user_id' => $user->mId
+				'user_id' => $id
 			), __METHOD__
 		);
 	}
@@ -209,6 +201,21 @@ class OpenIDConnect extends PluggableAuth {
 		} else {
 			return $row->user_id;
 		}
+	}
+
+	private static function getAvailableUsername($name) {
+		$nt = Title::makeTitleSafe(NS_USER, $name);
+		if (is_null($nt)) {
+			$name = "User";
+		} else if (is_null(User::idFromName($name))) {
+			return $nt->getText();
+		}
+		$name = $nt->getText();
+		$count = 1;
+		while (!is_null(User::idFromName($name . $count))) {
+			$count++;
+		}
+		return $name . $count;
 	}
 
 	public static function loadExtensionSchemaUpdates($updater) {
