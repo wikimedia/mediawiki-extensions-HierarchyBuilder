@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,27 +26,34 @@ if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
 
-if (version_compare($wgVersion, '1.21', 'lt')) {
-	die('<b>Error:</b> This version of OpenIDConnect is only compatible with MediaWiki 1.21 or above.');
+if (version_compare($wgVersion, '1.23', 'lt')) {
+	die('<b>Error:</b> This version of PluggableAuth is only compatible with MediaWiki 1.23 or above.');
 }
 
-$wgExtensionCredits['semantic'][] = array (
-	'name' => 'OpenID Connect Authorization',
+$wgExtensionCredits['other'][] = array (
+	'name' => 'PluggableAuth',
 	'version' => '1.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
 	),
-	'descriptionmsg' => 'openidconnectauthorization-desc',
-	'url' => 'https://www.mediawiki.org/wiki/Extension:OpenID_Connect_Authorization',
+	'descriptionmsg' => 'pluggableauth-desc',
+	'url' => 'https://www.mediawiki.org/wiki/Extension:PluggableAuth',
 );
 
-$wgGroupPermissions['*']['login'] = false;
-$wgGroupPermissions['authorized']['login'] = true;
+$wgAutoloadClasses['PluggableAuth'] = __DIR__ . '/PluggableAuth.class.php';
+$wgExtensionMessagesFiles['PluggableAuth'] =
+	__DIR__ . '/PluggableAuth.i18n.php';
 
-$wgAutoloadClasses['OpenIDConnectAuthorization'] =
-	__DIR__ . '/OpenIDConnectAuthorization.class.php';
+$wgHooks['UserLoadFromSession'][] = 'PluggableAuth::userLoadFromSession';
+$wgHooks['UserLogout'][] = 'PluggableAuth::logout';
+$wgHooks['PersonalUrls'][] = 'PluggableAuth::modifyLoginURLs';
+$wgHooks['SpecialPage_initList'][] = 'PluggableAuth::modifyLoginSpecialPages';
 
-$wgExtensionMessagesFiles['OpenIDConnectAuthorization'] =
-	__DIR__ . '/OpenIDConnectAuthorization.i18n.php';
+$wgSpecialPages['Userlogin'] = 'PluggableAuthLogin';
+$wgAutoloadClasses['PluggableAuthLogin'] =
+	__DIR__ . '/PluggableAuthLogin.class.php';
 
-$wgHooks['OpenIDConnectUserAuthorization'][] = 'OpenIDConnectAuthorization::authorize';
+$wgSpecialPages['PluggableAuthNotAuthorized'] = 'PluggableAuthNotAuthorized';
+$wgAutoloadClasses['PluggableAuthNotAuthorized'] =
+	__DIR__ . '/PluggableAuthNotAuthorized.class.php';
+$wgWhitelistRead[] = "Special:PluggableAuthNotAuthorized";

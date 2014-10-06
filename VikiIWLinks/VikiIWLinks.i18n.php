@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'vikiiwlinks-desc' => 'VikiJS plugin to store wiki farm data in shared interwiki table'
+	'vikiiwlinks-desc' => 'VIKI plugin to store wiki farm data in shared interwiki table'
 );

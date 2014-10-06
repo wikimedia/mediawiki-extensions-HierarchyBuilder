@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'vikidynamicpages-desc' => 'VikiJS plugin to handle dynamic pages which can contain a query string'
+	'vikidynamicpages-desc' => 'VIKI plugin to handle dynamic pages which can contain a query string'
 );

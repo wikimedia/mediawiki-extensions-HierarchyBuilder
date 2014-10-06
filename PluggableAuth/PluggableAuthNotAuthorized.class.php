@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,15 +22,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-$messages = array();
+class PluggableAuthNotAuthorized extends UnlistedSpecialPage {
 
-$messages['en'] = array(
-	'openidconnectauthorization-desc' =>
-		'Provides authorization for OpenID Connect extension',
-);
+	function __construct() {
+		parent::__construct('PluggableAuthNotAuthorized');
+	}
 
-/** Message documentation (Message documentation)
- */
-$messages['qqq'] = array(
-	'openidconnect-desc' => '{{desc|name=OpenID Connect Authorization|url=http://www.mediawiki.org/wiki/Extension:OpenIDConnectAuthorization}}',
-);
+	function execute($param) {
+		$name = htmlentities(
+			$this->getRequest()->getVal('name','<missing name>'),
+			ENT_QUOTES);
+		$this->getOutput()->
+			addHTML(wfMessage('pluggableauthnotauthorized', $name)->
+				text());
+	}
+}

@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'mitreviki-desc' => 'VikiJS plugin for MITRE-specific information (e.g. Phonebook data)'
+	'mitreviki-desc' => 'VIKI plugin for MITRE-specific information (e.g. Phonebook data)'
 );

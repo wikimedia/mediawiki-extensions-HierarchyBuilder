@@ -46,6 +46,6 @@ $wgExtensionMessagesFiles['ConfigEmailAuthorizationAlias'] =
 $wgHooks['LoadExtensionSchemaUpdates'][] =
 	'EmailAuthorization::loadExtensionSchemaUpdates';
 
-$wgHooks['OpenIDConnectUserAuthorization'][] = 'EmailAuthorization::authorize';
+$wgHooks['PluggableAuthenticationUserAuthorization'][] = 'EmailAuthorization::authorize';
 
 $wgSpecialPages['ConfigEmailAuthorization'] = 'ConfigEmailAuthorization';

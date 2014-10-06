@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class OpenIDConnectLogin extends UnlistedSpecialPage {
+class PluggableAuthLogin extends UnlistedSpecialPage {
 
 	function __construct() {
 		parent::__construct('Userlogin');
@@ -43,7 +43,7 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				unset($_SESSION[$session_variable]);
 			}
 			wfRunHooks('UserLoginComplete', array(&$user, &$injected_html));
-			OpenIDConnect::redirect($returnto);
+			PluggableAuth::redirect($returnto);
 		} else {
 			if (!array_key_exists($session_variable, $_SESSION) ||
 				$_SESSION[$session_variable] === null) {
@@ -56,10 +56,9 @@ class OpenIDConnectLogin extends UnlistedSpecialPage {
 				}
 				$_SESSION[$session_variable] = $title->getPrefixedText();
 			}
-			$forceLogin = $this->getRequest()->getBool('forcelogin', false);
 			$title = Title::newFromText("Special:UserLogin");
 			$_SERVER['REQUEST_URI'] = $title->getLocalURL();
-			OpenIDConnect::login($user, $forceLogin);
+			PluggableAuth::login($user);
 		}
 	}
 }

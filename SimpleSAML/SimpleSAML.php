@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,20 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-$messages = array();
+$PluggableAuth_Class = 'SimpleSAML';
 
-$messages['en'] = array(
-	'openidconnect-desc' => 'Provides authentication by OpenID Connect',
-	'openidconnectlogin' => 'Login',
-	'openidconnectlogout' => 'Logout',
-	'openidconnectnotauthorized' => 'User $1 not authorized.',
-);
+$wgAutoloadClasses['SimpleSAML'] = __DIR__ . '/SimpleSAML.class.php';
 
-/** Message documentation (Message documentation)
- */
-$messages['qqq'] = array(
-	'openidconnect-desc' => '{{desc|name=OpenID Connect|url=http://www.mediawiki.org/wiki/Extension:OpenIDConnect}}',
-	'openidconnectlogin' => 'login text for personal URLs',
-	'openidconnectlogout' => 'logout text for personal URLs',
-	'openidconnectnotauthorized' => 'HTML to display when user is not authorized',
-);
+$wgSessionName = ini_get('session.name');

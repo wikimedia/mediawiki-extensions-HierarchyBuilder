@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 The MITRE Corporation
+ * Copyright (c) 2014 The MITRE Corporation
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'vikisemantictitle-desc' => 'VIKI plugin to handle wiki pages using Semantic Title extension'
+	'vikiheadertabs-desc' => 'VIKI plugin to provide compatibility with HeaderTabs extension'
 );

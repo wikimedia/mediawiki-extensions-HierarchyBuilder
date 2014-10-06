@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2014 The MITRE Corporation
+ * Copyright (c) 2013 The MITRE Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class OpenIDConnectNotAuthorized extends UnlistedSpecialPage {
-
-	function __construct() {
-		parent::__construct('OpenIDConnectNotAuthorized');
-	}
-
-	function execute($param) {
-		$name = htmlentities(
-			$this->getRequest()->getVal('name','<missing name>'),
-			ENT_QUOTES);
-		$this->getOutput()->
-			addHTML(wfMessage('openidconnectnotauthorized', $name)->text());
-	}
+if (!defined('MEDIAWIKI')) {
+	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
 }
+
+if (version_compare($wgVersion, '1.21', 'lt')) {
+	die('<b>Error:</b> This version of GroupAuthorization is only compatible with MediaWiki 1.21 or above.');
+}
+
+$wgExtensionCredits['semantic'][] = array (
+	'name' => 'GroupAuthorization',
+	'version' => '1.0',
+	'author' => array(
+		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]'
+	),
+	'descriptionmsg' => 'groupauthorization-desc',
+	'url' => 'https://www.mediawiki.org/wiki/Extension:GroupAuthorization',
+);
+
+$wgGroupPermissions['*']['login'] = false;
+$wgGroupPermissions['authorized']['login'] = true;
+
+$wgAutoloadClasses['GroupAuthorization'] =
+	__DIR__ . '/GroupAuthorization.class.php';
+
+$wgExtensionMessagesFiles['GroupAuthorization'] =
+	__DIR__ . '/GroupAuthorization.i18n.php';
+
+$wgHooks['PluggableAuthUserAuthorization'][] = 'GroupAuthorization::authorize';

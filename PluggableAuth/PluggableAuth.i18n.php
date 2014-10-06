@@ -22,20 +22,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-$PluggableAuth_Class = 'OpenIDConnect';
+$messages = array();
 
-$wgAutoloadClasses['OpenIDConnect'] = __DIR__ . '/OpenIDConnect.class.php';
-$wgAutoloadClasses['OpenIDConnectClient'] =
-	__DIR__ . '/OpenID-Connect-PHP/OpenIDConnectClient.php5';
+$messages['en'] = array(
+	'pluggableauth-desc' =>
+		'Provides framework for pluggable authentication and authorization',
+	'pluggableauthnotauthorized' => 'User $1 not authorized.',
+);
 
-$wgSpecialPages['SelectOpenIDConnectIssuer'] = 'SelectOpenIDConnectIssuer';
-$wgAutoloadClasses['SelectOpenIDConnectIssuer'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.class.php';
-$wgExtensionMessagesFiles['SelectOpenIDConnectIssuer'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.i18n.php';
-$wgExtensionMessagesFiles['SelectOpenIDConnectIssuerAlias'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.alias.php';
-$wgWhitelistRead[] = "Special:SelectOpenIDConnectIssuer";
-
-$wgHooks['LoadExtensionSchemaUpdates'][] =
-	'OpenIDConnect::loadExtensionSchemaUpdates';
+/** Message documentation (Message documentation)
+ */
+$messages['qqq'] = array(
+	'pluggableauth-desc' => '{{desc|name=Pluggable Auth' .
+		'|url=http://www.mediawiki.org/wiki/Extension:PluggableAuth}}',
+	'pluggableauthnotauthorized' =>
+		'HTML to display when user is not authorized',
+);

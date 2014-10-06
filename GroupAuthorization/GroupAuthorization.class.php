@@ -22,20 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-$PluggableAuth_Class = 'OpenIDConnect';
+class GroupAuthorization {
 
-$wgAutoloadClasses['OpenIDConnect'] = __DIR__ . '/OpenIDConnect.class.php';
-$wgAutoloadClasses['OpenIDConnectClient'] =
-	__DIR__ . '/OpenID-Connect-PHP/OpenIDConnectClient.php5';
-
-$wgSpecialPages['SelectOpenIDConnectIssuer'] = 'SelectOpenIDConnectIssuer';
-$wgAutoloadClasses['SelectOpenIDConnectIssuer'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.class.php';
-$wgExtensionMessagesFiles['SelectOpenIDConnectIssuer'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.i18n.php';
-$wgExtensionMessagesFiles['SelectOpenIDConnectIssuerAlias'] =
-	__DIR__ . '/SelectOpenIDConnectIssuer.alias.php';
-$wgWhitelistRead[] = "Special:SelectOpenIDConnectIssuer";
-
-$wgHooks['LoadExtensionSchemaUpdates'][] =
-	'OpenIDConnect::loadExtensionSchemaUpdates';
+	public static function authorize($user, &$authorized) {
+		$groups = $user->getGroups();
+		if (in_array('sysop', $groups) || in_array('authorized', $groups)) {
+			$authorized = true;
+		} else {
+			$authorized = false;
+		}
+		return $authorized;
+	}
+}

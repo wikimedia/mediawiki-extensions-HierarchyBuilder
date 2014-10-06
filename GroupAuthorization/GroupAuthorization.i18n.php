@@ -22,15 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class OpenIDConnectAuthorization {
+$messages = array();
 
-	public static function authorize($user, &$authorized) {
-		$groups = $user->getGroups();
-		if (in_array('sysop', $groups) || in_array('authorized', $groups)) {
-			$authorized = true;
-		} else {
-			$authorized = false;
-		}
-		return $authorized;
-	}
-}
+$messages['en'] = array(
+	'groupauthorization-desc' =>
+		'Provides group based authorization for PluggableAuth extension',
+);
+
+/** Message documentation (Message documentation)
+ */
+$messages['qqq'] = array(
+	'groupauthorization-desc' => '{{desc|name=Group Authorization|url=http://www.mediawiki.org/wiki/Extension:GroupAuthorization}}',
+);
