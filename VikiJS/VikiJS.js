@@ -155,7 +155,9 @@ window.VIKI = (function(my) {
 			// Initialize the D3 graph.
 			initializeGraph();
 
-			// End of initialization; call the GetAllWikis hook at this point.
+			// End of initialization; call the InitializationCompleteHook, then GetAllWikis hook.
+
+			this.callHooks("InitializationCompleteHook", []);
 
 			calledGetAllWikisHook = this.callHooks("GetAllWikisHook", []);
 			if(!calledGetAllWikisHook)
@@ -1476,8 +1478,8 @@ window.VIKI = (function(my) {
 				var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 				if(externalLinks) {
 					var newExternalNodes = [];
-						// some of these external links are actually links to other searchable wikis.
-						// these should be recognized as wiki nodes, not just external nodes.
+					// some of these external links are actually links to other searchable wikis.
+					// these should be recognized as wiki nodes, not just external nodes.
 
 					for(var i = 0; i < externalLinks.length; i++) {
 						var thisURL = externalLinks[i]["*"];

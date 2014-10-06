@@ -23,5 +23,5 @@
  */
 
 $messages['en'] = array(
-	'vikititleicon-desc' => 'VikiJS plugin to show logo from pages using Title Icon extension'
+	'vikititleicon-desc' => 'VIKI plugin to show logo from pages using Title Icon extension'
 );
