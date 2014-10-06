@@ -60,7 +60,7 @@ abstract class PluggableAuth {
 
 		}
 
-		if ( session_id() == '' ) {
+		if (session_id() == '') {
 			wfSetupSession();
 		}
 
@@ -91,14 +91,22 @@ abstract class PluggableAuth {
 	}
 
 	public static function logout(&$user) {
-		session_regenerate_id(true); 
-		session_destroy();
-		unset($_SESSION);
+		if (session_id() == '') {
+			wfSetupSession();
+		}
+
+		$session_variable = wfWikiID() . "_userid";
+		if (array_key_exists($session_variable, $_SESSION)) {
+			unset($_SESSION[$session_variable]);
+		}
 		$instance = self::getInstance();
 		if (!$instance) {
 			return true;
 		}
 		$instance->deauthenticate($user);
+		session_regenerate_id(true); 
+		session_destroy();
+		unset($_SESSION);
 		return true;
 	}
 
@@ -183,7 +191,7 @@ abstract class PluggableAuth {
 				$returnto = $_SESSION[$session_variable];
 				unset($_SESSION[$session_variable]);
 			}
-			wfRunHooks( 'UserLoginComplete', array( &$user, &$injected_html ) );
+			wfRunHooks('UserLoginComplete', array(&$user, &$injected_html));
 		} else {
 			$returnto = 'Special:PluggableAuthNotAuthorized';
 			$params = array('name' => $user->mName);
