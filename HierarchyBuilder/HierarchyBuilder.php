@@ -44,6 +44,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 
 # credits
 $wgExtensionCredits['parserhook'][] = array (
+	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
 	'version' => '1.9',
 	'author' => "Cindy Cicalese",
@@ -95,6 +96,10 @@ $wgResourceModules['ext.HierarchyBuilder.select'] = array(
 	)
 );
 
+/**
+ * @param $parser Parser
+ * @return bool
+ */
 function efHierarchyBuilderSetup ( & $parser ) {
 	$parser->setFunctionHook( 'hierarchyBreadcrumb', 'hierarchyBreadcrumb' );
 	$parser->setFunctionHook( 'sectionNumber', 'sectionNumber' );
