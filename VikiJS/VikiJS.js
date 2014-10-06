@@ -1476,24 +1476,26 @@ window.VIKI = (function(my) {
 				var externalLinks = data.query.pages[ Object.keys(data.query.pages)[0] ]["extlinks"];
 				if(externalLinks) {
 					var newExternalNodes = [];
-					for(var i = 0; i < externalLinks.length; i++) {
 						// some of these external links are actually links to other searchable wikis.
 						// these should be recognized as wiki nodes, not just external nodes.
 
+					for(var i = 0; i < externalLinks.length; i++) {
 						var thisURL = externalLinks[i]["*"];
 
 						// index of the searchable wiki in list of searchable wikis, or -1 if this is not a searchable wiki page.
 						var index = self.indexOfWikiForURL(externalLinks[i]["*"]);
 						// handle the case where the URL has the form "index.php?title=..." rather than "index.php/..."
-						var alternativeIndex = self.indexOfWikiForURL( thisURL.replace("?title=", "/") );
+						var alternativeTitleFormatIndex = self.indexOfWikiForURL( thisURL.replace("?title=", "/") );
 
-						isWikiPage = (index != -1 || alternativeIndex !=-1);
+						// var isBaseURLIndex = thisURL.indexOf("$1") self.indexOfWikiForURL( );
+
+						isWikiPage = (index != -1 || alternativeTitleFormatIndex !=-1);
 
 						if(isWikiPage) {
 							// if "index.php?title=..." form was used, swap it with "index.php/..." form.
-							if(alternativeIndex != -1) {  
+							if(alternativeTitleFormatIndex != -1) {  
 								thisURL = thisURL.replace("?title=", "/");
-								index = alternativeIndex;
+								index = alternativeTitleFormatIndex;
 							}
 
 							externalNode = null;
