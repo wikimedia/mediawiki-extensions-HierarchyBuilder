@@ -29,5 +29,5 @@ $messages['en'] = array(
 $magicWords = array();
 
 $magicWords['en'] = array(
-	'vikijs' => array(0, 'vikijs')
+	'viki' => array(0, 'viki')
 	);

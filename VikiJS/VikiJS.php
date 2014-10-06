@@ -31,7 +31,7 @@
 * refreshLinks.php after setting this flag.
 */
 
-define('VIKIJS_VERSION', '1.5.1');
+define('VIKIJS_VERSION', '1.6');
 
 if (!defined('MEDIAWIKI')) {
 	die('<b>Error:</b> This file is part of a MediaWiki extension and cannot be run standalone.');
@@ -50,7 +50,7 @@ if(version_compare(SMW_VERSION, '1.9', '<')) {
 }
 
 $wgExtensionCredits['parserhook'][] = array (
-	'name' => 'VikiJS',
+	'name' => 'VIKI',
 	'version' => VIKIJS_VERSION,
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikijs-desc'
@@ -82,11 +82,11 @@ $wgAPIModules['getContentNamespaces'] = 'ApiGetContentNamespaces';
 
 
 function efVikiJSParserFunction_Setup (& $parser) {
-	$parser->setFunctionHook('vikijs', 'vikijs');
+	$parser->setFunctionHook('viki', 'viki');
 	return true;
 }
 
-function vikijs($parser, $pageTitles, $width, $height) {
+function viki($parser, $pageTitles, $width, $height) {
 	$myparams = func_get_args();
 	array_shift($myparams);
 	
