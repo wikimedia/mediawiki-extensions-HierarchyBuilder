@@ -43,7 +43,7 @@ $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiHeaderTabs',
 	'version' => '1.0',
 	'author' => 'Jason Ji',
-	'descriptionmsg' => 'VikiHeaderTabs-desc'
+	'descriptionmsg' => 'vikiheadertabs-desc'
 );
 
 $wgExtensionMessagesFiles['VikiHeaderTabs'] =
