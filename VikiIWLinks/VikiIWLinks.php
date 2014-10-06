@@ -41,7 +41,7 @@ if (version_compare($wgVersion, '1.22', 'lt')) {
 
 $wgExtensionCredits['parserhook'][] = array (
 	'name' => 'VikiIWLinks',
-	'version' => '1.1.1',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'vikiiwlinks-desc'
 );
@@ -93,7 +93,7 @@ function efVikiIWLinks_Setup($params) {
 	$dbr = wfGetDB( DB_SLAVE );
 	$result = $dbr->select(
 		'interwiki',
-		array('iw_prefix', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+		array('mgf_title', 'server', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
 		'mgf_wiki = true'
 	);
 
@@ -103,13 +103,17 @@ function efVikiIWLinks_Setup($params) {
 	$databaseResults = array();
 
 	foreach($result as $row) {
+		$wikiTitle = $row->mgf_title;
+		$server = $row->server;
+		if(!($server == "gestalt" || $server == "gestalt-m" || $server == "gestalt-cts"))
+			$wikiTitle = $wikiTitle . " (" . $server . ")";
 		$databaseResults[] = array(
-			"wikiTitle" => $row->iw_prefix,
+			"wikiTitle" => $wikiTitle,
 			"apiURL" => $row->iw_api,
 			"contentURL" => $row->iw_url,
 			"logoURL" => $row->logo_url,
 			"searchableWiki" => ($row->viki_searchable == 1 ? "true" : "false"),
-			"server" => $row->server
+			"server" => $server
 		);
 	}
 
