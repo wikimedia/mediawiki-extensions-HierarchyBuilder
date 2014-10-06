@@ -225,8 +225,7 @@ function parent( $parser ) {
  * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,}}
  * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|link=none}}
  * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|link=none}}
- * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|
- * introtemplate=Y|outrotemplate=Z|link=none}}
+ * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|introtemplate=Y|outrotemplate=Z|link=none}}
  * @endcode
  *
  * @param $parser: Parser
