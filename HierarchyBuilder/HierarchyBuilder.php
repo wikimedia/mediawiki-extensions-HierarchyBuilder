@@ -1388,11 +1388,3 @@ class SelectFromHierarchy extends SFFormInput {
 		);
 	}
 }
-
-function wikiLog( $className, $methodName, $message ) {
-	wfErrorLog( '[' . date( 'c' ) . ']'
-		. '[' . $className . ']'
-		. '[' . $methodName . '] '
-		. $message . "\n",
-		'/home/kji/hierarchyBuilder.log' );
-}
