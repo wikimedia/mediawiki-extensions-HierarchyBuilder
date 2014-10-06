@@ -186,7 +186,7 @@ function parent( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
 			$link = $optionalParams[HierarchyBuilder::LINK];
 		} else {
-			$link = "";
+			$link = '';
 		}
 
 		// find the parent
@@ -194,8 +194,8 @@ function parent( $parser ) {
 			$hierarchyPropertyName );
 
 		// format the parent for return according to the optional arg
-		if ( $parent != "" ) {
-			$parent = $link == "none" ? $parent : "[[$parent]]";
+		if ( $parent != '' ) {
+			$parent = $link == 'none' ? $parent : "[[$parent]]";
 		}
 
 		$output = $parser->recursiveTagParse( $parent );
@@ -237,7 +237,7 @@ function parent( $parser ) {
 function children( $parser ) {
 	$params = func_get_args();
 	if ( count( $params ) < 4 ) {
-		$output = "";
+		$output = '';
 	} else {
 		// mandatory arguments
 		$pageName = $params[1];
@@ -254,34 +254,34 @@ function children( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::TEMPLATE] ) ) {
 			$template = $optionalParams[HierarchyBuilder::TEMPLATE];
 		} else {
-			$template = "";
+			$template = '';
 		}
 		// look for the introtemplate parameter
 		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
 			$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
 		} else {
-			$introTemplate = "";
+			$introTemplate = '';
 		}
 		// look for the outrotemplate parameter
 		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
 			$outroTemplate = $optionalParams[HierarchyBuilder::OUTROTEMPLATE];
 		} else {
-			$outroTemplate = "";
+			$outroTemplate = '';
 		}
 		// look for the link parameter
 		if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
 			$link = $optionalParams[HierarchyBuilder::LINK];
 		} else {
-			$link = "";
+			$link = '';
 		}
 		// look for the delimiter parameter
 		if ( isset( $optionalParams[HierarchyBuilder::SEPARATOR] ) ) {
 			$delimiter = $optionalParams[HierarchyBuilder::SEPARATOR];
 		} else {
-			if ( $template != "" ) {
-				$delimiter = "";
+			if ( $template != '' ) {
+				$delimiter = '';
 			} else {
-				$delimiter = ",";
+				$delimiter = ',';
 			}
 		}
 
@@ -290,15 +290,15 @@ function children( $parser ) {
 			$hierarchyPropertyName );
 
 		// format the output according to the optional params
-		$output = "";
+		$output = '';
 		if ( count( $children ) > 0 ) {
-			if ( $template != "" ) {
-				$intro = $introTemplate != "" ? "{{{$introTemplate}}}\n" : "";
-				$outro = $outroTemplate != "" ? "\n{{{$outroTemplate}}}" : "";
+			if ( $template != '' ) {
+				$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
+				$outro = $outroTemplate != '' ? "\n{{{$outroTemplate}}}" : '';
 				$templateChildrenString = implode(
 					array_map(
 						function( $child ) use ( $template, $link ) {
-							if ( $link == "none" ) {
+							if ( $link == 'none' ) {
 								return "{{" . $template . "|$child}}";
 							} else {
 								return "{{" . $template . "|[[$child]]}}";
@@ -317,7 +317,7 @@ function children( $parser ) {
 				$childrenString = implode(
 					array_map(
 						function( $child ) use ( $link ) {
-							return $link == "none" ? $child : "[[$child]]";
+							return $link == 'none' ? $child : "[[$child]]";
 						},
 						$children
 					),
@@ -427,17 +427,17 @@ class HierarchyBuilder {
 	static protected $m_hierarchy_num = 1;
 
 	// pattern to extract the pageName from a wikitext hierarchy row
-	const PAGENAMEPATTERN = "/\[\[(.*)\]\]/";
+	const PAGENAMEPATTERN = '/\[\[(.*)\]\]/';
 	// pattern to extract the leading *s to determine the current row's depth
 	// in the wikitext hierarchy.
-	const DEPTHPATTERN = "/^(\**)/";
+	const DEPTHPATTERN = '/^(\**)/';
 
 	// constants for child parser function arg names
-	const SEPARATOR = "sep";
-	const TEMPLATE = "template";
-	const INTROTEMPLATE = "introtemplate";
-	const OUTROTEMPLATE = "outrotemplate";
-	const LINK = "link";
+	const SEPARATOR = 'sep';
+	const TEMPLATE = 'template';
+	const INTROTEMPLATE = 'introtemplate';
+	const OUTROTEMPLATE = 'outrotemplate';
+	const LINK = 'link';
 
 	/**
 	 * This function gives the section number for a target page within a
@@ -495,9 +495,9 @@ class HierarchyBuilder {
 		$hierarchyPropertyName
 	) {
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
-		$hierarchyRows = preg_split( "/\n/", $hierarchy );
+		$hierarchyRows = preg_split( '/\n/', $hierarchy );
 
-		$currentPagePattern = "/\[\[" . $targetPageName . "\]\]/";
+		$currentPagePattern = '/\[\[' . $targetPageName . '\]\]/';
 
 		$hierarchyRowsSize = count( $hierarchyRows );
 		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
@@ -589,9 +589,9 @@ class HierarchyBuilder {
 		$hierarchyPropertyName
 	) {
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
-		$hierarchyRows = preg_split( "/\n/", $hierarchy );
+		$hierarchyRows = preg_split( '/\n/', $hierarchy );
 
-		$currentPagePattern = "/\[\[" . $targetPageName . "\]\]/";
+		$currentPagePattern = '/\[\[' . $targetPageName . '\]\]/';
 		// loop through the hierarchyRows looking for the row containing the currentPage
 		$hierarchyRowsSize = count( $hierarchyRows );
 		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
@@ -607,7 +607,7 @@ class HierarchyBuilder {
 			}
 		}
 
-		return "";
+		return '';
 	}
 
 	/**
@@ -633,9 +633,9 @@ class HierarchyBuilder {
 		$hierarchyProperty, $displayNameProperty ) {
 
 		$hierarchy = self::getPropertyFromPage( $hierarchyPage, $hierarchyProperty );
-		$hierarchyRows = preg_split( "/\n/", $hierarchy );
+		$hierarchyRows = preg_split( '/\n/', $hierarchy );
 
-		$currentPagePattern = "/\[\[" . $currentPage . "\]\]/";
+		$currentPagePattern = '/\[\[' . $currentPage . '\]\]/';
 		// loop through the hierarchyRows looking for the row containing the currentPage
 		$hierarchyRowsSize = count( $hierarchyRows );
 		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
@@ -647,13 +647,13 @@ class HierarchyBuilder {
 				// go to the previous row and extract the page name if any
 				// previous row exists. Otherwise the previous page name is empty.
 				$prevIdx = $i -1;
-				$previousRow = ( $prevIdx >= 0 ? $hierarchyRows[$prevIdx] : "" );
+				$previousRow = ( $prevIdx >= 0 ? $hierarchyRows[$prevIdx] : '' );
 				$previous = self::getPageNameFromHierarchyRow( $previousRow );
 
 				// go to the next row and extract the page name if any next row
 				// exists. Otherwise the next page name is empty.
 				$nextIdx = $i + 1;
-				$nextRow = ( $nextIdx < count( $hierarchyRows ) ? $hierarchyRows[$nextIdx] : "" );
+				$nextRow = ( $nextIdx < count( $hierarchyRows ) ? $hierarchyRows[$nextIdx] : '' );
 				$next = self::getPageNameFromHierarchyRow( $nextRow );
 
 				// get the parent of the current row in the hierarchy.
@@ -664,7 +664,7 @@ class HierarchyBuilder {
 			}
 		}
 
-		return "";
+		return '';
 	}
 
 	/**
