@@ -694,7 +694,7 @@ class HierarchyBuilder {
 		$currentDepth = self::getDepthOfHierarchyRow( $row );
 
 		// figure out who the parent is based on depth being 1 less than the current depth
-		$parent = "";
+		$parent = '';
 		// run backwards through all the previous rows
 		for ( $parentIdx = $rowIdx -1; $parentIdx >= 0; $parentIdx-- ) {
 			$parentRow = $hierarchyRows[$parentIdx];
@@ -722,7 +722,7 @@ class HierarchyBuilder {
 	private function getPageNameFromHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::PAGENAMEPATTERN, $hierarchyRow, $matches );
 		// give me the first subpattern match to be the name of the previous page
-		$pageName = ( $numMatches > 0 ? $matches[1][0] : "" );
+		$pageName = ( $numMatches > 0 ? $matches[1][0] : '' );
 		return $pageName;
 	}
 
@@ -807,32 +807,32 @@ class HierarchyBuilder {
 	 * @return string: Html div that will contain the rendered hierarchy.
 	 */
 	public function renderHierarchy( $input, $attributes, $parser, $frame ) {
-		$hierarchyName = "HierarchyDiv" . self::$m_hierarchy_num;
+		$hierarchyName = 'HierarchyDiv' . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
 
-		if ( isset( $attributes["collapsed"] ) ) {
-			$collapsed = htmlspecialchars( $attributes["collapsed"] );
-			if ( $collapsed === "collapsed" ) {
-				$collapsed = "true";
+		if ( isset( $attributes['collapsed'] ) ) {
+			$collapsed = htmlspecialchars( $attributes['collapsed'] );
+			if ( $collapsed === 'collapsed' ) {
+				$collapsed = 'true';
 			}
 		} else	{
-			$collapsed = "false";
+			$collapsed = 'false';
 		}
 
-		if ( isset( $attributes["displaynameproperty"] ) ) {
+		if ( isset( $attributes['displaynameproperty'] ) ) {
 			$displayNameProperty =
-				htmlspecialchars( $attributes["displaynameproperty"] );
+				htmlspecialchars( $attributes['displaynameproperty'] );
 		} else	{
-			$displayNameProperty = "";
+			$displayNameProperty = '';
 		}
 
-		if ( isset( $attributes["numbered"] ) ) {
-			$numbered = htmlspecialchars( $attributes["numbered"] );
-			if ( $numbered === "numbered" ) {
-				$numbered = "true";
+		if ( isset( $attributes['numbered'] ) ) {
+			$numbered = htmlspecialchars( $attributes['numbered'] );
+			if ( $numbered === 'numbered' ) {
+				$numbered = 'true';
 			}
 		} else {
-			$numbered = "false";
+			$numbered = 'false';
 		}
 
 		// this looks like it gets the property but it eats all the links.
@@ -888,7 +888,7 @@ END;
 	 *  placeholders removed and replaced by html anchors.
 	 */
 	private function anchorLinkHolders( $hierarchy ) {
-		$pattern = "#<!--LINK \d+:\d+-->#";
+		$pattern = '#<!--LINK \d+:\d+-->#';
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[0] as $link ) {
@@ -914,8 +914,8 @@ END;
 		$callback ) {
 		$hierarchy = htmlspecialchars_decode( $input );
 		$newlines = array( "\n", "\r" );
-		$hierarchy = str_replace( $newlines, "", $hierarchy );
-		$pattern = "/<a>([^<]*)<\/a>/i";
+		$hierarchy = str_replace( $newlines, '', $hierarchy );
+		$pattern = '/<a>([^<]*)<\/a>/i';
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[1] as $pageName ) {
@@ -952,7 +952,7 @@ END;
 			}
 		}
 		// return $strings;
-		return "";
+		return '';
 	}
 
 	/**
@@ -1013,8 +1013,8 @@ END;
 		$hierarchyPageNames = self::collectPageNamesFromHierarchy( $hierarchy );
 		foreach ( $hierarchyPageNames as $pageName ) {
 			$displayName = self::getPageDisplayName( $pageName, $displayNameProperty );
-			$pageNameLink = "[[" . $pageName . "]]";
-			$displayNameLink = "[[" . $pageName . " | " . $displayName . "]]";
+			$pageNameLink = '[[' . $pageName . ']]';
+			$displayNameLink = '[[' . $pageName . ' | ' . $displayName . ']]';
 			$hierarchy = str_replace( $pageNameLink, $displayNameLink, $hierarchy );
 		}
 		return $hierarchy;
@@ -1038,7 +1038,7 @@ END;
 	 */
 	public static function getSectionNumberFromHierarchy( $wikiTextHierarchy, $target ) {
 		$sectionNumber = self::getSectionNumberFromHierarchyHelper(
-			"[[hierarchy_root]]" . "\n" . $wikiTextHierarchy, "", "", $target );
+			'[[hierarchy_root]]' . "\n" . $wikiTextHierarchy, '', '', $target );
 		return $sectionNumber;
 	}
 
@@ -1084,19 +1084,19 @@ END;
 		if ( count( $children ) > 0 ) {
 			$numberSuffix = 1;
 			foreach ( $children as $child ) {
-				$childNumber = $sectionNumber == "" ? $numberSuffix++ : $sectionNumber . "." . $numberSuffix++;
-				$targetNumber = self::getSectionNumberFromHierarchyHelper( $child, $depth . "*",
+				$childNumber = $sectionNumber == '' ? $numberSuffix++ : $sectionNumber . '.' . $numberSuffix++;
+				$targetNumber = self::getSectionNumberFromHierarchyHelper( $child, $depth . '*',
 					$childNumber, $target );
 				// if we find the target in this child branch then we can return
 				// the target section number
-				if ( $targetNumber != "" ) {
+				if ( $targetNumber != '' ) {
 					return $targetNumber;
 				}
 			}
 		}
 
 		// if we can't find the target then return an empty section number
-		return "";
+		return '';
 	}
 
 	/**
@@ -1163,12 +1163,12 @@ class EditHierarchy extends SFFormInput {
 			SMW_OUTPUT_WIKI ); // this can wait for a another approach
 // use the category object to get list of titles in category from which you can get names
 
-		$pageArray = array_map( 'trim', explode( ",", $output ) );
+		$pageArray = array_map( 'trim', explode( ',', $output ) );
 
 		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
 			$displayNameProperty = $this->mOtherArgs['displaynameproperty'];
 		} else {
-			$displayNameProperty = "";
+			$displayNameProperty = '';
 		}
 
 		$pages = array();
@@ -1181,7 +1181,7 @@ class EditHierarchy extends SFFormInput {
 		// This loop will removed pages from the unselected pages list if we can
 		// find it in the hierarchy already.
 		foreach ( $pages as $key => $value ) {
-			if ( strpos( "[[" . $this->mCurrentValue . "]]", $key ) !== false ) {
+			if ( strpos( '[[' . $this->mCurrentValue . ']]', $key ) !== false ) {
 				unset( $pages[$key] );
 			}
 		}
@@ -1275,33 +1275,33 @@ class SelectFromHierarchy extends SFFormInput {
 	 */
 	protected function setupJsInitAttribs() {
 		if ( array_key_exists( 'pagename', $this->mOtherArgs ) ) {
-			$this->mPageName = $this->mOtherArgs["pagename"];
+			$this->mPageName = $this->mOtherArgs['pagename'];
 		} else {
 			$this->mPageName = null;
 			return;
 		}
 
 		if ( array_key_exists( 'propertyname', $this->mOtherArgs ) ) {
-			$this->mPropertyName = $this->mOtherArgs["propertyname"];
+			$this->mPropertyName = $this->mOtherArgs['propertyname'];
 		} else {
 			$this->mPropertyName = null;
 			return;
 		}
 
 		if ( array_key_exists( 'collapsed', $this->mOtherArgs ) ) {
-			$this->mCollapsed = $this->mOtherArgs["collapsed"];
-			if ( $this->mCollapsed !== "true" && $this->mCollapsed !== "false" ) {
+			$this->mCollapsed = $this->mOtherArgs['collapsed'];
+			if ( $this->mCollapsed !== 'true' && $this->mCollapsed !== 'false' ) {
 				$this->mCollapsed = null;
 				return;
 			}
 		} else {
-			$this->mCollapsed = "false";
+			$this->mCollapsed = 'false';
 		}
 
 		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
-			$displaynameproperty = $this->mOtherArgs["displaynameproperty"];
+			$displaynameproperty = $this->mOtherArgs['displaynameproperty'];
 		} else {
-			$displaynameproperty = "";
+			$displaynameproperty = '';
 		}
 
 		$hierarchy = HierarchyBuilder::getPropertyFromPage( $this->mPageName,
@@ -1309,7 +1309,7 @@ class SelectFromHierarchy extends SFFormInput {
 		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy,
 			$displaynameproperty );
 
-		$selectedItems = array_map( 'trim', explode( ",", $this->mCurrentValue ) );
+		$selectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -1320,7 +1320,7 @@ class SelectFromHierarchy extends SFFormInput {
 			'selectedItems' => $selectedItems,
 			'isDisabled' => $this->mIsDisabled,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
-			'collapsed' => $this->mCollapsed == "true" ? true : false
+			'collapsed' => $this->mCollapsed == 'true' ? true : false
 		);
 
 		return json_encode( $jsattribs );
@@ -1390,9 +1390,9 @@ class SelectFromHierarchy extends SFFormInput {
 }
 
 function wikiLog( $className, $methodName, $message ) {
-	wfErrorLog( "[" . date( "c" ) . "]"
-		. "[" . $className . "]"
-		. "[" . $methodName . "] "
+	wfErrorLog( '[' . date( 'c' ) . ']'
+		. '[' . $className . ']'
+		. '[' . $methodName . '] '
 		. $message . "\n",
 		'/home/kji/hierarchyBuilder.log' );
 }
