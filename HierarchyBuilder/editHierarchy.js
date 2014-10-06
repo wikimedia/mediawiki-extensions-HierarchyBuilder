@@ -47,6 +47,8 @@
 		/**
 		 * @class EditHierarchy
 		 *
+		 * Object literal implementing edit hierarchy.
+		 *
 		 * This is actually an object literal which is defined and used by the
 		 * global editHierarchyInit function which contains all of the necessary
 		 * functions for implementing the edit hierarchy functionality of the

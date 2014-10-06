@@ -39,6 +39,8 @@
 		/**
 		 * @class RenderHierarchy
 		 *
+		 * Object literal implementing hierarchy rendering.
+		 *
 		 * This is actually an object literal which is defined and used by the
 		 * global renderHierarchy function which contains all of the necessary
 		 * functions for rendering a hierarchy.
@@ -105,6 +107,8 @@
 			},
 
 			/**
+			 * Updates a hierarchy to include section numbers.
+			 *
 			 * This function takes an HTML hierarchy and applies section numbers
 			 * to each row of the hierarchy. The resulting HTML hierarchy with
 			 * section numbers applied is then returned.
@@ -118,6 +122,8 @@
 			},
 
 			/**
+			 * Helper function for applying section numbers to a hierarchy.
+			 *
 			 * This is a helper function which recursively traverses a hierarchy
 			 * and computes and applies section numbers to the beginning of each
 			 * row in that hierarchy.

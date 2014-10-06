@@ -45,6 +45,8 @@
 		/**
 		 * @class SelectFromHierarchy
 		 *
+		 * Object literal implementing Select From Hierarchy.
+		 *
 		 * This is actually an object literal which is defined and used by the
 		 * global selectFromHierarchyInit function which contains all of the
 		 * necessary functions for implementing the select from Hierarchy
@@ -314,6 +316,9 @@
 			},
 
 			/**
+			 * Applies the check or uncheck operation to any duplicates of the
+			 * current target.
+			 *
 			 * This function will run through all the other unselected hierarchy
 			 * elements searching for duplicates of the given element. If any
 			 * are found then we check those elements too.
