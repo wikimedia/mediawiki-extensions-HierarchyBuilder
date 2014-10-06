@@ -53,8 +53,7 @@ $wgExtensionCredits['parserhook'][] = array (
 
 $wgHooks['ParserFirstCallInit'][] = 'efHierarchyBuilderSetup';
 
-$wgExtensionMessagesFiles['HierarchyBuilder'] =
-	__DIR__ . '/HierarchyBuilder.i18n.php';
+$wgMessagesDirs['HierarchyBuilder'] = __DIR__ . "/i18n";
 
 $wgExtensionMessagesFiles['HierarchyBuilderMagic'] =
 	__DIR__ . '/HierarchyBuilder.i18n.magic.php';
@@ -124,6 +123,11 @@ function efHierarchyBuilderSetup ( & $parser ) {
  * @code
  * {{#sectionNumber:{{FULLPAGENAME}}|Table of Contents|Hierarchy Data}}
  * @endcode
+ *
+ * @param $parser: Parser
+ *
+ * @return string: The section number of the specified page name within the
+ *  specified hierarchy.
  */
 function sectionNumber( $parser ) {
 	// wikiLog('', 'getPageNumbering', "started");
@@ -161,6 +165,11 @@ function sectionNumber( $parser ) {
  * {{#parent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property}}
  * {{#parent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property|link=none}}
  * @endcode
+ *
+ * @param $parser Parser
+ *
+ * @return string: The parent of the specified page within the specified hierarchy
+ *  as wikitext for formatted display.
  */
 function parent( $parser ) {
 	$params = func_get_args();
@@ -219,6 +228,12 @@ function parent( $parser ) {
  * {{#children:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|
  * introtemplate=Y|outrotemplate=Z|link=none}}
  * @endcode
+ *
+ * @param $parser: Parser
+ *
+ * @return string: The list of children of the specified page within the specified
+ *  hierarchy. The list is returned as wikitext for formatted display according to
+ *  the various separator, template, and link parameters.
  */
 function children( $parser ) {
 	$params = func_get_args();
