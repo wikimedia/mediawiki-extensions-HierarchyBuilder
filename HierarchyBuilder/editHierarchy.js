@@ -288,7 +288,7 @@
 			/**
 			 * Convert an HTML formatted hierarchy into wikitext.
 			 *
-			 * @param {Object} uListRoot A jquery object representing the <ul>
+			 * @param {Object} uListRoot A jquery object representing the ul
 			 *  element of an unordered list.
 			 * @param {string} depth A string composed of * characters denoting
 			 *  the current depth within the hierarchy.
@@ -342,7 +342,7 @@
 			 * @param {string} depth A string composed of * characters denoting
 			 *  the current depth within the hierarchy.
 			 * @return {string} HTML formatted hierarchy without the outer most
-			 *  <ul> HTML tags.
+			 *  ul HTML tags.
 			 */
 			parseWikiTextToHtmlHelper: function( wikiTextHierarchy, depth ) {
 				// split the hierarchy into a list with the root and each child hierarchy in a list

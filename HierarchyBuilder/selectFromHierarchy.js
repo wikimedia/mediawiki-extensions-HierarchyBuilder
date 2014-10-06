@@ -148,7 +148,7 @@
 			/**
 			 * Returns a list of the selected hierarchy rows so far.
 			 *
-			 * @params {string} inputId The id of the hidden form field used to
+			 * @param {string} inputId The id of the hidden form field used to
 			 *  store possibly updated list of selected hierarchy rows.
 			 *
 			 * @return {Array} Array containing the selected hierarchy rows.
