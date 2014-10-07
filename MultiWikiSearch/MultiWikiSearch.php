@@ -1,6 +1,5 @@
 <?php
 /**
-
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
 * include_once("$IP/extensions/MultiWikiSearch/MultiWikiSearch.php");
@@ -20,7 +19,7 @@ if(!defined('GET_ALL_WIKIS_VERSION')) {
 
 $wgExtensionCredits[ 'specialpage' ][] = array(
 	'name' => 'MultiWikiSearch',
-	'version' => '1.1.0',
+	'version' => '1.2',
 	'author' => 'Jason Ji',
 	'descriptionmsg' => 'multiwikisearch-desc'
 );
@@ -58,8 +57,6 @@ class SpecialMultiWikiSearch extends SpecialPage {
 
 		$script=<<<END
 mw.loader.using(['jquery.ui.progressbar', 'ext.MultiWikiSearch'], function() {
-//	MultiWikiSearch.initializeMWS("$apiurl");
-//	g.initializeMWS("$apiurl");
 
 	$(document).ready(function() {
 		var g = new MultiWikiSearch("diff", "$apiurl");
