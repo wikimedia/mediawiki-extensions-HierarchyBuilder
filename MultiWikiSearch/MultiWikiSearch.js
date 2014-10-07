@@ -149,7 +149,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 
 		$(document).ready(function() {
 			for(var i in allWikis) {
-				var title = allWikis[i]["wikiName"];
+				var title = allWikis[i]["iw_prefix"];
 				self.log(allWikis[i]);
 				
 				if(allWikis[i].searchableWiki == "1") {
@@ -206,8 +206,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 					$(includedWikis[j]).before($(newItems[i]));
 
 					var thisWiki = self.allWikisList[newItemIndex];
-					delete self.excludedWikis[thisWiki.wikiName];
-					self.includedWikis[thisWiki.wikiName] = thisWiki;
+					delete self.excludedWikis[thisWiki.iw_prefix];
+					self.includedWikis[thisWiki.iw_prefix] = thisWiki;
 
 					found = true;
 					break;
@@ -218,8 +218,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 				$("#includedWikis").append($(newItems[i]));
 
 				var thisWiki = self.allWikisList[newItemIndex];
-				delete self.excludedWikis[thisWiki.wikiName];
-				self.includedWikis[thisWiki.wikiName] = thisWiki;
+				delete self.excludedWikis[thisWiki.iw_prefix];
+				self.includedWikis[thisWiki.iw_prefix] = thisWiki;
 			}
 		}
 
@@ -255,8 +255,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 					$(excludedWikis[j]).before($(newItems[i]));
 
 					var thisWiki = self.allWikisList[newItemIndex];
-					delete self.includedWikis[thisWiki.wikiName];
-					self.excludedWikis[thisWiki.wikiName] = thisWiki;
+					delete self.includedWikis[thisWiki.iw_prefix];
+					self.excludedWikis[thisWiki.iw_prefix] = thisWiki;
 
 					found =	true;
 					break;
@@ -266,8 +266,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 				$(newItems[i]).detach();
 				$("#excludedWikis").append($(newItems[i]));
 				var thisWiki = self.allWikisList[newItemIndex];
-				delete self.includedWikis[thisWiki.wikiName];
-				self.excludedWikis[thisWiki.wikiName] = thisWiki;
+				delete self.includedWikis[thisWiki.iw_prefix];
+				self.excludedWikis[thisWiki.iw_prefix] = thisWiki;
 			}
 		}
 
@@ -279,7 +279,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 		var self = this;
 
 		for(var i in self.allWikisList) {
-			if(title === self.allWikisList[i].wikiName)
+			if(title === self.allWikisList[i].iw_prefix)
 				return i;
 		}
 		return -1;
@@ -374,7 +374,7 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 										html += " (error = readapidenied).</strong></p>";
 									else
 										html += ".</strong></p>";
-									$("#errorDiv").html(html);
+									$("#errorDiv").append(html);
 								}
 								else
 	                                self.namespacesList[title] = data["query"]["namespaces"];
@@ -453,8 +453,8 @@ window.MultiWikiSearch = function(purpose, apiURL) {
 
 		// construct search URLs and start searches.
 		for(var i = 0; i < includedWikis.length; i++) {
-			var wiki = self.includedWikis[title];
 			var title = $(includedWikis[i]).text();
+			var wiki = self.includedWikis[title];
 			var contentURL = self.truncateContentURL(wiki.contentURL);
 			var baseApiUrl = wiki.apiURL;
 			if(self.searchTitle) {
