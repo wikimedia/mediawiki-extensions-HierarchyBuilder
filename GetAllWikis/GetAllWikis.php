@@ -1,19 +1,18 @@
 <?php
 /**
-
 * To activate the functionality of this extension include the following
 * in your LocalSettings.php file:
 * include_once("$IP/extensions/GetAllWikis/GetAllWikis.php");
 */
 
-define('GET_ALL_WIKIS_VERSION', '1.0.1');
+define('GET_ALL_WIKIS_VERSION', '1.1');
 
 $wgExtensionCredits['api'][] = array(
 
 'path' => __FILE__,
 'name' => 'Get All Wikis',
 'descriptionmsg' => 'getallwikis-desc',
-'version' => '1.0.1',
+'version' => GET_ALL_WIKIS_VERSION,
 'author' => 'Jason Ji'
 
 );

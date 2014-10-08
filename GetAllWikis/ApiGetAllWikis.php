@@ -28,11 +28,44 @@ class ApiGetAllWikis extends ApiBase {
 	}
  
 	public function execute() {
- 		wfErrorLog("API called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
-		$json = file_get_contents("http://gestalt.mitre.org/.mediawiki/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL%0D%0A?Small_Wiki_Logo%0D%0A?Gestalt_Community_Searchable&p[limit]=500&p[format]=json");
-		$results = json_decode($json);
-		wfErrorLog("file contains:\n$json\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
-		$this->getResult()->addValue(null, $this->getModuleName(), $results);
+ 	// 	wfErrorLog("API called!\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+		// $json = file_get_contents("http://gestalt.mitre.org/gestalt/index.php?title=Special:Ask&q=[[Category:Gestalt_Communities]]&po=?Wiki_API_URL%0D%0A?Wiki_Content_URL%0D%0A?Small_Wiki_Logo%0D%0A?Gestalt_Community_Searchable&p[limit]=500&p[format]=json");
+		// $results = json_decode($json);
+		// wfErrorLog("file contains:\n$json\n", "/var/www/html/DEBUG_MultiWikiSearch.out");
+		// $this->getResult()->addValue(null, $this->getModuleName(), $results);
+
+		// access database and get wikis from shared interwiki table
+
+		$dbr = wfGetDB( DB_SLAVE );
+		$result = $dbr->select(
+			'interwiki',
+			array('iw_prefix', 'mgf_title', 'iw_url', 'iw_api', 'logo_url', 'viki_searchable', 'mgf_wiki', 'server'),
+			'mgf_wiki = true',
+			__METHOD__,
+			array('ORDER BY' => 'server ASC, mgf_title ASC')
+		);
+
+		$databaseResults = array();
+
+		foreach($result as $row) {
+			$wikiTitle = $row->mgf_title;
+			$server = $row->server;
+			if(!($server == "gestalt" || $server == "gestalt-m" || $server == "gestalt-cts"))
+				$wikiTitle = $wikiTitle . " (" . $server . ")";
+
+			$databaseResults[] = array(
+				"iw_prefix" => $row->iw_prefix,
+				"wikiName" => $wikiTitle,
+				"apiURL" => $row->iw_api,
+				"contentURL" => $row->iw_url,
+				"logoURL" => $row->logo_url,
+				"searchableWiki" => $row->viki_searchable,
+				"server" => $server,
+				"mgf_wiki" => $row->mgf_wiki
+			);
+		}
+
+		$this->getResult()->addValue(null, $this->getModuleName(), $databaseResults);
 
 		return true;
 	}
