@@ -1,3 +1,0 @@
-var getWiki = function(wikiObject){
-console.log(wikiObject)
-}
