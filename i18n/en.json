@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"hierarchybuilder-desc": "Renders and allows editing of and selection from page hierarchies",
+	"hierarchybuilder-editmessage": "<p>The left-hand list contains the hierarchy that will be preserved when you save. The right-hand list contains pages in category $1 that are not currently in the hierarchy. You may rearrange the left-hand list by dragging rows up and down as well as changing their indentation. You may add pages from the right-hand list to the hierarchy by dragging and dropping them where you want them in the left-hand list. You may remove pages from the hierarchy by dragging them from the left-hand list and dropping them anywhere in the right-hand list.</p>",
+	"hierarchybuilder-hierarchyroot": "Hierarchy Root",
+	"hierarchybuilder-unusedpages": "Unused Pages",
+	"hierarchybuilder-category-desc": "category that pages in the hierarchy must belong to",
+	"hierarchybuilder-missing-category": "Missing category argument",
+	"hierarchybuilder-displaynameproperty-desc": "property that contains the value that should be displayed instead of the page name (optional)",
+	"hierarchybuilder-pagename-desc": "page containing the hierarchy",
+	"hierarchybuilder-propertyname-desc": "property containing the hierarchy",
+	"hierarchybuilder-collapsed-desc": "hierarchy should be rendered collapsed when first displayed",
+	"hierarchybuilder-missing-page-name": "Missing page name argument",
+	"hierarchybuilder-missing-property-name": "Missing property name argument",
+	"hierarchybuilder-invalid-collapsed": "Invalid value for collapsed argument"
+}
