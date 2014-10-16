@@ -46,8 +46,11 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.9',
-	'author' => "Cindy Cicalese",
+	'version' => '1.10',
+	'author' => array(
+		"Cindy Cicalese",
+		"Kevin Ji"
+	),
 	'descriptionmsg' => 'hierarchybuilder-desc'
 );
 
