@@ -1,0 +1,2 @@
+# Empty .jshintigore file for HierarchyBuilder. This file exists to prevent 
+# mediawiki jshint executions from skipping this extension.
