@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cindy Cicalese",
+			"Kevin Ji"
+		]
+	},
+	"hierarchybuilder-desc": "{{desc|name=Hierarchy Builder|url=http://www.mediawiki.org/wiki/Extension/Hierarchy_Builder}}",
+	"hierarchybuilder-editmessage": "Message to be displayed above hierarchy (edit form)",
+	"hierarchybuilder-hierarchyroot": "Text to be displayed as root node of hierarchy (edit form)",
+	"hierarchybuilder-unusedpages": "Text to be displayed as root node of unused page hierarchy (edit form)",
+	"hierarchybuilder-category-desc": "Semantic Form category parameter description (edit form)",
+	"hierarchybuilder-missing-category": "Semantic Form missing category warning (edit form)",
+	"hierarchybuilder-displaynameproperty-desc": "Semantic Form displaynameproperty parameter description (edit/select form)",
+	"hierarchybuilder-pagename-desc": "Semantic Form pagename parameter description (select form)",
+	"hierarchybuilder-propertyname-desc": "Semantic Form propertyname parameter description (select form)",
+	"hierarchybuilder-collapsed-desc": "Semantic Form collapsed parameter description (select form)",
+	"hierarchybuilder-missing-page-name": "Semantic Form missing page name warning (select form)",
+	"hierarchybuilder-missing-property-name": "Semantic Form missing property name warning (select form)",
+	"hierarchybuilder-invalid-collapsed": "Semantic Form invalid value for collapsed warning (select form)"
+}
