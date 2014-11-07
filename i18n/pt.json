@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Vitorvicentevalente"
+		]
+	},
+	"hierarchybuilder-desc": "Processa e permite a edição e seleção a partir da página de hierarquias",
+	"hierarchybuilder-hierarchyroot": "Raiz da hierarquia",
+	"hierarchybuilder-unusedpages": "Páginas não utilizadas",
+	"hierarchybuilder-displaynameproperty-desc": "Este é o nome opcional de uma propriedade que contém o valor a ser exibido em vez do nome da página.",
+	"hierarchybuilder-pagename-desc": "Este é o nome da página que contém a hierarquia."
+}

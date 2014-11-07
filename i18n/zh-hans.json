@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226"
+		]
+	},
+	"hierarchybuilder-hierarchyroot": "根层级",
+	"hierarchybuilder-unusedpages": "未使用页面",
+	"hierarchybuilder-missing-category": "缺少分类参数。",
+	"hierarchybuilder-missing-page-name": "缺少页面名称参数。",
+	"hierarchybuilder-missing-property-name": "缺少属性名称参数。"
+}
