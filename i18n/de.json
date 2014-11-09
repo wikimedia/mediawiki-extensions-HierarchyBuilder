@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Metalhead64"
+			"Metalhead64",
+			"Kghbln"
 		]
 	},
 	"hierarchybuilder-desc": "Ermöglicht das Rendern sowie Bearbeiten und Auswählen von Seitenhierarchien",
@@ -12,7 +13,7 @@
 	"hierarchybuilder-missing-category": "Das Kategorienargument fehlt.",
 	"hierarchybuilder-displaynameproperty-desc": "Dies ist der optionale Name einer Eigenschaft, die den Wert enthält, der statt des Seitennamens angezeigt werden soll.",
 	"hierarchybuilder-pagename-desc": "Dies ist der Name der Seite, die die Hierarchie enthält.",
-	"hierarchybuilder-propertyname-desc": "Dies ist der Name der Eigenschaft, die die Hierarchie enthält.",
+	"hierarchybuilder-propertyname-desc": "Dies ist der Name des Attributs, das die Hierarchie enthält.",
 	"hierarchybuilder-collapsed-desc": "Falls dieser Parameter angegeben ist, sollte die Hierarchie eingeklappt gerendert werden, wenn sie zuerst angezeigt wird.",
 	"hierarchybuilder-missing-page-name": "Das Seitennamenargument fehlt.",
 	"hierarchybuilder-missing-property-name": "Das Eigenschaftsnamenargument fehlt.",
