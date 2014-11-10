@@ -8,6 +8,9 @@
 	"hierarchybuilder-unusedpages": "未使用页面",
 	"hierarchybuilder-category-desc": "这是必须归入层级的页面的分类。",
 	"hierarchybuilder-missing-category": "缺少分类参数。",
+	"hierarchybuilder-pagename-desc": "这是包含层级的页面名称。",
+	"hierarchybuilder-propertyname-desc": "这是包含层级的属性名称。",
 	"hierarchybuilder-missing-page-name": "缺少页面名称参数。",
-	"hierarchybuilder-missing-property-name": "缺少属性名称参数。"
+	"hierarchybuilder-missing-property-name": "缺少属性名称参数。",
+	"hierarchybuilder-invalid-collapsed": "收缩参数的值无效。"
 }
