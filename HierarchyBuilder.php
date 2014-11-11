@@ -46,15 +46,16 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.0',
+	'version' => '1.1',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
-		'[https://www.mediawiki.org/wiki/User.kji Kevin Ji]'
+		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
 	),
 	'descriptionmsg' => 'hierarchybuilder-desc',
 	'url' => 'https://www.mediawiki.org/wiki/Extension:HierarchyBuilder'
 );
 
+$wgExensionMessagesFiles['HierarchyBuilder'] = __DIR__ . '/HierarchyBuilder.i18n.php';
 $wgHooks['ParserFirstCallInit'][] = 'efHierarchyBuilderSetup';
 
 $wgAutoloadClasses['HierarchyBuilder'] = __DIR__ . '/HierarchyBuilder.class.php';
@@ -191,6 +192,25 @@ function parent( $parser ) {
 		// optional args (just link=none)
 		$optionalParams = array_slice( $params, 4 );
 		$optionalParams = parseParams( $optionalParams );
+		// look for the template parameter
+		if ( isset( $optionalParams[HierarchyBuilder::TEMPLATE] ) ) {
+			$template = $optionalParams[HierarchyBuilder::TEMPLATE];
+		} else {
+			$template = '';
+		}
+		// look for the introtemplate parameter
+		if ( isset( $optionalParams[HierarchyBuilder::INTROTEMPLATE] ) ) {
+			$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
+		} else {
+			$introTemplate = '';
+		}
+		// look for the outrotemplate parameter
+		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+			$outroTemplate = $optionalParams[HierarchyBuilder::OUTROTEMPLATE];
+		} else {
+			$outroTemplate = '';
+		}
+		// look for the link parameter
 		if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
 			$link = $optionalParams[HierarchyBuilder::LINK];
 		} else {
@@ -203,10 +223,20 @@ function parent( $parser ) {
 
 		// format the parent for return according to the optional arg
 		if ( $parent != '' ) {
-			$parent = $link == 'none' ? $parent : "[[$parent]]";
+			if ( $template != '' ) {
+				$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
+				$outro = $outroTemplate != '' ? "\n{{{$outroTemplate}}}" : '';
+				if ( $link == 'none' ) {
+					$parent =  "{{" . $template . "|$parent}}";
+				} else {
+					$parent =  "{{" . $template . "|[[$parent]]}}";
+				}
+				$output = $intro . $parent . $outro;
+			} else {
+				$output = $link == 'none' ? $parent : "[[$parent]]";
+			}
 		}
-
-		$output = $parser->recursiveTagParse( $parent );
+		$output = $parser->recursiveTagParse( $output );
 	}
 	return $parser->insertStripItem( $output, $parser->mStripState );
 }
@@ -265,7 +295,7 @@ function children( $parser ) {
 			$template = '';
 		}
 		// look for the introtemplate parameter
-		if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+		if ( isset( $optionalParams[HierarchyBuilder::INTROTEMPLATE] ) ) {
 			$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
 		} else {
 			$introTemplate = '';
@@ -319,7 +349,6 @@ function children( $parser ) {
 					),
 					"$delimiter\n"
 				);
-
 				$output = $intro . $templateChildrenString . $outro;
 			} else {
 				$childrenString = implode(
@@ -335,7 +364,6 @@ function children( $parser ) {
 				$output = $childrenString;
 			}
 		}
-
 		$output = $parser->recursiveTagParse( $output );
 	}
 	return $parser->insertStripItem( $output, $parser->mStripState );
@@ -429,4 +457,8 @@ function parseParam( $param ) {
 		$paramArray[$ret[0]] = $ret[1];
 	}
 	return $paramArray;
+}
+
+function wikiLog($className, $methodName, $message) {
+	wfErrorLog("[".date("c")."]"."[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log');
 }
