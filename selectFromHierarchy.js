@@ -83,11 +83,21 @@
 				var html = hierarchy;
 				html = this.parseWikiTextToHtml( html );
 
-				console.log(params.divId);
 				var jqDivId = "#" + params.divId;
 				$( jqDivId )
 					.html( html )
-					.attr('dir', 'ltr');
+					.attr( 'dir', 'ltr' )
+					.attr( 'class', 'scrollableHierarchy' );
+				
+				if ( params.width != "" ) {
+					$( jqDivId )
+						.css( 'max-width', params.width );	
+				}
+				if ( params.height != "" ) {
+					$( jqDivId )
+						.css( 'max-height', params.height )
+				}
+
 				$( jqDivId + " * li" )
 					.css( "list-style-image", "none" );
 
@@ -126,7 +136,7 @@
 						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, false, inputId, params.collapsed );
 					} );
-
+				
 				$( jqDivId )
 					.jstree( {
 						"themes": {
@@ -147,6 +157,12 @@
 						},
 						"plugins": [ "themes", "html_data", "checkbox", "types" ]
 					} );
+
+			
+
+				/*$html = $( jqDivId ).html();
+				$( jqDivId )
+					.html( "<div width= height='100px'>" + $html + "</div>" );*/
 			},
 
 			/**
@@ -199,6 +215,7 @@
 						$( this )
 							.children( "a" )
 							.each( function() {
+								var $element = $( this );
 								var elementName = $( this )
 									.children( "span:first" )
 									.text();
@@ -206,6 +223,8 @@
 									selectedComponents ) ) {
 									$( jqDivId )
 										.jstree( "check_node", parent );
+									
+									$( this ).attr("class", "selectedHierarchyRow");
 								}
 							} );
 					} );
@@ -228,6 +247,8 @@
 										.text();
 									obj.checkNode( elementName, inputId );
 									obj.processDups( jqDivId, elementName, "check" );
+
+									$( this ).attr("class", "selectedHierarchyRow");
 								} );
 						} );
 					$( jqDivId )
@@ -240,6 +261,8 @@
 										.text();
 									obj.uncheckNode( elementName, inputId );
 									obj.processDups( jqDivId, elementName, "uncheck" );
+
+									$( this ).attr("class", "unselectedHierarchyRow");
 								} );
 						} );
 				}

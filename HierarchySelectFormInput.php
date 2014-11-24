@@ -73,6 +73,18 @@ class HierarchySelectFormInput extends SFFormInput {
 			$displaynameproperty = '';
 		}
 
+		if ( array_key_exists( 'width', $this->mOtherArgs ) ) {
+			$this->mWidth = $this->mOtherArgs['width'];
+		} else {
+			$this->mWidth = '';
+		}
+
+		if ( array_key_exists( 'height', $this->mOtherArgs ) ) {
+			$this->mHeight = $this->mOtherArgs['height'];
+		} else {
+			$this->mHeight = '';
+		}
+
 		$hierarchy = HierarchyBuilder::getPropertyFromPage( $this->mPageName,
 			$this->mPropertyName );
 		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy,
@@ -89,7 +101,9 @@ class HierarchySelectFormInput extends SFFormInput {
 			'selectedItems' => $selectedItems,
 			'isDisabled' => $this->mIsDisabled,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
-			'collapsed' => $this->mCollapsed == 'true' ? true : false
+			'collapsed' => $this->mCollapsed == 'true' ? true : false,
+			'width' => $this->mWidth,
+			'height' => $this->mHeight
 		);
 
 		return json_encode( $jsattribs );

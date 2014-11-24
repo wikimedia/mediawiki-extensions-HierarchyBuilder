@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.1',
+	'version' => '1.2',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -98,6 +98,7 @@ $wgResourceModules['ext.HierarchyBuilder.select'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'HierarchyBuilder',
 	'scripts' => 'selectFromHierarchy.js',
+	'styles' => 'selectFromHierarchy.css',	
 	'dependencies' => array(
 		'ext.HierarchyBuilder.jstree',
 		'ext.semanticforms.main'
@@ -222,6 +223,7 @@ function parent( $parser ) {
 			$hierarchyPropertyName );
 
 		// format the parent for return according to the optional arg
+		$output = '';
 		if ( $parent != '' ) {
 			if ( $template != '' ) {
 				$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
