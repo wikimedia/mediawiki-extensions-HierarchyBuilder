@@ -2,10 +2,11 @@
 	"@metadata": {
 		"authors": [
 			"Metalhead64",
-			"Kghbln"
+			"Kghbln",
+			"Purodha"
 		]
 	},
-	"hierarchybuilder-desc": "Ermöglicht das Rendern sowie Bearbeiten und Auswählen von Seitenhierarchien",
+	"hierarchybuilder-desc": "Ermöglicht das Anzeigen sowie Bearbeiten von und das Auswählen aus Seitenhierarchien",
 	"hierarchybuilder-editmessage": "Die Hierarchiestammliste enthält die Hierarchie, die beim Speichern beibehalten wird. Die Liste „Nicht verwendete Seiten“ enthält die Seiten in der Kategorie $1, die derzeit nicht in der Hierarchie enthalten sind. Die Hierarchiestammliste kann angepasst werden, indem einzelne Zeilen nach oben oder unten verschoben bzw. deren Ebene geändert werden. In der Liste „Nicht verwendete Seiten“ enthaltenen Seiten können der Hierarchie hinzugefügt werden, indem sie verschoben und an einer beliebigen Stelle innnerhalb der Hierarchiestammliste abgelegt werden. Ebenso können Seiten aus der Hierarchiestammliste entfernt werden, indem sie an eine beliebige Stelle in der Liste „Nicht verwendete Seiten“ verschoben werden.",
 	"hierarchybuilder-hierarchyroot": "Hierarchiestamm",
 	"hierarchybuilder-unusedpages": "Nicht verwendete Seiten",
