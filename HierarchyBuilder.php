@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.2',
+	'version' => '1.3',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -114,11 +114,70 @@ function efHierarchyBuilderSetup ( & $parser ) {
 	$parser->setFunctionHook( 'hierarchySectionNumber', 'sectionNumber' );
 	$parser->setFunctionHook( 'hierarchyParent', 'parent' );
 	$parser->setFunctionHook( 'hierarchyChildren', 'children' );
+	$parser->setFunctionHook( 'hierarchySubtree', 'subhierarchy' );
+
 	$parser->setHook( 'hierarchy', 'renderHierarchy' );
 	global $sfgFormPrinter;
 	$sfgFormPrinter->registerInputType( 'HierarchyFormInput' );
 	$sfgFormPrinter->registerInputType( 'HierarchySelectFormInput' );
 	return true;
+}
+
+/**
+ * This parser function will return the subhierarchy that is rooted at the specified
+ * node within a hierarchy.
+ *
+ * The three required arguments are (in order):
+ *   - The root node of the subhierarchy within the overall hierarchy
+ *   - Full page name of the page containing the hierarchy
+ *   - Property name of the property containing the hierarchy data
+ *
+ * The optional argument is:
+ *   - Format to specify if the results should be returned as a bulleted list as
+ *     opposed to the default striped format.
+ *
+ * Example invokation:
+ * @code
+ * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
+ * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|format=ul}}
+ * @endcode
+ *
+ * @param $parser: Parser
+ *
+ * @return string: The string containing the specified subhierarchy as though
+ *  it were a standalone hierarchy.
+ */
+function subhierarchy( $parser ) {
+	$params = func_get_args();
+	if ( count( $params ) < 4 ) {
+		$output = '';
+	} else {
+		$rootNode = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+
+		$optionalParams = array_slice( $params, 4 );
+		$optionalParams = parseParams( $optionalParams );
+		$format = '';
+		if ( isset( $optionalParams[HierarchyBuilder::FORMAT] ) ) {
+			$format = $optionalParams[HierarchyBuilder::FORMAT];
+		}
+
+		$output = HierarchyBuilder::getSubhierarchy(
+			$rootNode,
+			$hierarchyPageName,
+			$hierarchyPropertyName
+		);
+
+		// this is the bullet output
+		if ($format != 'ul') {
+			$output = "<hierarchy>$output</hierarchy>";
+		}
+		// otherwise it's the default format and we don't modify output.
+
+		$output = $parser->recursiveTagParse( $output );
+	}
+	return $parser->insertStripItem( $output, $parser->mStripState );
 }
 
 /**
@@ -140,7 +199,6 @@ function efHierarchyBuilderSetup ( & $parser ) {
  *  specified hierarchy.
  */
 function sectionNumber( $parser ) {
-	// wikiLog('', 'getPageNumbering', "started");
 	$params = func_get_args();
 	if ( count( $params ) != 4 ) {
 		$output = "";
@@ -459,8 +517,4 @@ function parseParam( $param ) {
 		$paramArray[$ret[0]] = $ret[1];
 	}
 	return $paramArray;
-}
-
-function wikiLog($className, $methodName, $message) {
-	wfErrorLog("[".date("c")."]"."[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log');
 }

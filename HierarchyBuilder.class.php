@@ -37,6 +37,7 @@ class HierarchyBuilder {
 	const INTROTEMPLATE = 'introtemplate';
 	const OUTROTEMPLATE = 'outrotemplate';
 	const LINK = 'link';
+	const FORMAT = 'format';
 
 	/**
 	 * This function gives the section number for a target page within a
@@ -722,5 +723,79 @@ END;
 		$rootAndChildren = preg_split( $regex, $wikiTextHierarchy );
 
 		return $rootAndChildren;
+	}
+
+	/**
+	 * This function returns the subhierarchy defined by its root node within
+	 * a specific hierarchy on a given page.
+	 *
+	 * The pagename and propertyname arguments define the hierarchy from which
+	 * to extract the subhierarchy. The root argument defines the root node of
+	 * the subhierarchy within the overall hierarchy to extract.
+	 *
+	 * @param string $root: The node within the hierarchy which is the root of
+	 *  the subhierarchy to be returned.
+	 * @param string $pagename: The name of the page which contains the hierarchy.
+	 * @param string $propertyname: The name of the property that contains the
+	 *  hierarchy data.
+	 *
+	 * @return string: The depth corrected wikitext representation of the 
+	 *  subhierarchy within the overall hierarchy who's root is $root. Otherwise,
+	 *  if no such subhierarchy exists, the empty string is returned instead.
+	 */
+	public static function getSubhierarchy( $root, $pagename, $propertyname ) {
+		$hierarchy = self::getPropertyFromPage( $pagename, $propertyname );
+
+		return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '');
+	}
+
+	/**
+	 * This is single step look ahead recursive helper for finding a subhierarchy
+	 * with matching root.
+	 *
+	 * The root of the wikitextHierarchy passed in is the immediate parent of the
+	 * subhierarchies which are actually being tested for matching the targeted
+	 * root. Once we find the correct subhierarchy, we need to update it before
+	 * it is returned so that the depths are corrected so that it appears to be
+	 * a standalone hierarchy. That is, if the root of the subhierarchy is at a
+	 * depth of 4 and it's children are at a depth of 5, we must correct those
+	 * depths such that the root will have a depth of 1 and the children have a
+	 * depth of 2. 
+	 *
+	 * @param string $root: The target root that we are searching for.
+	 * @param string $wikitextHierarchy: The string wikitext representation of
+	 *  the current hierarchy who's immediate subhieraries are being tested.
+	 * @param string $depth: The depth of the current hierarchy who's
+	 *  subhierarchies are being tested.
+	 *
+	 * @return string: The depth corrected wikitext representaion of the 
+	 *  subhierarchy who's root is $root if such a subhierarchy exists within
+	 *  the hierarchy $wikitextHierarchy. Otherwise, the empty string is returned.
+	 */
+	private static function getSubhierarchyHelper( $root, $wikitextHierarchy, $depth ) {
+		$curRootAndSubHierarchies = HierarchyBuilder::splitHierarchy( $wikitextHierarchy, $depth);
+		$subHierarchies = array_slice( $curRootAndSubHierarchies, 1 );
+
+		foreach ($subHierarchies as $subHierarchy) {
+			$subHierarchyRows = preg_split( '/\n/', $subHierarchy);
+			$subHierarchyRoot = HierarchyBuilder::getPageNameFromHierarchyRow( $subHierarchyRows[0] );
+			if ($subHierarchyRoot == $root) {
+				$subHierarchyRows[0] = str_repeat( '*', strlen( $depth ) + 1) . $subHierarchyRows[0]; // put the stars on the root row to start
+				$result = array_reduce( $subHierarchyRows, 
+					function( $carry, $item ) use ( $depth ) {
+						$carry .= "\n" . substr( $item, strlen($depth));
+						return $carry;
+					}
+				);
+				return $result;
+			} else {
+				$subHierarchyCandidate = HierarchyBuilder::getSubhierarchyHelper( $root, $subHierarchy, $depth . '*' );
+				if ($subHierarchyCandidate != '') {
+					return $subHierarchyCandidate;
+				}
+			}
+		}
+
+		return '';
 	}
 }
