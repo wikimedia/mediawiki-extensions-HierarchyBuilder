@@ -39,6 +39,9 @@ class HierarchyBuilder {
 	const LINK = 'link';
 	const FORMAT = 'format';
 	const DISPLAYNAMEPROPERTY = 'displaynameproperty';
+	const DISPLAYMODE = 'displaymode';
+	const SHOWROOT = 'showroot';
+	const COLLAPSED = 'collapsed';
 
 	/**
 	 * This function gives the section number for a target page within a
@@ -228,8 +231,9 @@ class HierarchyBuilder {
 				// Note that if there is no hierarchical parent, then the parent
 				// will be empty.
 				$parent = self::getParent( $hierarchyRows, $row, $i );
-				array_push( $parents, $parent);
-				//return $parent;
+				if ( $parent != '' ) {
+					array_push( $parents, $parent);
+				}
 			}
 		}
 
@@ -345,7 +349,7 @@ class HierarchyBuilder {
 	 *
 	 * @return string: The first page name found within $hierarchyRow.
 	 */
-	private function getPageNameFromHierarchyRow( $hierarchyRow ) {
+	public function getPageNameFromHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::PAGENAMEPATTERN, $hierarchyRow, $matches );
 		// give me the first subpattern match to be the name of the previous page
 		$pageName = ( $numMatches > 0 ? $matches[1][0] : '' );
@@ -363,7 +367,7 @@ class HierarchyBuilder {
 	 *
 	 * @return number: The depth of $hierarchyRow.
 	 */
-	private function getDepthOfHierarchyRow( $hierarchyRow ) {
+	public function getDepthOfHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
 		$depth = ( $numMatches > 0 ? strlen( $matches[1][0] ) : 0 );
 		return $depth;
@@ -525,6 +529,84 @@ class HierarchyBuilder {
 		$script = <<<END
 mw.loader.using(['ext.HierarchyBuilder.render'], function () {
 	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed, $numbered);
+});
+END;
+
+		global $wgOut;
+		$script = Html::inlineScript( $script );
+		$wgOut->addScript( $script );
+
+		return Html::element( 'div', array( 'id' => $hierarchyName ) );
+	}
+
+	public function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
+		$hierarchyName = 'HierarchyDiv' . self::$m_hierarchy_num;
+		self::$m_hierarchy_num++;
+
+		if ( isset( $attributes['collapsed'] ) ) {
+			$collapsed = htmlspecialchars( $attributes['collapsed'] );
+			if ( $collapsed === 'collapsed' ) {
+				$collapsed = 'true';
+			}
+		} else	{
+			$collapsed = 'false';
+		}
+
+		if ( isset( $attributes['displaynameproperty'] ) ) {
+			$displayNameProperty =
+				htmlspecialchars( $attributes['displaynameproperty'] );
+		} else	{
+			$displayNameProperty = '';
+		}
+
+		if ( isset( $attributes['numbered'] ) ) {
+			$numbered = htmlspecialchars( $attributes['numbered'] );
+			if ( $numbered === 'numbered' ) {
+				$numbered = 'true';
+			}
+		} else {
+			$numbered = 'false';
+		}
+
+		if ( isset( $attributes['selected'] ) ) {
+			$selectedPages =
+				json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
+		} else	{
+			$selectedPages = '';
+		}
+
+		// this looks like it gets the property but it eats all the links.
+		$input = $parser->recursiveTagParse( $input, $frame );
+		$input = self::anchorLinkHolders( $input );
+		$input = $parser->replaceLinkHoldersText( $input );
+		$input = $parser->parse( $input,
+			$parser->getTitle(),
+			$parser->Options(),
+			true,
+			false )->getText();
+
+		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
+			$displayNameProperty, $dummy,
+			function ( $pageName, $displayNameProperty, $data ) {
+				$pageLinkArray = array();
+				$title = Title::newFromText( $pageName );
+				if ( $title ) {
+					$pageLinkArray['href'] = $title->getLinkURL();
+				}
+				if ( strlen( $displayNameProperty ) > 0 ) {
+					$pageName = HierarchyBuilder::getPageDisplayName( $pageName,
+						$displayNameProperty );
+				}
+				return Html::element( 'a', $pageLinkArray, $pageName );
+			} );
+
+		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.renderSelected' );
+
+		$hierarchy = strtr( $hierarchy, array( '"' => "'" ) );
+
+		$script = <<<END
+mw.loader.using(['ext.HierarchyBuilder.renderSelected'], function () {
+	renderHierarchySelected("$hierarchyName", "$hierarchy", $collapsed, $numbered, $selectedPages);
 });
 END;
 
@@ -771,7 +853,7 @@ END;
 	 * @return array: An array with the root as the first element and each
 	 *  child subhierarchy as a subsequent element. 
 	 */
-	private static function splitHierarchy( $wikiTextHierarchy, $depth ) {
+	public static function splitHierarchy( $wikiTextHierarchy, $depth ) {
 		$nextDepth = "\n" . $depth . "*";
 		$r1 = "/\*/"; // this guy finds * characters
 		// this is building the regex that will be used later
@@ -846,7 +928,11 @@ END;
 				$subHierarchyRows[0] = str_repeat( '*', strlen( $depth ) + 1) . $subHierarchyRows[0]; // put the stars on the root row to start
 				$result = array_reduce( $subHierarchyRows, 
 					function( $carry, $item ) use ( $depth ) {
-						$carry .= "\n" . substr( $item, strlen($depth));
+						if ( $carry != '' ){
+							$carry .= "\n" . substr( $item, strlen($depth));
+						} else {
+							$carry = substr( $item, strlen($depth));
+						}
 						return $carry;
 					}
 				);
@@ -860,5 +946,12 @@ END;
 		}
 
 		return '';
+	}
+
+	public static function parseHierarchyToTree( $hierarchyPageName, $hierarchyPropertyName ) {
+		$hierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
+		$hierarchy = "[[Hierarchy_Root]]\n" . $hierarchy;
+
+		HierarchyTree::parseHierarchyToTree( $hierarchy );
 	}
 }

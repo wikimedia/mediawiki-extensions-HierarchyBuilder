@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.4.0',
+	'version' => '1.5.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -61,6 +61,8 @@ $wgHooks['ParserFirstCallInit'][] = 'efHierarchyBuilderSetup';
 $wgAutoloadClasses['HierarchyBuilder'] = __DIR__ . '/HierarchyBuilder.class.php';
 $wgAutoloadClasses['HierarchyFormInput'] = __DIR__ . '/HierarchyFormInput.php';
 $wgAutoloadClasses['HierarchySelectFormInput'] = __DIR__ . '/HierarchySelectFormInput.php';
+$wgAutoloadClasses['HierarchyTree'] = __DIR__ . '/HierarchyTree.php';
+$wgAutoloadClasses['TreeNode'] = __DIR__ . '/TreeNode.php';
 
 $wgMessagesDirs['HierarchyBuilder'] = __DIR__ . "/i18n";
 
@@ -78,6 +80,15 @@ $wgResourceModules['ext.HierarchyBuilder.render'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'HierarchyBuilder',
 	'scripts' => 'renderHierarchy.js',
+	'dependencies' => array(
+		'ext.HierarchyBuilder.jstree'
+	)
+);
+
+$wgResourceModules['ext.HierarchyBuilder.renderSelected'] = array(
+	'localBasePath' => __DIR__,
+	'remoteExtPath' => 'HierarchyBuilder',
+	'scripts' => 'renderHierarchySelected.js',
 	'dependencies' => array(
 		'ext.HierarchyBuilder.jstree'
 	)
@@ -115,12 +126,101 @@ function efHierarchyBuilderSetup ( & $parser ) {
 	$parser->setFunctionHook( 'hierarchyParent', 'parent' );
 	$parser->setFunctionHook( 'hierarchyChildren', 'children' );
 	$parser->setFunctionHook( 'hierarchySubtree', 'subhierarchy' );
+	$parser->setFunctionHook( 'hierarchySelected', 'hierarchySelected' );
 
 	$parser->setHook( 'hierarchy', 'renderHierarchy' );
+	$parser->setHook( 'hierarchySelected', 'renderHierarchySelected');
 	global $sfgFormPrinter;
 	$sfgFormPrinter->registerInputType( 'HierarchyFormInput' );
 	$sfgFormPrinter->registerInputType( 'HierarchySelectFormInput' );
 	return true;
+}
+
+/**
+ * This parser function will return only specific selected rows of a hierarchy
+ * in addition to any necessary contextual rows. 
+ *
+ * The returned hierarchy is displayd similarly to the HierarchySelectFormInput,
+ * with each row preceeded by a checkbox. However, the checkboxes will be inactive.
+ *
+ * For a given set of selected rows, only those rows will be provided from the
+ * hierarchy in addition to the minimal necessary contextual rows needed to display
+ * the hierarchical relationships. For example, if a single selected row is given,
+ * but that row is a leaf node which is 5 levels deep within the hierarchy, then 
+ * that row will be given along with each of its ancestors. This is conidered the
+ * "pruned" behavior.
+ *
+ * The "collapsed" behavior will not remove any branches of the hierarchy, even
+ * when those branches do not contain any of the specified selected rows. Instead,
+ * these unnecessary branches will be collapsed initially, allowing only the
+ * selected rows and their siblings to be shown.
+ *
+ * @param $parser: Parser
+ * @return I don't know yet.
+ * 
+ * Example invokation:
+ * @code
+ * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>}} 
+ * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|pruned}}
+ * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|collapsed}}
+ * @endcode
+ */
+function hierarchySelected( $parser ) {
+	$params = func_get_args();
+	if ( count( $params ) < 4 || count( $params ) > 5) {
+		$output = '';
+	} else {
+		$selectedPages = $params[1];
+		$hierarchyPageName = $params[2];
+		$hierarchyPropertyName = $params[3];
+		// if "pruned" is given, then set the displaymode to pruned. otherwise, "collapsed"
+		if ( isset( $params[4] ) && $params[4] == 'collapsed') {
+			$displayMode = 'collapsed';
+		} else {
+			$displayMode = 'pruned';
+		}
+
+		$wikitextHierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
+		// this is where we ask HierarchyBuilder class to actually do the work for us.
+		$hierarchyTree = HierarchyTree::fromWikitext( $wikitextHierarchy );
+
+		$normalizedSelectedPages = 
+			array_map(
+				function( $page ) {
+					$pagename = HierarchyBuilder::getPageNameFromHierarchyRow( $page );
+					if ( $pagename == '' ) {
+						$pagename = $page;
+					}
+					return $pagename;
+				},
+				explode( ',', $selectedPages )
+			);
+		$mst = $hierarchyTree->getMST( $normalizedSelectedPages );
+		
+		// output formatting
+		$flatNormalizedSelectedPages = 			
+			array_reduce( $normalizedSelectedPages, 
+					function( $carry, $item ) {
+						if ( $carry == '') {
+							$carry = $item;
+						} else {
+							$carry .= ',' . $item;
+						}
+						return $carry;
+					}
+				);
+		$selected = htmlspecialchars( str_replace( " ", "%20", $flatNormalizedSelectedPages	) );
+
+		$output = '';
+		if ( $displayMode == 'collapsed') {
+			$output = "<hierarchySelected collapsed selected=$selected>" . (string)$mst . '</hierarchySelected>';
+		} else {
+			$output = "<hierarchySelected selected=$selected>" . (string)$mst . '</hierarchySelected>';
+		}
+		$output = $parser->recursiveTagParse( $output );
+
+	}
+	return $parser->insertStripItem( $output, $parser->mStripState );
 }
 
 /**
@@ -171,6 +271,18 @@ function subhierarchy( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
 			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
 		}
+		/*$displaymode = '';
+		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYMODE] ) ) {
+			$displaymode = $optionalParams[HierarchyBuilder::DISPLAYMODE];
+		}*/
+		$showroot = '';
+		if ( isset( $optionalParams[HierarchyBuilder::SHOWROOT] ) ) {
+			$showroot = $optionalParams[HierarchyBuilder::SHOWROOT];
+		}
+		$collapsed = '';
+		if ( isset( $optionalParams[HierarchyBuilder::COLLAPSED] ) ) {
+			$collapsed = $optionalParams[HierarchyBuilder::COLLAPSED];
+		}
 
 		$output = HierarchyBuilder::getSubhierarchy(
 			$rootNode,
@@ -178,12 +290,32 @@ function subhierarchy( $parser ) {
 			$hierarchyPropertyName
 		);
 
-		// this is the default output display mode
+		// this is where we have to handle the default mode which is not showroot and not collapsed
+		if ( $showroot == '' ) {
+			// fix $output so only the children are given
+			$hierarchyrows = preg_split( '/\n/', $output );
+			$root = $hierarchyrows[0];
+			$children = array_slice( $hierarchyrows, 1 );
+
+			$depth = HierarchyBuilder::getDepthOfHierarchyRow( $root );
+			$output = array_reduce( $children, 
+					function( $carry, $item ) use ( $depth ) {
+						if ($carry != '') {
+							$carry .= "\n" . substr( $item, strlen($depth));
+						} else {
+							$carry = substr( $item, strlen($depth));
+						}
+						return $carry;
+					}
+				);
+		}
+
+		// this is the default output display format
 		if ($format != 'ul') {
 			if ( $displaynameproperty == '' ) {
-				$output = "<hierarchy>$output</hierarchy>";
+					$output = "<hierarchy $collapsed>$output</hierarchy>";
 			} else {
-				$output = "<hierarchy displaynameproperty=$displaynameproperty>$output</hierarchy>";
+				$output = "<hierarchy $collapsed displaynameproperty=$displaynameproperty>$output</hierarchy>";
 			}
 		}
 		// otherwise it's the bulleted format and we don't modify output.
@@ -527,6 +659,15 @@ function renderHierarchy( $input, $attributes, $parser, $frame ) {
 		'noparse' => false );
 }
 
+function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
+	$hierarchyBuilder = new HierarchyBuilder;
+	$output = $hierarchyBuilder->renderHierarchySelected( $input, $attributes, $parser,
+		$frame );
+	$parser->disableCache();
+	return array( $parser->insertStripItem( $output, $parser->mStripState ),
+		'noparse' => false );
+}
+
 /**
  * Helper function for parsing a list of named parser function parameters.
  *
@@ -554,6 +695,8 @@ function parseParam( $param ) {
 	$ret = preg_split( '/=/', $param, 2 );
 	if ( count( $ret ) > 1 ) {
 		$paramArray[$ret[0]] = $ret[1];
+	} else {
+		$paramArray[$ret[0]] = $ret[0];
 	}
 	return $paramArray;
 }
