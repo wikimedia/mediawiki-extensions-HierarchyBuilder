@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.3',
+	'version' => '1.3.1',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -128,17 +128,22 @@ function efHierarchyBuilderSetup ( & $parser ) {
  * node within a hierarchy.
  *
  * The three required arguments are (in order):
- *   - The root node of the subhierarchy within the overall hierarchy
+ *   - The root node of the subhierarchy within the overall hierarchy. If this
+ *     argument is empty, then the entire hierarchy is returned.
  *   - Full page name of the page containing the hierarchy
  *   - Property name of the property containing the hierarchy data
  *
  * The optional argument is:
  *   - Format to specify if the results should be returned as a bulleted list as
  *     opposed to the default striped format.
+ *   - Property name of the property containing a page's displayname. Should only
+ *     be given if not using format=ul.
  *
  * Example invokation:
  * @code
+ * {{#hierarchySubtree:|Main Page|Hierarchy Data}}
  * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
+ * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|displaynameproperty=Name}}
  * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|format=ul}}
  * @endcode
  *
@@ -162,6 +167,10 @@ function subhierarchy( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::FORMAT] ) ) {
 			$format = $optionalParams[HierarchyBuilder::FORMAT];
 		}
+		$displaynameproperty = '';
+		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
+			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
+		}
 
 		$output = HierarchyBuilder::getSubhierarchy(
 			$rootNode,
@@ -169,11 +178,15 @@ function subhierarchy( $parser ) {
 			$hierarchyPropertyName
 		);
 
-		// this is the bullet output
+		// this is the default output display mode
 		if ($format != 'ul') {
-			$output = "<hierarchy>$output</hierarchy>";
+			if ( $displaynameproperty == '' ) {
+				$output = "<hierarchy>$output</hierarchy>";
+			} else {
+				$output = "<hierarchy displaynameproperty=$displaynameproperty>$output</hierarchy>";
+			}
 		}
-		// otherwise it's the default format and we don't modify output.
+		// otherwise it's the bulleted format and we don't modify output.
 
 		$output = $parser->recursiveTagParse( $output );
 	}

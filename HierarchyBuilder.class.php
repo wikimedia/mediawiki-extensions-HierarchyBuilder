@@ -38,6 +38,7 @@ class HierarchyBuilder {
 	const OUTROTEMPLATE = 'outrotemplate';
 	const LINK = 'link';
 	const FORMAT = 'format';
+	const DISPLAYNAMEPROPERTY = 'displaynameproperty';
 
 	/**
 	 * This function gives the section number for a target page within a
@@ -731,7 +732,8 @@ END;
 	 *
 	 * The pagename and propertyname arguments define the hierarchy from which
 	 * to extract the subhierarchy. The root argument defines the root node of
-	 * the subhierarchy within the overall hierarchy to extract.
+	 * the subhierarchy within the overall hierarchy to extract. If the root
+	 * argument is the empty string, then the entire hierarchy will be returned.
 	 *
 	 * @param string $root: The node within the hierarchy which is the root of
 	 *  the subhierarchy to be returned.
@@ -746,7 +748,11 @@ END;
 	public static function getSubhierarchy( $root, $pagename, $propertyname ) {
 		$hierarchy = self::getPropertyFromPage( $pagename, $propertyname );
 
-		return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '');
+		if ( $root == '' ) {
+			return $hierarchy;
+		} else {
+			return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '');
+		}
 	}
 
 	/**
