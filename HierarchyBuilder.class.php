@@ -78,12 +78,19 @@ class HierarchyBuilder {
 	 * down to find the target page, and then looping further to identify the
 	 * immediate children. Once the loop to find immediate children finds a row
 	 * which has depth less than or equal to the target then the search is
-	 * complete. If there are no immediate children in the hierarchy for the
-	 * specified target page, or if the target page is not included in the
-	 * hierarchy at all, then this function returns an empty array.
+	 * complete. 
+	 *
+	 * If the target page is empty, then target page is assumed to be the
+	 * invisible/imaginary super root node "Hierarchy Root" and all the root
+	 * level nodes in the hierarchy will be returned. 
+	 *
+	 * If there are no immediate children in the hierarchy for the
+	 * specified target page, then this function returns an empty array.
 	 *
 	 * @param string $targetPageName: is the name of the target page for which
-	 *  we want the list of immediate children.
+	 *  we want the list of immediate children. If this is empty, then we will
+	 *  assume the target is the invisible super root node "Hierarchy Root" and
+	 *  return all of the root level nodes from the hierarchy.
 	 * @param string $hierarchyPageName: is the name of the page containing the
 	 *  hierarchy from which to retrieve the list of children.
 	 * @param string $hierarchyPropertyName: is the name of the property on the
@@ -95,6 +102,19 @@ class HierarchyBuilder {
 	public static function getPageChildren( $targetPageName, $hierarchyPageName,
 		$hierarchyPropertyName
 	) {
+		// handle the strange empty target case first
+		if ( $targetPageName == '' ) {
+			$rootRows = self::getHierarchyRowsByDepth( '*', $hierarchyPageName, $hierarchyPropertyName );
+
+			$children = array();
+			foreach( $rootRows as $rootRow ) {
+				array_push( $children, self::getPageNameFromHierarchyRow( $rootRow ) );
+			}
+
+			return $children;
+		}
+
+		// handle the normal case where a target page is given
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		$hierarchyRows = preg_split( '/\n/', $hierarchy );
 
@@ -183,7 +203,8 @@ class HierarchyBuilder {
 	 * @param string $hierarchyPropertyName: The name of the property on the 
 	 *  hierarchy page which contains the hierarhcy data. (ex: Hierarchy Data)
 	 *
-	 * @return string: The hierarchical parent of target page within the hiearchy.
+	 * @return array: The hierarchical parents of target page instances within
+	 *  the hierarchy.
 	 */
 
 	public static function getPageParent( $targetPageName, $hierarchyPageName,
@@ -191,6 +212,9 @@ class HierarchyBuilder {
 	) {
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		$hierarchyRows = preg_split( '/\n/', $hierarchy );
+
+		// array to store the parents of the target instances
+		$parents = array();
 
 		$currentPagePattern = '/\[\[' . $targetPageName . '\]\]/';
 		// loop through the hierarchyRows looking for the row containing the currentPage
@@ -204,11 +228,12 @@ class HierarchyBuilder {
 				// Note that if there is no hierarchical parent, then the parent
 				// will be empty.
 				$parent = self::getParent( $hierarchyRows, $row, $i );
-				return $parent;
+				array_push( $parents, $parent);
+				//return $parent;
 			}
 		}
 
-		return '';
+		return $parents;
 	}
 
 	/**
@@ -342,6 +367,38 @@ class HierarchyBuilder {
 		$numMatches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
 		$depth = ( $numMatches > 0 ? strlen( $matches[1][0] ) : 0 );
 		return $depth;
+	}
+
+	/**
+	 * Return all the rows of a specified depth from within the given hierarchy.
+	 *
+	 * @param string $depth: The depth of the rows which should be returned
+	 * @param string $hierarchyPageName: Name of the page that contains the hierarchy
+	 *  to which $currentPage belongs.
+	 * @param string $hierarchyPropertyName: Name of the property on $hierarchyPage
+	 *  that actually stores the wikitext formatted hierarchy.
+	 *
+	 * @return array: The list of rows that are at the specified depth within
+	 *  the given hierarchy. Note that the returned list is a list of complete
+	 *  rows from the hierarchy and not a list of page names extracted from those
+	 *  rows.
+	 */
+	private function getHierarchyRowsByDepth( $depth, $hierarchyPageName, $hierarchyPropertyName ) {
+		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
+		$hierarchyRows = preg_split( '/\n/', $hierarchy );
+
+		$rowsOfDepth = array();
+		$hierarchyRowsSize = count( $hierarchyRows );
+		for ( $i = 0; $i < $hierarchyRowsSize; $i++ ) {
+			$row = $hierarchyRows[$i];
+			$rowDepth = self::getDepthOfHierarchyRow( $row );
+
+			if ( $rowDepth == strlen($depth) ) {
+				array_push( $rowsOfDepth, $row );
+			}
+		}
+
+		return $rowsOfDepth;
 	}
 
 	/**

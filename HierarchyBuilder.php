@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.3.1',
+	'version' => '1.4.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -288,25 +288,54 @@ function parent( $parser ) {
 		} else {
 			$link = '';
 		}
+		// look for the delimiter parameter
+		if ( isset( $optionalParams[HierarchyBuilder::SEPARATOR] ) ) {
+			$delimiter = $optionalParams[HierarchyBuilder::SEPARATOR];
+		} else {
+			if ( $template != '' ) {
+				$delimiter = '';
+			} else {
+				$delimiter = ',';
+			}
+		}
 
-		// find the parent
-		$parent = HierarchyBuilder::getPageParent( $pageName, $hierarchyPageName,
+		// find the parents
+		$parents = HierarchyBuilder::getPageParent( $pageName, $hierarchyPageName,
 			$hierarchyPropertyName );
 
-		// format the parent for return according to the optional arg
+		// format the parents for return according to the optional arg
+		// this code is the same as below for children
 		$output = '';
-		if ( $parent != '' ) {
+		if ( count( $parents ) > 0 ) {
 			if ( $template != '' ) {
 				$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
 				$outro = $outroTemplate != '' ? "\n{{{$outroTemplate}}}" : '';
-				if ( $link == 'none' ) {
-					$parent =  "{{" . $template . "|$parent}}";
-				} else {
-					$parent =  "{{" . $template . "|[[$parent]]}}";
-				}
-				$output = $intro . $parent . $outro;
+				$templateParentString = implode(
+					array_map(
+						function( $parent ) use ( $template, $link ) {
+							if ( $link == 'none' ) {
+								return "{{" . $template . "|$parent}}";
+							} else {
+								return "{{" . $template . "|[[$parent]]}}";
+							}
+						},
+						$parents
+					),
+					"$delimiter\n"
+				);
+				$output = $intro . $templateParentString . $outro;
 			} else {
-				$output = $link == 'none' ? $parent : "[[$parent]]";
+				$parentString = implode(
+					array_map(
+						function( $parent ) use ( $link ) {
+							return $link == 'none' ? $parent : "[[$parent]]";
+						},
+						$parents
+					),
+					$delimiter
+				);
+
+				$output = $parentString;
 			}
 		}
 		$output = $parser->recursiveTagParse( $output );
@@ -414,9 +443,6 @@ function children( $parser ) {
 							} else {
 								return "{{" . $template . "|[[$child]]}}";
 							}
-							// return $link == "none"
-							//	? "{{" . $template . "|$child}}"
-							//	: "{{" . $template . "|[[$child]]}}";
 						},
 						$children
 					),
