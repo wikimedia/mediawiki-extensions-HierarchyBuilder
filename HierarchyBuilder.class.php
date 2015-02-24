@@ -424,13 +424,18 @@ class HierarchyBuilder {
 	private function breadcrumb( $previous, $parent, $next, $displayNameProperty ) {
 		$breadcrumb = "{| width='100%'" . PHP_EOL;
 		if ( $previous != null ) {
-			$breadcrumb .= "| width='33%' | &larr; [[" . $previous . "| " .
+			if ( $previous == $parent ) {
+	            $arrow = "&uarr;";
+			} else {
+				$arrow = "&larr;";
+			}
+			$breadcrumb .= "| width='33%' | " . $arrow . " [[" . $previous . "| " .
 				HierarchyBuilder::getPageDisplayName( $previous,
 				$displayNameProperty ) . "]]" . PHP_EOL;
 		} else {
 			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
 		}
-		if ( $parent != null ) {
+        if ( $parent != null  && $parent != $previous ) {
 			$breadcrumb .= "| align='center' width='33%' | &uarr; [[" . $parent .
 				"| " . HierarchyBuilder::getPageDisplayName( $parent,
 				$displayNameProperty ) . "]]" . PHP_EOL;

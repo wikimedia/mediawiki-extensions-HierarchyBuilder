@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.5.0',
+	'version' => '1.5.1',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -279,6 +279,9 @@ function subhierarchy( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::SHOWROOT] ) ) {
 			$showroot = $optionalParams[HierarchyBuilder::SHOWROOT];
 		}
+		if ( $rootNode == '' ) {
+			$showroot = 'showroot';
+		}
 		$collapsed = '';
 		if ( isset( $optionalParams[HierarchyBuilder::COLLAPSED] ) ) {
 			$collapsed = $optionalParams[HierarchyBuilder::COLLAPSED];
@@ -320,7 +323,7 @@ function subhierarchy( $parser ) {
 		}
 		// otherwise it's the bulleted format and we don't modify output.
 
-		$output = $parser->recursiveTagParse( $output );
+		$output = $parser->recursiveTagParse( PHP_EOL.$output );
 	}
 	return $parser->insertStripItem( $output, $parser->mStripState );
 }
