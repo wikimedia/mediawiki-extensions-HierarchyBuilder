@@ -48,7 +48,7 @@ class HierarchyTree {
 		$this->root = $node;
 	}
 
-	private function parseHierarchyToTreeHelper( $wikiTextHierarchy, $depth ) {
+	private static function parseHierarchyToTreeHelper( $wikiTextHierarchy, $depth ) {
 		$curRootAndChildren = HierarchyBuilder::splitHierarchy($wikiTextHierarchy, $depth);
 		$curRootText = $curRootAndChildren[0];
 		$curChildrenText = array_slice($curRootAndChildren, 1);

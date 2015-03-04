@@ -246,6 +246,10 @@ class HierarchyBuilder {
 	 * This function will compute and return the breadcrumb information for a
 	 * given page based on the position of that page within a specified hierarchy.
 	 * The returned breadcrumb will show the display name for the pages it contains.
+	 * The previous page in the beadcrumb will have a "back" arrow or an "up" arrow
+	 * If it is the same as the immediate parent. The immediate parent will have an
+	 * "up" arrow unless it is the same as the previous page, in which case the 
+	 * parent will not be displayed. The next page will have a "forward" arrow.
 	 *
 	 * @param string $currentPage: Name of the page in the hierarchy that is 
 	 *  currently being viewed.
@@ -318,7 +322,7 @@ class HierarchyBuilder {
 	 *  contains more than just a link to a page, then only the page name from
 	 *  that row will be returned.
 	 */
-	private function getParent( $hierarchyRows, $row, $rowIdx ) {
+	private static function getParent( $hierarchyRows, $row, $rowIdx ) {
 		// figure out what the depth of the current page is. if we can't find
 		// any depth (leading *s) then set the depth to 0 indicating failure.
 		$currentDepth = self::getDepthOfHierarchyRow( $row );
@@ -349,7 +353,7 @@ class HierarchyBuilder {
 	 *
 	 * @return string: The first page name found within $hierarchyRow.
 	 */
-	public function getPageNameFromHierarchyRow( $hierarchyRow ) {
+	public static function getPageNameFromHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::PAGENAMEPATTERN, $hierarchyRow, $matches );
 		// give me the first subpattern match to be the name of the previous page
 		$pageName = ( $numMatches > 0 ? $matches[1][0] : '' );
@@ -367,7 +371,7 @@ class HierarchyBuilder {
 	 *
 	 * @return number: The depth of $hierarchyRow.
 	 */
-	public function getDepthOfHierarchyRow( $hierarchyRow ) {
+	public static function getDepthOfHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
 		$depth = ( $numMatches > 0 ? strlen( $matches[1][0] ) : 0 );
 		return $depth;
@@ -681,7 +685,7 @@ END;
 	 * @return string: The value of the specified property from the given page
 	 *  or the empty string if the property does not exist.
 	 */
-	public function getPropertyFromPage( $page, $property ) {
+	public static function getPropertyFromPage( $page, $property ) {
 		$store = smwfGetStore();
 		$title = Title::newFromText( $page );
 		$subject = SMWDIWikiPage::newFromTitle( $title );
