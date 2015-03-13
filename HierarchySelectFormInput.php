@@ -43,6 +43,8 @@ class HierarchySelectFormInput extends SFFormInput {
 	 * @return string: JSON encoded parameters for select from hierarchy JS code.
 	 */
 	protected function setupJsInitAttribs() {
+		global $HierarchyBuilder_LegacyMode;
+		
 		if ( array_key_exists( 'pagename', $this->mOtherArgs ) ) {
 			$this->mPageName = $this->mOtherArgs['pagename'];
 		} else {
@@ -103,7 +105,8 @@ class HierarchySelectFormInput extends SFFormInput {
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'collapsed' => $this->mCollapsed == 'true' ? true : false,
 			'width' => $this->mWidth,
-			'height' => $this->mHeight
+			'height' => $this->mHeight,
+			'legacyMode' => $HierarchyBuilder_LegacyMode
 		);
 
 		return json_encode( $jsattribs );
