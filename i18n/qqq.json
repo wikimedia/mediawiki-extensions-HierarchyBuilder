@@ -3,10 +3,11 @@
 		"authors": [
 			"Cindy Cicalese",
 			"Kevin Ji",
-			"Purodha"
+			"Purodha",
+			"Umherirrender"
 		]
 	},
-	"hierarchybuilder-desc": "{{desc|name=Hierarchy Builder|url=http://www.mediawiki.org/wiki/Extension/Hierarchy_Builder}}",
+	"hierarchybuilder-desc": "{{desc|name=Hierarchy Builder|url=https://www.mediawiki.org/wiki/Extension/Hierarchy_Builder}}",
 	"hierarchybuilder-editmessage": "Message to be displayed above hierarchy (edit form)",
 	"hierarchybuilder-hierarchyroot": "Text to be displayed as root node of the hierarchy (edit form)",
 	"hierarchybuilder-unusedpages": "Text to be displayed as root node of unused page hierarchy (edit form)",
