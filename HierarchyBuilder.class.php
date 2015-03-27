@@ -580,9 +580,28 @@ END;
 		if ( isset( $attributes['selected'] ) ) {
 			$selectedPages =
 				json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
+
+			if ( $displayNameProperty == '' ){
+				$selectedPages =
+					json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
+			} else {
+				$selectedPages =
+					json_encode(
+						array_map(
+							function ($pageName) {
+								wikiLog("HierarchyBuilder.class", "renderHierarchySelected", HierarchyBuilder::getPageDisplayName( $pageName,	$displayNameProperty ));
+
+								return HierarchyBuilder::getPageDisplayName( $pageName,	$displayNameProperty );
+							},
+							explode( ',', urldecode( $attributes['selected'] ) )		
+						)
+					);
+			}
 		} else	{
 			$selectedPages = '';
 		}
+
+		wikiLog("HierarchyBuilder.class", "renderHierarchySelected", (string)$selectedPages);
 
 		// this looks like it gets the property but it eats all the links.
 		$input = $parser->recursiveTagParse( $input, $frame );

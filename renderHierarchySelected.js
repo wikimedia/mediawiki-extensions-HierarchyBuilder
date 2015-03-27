@@ -60,6 +60,8 @@
 			 *  should be auto-numbered
 			 */
 			render: function( divId, hierarchy, collapsed, numbered, selectedComponents ) {
+				console.log("what the hell " + selectedComponents);
+
 				if ( hierarchy.length < 1 ) {
 					return;
 				}

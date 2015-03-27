@@ -180,6 +180,14 @@ function hierarchySelected( $parser ) {
 			$displayMode = 'pruned';
 		}
 
+		$optionalParams = array_slice( $params, 4 );
+		$optionalParams = parseParams( $optionalParams );
+		$displaynameproperty = '';
+		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
+			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
+		}
+		$displaynameattr = $displaynameproperty == '' ? '' : "displaynameproperty=$displaynameproperty";
+
 		$wikitextHierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		// this is where we ask HierarchyBuilder class to actually do the work for us.
 		$hierarchyTree = HierarchyTree::fromWikitext( $wikitextHierarchy );
@@ -213,9 +221,9 @@ function hierarchySelected( $parser ) {
 
 		$output = '';
 		if ( $displayMode == 'collapsed') {
-			$output = "<hierarchySelected collapsed selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			$output = "<hierarchySelected collapsed $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
 		} else {
-			$output = "<hierarchySelected selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			$output = "<hierarchySelected $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
 		}
 		$output = $parser->recursiveTagParse( $output );
 
@@ -702,4 +710,8 @@ function parseParam( $param ) {
 		$paramArray[$ret[0]] = $ret[0];
 	}
 	return $paramArray;
+}
+
+function wikiLog($className, $methodName, $message) {
+	wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
 }
