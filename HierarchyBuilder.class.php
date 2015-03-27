@@ -391,7 +391,7 @@ class HierarchyBuilder {
 	 *  rows from the hierarchy and not a list of page names extracted from those
 	 *  rows.
 	 */
-	private function getHierarchyRowsByDepth( $depth, $hierarchyPageName, $hierarchyPropertyName ) {
+	private static function getHierarchyRowsByDepth( $depth, $hierarchyPageName, $hierarchyPropertyName ) {
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		$hierarchyRows = preg_split( '/\n/', $hierarchy );
 
@@ -561,6 +561,7 @@ END;
 			$collapsed = 'false';
 		}
 
+		$displayNameProperty = '';
 		if ( isset( $attributes['displaynameproperty'] ) ) {
 			$displayNameProperty =
 				htmlspecialchars( $attributes['displaynameproperty'] );
@@ -580,6 +581,21 @@ END;
 		if ( isset( $attributes['selected'] ) ) {
 			$selectedPages =
 				json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
+
+			if ( $displayNameProperty == '' ){
+				$selectedPages =
+					json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
+			} else {
+				$selectedPages =
+					json_encode(
+						array_map(
+							function ($pageName) use ( $displayNameProperty) {
+								return HierarchyBuilder::getPageDisplayName( $pageName,	$displayNameProperty );
+							},
+							explode( ',', urldecode( $attributes['selected'] ) )		
+						)
+					);
+			}
 		} else	{
 			$selectedPages = '';
 		}
@@ -714,7 +730,7 @@ END;
 	 *
 	 * @return string: The display name of the specified page.
 	 */
-	public function getPageDisplayName( $page, $displayNameProperty ) {
+	public static function getPageDisplayName( $page, $displayNameProperty ) {
 		if ( strlen( $displayNameProperty ) == 0 ) {
 			return $page;
 		}
