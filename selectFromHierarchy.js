@@ -78,28 +78,30 @@
 					return;
 				}
 
+				var twostate = params.threestate ? false : true;
+
 				var legacyMode = params.legacyMode;
 
 				var selectedComponents = params.selectedItems;
 				var test = [];
-				if (legacyMode) {
-					selectedComponents = selectedComponents.map( function (cur) {
-						if ( cur.indexOf("[[") != 0 ) {
+				if ( legacyMode ) {
+					selectedComponents = selectedComponents.map( function( cur ) {
+						if ( cur.indexOf( "[[" ) !== 0 ) {
 							cur = "[[" + cur;
 						}
-						if ( cur.lastIndexOf("]]") != cur.length-2 ) {
+						if ( cur.lastIndexOf( "]]" ) != cur.length - 2 ) {
 							cur = cur + "]]";
 						}
 						return cur;
-					});
+					} );
 				} else {
-					selectedComponents = selectedComponents.map( function (cur) {
-						if (cur.indexOf("[[") == 0 && cur.lastIndexOf("]]") == cur.length-2) {
-							return cur.substring(2, cur.length-2);
+					selectedComponents = selectedComponents.map( function( cur ) {
+						if ( cur.indexOf( "[[" ) === 0 && cur.lastIndexOf( "]]" ) == cur.length - 2 ) {
+							return cur.substring( 2, cur.length - 2 );
 						} else {
 							return cur;
 						}
-					});
+					} );
 				}
 
 				var hierarchy = params.hierarchy;
@@ -111,14 +113,14 @@
 					.html( html )
 					.attr( 'dir', 'ltr' )
 					.attr( 'class', 'scrollableHierarchy' );
-				
-				if ( params.width != "" ) {
+
+				if ( params.width !== "" ) {
 					$( jqDivId )
-						.css( 'max-width', params.width );	
+						.css( 'max-width', params.width );
 				}
-				if ( params.height != "" ) {
+				if ( params.height !== "" ) {
 					$( jqDivId )
-						.css( 'max-height', params.height )
+						.css( 'max-height', params.height );
 				}
 
 				$( jqDivId + " * li" )
@@ -143,7 +145,7 @@
 								} else {
 									if ( obj.isSelectedHierarchyComponent( elementName, selectedComponents, legacyMode ) && $.inArray( elementName, updatedSelectedComponents ) === -1 ) {
 										updatedSelectedComponents.push( elementName );
-									}	
+									}
 								}
 
 							} );
@@ -156,7 +158,7 @@
 				$( jqDivId )
 					.bind( "loaded.jstree", function( event, data ) {
 						obj.initializeTree( jqDivId, params.isDisabled,
-							selectedComponents, true, inputId, params.collapsed, legacyMode );
+							selectedComponents, true, inputId, params.collapsed, legacyMode, params.threestate );
 						$( jqDivId )
 							.jstree( "open_all" );
 					} );
@@ -164,9 +166,9 @@
 				$( jqDivId )
 					.bind( "refresh.jstree", function( event, data ) {
 						obj.initializeTree( jqDivId, params.isDisabled,
-							selectedComponents, false, inputId, params.collapsed, legacyMode );
+							selectedComponents, false, inputId, params.collapsed, legacyMode, params.threestate );
 					} );
-				
+
 				$( jqDivId )
 					.jstree( {
 						"themes": {
@@ -175,7 +177,8 @@
 							"icons": false
 						},
 						"checkbox": {
-							"two_state": true
+							"two_state": twostate,
+							"three_state": params.threestate
 						},
 						"types": {
 							"types": {
@@ -188,7 +191,6 @@
 						"plugins": [ "themes", "html_data", "checkbox", "types" ]
 					} );
 
-			
 
 				/*$html = $( jqDivId ).html();
 				$( jqDivId )
@@ -230,7 +232,7 @@
 			 *  hierarchy should start out in collapsed or expanded form.
 			 */
 			initializeTree: function( jqDivId, isDisabled, selectedComponents,
-				init, inputId, collapsed, legacyMode ) {
+				init, inputId, collapsed, legacyMode, threestate ) {
 				var obj = this;
 				if ( collapsed ) {
 					$( jqDivId )
@@ -253,8 +255,9 @@
 									selectedComponents, legacyMode ) ) {
 									$( jqDivId )
 										.jstree( "check_node", parent );
-									
-									$( this ).attr("class", "selectedHierarchyRow");
+
+									$( this )
+										.attr( "class", "selectedHierarchyRow" );
 								}
 							} );
 					} );
@@ -275,10 +278,11 @@
 										$( this )
 										.children( "span:first" )
 										.text();
-									obj.checkNode( elementName, inputId, legacyMode );
+									obj.checkNode( jqDivId, elementName, inputId, legacyMode, threestate );
 									obj.processDups( jqDivId, elementName, "check" );
 
-									$( this ).attr("class", "selectedHierarchyRow");
+									$( this )
+										.attr( "class", "selectedHierarchyRow" );
 								} );
 						} );
 					$( jqDivId )
@@ -289,10 +293,11 @@
 										$( this )
 										.children( "span:first" )
 										.text();
-									obj.uncheckNode( elementName, inputId, legacyMode );
+									obj.uncheckNode( jqDivId, elementName, inputId, legacyMode, threestate );
 									obj.processDups( jqDivId, elementName, "uncheck" );
 
-									$( this ).attr("class", "unselectedHierarchyRow");
+									$( this )
+										.attr( "class", "unselectedHierarchyRow" );
 								} );
 						} );
 				}
@@ -329,21 +334,33 @@
 			 * @param {string} inputId The id of the hidden form field used to
 			 *  store the possibly updated list of selected hierarchy rows.
 			 */
-			checkNode: function( elementName, inputId, legacyMode ) {
-				var selectedComponents =
-					this.getSelectedHierarchyComponents( inputId );
-				var pageName = legacyMode ? "[[" + elementName + "]]" : elementName;
-				var curValue = pageName;
-				if ( selectedComponents.length > 0 ) {
-					var index = $.inArray( pageName, selectedComponents );
-					if ( index === -1 ) {
-						selectedComponents.push( pageName );
-						selectedComponents.sort();
+			checkNode: function( jqDivId, elementName, inputId, legacyMode, threestate ) {
+				if ( threestate ) {
+					var selectedComponents = [];
+					this.computeConciseSelectedComponents( $( jqDivId ), selectedComponents, legacyMode );
+					selectedComponents = $.unique( selectedComponents );
+					selectedComponents.sort();
+
+					var curValue = selectedComponents.join( "," );
+					$( "#" + inputId )
+						.val( curValue );
+				} else {
+					var selectedComponents =
+						this.getSelectedHierarchyComponents( inputId );
+					var pageName = legacyMode ? "[[" + elementName + "]]" : elementName;
+					var curValue = pageName;
+					if ( selectedComponents.length > 0 ) {
+						var index = $.inArray( pageName, selectedComponents );
+						if ( index === -1 ) {
+							selectedComponents.push( pageName );
+							selectedComponents.sort();
+						}
+						curValue = selectedComponents.join( "," );
 					}
-					curValue = selectedComponents.join( "," );
+					$( "#" + inputId )
+						.val( curValue );
 				}
-				$( "#" + inputId )
-					.val( curValue );
+
 			},
 
 			/**
@@ -354,20 +371,71 @@
 			 * @param {string} inputId The id of the hidden form field used to
 			 *  store the possibly updated list of selected hierarchy rows.
 			 */
-			uncheckNode: function( elementName, inputId, legacyMode ) {
-				var selectedComponents =
-					this.getSelectedHierarchyComponents( inputId );
-				var pageName = legacyMode ? "[[" + elementName + "]]" : elementName;
-				var curValue = "";
-				if ( selectedComponents.length > 0 ) {
-					var index = $.inArray( pageName, selectedComponents );
-					if ( index !== -1 ) {
-						selectedComponents.splice( index, 1 );
+			uncheckNode: function( jqDivId, elementName, inputId, legacyMode, threestate ) {
+				if ( threestate ) {
+					var selectedComponents = [];
+					this.computeConciseSelectedComponents( $( jqDivId ), selectedComponents, legacyMode );
+					selectedComponents = $.unique( selectedComponents );
+					selectedComponents.sort();
+
+					var curValue = selectedComponents.join( "," );
+					$( "#" + inputId )
+						.val( curValue );
+				} else {
+					var selectedComponents =
+						this.getSelectedHierarchyComponents( inputId );
+					var pageName = legacyMode ? "[[" + elementName + "]]" : elementName;
+					var curValue = "";
+					if ( selectedComponents.length > 0 ) {
+						var index = $.inArray( pageName, selectedComponents );
+						if ( index !== -1 ) {
+							selectedComponents.splice( index, 1 );
+						}
+						curValue = selectedComponents.join( "," );
 					}
-					curValue = selectedComponents.join( "," );
+					$( "#" + inputId )
+						.val( curValue );
 				}
-				$( "#" + inputId )
-					.val( curValue );
+			},
+
+			/**
+			 * Recursively processes a jstree hierarchy to find the most concise
+			 * description of the selected pages when in three-state mode.
+			 *
+			 * This function recursively traverses the tree from top to bottom.
+			 * If a node is selected, then all the children MUST be selected so
+			 * this node is added to the list of selected items and we return.
+			 * Otherwise, this node is not selected and we recurse on each child.
+			 * The result is a list of only the most "senior" nodes in the
+			 * hierarchy that have been selected.
+			 *
+			 * @param {jquery} $root The jquery object representing the root of
+			 *  the current level within the jstree hierarchy.
+			 * @param {array} selected The list that will contain the concise
+			 *  set of selected nodes.
+			 * @param {boolean} legacyMode A boolean indicating whether the list
+			 *  of selected pages should be stored using legacy formatting with
+			 *  [[]] notion or not.
+			 */
+			computeConciseSelectedComponents: function( $root, selected, legacyMode ) {
+				var that = this;
+
+				var $cur = $root;
+				var $children = $root.children( 'ul' )
+					.children( 'li' );
+
+				if ( $cur.hasClass( 'jstree-checked' ) ) {
+					// TODO: handle legacy mode
+					var elementName = $cur.children( 'a' )
+						.children( 'span:first' )
+						.text();
+					var pageName = legacyMode ? "[[" + elementName + "]]" : elementName;
+					selected.push( elementName );
+				} else {
+					$children.each( function() {
+						that.computeConciseSelectedComponents( $( this ), selected );
+					} );
+				}
 			},
 
 			/**

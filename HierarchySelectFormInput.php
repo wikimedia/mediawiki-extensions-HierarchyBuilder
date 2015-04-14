@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Copyright (c) 2013 The MITRE Corporation
  *
@@ -44,7 +44,7 @@ class HierarchySelectFormInput extends SFFormInput {
 	 */
 	protected function setupJsInitAttribs() {
 		global $HierarchyBuilder_LegacyMode;
-		
+
 		if ( array_key_exists( 'pagename', $this->mOtherArgs ) ) {
 			$this->mPageName = $this->mOtherArgs['pagename'];
 		} else {
@@ -68,6 +68,20 @@ class HierarchySelectFormInput extends SFFormInput {
 		} else {
 			$this->mCollapsed = 'false';
 		}
+
+		if ( array_key_exists( 'threestate', $this->mOtherArgs ) ) {
+			$this->mThreestate = $this->mOtherArgs['threestate'];
+			if ( $this->mThreestate ) {
+				$this->mThreestate = 'true';
+			}
+			if ( $this->mThreestate !== 'true' && $this->mThreestate !== 'false' ) {
+				$this->mThreestate = null;
+				return;
+			}
+		} else {
+			$this->mThreestate = 'false';
+		}
+
 
 		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
 			$displaynameproperty = $this->mOtherArgs['displaynameproperty'];
@@ -104,6 +118,7 @@ class HierarchySelectFormInput extends SFFormInput {
 			'isDisabled' => $this->mIsDisabled,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'collapsed' => $this->mCollapsed == 'true' ? true : false,
+			'threestate' => $this->mThreestate == 'true' ? true : false,
 			'width' => $this->mWidth,
 			'height' => $this->mHeight,
 			'legacyMode' => $HierarchyBuilder_LegacyMode

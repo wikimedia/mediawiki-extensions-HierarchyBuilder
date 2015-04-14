@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Copyright (c) 2013 The MITRE Corporation
  *
@@ -56,7 +56,7 @@ class HierarchyBuilder {
 	 *  the auto-number in the given hierarchyPage returned.
 	 * @param string $hierarchyPageName: name of the page containing the hierarchy
 	 *  from which to retrieve numberings.
-	 * @param string $hierarchyPropertyName: name of the property on the hierarchy 
+	 * @param string $hierarchyPropertyName: name of the property on the hierarchy
 	 *  page which contains the hierarchy data. (ex: Hierarchy Data).
 	 *
 	 * @return string: The section number for the target page or the empty string
@@ -81,11 +81,11 @@ class HierarchyBuilder {
 	 * down to find the target page, and then looping further to identify the
 	 * immediate children. Once the loop to find immediate children finds a row
 	 * which has depth less than or equal to the target then the search is
-	 * complete. 
+	 * complete.
 	 *
 	 * If the target page is empty, then target page is assumed to be the
 	 * invisible/imaginary super root node "Hierarchy Root" and all the root
-	 * level nodes in the hierarchy will be returned. 
+	 * level nodes in the hierarchy will be returned.
 	 *
 	 * If there are no immediate children in the hierarchy for the
 	 * specified target page, then this function returns an empty array.
@@ -110,7 +110,7 @@ class HierarchyBuilder {
 			$rootRows = self::getHierarchyRowsByDepth( '*', $hierarchyPageName, $hierarchyPropertyName );
 
 			$children = array();
-			foreach( $rootRows as $rootRow ) {
+			foreach ( $rootRows as $rootRow ) {
 				array_push( $children, self::getPageNameFromHierarchyRow( $rootRow ) );
 			}
 
@@ -152,7 +152,7 @@ class HierarchyBuilder {
 	 *
 	 * @param array $hierarchyRows: Array representation of a wikitext hierarchy
 	 *  where each row in the hierarchy is a separate element of the array.
-	 * @param string $row: A specific row of the hierarchy given by 
+	 * @param string $row: A specific row of the hierarchy given by
 	 *  $hierarchyRows.
 	 * @param number $rowIdx: The index of $row in $hierarchyRows.
 	 *
@@ -198,12 +198,12 @@ class HierarchyBuilder {
 	 * immediate parent. If there is no immediate parent in the hierarchy for
 	 * the specified target page, or if the target page is not included in the
 	 * hierarchy at all, then this function returns the empty string.
-	 * 
+	 *
 	 * @param string $targetPageName: The name of the target page for which we
 	 *  want the immediate parent in the hierarchy.
 	 * @param string $hierarchyPageName: The name of the page containing the
 	 *  hierarchy from which to retrieve the immediate parent of the target page.
-	 * @param string $hierarchyPropertyName: The name of the property on the 
+	 * @param string $hierarchyPropertyName: The name of the property on the
 	 *  hierarchy page which contains the hierarhcy data. (ex: Hierarchy Data)
 	 *
 	 * @return array: The hierarchical parents of target page instances within
@@ -232,7 +232,7 @@ class HierarchyBuilder {
 				// will be empty.
 				$parent = self::getParent( $hierarchyRows, $row, $i );
 				if ( $parent != '' ) {
-					array_push( $parents, $parent);
+					array_push( $parents, $parent );
 				}
 			}
 		}
@@ -248,10 +248,10 @@ class HierarchyBuilder {
 	 * The returned breadcrumb will show the display name for the pages it contains.
 	 * The previous page in the beadcrumb will have a "back" arrow or an "up" arrow
 	 * If it is the same as the immediate parent. The immediate parent will have an
-	 * "up" arrow unless it is the same as the previous page, in which case the 
+	 * "up" arrow unless it is the same as the previous page, in which case the
 	 * parent will not be displayed. The next page will have a "forward" arrow.
 	 *
-	 * @param string $currentPage: Name of the page in the hierarchy that is 
+	 * @param string $currentPage: Name of the page in the hierarchy that is
 	 *  currently being viewed.
 	 * @param string $hierarchyPage: Name of the page that contains the hierarchy
 	 *  to which $currentPage belongs.
@@ -401,7 +401,7 @@ class HierarchyBuilder {
 			$row = $hierarchyRows[$i];
 			$rowDepth = self::getDepthOfHierarchyRow( $row );
 
-			if ( $rowDepth == strlen($depth) ) {
+			if ( $rowDepth == strlen( $depth ) ) {
 				array_push( $rowsOfDepth, $row );
 			}
 		}
@@ -411,7 +411,7 @@ class HierarchyBuilder {
 
 	/**
 	 * Return the wikitext formatted breadcrumb using the given information.
-	 * 
+	 *
 	 * This function gives formatted wikitext for rendering a breadcrumb trail
 	 * on a wikipage including the previous page, the parent page, and the next
 	 * page within a hierarchy.
@@ -423,7 +423,7 @@ class HierarchyBuilder {
 	 * @param string $displayNameProperty: The name of the property that stores
 	 *  the display name for a page when using context free page naming.
 	 *
-	 * @return string: Formatted wikitext which renders breadcrumbs on a page. 
+	 * @return string: Formatted wikitext which renders breadcrumbs on a page.
 	 */
 	private function breadcrumb( $previous, $parent, $next, $displayNameProperty ) {
 		$breadcrumb = "{| width='100%'" . PHP_EOL;
@@ -460,7 +460,7 @@ class HierarchyBuilder {
 	/**
 	 * Renders a wikitext formatted hierarchy on a page.
 	 *
-	 * This function implements the hierarchy tag extension for rendering a 
+	 * This function implements the hierarchy tag extension for rendering a
 	 * hierarchical representation of pages within a wiki. Hierarchy data is
 	 * taken as wikitext within the <hierarchy> tag, parsed into HTML and passed
 	 * to the javascript code for rendering.
@@ -472,7 +472,7 @@ class HierarchyBuilder {
 	 *   - displaynameproperty - content free page naming is enabled and display
 	 *     names should be used instead of page names when displaying the hierarchy.
 	 *   - numbered - rows of the hierarchy should be given section numbers.
-	 * @param $parser: Parser 
+	 * @param $parser: Parser
 	 * @param $frame: Frame
 	 *
 	 * @return string: Html div that will contain the rendered hierarchy.
@@ -746,7 +746,7 @@ END;
 	 *
 	 * This function will search through the hierarchy to find all the page names
 	 * (defined by [[]] syntax) and return them as an array without [[]] syntax.
-	 * 
+	 *
 	 * @param string $hierarchy: A wikitext formatted hierarchy.
 	 *
 	 * @return array: An array of all the page names found within the hierarchy.
@@ -821,7 +821,7 @@ END;
 	 *  the current depth in the hierarchy.
 	 * @param string $sectionNumber: The section number of the root of the current
 	 *  subhierarchy.
-	 * @param string $target: The page name of the page we're searching the 
+	 * @param string $target: The page name of the page we're searching the
 	 *  hierarchy for.
 	 *
 	 * @return string: The section number of the page within the hierarchy. If
@@ -876,7 +876,7 @@ END;
 	 *  wikiTextHierarchy when viewed as a subhierarchy within another hierarchy.
 	 *
 	 * @return array: An array with the root as the first element and each
-	 *  child subhierarchy as a subsequent element. 
+	 *  child subhierarchy as a subsequent element.
 	 */
 	public static function splitHierarchy( $wikiTextHierarchy, $depth ) {
 		$nextDepth = "\n" . $depth . "*";
@@ -905,7 +905,7 @@ END;
 	 * @param string $propertyname: The name of the property that contains the
 	 *  hierarchy data.
 	 *
-	 * @return string: The depth corrected wikitext representation of the 
+	 * @return string: The depth corrected wikitext representation of the
 	 *  subhierarchy within the overall hierarchy who's root is $root. Otherwise,
 	 *  if no such subhierarchy exists, the empty string is returned instead.
 	 */
@@ -915,7 +915,7 @@ END;
 		if ( $root == '' ) {
 			return $hierarchy;
 		} else {
-			return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '');
+			return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '' );
 		}
 	}
 
@@ -930,7 +930,7 @@ END;
 	 * a standalone hierarchy. That is, if the root of the subhierarchy is at a
 	 * depth of 4 and it's children are at a depth of 5, we must correct those
 	 * depths such that the root will have a depth of 1 and the children have a
-	 * depth of 2. 
+	 * depth of 2.
 	 *
 	 * @param string $root: The target root that we are searching for.
 	 * @param string $wikitextHierarchy: The string wikitext representation of
@@ -938,25 +938,25 @@ END;
 	 * @param string $depth: The depth of the current hierarchy who's
 	 *  subhierarchies are being tested.
 	 *
-	 * @return string: The depth corrected wikitext representaion of the 
+	 * @return string: The depth corrected wikitext representaion of the
 	 *  subhierarchy who's root is $root if such a subhierarchy exists within
 	 *  the hierarchy $wikitextHierarchy. Otherwise, the empty string is returned.
 	 */
 	private static function getSubhierarchyHelper( $root, $wikitextHierarchy, $depth ) {
-		$curRootAndSubHierarchies = HierarchyBuilder::splitHierarchy( $wikitextHierarchy, $depth);
+		$curRootAndSubHierarchies = HierarchyBuilder::splitHierarchy( $wikitextHierarchy, $depth );
 		$subHierarchies = array_slice( $curRootAndSubHierarchies, 1 );
 
-		foreach ($subHierarchies as $subHierarchy) {
-			$subHierarchyRows = preg_split( '/\n/', $subHierarchy);
+		foreach ( $subHierarchies as $subHierarchy ) {
+			$subHierarchyRows = preg_split( '/\n/', $subHierarchy );
 			$subHierarchyRoot = HierarchyBuilder::getPageNameFromHierarchyRow( $subHierarchyRows[0] );
-			if ($subHierarchyRoot == $root) {
-				$subHierarchyRows[0] = str_repeat( '*', strlen( $depth ) + 1) . $subHierarchyRows[0]; // put the stars on the root row to start
-				$result = array_reduce( $subHierarchyRows, 
+			if ( $subHierarchyRoot == $root ) {
+				$subHierarchyRows[0] = str_repeat( '*', strlen( $depth ) + 1 ) . $subHierarchyRows[0]; // put the stars on the root row to start
+				$result = array_reduce( $subHierarchyRows,
 					function( $carry, $item ) use ( $depth ) {
-						if ( $carry != '' ){
-							$carry .= "\n" . substr( $item, strlen($depth));
+						if ( $carry != '' ) {
+							$carry .= "\n" . substr( $item, strlen( $depth ) );
 						} else {
-							$carry = substr( $item, strlen($depth));
+							$carry = substr( $item, strlen( $depth ) );
 						}
 						return $carry;
 					}
@@ -964,7 +964,7 @@ END;
 				return $result;
 			} else {
 				$subHierarchyCandidate = HierarchyBuilder::getSubhierarchyHelper( $root, $subHierarchy, $depth . '*' );
-				if ($subHierarchyCandidate != '') {
+				if ( $subHierarchyCandidate != '' ) {
 					return $subHierarchyCandidate;
 				}
 			}

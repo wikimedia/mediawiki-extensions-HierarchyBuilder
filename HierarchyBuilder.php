@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.6.1',
+	'version' => '1.7.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -109,7 +109,7 @@ $wgResourceModules['ext.HierarchyBuilder.select'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'HierarchyBuilder',
 	'scripts' => 'selectFromHierarchy.js',
-	'styles' => 'selectFromHierarchy.css',	
+	'styles' => 'selectFromHierarchy.css',
 	'dependencies' => array(
 		'ext.HierarchyBuilder.jstree',
 		'ext.semanticforms.main'
@@ -129,7 +129,7 @@ function efHierarchyBuilderSetup ( & $parser ) {
 	$parser->setFunctionHook( 'hierarchySelected', 'hierarchySelected' );
 
 	$parser->setHook( 'hierarchy', 'renderHierarchy' );
-	$parser->setHook( 'hierarchySelected', 'renderHierarchySelected');
+	$parser->setHook( 'hierarchySelected', 'renderHierarchySelected' );
 	global $sfgFormPrinter;
 	$sfgFormPrinter->registerInputType( 'HierarchyFormInput' );
 	$sfgFormPrinter->registerInputType( 'HierarchySelectFormInput' );
@@ -138,7 +138,7 @@ function efHierarchyBuilderSetup ( & $parser ) {
 
 /**
  * This parser function will return only specific selected rows of a hierarchy
- * in addition to any necessary contextual rows. 
+ * in addition to any necessary contextual rows.
  *
  * The returned hierarchy is displayd similarly to the HierarchySelectFormInput,
  * with each row preceeded by a checkbox. However, the checkboxes will be inactive.
@@ -146,7 +146,7 @@ function efHierarchyBuilderSetup ( & $parser ) {
  * For a given set of selected rows, only those rows will be provided from the
  * hierarchy in addition to the minimal necessary contextual rows needed to display
  * the hierarchical relationships. For example, if a single selected row is given,
- * but that row is a leaf node which is 5 levels deep within the hierarchy, then 
+ * but that row is a leaf node which is 5 levels deep within the hierarchy, then
  * that row will be given along with each of its ancestors. This is conidered the
  * "pruned" behavior.
  *
@@ -157,24 +157,24 @@ function efHierarchyBuilderSetup ( & $parser ) {
  *
  * @param $parser: Parser
  * @return I don't know yet.
- * 
+ *
  * Example invokation:
  * @code
- * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>}} 
+ * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>}}
  * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|pruned}}
  * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|collapsed}}
  * @endcode
  */
 function hierarchySelected( $parser ) {
 	$params = func_get_args();
-	if ( count( $params ) < 4 || count( $params ) > 5) {
+	if ( count( $params ) < 4 || count( $params ) > 5 ) {
 		$output = '';
 	} else {
 		$selectedPages = $params[1];
 		$hierarchyPageName = $params[2];
 		$hierarchyPropertyName = $params[3];
 		// if "pruned" is given, then set the displaymode to pruned. otherwise, "collapsed"
-		if ( isset( $params[4] ) && $params[4] == 'collapsed') {
+		if ( isset( $params[4] ) && $params[4] == 'collapsed' ) {
 			$displayMode = 'collapsed';
 		} else {
 			$displayMode = 'pruned';
@@ -192,7 +192,7 @@ function hierarchySelected( $parser ) {
 		// this is where we ask HierarchyBuilder class to actually do the work for us.
 		$hierarchyTree = HierarchyTree::fromWikitext( $wikitextHierarchy );
 
-		$normalizedSelectedPages = 
+		$normalizedSelectedPages =
 			array_map(
 				function( $page ) {
 					$pagename = HierarchyBuilder::getPageNameFromHierarchyRow( $page );
@@ -204,12 +204,12 @@ function hierarchySelected( $parser ) {
 				explode( ',', $selectedPages )
 			);
 		$mst = $hierarchyTree->getMST( $normalizedSelectedPages );
-		
+
 		// output formatting
-		$flatNormalizedSelectedPages = 			
-			array_reduce( $normalizedSelectedPages, 
+		$flatNormalizedSelectedPages =
+			array_reduce( $normalizedSelectedPages,
 					function( $carry, $item ) {
-						if ( $carry == '') {
+						if ( $carry == '' ) {
 							$carry = $item;
 						} else {
 							$carry .= ',' . $item;
@@ -309,12 +309,12 @@ function subhierarchy( $parser ) {
 			$children = array_slice( $hierarchyrows, 1 );
 
 			$depth = HierarchyBuilder::getDepthOfHierarchyRow( $root );
-			$output = array_reduce( $children, 
+			$output = array_reduce( $children,
 					function( $carry, $item ) use ( $depth ) {
-						if ($carry != '') {
-							$carry .= "\n" . substr( $item, strlen($depth));
+						if ( $carry != '' ) {
+							$carry .= "\n" . substr( $item, strlen( $depth ) );
 						} else {
-							$carry = substr( $item, strlen($depth));
+							$carry = substr( $item, strlen( $depth ) );
 						}
 						return $carry;
 					}
@@ -322,7 +322,7 @@ function subhierarchy( $parser ) {
 		}
 
 		// this is the default output display format
-		if ($format != 'ul') {
+		if ( $format != 'ul' ) {
 			if ( $displaynameproperty == '' ) {
 					$output = "<hierarchy $collapsed>$output</hierarchy>";
 			} else {
@@ -331,7 +331,7 @@ function subhierarchy( $parser ) {
 		}
 		// otherwise it's the bulleted format and we don't modify output.
 
-		$output = $parser->recursiveTagParse( PHP_EOL.$output );
+		$output = $parser->recursiveTagParse( PHP_EOL . $output );
 	}
 	return $parser->insertStripItem( $output, $parser->mStripState );
 }
@@ -461,7 +461,7 @@ function parent( $parser ) {
 							} else {
 								return "{{" . $template . "|[[$parent]]}}";
 							}
-						},
+						} ,
 						$parents
 					),
 					"$delimiter\n"
@@ -472,7 +472,7 @@ function parent( $parser ) {
 					array_map(
 						function( $parent ) use ( $link ) {
 							return $link == 'none' ? $parent : "[[$parent]]";
-						},
+						} ,
 						$parents
 					),
 					$delimiter
@@ -586,7 +586,7 @@ function children( $parser ) {
 							} else {
 								return "{{" . $template . "|[[$child]]}}";
 							}
-						},
+						} ,
 						$children
 					),
 					"$delimiter\n"
@@ -597,7 +597,7 @@ function children( $parser ) {
 					array_map(
 						function( $child ) use ( $link ) {
 							return $link == 'none' ? $child : "[[$child]]";
-						},
+						} ,
 						$children
 					),
 					$delimiter
