@@ -8,6 +8,7 @@
 	"hierarchybuilder-desc": "Procesa e permite a edición e selección a partir da páxina de xerarquías",
 	"hierarchybuilder-hierarchyroot": "Raiz da xerarquía",
 	"hierarchybuilder-unusedpages": "Páxinas sen uso",
+	"hierarchybuilder-category-desc": "Esta é a categoría na que deben estar as páxinas da xerarquía.",
 	"hierarchybuilder-missing-category": "Falta o argumento da categoría.",
 	"hierarchybuilder-displaynameproperty-desc": "Este é o nome opcional dunha propiedade que contén o valor a visualizar no canto do nome da páxina.",
 	"hierarchybuilder-pagename-desc": "Este é o nome da páxina que contén a xerarquía.",
