@@ -1,8 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
-			"0x010C"
+			"0x010C",
+			"Lucky"
 		]
 	},
-	"hierarchybuilder-unusedpages": "Pages inutilisées"
+	"hierarchybuilder-hierarchyroot": "Racine de la hiérarchie",
+	"hierarchybuilder-unusedpages": "Pages inutilisées",
+	"hierarchybuilder-missing-page-name": "L'argument du nom de la page est manquant."
 }
