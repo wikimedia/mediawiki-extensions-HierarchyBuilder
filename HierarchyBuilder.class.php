@@ -39,6 +39,7 @@ class HierarchyBuilder {
 	const LINK = 'link';
 	const FORMAT = 'format';
 	const DISPLAYNAMEPROPERTY = 'displaynameproperty';
+	const TITLEICONPROPERTY = 'titleiconproperty';
 	const DISPLAYMODE = 'displaymode';
 	const SHOWROOT = 'showroot';
 	const COLLAPSED = 'collapsed';
@@ -506,6 +507,18 @@ class HierarchyBuilder {
 			$numbered = 'false';
 		}
 
+		if ( isset( $attributes['titleiconproperty'] ) ) {
+			$titleiconproperty =
+				htmlspecialchars( $attributes['titleiconproperty'] );
+			//var_dump($titleiconproperty);
+		} else	{
+			$titleiconproperty = '';
+		}
+		//$titleicons = 'Logo ';
+		//print_r("what the heck: " . $input);
+
+		//print_r('titleiconproperty = ' . $titleiconproperty);
+
 		// this looks like it gets the property but it eats all the links.
 		$input = $parser->recursiveTagParse( $input, $frame );
 		$input = self::anchorLinkHolders( $input );
@@ -517,19 +530,60 @@ class HierarchyBuilder {
 			false )->getText();
 
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$displayNameProperty, $dummy,
-			function ( $pageName, $displayNameProperty, $data ) {
+			$displayNameProperty, $titleiconproperty, $dummy,
+			function ( $pageName, $displayNameProperty, $titleiconproperty, $data ) {
 				$pageLinkArray = array();
 				$title = Title::newFromText( $pageName );
 				if ( $title ) {
 					$pageLinkArray['href'] = $title->getLinkURL();
 				}
 				if ( strlen( $displayNameProperty ) > 0 ) {
-					$pageName = HierarchyBuilder::getPageDisplayName( $pageName,
+					$displayName = HierarchyBuilder::getPageDisplayName( $pageName,
 						$displayNameProperty );
+				} else {
+					$displayName = $pageName;
+				}
+
+				$titleiconArray = array();
+				$pagetitleicon = '';
+				if ( strlen( $titleiconproperty ) > 0 ) {
+					$pagetitleicon = HierarchyBuilder::getPageTitleIcons( $pageName,
+						$titleiconproperty );
+
+					/*if ( strlen($pagetitleicon) == 0 ) { 
+						global $TitleIcon_TitleIconPropertyName;
+						$pagetitleicon = HierarchyBuilder::getPageTitleIcons( $pageName,
+							$TitleIcon_TitleIconPropertyName );
+					}*/
+
+					$titleiconArray['src'] = $pagetitleicon;
+					$titleiconArray['class'] = 'hierarchy_row_titleicon';
+				}
+
+				$iconElement = '';
+				if ( $pagetitleicon !== '' ) {
+					$iconElement = Html::element( 'img', $titleiconArray );
+				}
+
+				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
+			} );
+
+		/***
+		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
+			$titleiconproperty, $dummy,
+			function ( $pageName, $titleiconproperty, $data ) {
+				$pageLinkArray = array();
+				$title = Title::newFromText( $pageName );
+				if ( $title ) {
+					$pageLinkArray['href'] = $title->getLinkURL();
+				}
+				if ( strlen( $titleiconproperty ) > 0 ) {
+					$pageName = HierarchyBuilder::getPageTitleIcons( $pageName,
+						$titleiconproperty );
 				}
 				return Html::element( 'a', $pageLinkArray, $pageName );
 			} );
+		***/
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
 
@@ -611,7 +665,7 @@ END;
 			false )->getText();
 
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$displayNameProperty, $dummy,
+			$displayNameProperty, '',  $dummy,
 			function ( $pageName, $displayNameProperty, $data ) {
 				$pageLinkArray = array();
 				$title = Title::newFromText( $pageName );
@@ -675,7 +729,7 @@ END;
 	 *
 	 * @return string: Updated HTML formatted hierarchy with functional links.
 	 */
-	public static function parseHierarchy( $input, $displayNameProperty, &$data,
+	public static function parseHierarchy( $input, $displayNameProperty, $titleIconProperty, &$data,
 		$callback ) {
 		$hierarchy = htmlspecialchars_decode( $input );
 		$newlines = array( "\n", "\r" );
@@ -684,7 +738,7 @@ END;
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[1] as $pageName ) {
-				$link = $callback( trim( $pageName ), $displayNameProperty, $data );
+				$link = $callback( trim( $pageName ), $displayNameProperty, $titleIconProperty, $data );
 				$hierarchy = str_replace( "<a>$pageName</a>", $link, $hierarchy );
 			}
 		}
@@ -978,5 +1032,45 @@ END;
 		$hierarchy = "[[Hierarchy_Root]]\n" . $hierarchy;
 
 		HierarchyTree::parseHierarchyToTree( $hierarchy );
+	}
+
+	/**
+	 * This function gives the titleicon url for the specified page when using
+	 * titleicons.
+	 *
+	 * @param string $page: Name of the page.
+	 * @param string $titleIconProperty: Name of the property that stores
+	 *  titleicon urls for pages when titleicons are active.
+	 *
+	 * @return string: The titleicon url of the specified page.
+	 */
+	public static function getPageTitleIcons( $page, $titleIconProperty ) {
+		global $wgRequest;
+
+		if ( strlen( $titleIconProperty ) == 0 ) {
+			return '';
+		}
+		
+		$api = new ApiMain(
+			new DerivativeRequest(
+				$wgRequest,
+				array(
+					'action' => 'hbGetTitleIcons',
+					'pageTitle' => $page,
+					'titleIconProperty' => $titleIconProperty
+				)
+			),
+			false
+		);
+
+		$api->execute();
+		$data = $api->getResultData();
+
+		$titleiconURLs = $data['hbGetTitleIcons']['titleIcons'];
+		if ( count( $titleiconURLs ) > 0 ) {
+			return $titleiconURLs[0];
+		} else {
+			return '';
+		}
 	}
 }

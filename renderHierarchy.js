@@ -152,9 +152,9 @@
 							.contents();
 
 						var childNumber = numberPrefix === "" ? $numberSuffix++ : numberPrefix + "." + $numberSuffix++;
-						var numberedChild = childNumber + " " + $children.first()
+						var numberedChild = childNumber + " " + $children.filter("a").first()
 							.text();
-						$children.first()
+						$children.filter("a").first()
 							.text( numberedChild );
 
 						var $sublist = $children.filter( "ul" );

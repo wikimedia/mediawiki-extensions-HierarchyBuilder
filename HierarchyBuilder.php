@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.7.0',
+	'version' => '1.8.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -64,6 +64,10 @@ $wgAutoloadClasses['HierarchySelectFormInput'] = __DIR__ . '/HierarchySelectForm
 $wgAutoloadClasses['HierarchyTree'] = __DIR__ . '/HierarchyTree.php';
 $wgAutoloadClasses['TreeNode'] = __DIR__ . '/TreeNode.php';
 
+/* Adding API for retrieving urls of the title icons for pages*/
+$wgAPIModules['hbGetTitleIcons'] = 'ApiHBGetTitleIcons';
+$wgAutoloadClasses['ApiHBGetTitleIcons'] = __DIR__ . '/ApiHBGetTitleIcons.php';
+
 $wgMessagesDirs['HierarchyBuilder'] = __DIR__ . "/i18n";
 
 $wgExtensionMessagesFiles['HierarchyBuilderMagic'] =
@@ -80,6 +84,7 @@ $wgResourceModules['ext.HierarchyBuilder.render'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'HierarchyBuilder',
 	'scripts' => 'renderHierarchy.js',
+	'styles' => 'renderHierarchy.css',
 	'dependencies' => array(
 		'ext.HierarchyBuilder.jstree'
 	)
@@ -203,6 +208,7 @@ function hierarchySelected( $parser ) {
 				},
 				explode( ',', $selectedPages )
 			);
+	
 		$mst = $hierarchyTree->getMST( $normalizedSelectedPages );
 
 		// output formatting
@@ -217,6 +223,7 @@ function hierarchySelected( $parser ) {
 						return $carry;
 					}
 				);
+
 		$selected = htmlspecialchars( str_replace( " ", "%20", $flatNormalizedSelectedPages	) );
 
 		$output = '';
@@ -225,6 +232,7 @@ function hierarchySelected( $parser ) {
 		} else {
 			$output = "<hierarchySelected $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
 		}
+
 		$output = $parser->recursiveTagParse( $output );
 
 	}
@@ -279,6 +287,10 @@ function subhierarchy( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
 			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
 		}
+		$titleiconproperty = '';
+		if (isset( $optionalParams[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
+			$titleiconproperty = $optionalParams[HierarchyBuilder::TITLEICONPROPERTY];
+		}
 		/*$displaymode = '';
 		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYMODE] ) ) {
 			$displaymode = $optionalParams[HierarchyBuilder::DISPLAYMODE];
@@ -323,10 +335,13 @@ function subhierarchy( $parser ) {
 
 		// this is the default output display format
 		if ( $format != 'ul' ) {
+			if ( $titleiconproperty != '' ) {
+				$titleiconproperty = "titleiconproperty=\"$titleiconproperty\"";
+			}
 			if ( $displaynameproperty == '' ) {
-					$output = "<hierarchy $collapsed>$output</hierarchy>";
+					$output = "<hierarchy $collapsed $titleiconproperty>$output</hierarchy>";
 			} else {
-				$output = "<hierarchy $collapsed displaynameproperty=$displaynameproperty>$output</hierarchy>";
+				$output = "<hierarchy $collapsed displaynameproperty=$displaynameproperty $titleiconproperty>$output</hierarchy>";
 			}
 		}
 		// otherwise it's the bulleted format and we don't modify output.
@@ -674,6 +689,7 @@ function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
 	$hierarchyBuilder = new HierarchyBuilder;
 	$output = $hierarchyBuilder->renderHierarchySelected( $input, $attributes, $parser,
 		$frame );
+
 	$parser->disableCache();
 	return array( $parser->insertStripItem( $output, $parser->mStripState ),
 		'noparse' => false );
