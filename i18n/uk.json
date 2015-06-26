@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ата"
+		]
+	},
+	"hierarchybuilder-desc": "Виводить і дозволяє редагування та вибірку з ієрархій сторінок",
+	"hierarchybuilder-unusedpages": "Невикористані сторінки",
+	"hierarchybuilder-category-desc": "Це категорія, до якої повинні належати сторінки в ієрархії.",
+	"hierarchybuilder-missing-category": "Аргумент категорії відсутній.",
+	"hierarchybuilder-displaynameproperty-desc": "Це необов'язкова назва властивості, яка містить значення, що буде показане замість назви сторінки.",
+	"hierarchybuilder-pagename-desc": "Це назва сторінки, яка містить ієрархію.",
+	"hierarchybuilder-propertyname-desc": "Це назва властивості, що містить ієрархію.",
+	"hierarchybuilder-collapsed-desc": "Якщо цей параметр вказано, ієрархія при першому показі має бути виведена згорнутою.",
+	"hierarchybuilder-missing-page-name": "Аргумент назви сторінки відсутній.",
+	"hierarchybuilder-missing-property-name": "Аргумент назви властивості відсутній.",
+	"hierarchybuilder-invalid-collapsed": "Значення згорнутого аргумента недопустиме."
+}
