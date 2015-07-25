@@ -2,9 +2,11 @@
 	"@metadata": {
 		"authors": [
 			"0x010C",
-			"Lucky"
+			"Lucky",
+			"Wladek92"
 		]
 	},
+	"hierarchybuilder-desc": "Affiche et permet la modification et la sélection à partir des hiérarchies de page",
 	"hierarchybuilder-hierarchyroot": "Racine de la hiérarchie",
 	"hierarchybuilder-unusedpages": "Pages inutilisées",
 	"hierarchybuilder-missing-page-name": "L'argument du nom de la page est manquant."
