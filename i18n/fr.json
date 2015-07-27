@@ -9,5 +9,6 @@
 	"hierarchybuilder-desc": "Affiche et permet la modification et la sélection à partir des hiérarchies de page",
 	"hierarchybuilder-hierarchyroot": "Racine de la hiérarchie",
 	"hierarchybuilder-unusedpages": "Pages inutilisées",
+	"hierarchybuilder-missing-category": "L'argument concernant la catégorie est manquant.",
 	"hierarchybuilder-missing-page-name": "L'argument du nom de la page est manquant."
 }
