@@ -59,7 +59,7 @@ class HierarchyFormInput extends SFFormInput {
 			SMW_OUTPUT_WIKI ); // this can wait for a another approach
 // use the category object to get list of titles in category from which you can get names
 
-		$pageArray = array_map( 'trim', explode( ',', $output ) );
+		$pageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
 
 		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
 			$displayNameProperty = $this->mOtherArgs['displaynameproperty'];
