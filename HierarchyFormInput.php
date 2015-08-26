@@ -98,6 +98,8 @@ class HierarchyFormInput extends SFFormInput {
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'message' =>
 				wfMessage( 'hierarchybuilder-editmessage', $this->mCategory )->text(),
+			'errormessage' =>
+				wfMessage( 'hierarchybuilder-edit-error-message' )->text(),
 			'hierarchyroot' =>
 				wfMessage( 'hierarchybuilder-hierarchyroot' )->text(),
 			'unusedpages' =>

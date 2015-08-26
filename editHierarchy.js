@@ -79,9 +79,11 @@
 			 */
 			init: function( inputId, params ) {
 				var hierarchy = params.hierarchy;
-				if ( hierarchy.length < 1 ) {
+				var unusedpages = params.unusedpages;
+
+				/*if ( hierarchy.length < 1 ) {
 					return;
-				}
+				}*/
 
 				hierarchy = this.parseWikiTextToHtml( params.hierarchyroot, hierarchy );
 
@@ -91,17 +93,28 @@
 
 				var innerframeattr = "class='hierarchy_inner' width='50%;'";
 				var html = "<div class='hierarchy_outer' dir='ltr'>";
-				html += "<p>" + params.message + "</p>";
-				html += "<table width='100%;'><tr><td " + innerframeattr + ">" +
-					"<div id='" + hierarchyDivId + "'></div></td>" +
-					"<td " + innerframeattr + ">" +
-					"<div id='" + pageListDivId + "'></div></td></tr></table>";
 
+				console.log("[editHierarchy][init]: hierarchy length = " + params.hierarchy.length);
+				console.log("[editHierarchy][init]: unusedpages length = " + params.unusedpages.length);
+
+				if ( (params.hierarchy.length < 1) && (params.pages.length < 1) ) {
+					html += "<p>" + params.errormessage + "</p>";
+				} else {
+					html += "<p>" + params.message + "</p>";
+					html += "<table width='100%;'><tr><td " + innerframeattr + ">" +
+							"<div id='" + hierarchyDivId + "'></div></td>" +
+							"<td " + innerframeattr + ">" +
+							"<div id='" + pageListDivId + "'></div></td></tr></table>";
+				}
 				html += "</div>";
 
 				jqDivId = "#" + jqDivId;
 				$( jqDivId )
 					.html( html );
+
+				if ( (params.hierarchy.length < 1) && (params.pages.length < 1) ) {
+					return;
+				}
 
 				hierarchyDivId = "#" + hierarchyDivId;
 				$( hierarchyDivId )
