@@ -67,6 +67,12 @@ class HierarchyFormInput extends SFFormInput {
 			$displayNameProperty = '';
 		}
 
+		if ( array_key_exists( 'hideinfo', $this->mOtherArgs ) ) {
+			$hideinfoProperty = $this->mOtherArgs['hideinfo'];
+		} else {
+			$hideinfoProperty = 'false';
+		}
+
 		$pages = array();
 		foreach ( $pageArray as $key => $value ) {
 			$pages[$value] =
@@ -95,7 +101,10 @@ class HierarchyFormInput extends SFFormInput {
 			'hierarchy' => $hierarchy,
 			'pages' => $pages,
 			'isDisabled' => $this->mIsDisabled,
+			'hideinfo' => $hideinfoProperty,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
+			'revealEditMessage' =>
+				wfMessage( 'hierarchybuilder-reveal-editmessage' )->text(),
 			'message' =>
 				wfMessage( 'hierarchybuilder-editmessage', $this->mCategory )->text(),
 			'errormessage' =>
