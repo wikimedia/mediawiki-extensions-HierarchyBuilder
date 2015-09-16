@@ -94,13 +94,20 @@
 				var innerframeattr = "class='hierarchy_inner' width='50%;'";
 				var html = "<div class='hierarchy_outer' dir='ltr'>";
 
-				console.log("[editHierarchy][init]: hierarchy length = " + params.hierarchy.length);
-				console.log("[editHierarchy][init]: unusedpages length = " + params.unusedpages.length);
-
 				if ( (params.hierarchy.length < 1) && (params.pages.length < 1) ) {
 					html += "<p>" + params.errormessage + "</p>";
 				} else {
-					html += "<p>" + params.message + "</p>";
+					if (params.hideinfo == "false") {
+						html += "<p>" + params.message + "</p>";
+					} else {
+						//html += "<span id=showinfo class=\"smwtticon info\"></span> <b>Instructions</b>"
+						html += "<i>" + params.revealEditMessage + "</i> <span id=showinfo class=\"smwtticon info\"></span>"
+						html += "<div id=info style=\"display: none;\">";
+						html += "<p>" + params.message + "</p>";
+						html += "</div>";
+						//html += "<button id=showinfo type=\"button\">Show Info</button>";
+					}
+
 					html += "<table width='100%;'><tr><td " + innerframeattr + ">" +
 							"<div id='" + hierarchyDivId + "'></div></td>" +
 							"<td " + innerframeattr + ">" +
@@ -112,8 +119,29 @@
 				$( jqDivId )
 					.html( html );
 
+				// this is just a short circuit thing for empty hierarchies with empty categories
+				// the code above handled the error message but now we gotta do nothing else
 				if ( (params.hierarchy.length < 1) && (params.pages.length < 1) ) {
 					return;
+				}
+				if ( params.hideinfo == "true" ) {
+					console.log("[editHierarchy.js][init] " + "I'm here!");
+					var button = $("#showinfo")[0];
+					button.onclick = function() { 
+						/*if (button.text == "Show Info") {
+							$("#info").slideDown();
+							button.text = "Hide Info";
+						}
+						else {
+							$("#info").slideUp();
+							button.text = "Show Info";
+						}*/
+						if ($("#info").css("display") == "none") {
+							$("#info").slideDown();
+						} else {
+							$("#info").slideUp();
+						}
+					}
 				}
 
 				hierarchyDivId = "#" + hierarchyDivId;

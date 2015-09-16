@@ -34,3 +34,7 @@
 	vertical-align: top;
 	border:1px solid black;
 }
+
+#showinfo {
+	cursor: pointer;
+}
