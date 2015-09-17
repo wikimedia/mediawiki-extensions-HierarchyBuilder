@@ -510,14 +510,9 @@ class HierarchyBuilder {
 		if ( isset( $attributes['titleiconproperty'] ) ) {
 			$titleiconproperty =
 				htmlspecialchars( $attributes['titleiconproperty'] );
-			//var_dump($titleiconproperty);
 		} else	{
 			$titleiconproperty = '';
 		}
-		//$titleicons = 'Logo ';
-		//print_r("what the heck: " . $input);
-
-		//print_r('titleiconproperty = ' . $titleiconproperty);
 
 		// this looks like it gets the property but it eats all the links.
 		$input = $parser->recursiveTagParse( $input, $frame );
@@ -545,45 +540,19 @@ class HierarchyBuilder {
 				}
 
 				$titleiconArray = array();
-				$pagetitleicon = '';
+				$pagetitleicons = '';
 				if ( strlen( $titleiconproperty ) > 0 ) {
-					$pagetitleicon = HierarchyBuilder::getPageTitleIcons( $pageName,
+					$pagetitleicons = HierarchyBuilder::getPageTitleIcons( $pageName,
 						$titleiconproperty );
-
-					/*if ( strlen($pagetitleicon) == 0 ) { 
-						global $TitleIcon_TitleIconPropertyName;
-						$pagetitleicon = HierarchyBuilder::getPageTitleIcons( $pageName,
-							$TitleIcon_TitleIconPropertyName );
-					}*/
-
-					$titleiconArray['src'] = $pagetitleicon;
-					$titleiconArray['class'] = 'hierarchy_row_titleicon';
 				}
 
 				$iconElement = '';
-				if ( $pagetitleicon !== '' ) {
-					$iconElement = Html::element( 'img', $titleiconArray );
+				if ( $pagetitleicons !== '' ) {
+					$iconElement = HierarchyBuilder::getIconHTML($pagetitleicons);
 				}
 
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} );
-
-		/***
-		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$titleiconproperty, $dummy,
-			function ( $pageName, $titleiconproperty, $data ) {
-				$pageLinkArray = array();
-				$title = Title::newFromText( $pageName );
-				if ( $title ) {
-					$pageLinkArray['href'] = $title->getLinkURL();
-				}
-				if ( strlen( $titleiconproperty ) > 0 ) {
-					$pageName = HierarchyBuilder::getPageTitleIcons( $pageName,
-						$titleiconproperty );
-				}
-				return Html::element( 'a', $pageLinkArray, $pageName );
-			} );
-		***/
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
 
@@ -751,11 +720,12 @@ END;
 	 *
 	 * @param string $page: Name of the page from which to retrieve a property.
 	 * @param string $property: Name of the property that should be returned.
+	 * @param boolean $firstonly: Determine if only the first value is returned.
 	 *
 	 * @return string: The value of the specified property from the given page
 	 *  or the empty string if the property does not exist.
 	 */
-	public static function getPropertyFromPage( $page, $property ) {
+	public static function getPropertyFromPage( $page, $property, $firstonly = true ) {
 		$store = smwfGetStore();
 		$title = Title::newFromText( $page );
 		$subject = SMWDIWikiPage::newFromTitle( $title );
@@ -767,11 +737,19 @@ END;
 		foreach ( $values as $value ) {
 			if ( $value->getDIType() == SMWDataItem::TYPE_STRING ||
 				$value->getDIType() == SMWDataItem::TYPE_BLOB ) {
-				return trim( $value->getString() );
+				if ($firstonly){
+					return trim( $value->getString() );
+				} else {
+					$strings[] = trim( $value->getString() );
+				}
 			}
 		}
-		// return $strings;
-		return '';
+		if ( $firstonly ) {
+			return '';
+		} else {
+			return $strings;
+		}
+		
 	}
 
 	/**
@@ -1035,42 +1013,95 @@ END;
 	}
 
 	/**
-	 * This function gives the titleicon url for the specified page when using
+	 * This function constructs the img html elements to display each of the
+	 * given titleicons.
+	 *
+	 * @param array $icons: The array of pagename, titleicon pairs to be shown.
+	 *
+	 * @return string: The html for rendering all of the titleicons.
+	 */
+	public static function getIconHTML( $icons ) {
+		$iconhtml = "";
+		foreach ( $icons as $iconinfo ) {
+
+			$page = $iconinfo["page"];
+			$icon = $iconinfo["icon"];
+
+			$filetitle = Title::newFromText( "File:" . $icon );
+			$imagefile = wfFindFile( $filetitle );
+
+			if ( $imagefile !== false ) {
+
+				$tooltip = $page;
+				
+				$frameParams = array();
+				//$frameParams['link-title'] = $page;
+				$frameParams['alt'] = $tooltip;
+				$frameParams['title'] = $tooltip;
+				$handlerParams = array(
+					'width' => '15',
+					'height' => '15'
+				);
+
+				$iconhtml .= Linker::makeImageLink( $GLOBALS['wgParser'],
+					$filetitle, $imagefile, $frameParams, $handlerParams ) .
+					"&nbsp;";
+			}
+
+		}
+
+		//extract just the guts of just the img part of the html
+		$imgpattern = '/\<img (.*) \/\>/';
+		$numMatches = preg_match_all( $imgpattern, $iconhtml, $matches );
+		
+		// build the new image html thing
+		$iconhtml = '<img class=\"hierarchy_row_titleicon\" ' . $matches[1][0] . '/>';
+
+		return $iconhtml;
+	}
+
+	/**
+	 * This function gives the titleicons for the specified page when using
 	 * titleicons.
 	 *
 	 * @param string $page: Name of the page.
 	 * @param string $titleIconProperty: Name of the property that stores
 	 *  titleicon urls for pages when titleicons are active.
 	 *
-	 * @return string: The titleicon url of the specified page.
+	 * @return array: The pagename, titleiconname pairs for the specified page.
 	 */
 	public static function getPageTitleIcons( $page, $titleIconProperty ) {
-		global $wgRequest;
+		// get the title icons for this page
+		$discoveredIcons =
+			HierarchyBuilder::getPropertyFromPage( $page, $titleIconProperty, false );
 
-		if ( strlen( $titleIconProperty ) == 0 ) {
-			return '';
+		$icons = array();
+		if ( $discoveredIcons ) {
+
+			foreach ( $discoveredIcons as $icon ) {
+
+				$found = false;
+				foreach ( $icons as $foundIcon ) {
+
+					if ( $foundIcon["icon"] === $icon ) {
+						$found = true;
+						break;
+					}
+
+				}
+
+				if ( $found == false ) {
+					$entry = array();
+					$entry["page"] = $page;
+					$entry["icon"] = $icon;
+					$icons[] = $entry;
+
+				}
+
+			}
+
 		}
-		
-		$api = new ApiMain(
-			new DerivativeRequest(
-				$wgRequest,
-				array(
-					'action' => 'hbGetTitleIcons',
-					'pageTitle' => $page,
-					'titleIconProperty' => $titleIconProperty
-				)
-			),
-			false
-		);
 
-		$api->execute();
-		$data = $api->getResultData();
-
-		$titleiconURLs = $data['hbGetTitleIcons']['titleIcons'];
-		if ( count( $titleiconURLs ) > 0 ) {
-			return $titleiconURLs[0];
-		} else {
-			return '';
-		}
+		return $icons;
 	}
 }
