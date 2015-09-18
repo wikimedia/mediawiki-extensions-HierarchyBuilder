@@ -5,6 +5,7 @@
 		]
 	},
 	"hierarchybuilder-desc": "Zeisch Bäum vun Sigge un määd et müjjelesch, vun dänne jäd ußzesöhke, un se ze Ändere.",
+	"hierarchybuilder-reveal-editmessage": "Wih bruchen esch dat heh?",
 	"hierarchybuilder-editmessage": "En dä {{int:Hierarchy root}} schtonn di Sigge em Boum, un wääde faßjehalle, wann de di Sigg schpeischere deihß. En dä Leß „{{int:Unused pages}}“ schtonn di Sigge uß dä {{int:category}} $1, di em Momang nit em Boum enzoteert sin. Do kanns dä Boum ändere, endämm dat De Sigge erop un eronger bewääschs udder enröcks udder ußröcks. Do kanns Sigge eröm träke un esu uß dä Leß „{{int:Unused pages}}“ en dä Boum övvernämme udder uß däm Boum eruß nämme un öhnswoh en di Leß „{{int:Unused pages}}“ donn.",
 	"hierarchybuilder-hierarchyroot": "De Schtammsigg vum Siggeboum",
 	"hierarchybuilder-unusedpages": "Sigge, di nit en dämm Boum sin",
