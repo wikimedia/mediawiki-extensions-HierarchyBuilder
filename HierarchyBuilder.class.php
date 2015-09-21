@@ -1021,7 +1021,7 @@ END;
 	 * @return string: The html for rendering all of the titleicons.
 	 */
 	public static function getIconHTML( $icons ) {
-		$iconhtml = "";
+		$iconhtmls = array();
 		foreach ( $icons as $iconinfo ) {
 
 			$page = $iconinfo["page"];
@@ -1038,26 +1038,26 @@ END;
 				//$frameParams['link-title'] = $page;
 				$frameParams['alt'] = $tooltip;
 				$frameParams['title'] = $tooltip;
-				$handlerParams = array(
-					'width' => '15',
-					'height' => '15'
-				);
+				$handlerParams = array(); // this is where we might specify default height and width but that's not helping us
 
-				$iconhtml .= Linker::makeImageLink( $GLOBALS['wgParser'],
-					$filetitle, $imagefile, $frameParams, $handlerParams ) .
-					"&nbsp;";
+				$iconhtmls[] = Linker::makeImageLink( $GLOBALS['wgParser'],
+					$filetitle, $imagefile, $frameParams, $handlerParams );
 			}
 
 		}
 
-		//extract just the guts of just the img part of the html
-		$imgpattern = '/\<img (.*) \/\>/';
-		$numMatches = preg_match_all( $imgpattern, $iconhtml, $matches );
-		
-		// build the new image html thing
-		$iconhtml = '<img class=\"hierarchy_row_titleicon\" ' . $matches[1][0] . '/>';
+		$finaliconshtml = '';
+		foreach ( $iconhtmls as $iconhtml ){
+			//extract just the guts of just the img part of the html
+			$imgpattern = '/\<img (.*) \/\>/';
+			$numMatches = preg_match_all( $imgpattern, $iconhtml, $matches );
+			
+			// build the new image html thing
+			$finaliconshtml .= '<img class=\"hierarchy_row_titleicon\" ' . $matches[1][0] . '/>';
 
-		return $iconhtml;
+		}
+		
+		return $finaliconshtml;
 	}
 
 	/**

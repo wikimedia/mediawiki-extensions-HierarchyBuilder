@@ -125,7 +125,6 @@
 					return;
 				}
 				if ( params.hideinfo == "true" ) {
-					console.log("[editHierarchy.js][init] " + "I'm here!");
 					var button = $("#showinfo")[0];
 					button.onclick = function() { 
 						/*if (button.text == "Show Info") {
