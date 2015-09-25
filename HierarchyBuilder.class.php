@@ -726,29 +726,35 @@ END;
 	 *  or the empty string if the property does not exist.
 	 */
 	public static function getPropertyFromPage( $page, $property, $firstonly = true ) {
-		$store = smwfGetStore();
-		$title = Title::newFromText( $page );
-		$subject = SMWDIWikiPage::newFromTitle( $title );
-		$data = $store->getSemanticData( $subject );
-		$property = SMWDIProperty::newFromUserLabel( $property );
-		$values = $data->getPropertyValues( $property );
+		try {
+			$store = smwfGetStore();
+			$title = Title::newFromText( $page );
+			$subject = SMWDIWikiPage::newFromTitle( $title );
+			$data = $store->getSemanticData( $subject );
+			$property = SMWDIProperty::newFromUserLabel( $property );
+			$values = $data->getPropertyValues( $property );
 
-		$strings = array();
-		foreach ( $values as $value ) {
-			if ( $value->getDIType() == SMWDataItem::TYPE_STRING ||
-				$value->getDIType() == SMWDataItem::TYPE_BLOB ) {
-				if ($firstonly){
-					return trim( $value->getString() );
-				} else {
-					$strings[] = trim( $value->getString() );
+			$strings = array();
+			foreach ( $values as $value ) {
+				if ( $value->getDIType() == SMWDataItem::TYPE_STRING ||
+					$value->getDIType() == SMWDataItem::TYPE_BLOB ) {
+					if ($firstonly){
+						return trim( $value->getString() );
+					} else {
+						$strings[] = trim( $value->getString() );
+					}
 				}
 			}
-		}
-		if ( $firstonly ) {
+			if ( $firstonly ) {
+				return '';
+			} else {
+				return $strings;
+			}
+		} catch (Exception $e) {
+			wfLogWarning("[HierarchyBuilder.class.php][getPropertyFromPage] Something broke. Returning an empty string.");
 			return '';
-		} else {
-			return $strings;
 		}
+		
 		
 	}
 
