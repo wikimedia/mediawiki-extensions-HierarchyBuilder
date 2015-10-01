@@ -132,14 +132,6 @@
 			initializeTree: function( jqDivId, selectedComponents, init, collapsed ) {
 				var obj = this;
 
-				if ( collapsed ) {
-					$( jqDivId )
-						.jstree( "close_all" );
-				} else {
-					$( jqDivId )
-						.jstree( "open_all" );
-				}
-
 				$( jqDivId + "* li" )
 					.each( function() {
 						var parent = $( this );
@@ -166,6 +158,15 @@
 							.set_type( "disabled",
 								$( this ) );
 					} );
+
+				if ( collapsed ) {
+					$( jqDivId )
+						.jstree( "close_all" );
+				} else {
+					$( jqDivId )
+						.jstree( "open_all" );
+				}
+
 			},
 
 			/**

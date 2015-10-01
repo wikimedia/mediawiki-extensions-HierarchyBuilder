@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.9.3',
+	'version' => '1.9.4',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -172,7 +172,7 @@ function efHierarchyBuilderSetup ( & $parser ) {
  */
 function hierarchySelected( $parser ) {
 	$params = func_get_args();
-	if ( count( $params ) < 4 || count( $params ) > 5 ) {
+	if ( count( $params ) < 4) {
 		$output = '';
 	} else {
 		$selectedPages = $params[1];
