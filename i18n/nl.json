@@ -6,6 +6,7 @@
 		]
 	},
 	"hierarchybuilder-desc": "Renders en kunt u deze bewerken en selectie van pagina hiërarchieën",
+	"hierarchybuilder-reveal-editmessage": "Hoe gebruik ik dit?",
 	"hierarchybuilder-editmessage": "De Hiërarchie Root lijst bevat de hiërarchie die worden bewaard wanneer u opslaan. De Ongebruikte Pagina 's lijst bevat pagina' s in categorie $1 die op dat moment niet in de hiërarchie. U kunt de volgorde van de Hiërarchie Root-lijst door het slepen van rijen omhoog en omlaag net als bij het veranderen van hun inspringen. U kunt pagina 's toevoegen van de Ongebruikte Pagina' s lijst van de hiërarchie door te slepen en neer te zetten waar u ze wilt in de Hiërarchie Root-lijst. U kan verwijderen pagina 's van de hiërarchie door ze te slepen vanuit de Hiërarchie Root-lijst en vallen ze overal in de Ongebruikte Pagina' s lijst.",
 	"hierarchybuilder-hierarchyroot": "Hiërarchieroots:",
 	"hierarchybuilder-unusedpages": "Ongebruikte pagina's",
