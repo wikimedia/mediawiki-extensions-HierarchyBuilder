@@ -6,6 +6,7 @@
 		]
 	},
 	"hierarchybuilder-desc": "Procesa e permite a edición e selección a partir da páxina de xerarquías",
+	"hierarchybuilder-reveal-editmessage": "Como uso isto?",
 	"hierarchybuilder-editmessage": "A lista da Raíz de Xerarquía contén a xerarquía que se manterá cando vostede grave. A lista de Páxinas sen Uso contén as páxinas na categoría $1 que non están actualmente na xerarquía. Vostede pode reorganizar a lista da Raíz de Xerarquía arrastrando filas arriba e abaixo e tamén cambiando a súa sangría. Pode engadir páxinas da lista de Páxinas sen Uso á xerarquía arrastrándoas e soltándoas onde quera na lista da Raíz de Xerarquía. Pode eliminar páxinas da xerarquía arrastrándoas da lista da Raíz de Xerarquía e soltándoas en calquera lado na lista de Páxinas sen Uso.",
 	"hierarchybuilder-edit-error-message": "Esta xerarquía non pode ser editada porque os datos da xerarquía e a categoría da que obter as páxinas sen uso están baleiras. Por favor, asegúrese de que polo menos unha destas fontes ten datos.",
 	"hierarchybuilder-hierarchyroot": "Raiz da xerarquía",
