@@ -35,6 +35,12 @@
 	border:1px solid black;
 }
 
+.hierarchy_row_titleicon {
+	max-height:15px;
+	max-width:15px;
+	padding-right:5px;
+}
+
 #showinfo {
 	cursor: pointer;
 }

@@ -61,10 +61,16 @@ class HierarchyFormInput extends SFFormInput {
 
 		$pageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
 
-		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
-			$displayNameProperty = $this->mOtherArgs['displaynameproperty'];
+		if ( array_key_exists( HierarchyBuilder::DISPLAYNAMEPROPERTY, $this->mOtherArgs ) ) {
+			$displayNameProperty = $this->mOtherArgs[HierarchyBuilder::DISPLAYNAMEPROPERTY];
 		} else {
 			$displayNameProperty = '';
+		}
+
+		if ( array_key_exists( HierarchyBuilder::TITLEICONPROPERTY, $this->mOtherArgs ) ) {
+			$titleiconProperty = $this->mOtherArgs[HierarchyBuilder::TITLEICONPROPERTY];
+		} else {
+			$titleiconProperty = '';
 		}
 
 		if ( array_key_exists( 'hideinfo', $this->mOtherArgs ) ) {
@@ -88,10 +94,27 @@ class HierarchyFormInput extends SFFormInput {
 			}
 		}
 
-		$hierarchy = $this->mCurrentValue;
+		$unusedpagesmessage = wfMessage( 'hierarchybuilder-unusedpages' )->text();
+		$unusedpages = "<ul>" .
+			"<li class='hierarchy_root'><a>$unusedpagesmessage</a>" .
+			"<ul>";
+		foreach ( $pages as $key => $value ) {
+			$name = $value; //HierarchyBuilder::getPageDisplayName( $key, $displayNameProperty );
+			$namehtml = "<a>$name<span style=display:none>$key</span></a>";
+			
+			if ($titleiconProperty != '') {
+				$pagetitleicons = HierarchyBuilder::getPageTitleIcons( $key, $titleiconProperty );
+				$pagetitleiconshtml = HierarchyBuilder::getIconHTML( $pagetitleicons );
+			} else {
+				$pagetitleiconshtml = '';
+			}
 
-		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy,
-			$displayNameProperty );
+			$pagerowhtml = "<li>" . $pagetitleiconshtml . $namehtml . "</li>";
+			$unusedpages .= $pagerowhtml;
+		}
+		$unusedpages .= "</ul></li></ul>";
+
+		$hierarchy = $this->wikitext2Html($this->mCurrentValue, $displayNameProperty, $titleiconProperty);
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -99,7 +122,8 @@ class HierarchyFormInput extends SFFormInput {
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
-			'pages' => $pages,
+			//'pages' => $pages,
+			'pages' => $unusedpages,
 			'isDisabled' => $this->mIsDisabled,
 			'hideinfo' => $hideinfoProperty,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
@@ -117,6 +141,62 @@ class HierarchyFormInput extends SFFormInput {
 		return json_encode( $jsattribs );
 	}
 
+	public function wikitext2Html($hierarchy, $displaynameproperty, $titleiconproperty) {
+		$rootedhierarchy = "[[".wfMessage( 'hierarchybuilder-hierarchyroot' )->text()."]]\n" . $hierarchy;
+		return "<ul>" . $this->wikitext2HtmlHelper($rootedhierarchy, 0, $displaynameproperty, $titleiconproperty) . "</ul>";	
+	}
+
+	public function wikitext2HtmlHelper($subhierarchy, $depth, $displaynameproperty, $titleiconproperty) {
+		$depthpattern = '/^' . '\*'.'{'.$depth.'}' . '([^\*]+)' . '/m';
+		$nummatches = preg_match_all( $depthpattern, $subhierarchy, $matches );
+		if ($nummatches < 1) {
+			return '';
+		}
+		$rootrow = $matches[1][0];
+		
+		$childdepth = $depth + 1;
+		$childdepthpattern = '/^' . '\*'.'{'.$childdepth.'}' . '([^\*]+)' . '/m';
+		$nummatches = preg_match_all( $childdepthpattern, $subhierarchy, $matches );
+		$childrows = $nummatches > 0 ? $matches[0] : array();
+		$childsubhierarchies = array_slice( preg_split( $childdepthpattern, $subhierarchy ), 1 ); // chop off element 0 which is the root
+		
+		//extract the root pagename 
+		$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches );
+		$rootpagename = $matches[1][0]; // this is just the pagename excluding the [[]] formatting
+		if ($depth == 0) {
+			$rootHtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>";
+		} else {
+
+			if ($titleiconproperty != '') {
+				$roottitleicons = HierarchyBuilder::getPageTitleIcons( $rootpagename, $titleiconproperty );
+				$roottitleiconshtml = HierarchyBuilder::getIconHTML( $roottitleicons );
+			} else {
+				$roottitleiconshtml = '';
+			}
+			if ($displaynameproperty != '') {
+				$rootdisplayname = HierarchyBuilder::getPageDisplayName($rootpagename, $displaynameproperty);
+				$rootrowhtml = "<a>$rootdisplayname<span style=display:none>$rootpagename</span></a>";
+			} else {
+				$rootrowhtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>"; // either displayname or not depending on displaynameproperty
+			}
+			$rootHtml = $roottitleiconshtml . $rootrowhtml;
+		}
+		
+		$html = $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
+		$html .= $rootHtml;
+		if ( count($childrows) > 0 ) {
+			$html .= '<ul>';
+			for ( $i = 0; $i < count($childrows); $i++ ) {
+				$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
+				$html .= $this->wikitext2HtmlHelper($childhierarchy, $depth+1, $displaynameproperty, $titleiconproperty);
+			}
+			$html .= '</ul>';
+		}
+		$html .= '</li>';
+			
+		return $html;
+	}
+	
 	/**
 	 * Get error messages for display.
 	 *

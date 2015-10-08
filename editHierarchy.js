@@ -81,12 +81,6 @@
 				var hierarchy = params.hierarchy;
 				var unusedpages = params.unusedpages;
 
-				/*if ( hierarchy.length < 1 ) {
-					return;
-				}*/
-
-				hierarchy = this.parseWikiTextToHtml( params.hierarchyroot, hierarchy );
-
 				var jqDivId = params.divId;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";
@@ -127,14 +121,6 @@
 				if ( params.hideinfo == "true" ) {
 					var button = $("#showinfo")[0];
 					button.onclick = function() { 
-						/*if (button.text == "Show Info") {
-							$("#info").slideDown();
-							button.text = "Hide Info";
-						}
-						else {
-							$("#info").slideUp();
-							button.text = "Show Info";
-						}*/
 						if ($("#info").css("display") == "none") {
 							$("#info").slideDown();
 						} else {
@@ -205,14 +191,7 @@
 						"plugins": plugins
 					} );
 
-				var pagelist = "<ul><li class='hierarchy_root'><a>" +
-					params.unusedpages + "</a><ul>";
-				for ( var pagename in params.pages ) {
-					pagelist += "<li><a>" + params.pages[ pagename ] +
-						"<span style='display:none'>" + pagename +
-						"</span></a></li>";
-				}
-				pagelist += "</ul></li></ul>";
+				var pagelist = params.pages;
 
 				pageListDivId = "#" + pageListDivId;
 				$( pageListDivId )
@@ -303,6 +282,8 @@
 
 				list.find( "ins" )
 					.remove();
+				list.find( "img" )
+					.remove();
 				list.find( "li" )
 					.removeAttr( "class" );
 				list.find( "li" )
@@ -359,80 +340,6 @@
 					} );
 				return returnString;
 			},
-
-			/**
-			 * Convert a wikitext formatted hierarchy into HTML.
-			 *
-			 * Note: the given hierarchy must be well-formed.
-			 *
-			 * @param {string} wikiTextHierarchy is a string containing a
-			 *  hierarchy in WikiText format.
-			 * @return {string} HTML formatted hierarchy.
-			 */
-			parseWikiTextToHtml: function( hierarchyRoot, wikiTextHierarchy ) {
-				// make sure to remove the leading * from the root node before starting the process
-				var hierarchyHtml = "<ul>" + this.parseWikiTextToHtmlHelper( "[[" + hierarchyRoot + " | " + hierarchyRoot + "]]" + "\n" + wikiTextHierarchy, "" ) + "</ul>";
-				return hierarchyHtml;
-			},
-
-			/**
-			 * Recursive helper method for converting a wikitext formatted
-			 * hierarchy into HTML.
-			 *
-			 * @param {string} wikiTextHierarchy A hierarchy in modified wikitext
-			 *  format. Specifically, the root node has no leading *s.
-			 * @param {string} depth A string composed of * characters denoting
-			 *  the current depth within the hierarchy.
-			 * @return {string} HTML formatted hierarchy without the outer most
-			 *  ul HTML tags.
-			 */
-			parseWikiTextToHtmlHelper: function( wikiTextHierarchy, depth ) {
-				// split the hierarchy into a list with the root and each child hierarchy in a list
-				// this constructs a regular expression to search for lines with exactly depth+1 leading *s
-				var nextDepth = "\n" + depth + "*";
-				var r1 = new RegExp( "\\*", "g" );
-				var regex = nextDepth.replace( r1, "\\*" ) + "(?!\\*)";
-				var r2 = new RegExp( regex );
-				// actually split the hierarchy into root and children
-				var rootAndChildren = wikiTextHierarchy.split( r2 );
-
-				var root = rootAndChildren[ 0 ]; // this is just the root row of this hierarchy
-				var children = rootAndChildren.slice( 1 ); // this is a list of direct children hierarchies of the root. It might be an empty list though
-
-				// take the root eleent and make a list item for it but don't close the list item yet incase there are nested kids
-				var html = "";
-				if ( depth === "" ) {
-					html = "<li class='hierarchy_root'>";
-				} else {
-					html = "<li>";
-				}
-
-				var pageLinkRegex = new RegExp( "(\\[\\[)(.*)(\\]\\])", "g" ); // regex to find a link ([[pageName | displayName]])
-				var pageLinkMatches = pageLinkRegex.exec( root );
-				var pageLink = ( pageLinkMatches.length > 0 ? pageLinkMatches[ 2 ] : "" );
-				var pageName = pageLink.split( " | " )[ 0 ];
-				var displayName = pageLink.split( " | " )[ 1 ] ? pageLink.split( " | " )[ 1 ] : pageName;
-				var rootRow = "<a>" +
-					displayName +
-					"<span style=display:none>" + pageName + "</span>" +
-					"</a>";
-				html += rootRow;
-
-				// if there are children, add an unordered-list element to contain them and recurse on each child
-				if ( children.length > 0 ) {
-					html += "<ul>";
-					// add the html for each child to our string
-					for ( var i = 0; i < children.length; i++ ) {
-						html += this.parseWikiTextToHtmlHelper( children[ i ], depth + "*" );
-					}
-					html += "</ul>";
-				}
-
-				html += "</li>";
-
-				// now that our html has the root and the list with the children in html format we can finally return it.
-				return html;
-			}
 
 		} )
 		.init( inputId, params );
