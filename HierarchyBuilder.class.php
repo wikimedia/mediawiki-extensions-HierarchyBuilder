@@ -524,6 +524,8 @@ class HierarchyBuilder {
 			true,
 			false )->getText();
 
+		//wikiLog("HierarchyBuilder.class","renderHierarchy", "input = " . print_r($input, true));
+
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
 			$displayNameProperty, $titleiconproperty, $dummy,
 			function ( $pageName, $displayNameProperty, $titleiconproperty, $data ) {
@@ -553,6 +555,8 @@ class HierarchyBuilder {
 
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} );
+
+		//wikiLog("HierarchyBuilder.class","renderHierarchy", "hierarchy = " . print_r($hierarchy, true));
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
 
@@ -1059,7 +1063,7 @@ END;
 			$numMatches = preg_match_all( $imgpattern, $iconhtml, $matches );
 			
 			// build the new image html thing
-			$finaliconshtml .= '<img class=\"hierarchy_row_titleicon\" ' . $matches[1][0] . '/>';
+			$finaliconshtml .= '<img class="hierarchy_row_titleicon" ' . $matches[1][0] . '/>';
 
 		}
 		
