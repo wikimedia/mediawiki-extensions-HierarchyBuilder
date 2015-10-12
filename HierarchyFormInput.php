@@ -61,12 +61,6 @@ class HierarchyFormInput extends SFFormInput {
 
 		$pageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
 
-		if ( array_key_exists( HierarchyBuilder::DISPLAYNAMEPROPERTY, $this->mOtherArgs ) ) {
-			$displayNameProperty = $this->mOtherArgs[HierarchyBuilder::DISPLAYNAMEPROPERTY];
-		} else {
-			$displayNameProperty = '';
-		}
-
 		if ( array_key_exists( HierarchyBuilder::TITLEICONPROPERTY, $this->mOtherArgs ) ) {
 			$titleiconProperty = $this->mOtherArgs[HierarchyBuilder::TITLEICONPROPERTY];
 		} else {
@@ -82,8 +76,7 @@ class HierarchyFormInput extends SFFormInput {
 		$pages = array();
 		foreach ( $pageArray as $key => $value ) {
 			$pages[$value] =
-				HierarchyBuilder::getPageDisplayName( $value,
-				$displayNameProperty );
+				HierarchyBuilder::getPageDisplayName( $value );
 		}
 
 		// This loop will removed pages from the unselected pages list if we can
@@ -99,7 +92,7 @@ class HierarchyFormInput extends SFFormInput {
 			"<li class='hierarchy_root'><a>$unusedpagesmessage</a>" .
 			"<ul>";
 		foreach ( $pages as $key => $value ) {
-			$name = $value; //HierarchyBuilder::getPageDisplayName( $key, $displayNameProperty );
+			$name = $value;
 			$namehtml = "<a>$name<span style=display:none>$key</span></a>";
 			
 			if ($titleiconProperty != '') {
@@ -114,7 +107,7 @@ class HierarchyFormInput extends SFFormInput {
 		}
 		$unusedpages .= "</ul></li></ul>";
 
-		$hierarchy = $this->wikitext2Html($this->mCurrentValue, $displayNameProperty, $titleiconProperty);
+		$hierarchy = $this->wikitext2Html($this->mCurrentValue, $titleiconProperty);
 
 		global $sfgFieldNum;
 		$this->mDivId = "hierarchy_$sfgFieldNum";
@@ -141,12 +134,12 @@ class HierarchyFormInput extends SFFormInput {
 		return json_encode( $jsattribs );
 	}
 
-	public function wikitext2Html($hierarchy, $displaynameproperty, $titleiconproperty) {
+	public function wikitext2Html($hierarchy, $titleiconproperty) {
 		$rootedhierarchy = "[[".wfMessage( 'hierarchybuilder-hierarchyroot' )->text()."]]\n" . $hierarchy;
-		return "<ul>" . $this->wikitext2HtmlHelper($rootedhierarchy, 0, $displaynameproperty, $titleiconproperty) . "</ul>";	
+		return "<ul>" . $this->wikitext2HtmlHelper($rootedhierarchy, 0, $titleiconproperty) . "</ul>";	
 	}
 
-	public function wikitext2HtmlHelper($subhierarchy, $depth, $displaynameproperty, $titleiconproperty) {
+	public function wikitext2HtmlHelper($subhierarchy, $depth, $titleiconproperty) {
 		$depthpattern = '/^' . '\*'.'{'.$depth.'}' . '([^\*]+)' . '/m';
 		$nummatches = preg_match_all( $depthpattern, $subhierarchy, $matches );
 		if ($nummatches < 1) {
@@ -173,12 +166,8 @@ class HierarchyFormInput extends SFFormInput {
 			} else {
 				$roottitleiconshtml = '';
 			}
-			if ($displaynameproperty != '') {
-				$rootdisplayname = HierarchyBuilder::getPageDisplayName($rootpagename, $displaynameproperty);
-				$rootrowhtml = "<a>$rootdisplayname<span style=display:none>$rootpagename</span></a>";
-			} else {
-				$rootrowhtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>"; // either displayname or not depending on displaynameproperty
-			}
+			$rootdisplayname = HierarchyBuilder::getPageDisplayName($rootpagename);
+			$rootrowhtml = "<a>$rootdisplayname<span style=display:none>$rootpagename</span></a>";
 			$rootHtml = $roottitleiconshtml . $rootrowhtml;
 		}
 		
@@ -188,7 +177,7 @@ class HierarchyFormInput extends SFFormInput {
 			$html .= '<ul>';
 			for ( $i = 0; $i < count($childrows); $i++ ) {
 				$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
-				$html .= $this->wikitext2HtmlHelper($childhierarchy, $depth+1, $displaynameproperty, $titleiconproperty);
+				$html .= $this->wikitext2HtmlHelper($childhierarchy, $depth+1, $titleiconproperty);
 			}
 			$html .= '</ul>';
 		}
@@ -224,12 +213,6 @@ class HierarchyFormInput extends SFFormInput {
 			'type' => 'string',
 			'description' =>
 				wfMessage( 'hierarchybuilder-category-desc' )->text()
-		);
-		$params['displaynameproperty'] = array(
-			'name' => 'displaynameproperty',
-			'type' => 'string',
-			'description' =>
-				wfMessage( 'hierarchybuilder-displaynameproperty-desc' )->text()
 		);
 	}
 

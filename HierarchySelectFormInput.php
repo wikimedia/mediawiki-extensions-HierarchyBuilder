@@ -82,13 +82,6 @@ class HierarchySelectFormInput extends SFFormInput {
 			$this->mThreestate = 'false';
 		}
 
-
-		if ( array_key_exists( 'displaynameproperty', $this->mOtherArgs ) ) {
-			$displaynameproperty = $this->mOtherArgs['displaynameproperty'];
-		} else {
-			$displaynameproperty = '';
-		}
-
 		if ( array_key_exists( 'width', $this->mOtherArgs ) ) {
 			$this->mWidth = $this->mOtherArgs['width'];
 		} else {
@@ -103,8 +96,7 @@ class HierarchySelectFormInput extends SFFormInput {
 
 		$hierarchy = HierarchyBuilder::getPropertyFromPage( $this->mPageName,
 			$this->mPropertyName );
-		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy,
-			$displaynameproperty );
+		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy );
 
 		$selectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
 
@@ -174,12 +166,6 @@ class HierarchySelectFormInput extends SFFormInput {
 			'type' => 'string',
 			'description' =>
 				wfMessage( 'hierarchybuilder-collapsed-desc' )->text()
-		);
-		$params['displaynameproperty'] = array(
-			'name' => 'displaynameproperty',
-			'type' => 'string',
-			'description' =>
-				wfMessage( 'hierarchybuilder-displaynameproperty-desc' )->text()
 		);
 	}
 

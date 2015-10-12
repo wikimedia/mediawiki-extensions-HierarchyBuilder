@@ -46,7 +46,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 $wgExtensionCredits['parserhook'][] = array (
 	'path' => __FILE__,
 	'name' => 'HierarchyBuilder',
-	'version' => '1.10.0',
+	'version' => '2.0.0',
 	'author' => array(
 		'[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]',
 		'[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]'
@@ -185,14 +185,6 @@ function hierarchySelected( $parser ) {
 			$displayMode = 'pruned';
 		}
 
-		$optionalParams = array_slice( $params, 4 );
-		$optionalParams = parseParams( $optionalParams );
-		$displaynameproperty = '';
-		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
-			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
-		}
-		$displaynameattr = $displaynameproperty == '' ? '' : "displaynameproperty=$displaynameproperty";
-
 		$wikitextHierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		// this is where we ask HierarchyBuilder class to actually do the work for us.
 		$hierarchyTree = HierarchyTree::fromWikitext( $wikitextHierarchy );
@@ -228,9 +220,11 @@ function hierarchySelected( $parser ) {
 
 		$output = '';
 		if ( $displayMode == 'collapsed') {
-			$output = "<hierarchySelected collapsed $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			//$output = "<hierarchySelected collapsed $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			$output = "<hierarchySelected collapsed selected=$selected>" . (string)$mst . '</hierarchySelected>';
 		} else {
-			$output = "<hierarchySelected $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			//$output = "<hierarchySelected $displaynameattr selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			$output = "<hierarchySelected selected=$selected>" . (string)$mst . '</hierarchySelected>';
 		}
 
 		$output = $parser->recursiveTagParse( $output );
@@ -252,14 +246,12 @@ function hierarchySelected( $parser ) {
  * The optional argument is:
  *   - Format to specify if the results should be returned as a bulleted list as
  *     opposed to the default striped format.
- *   - Property name of the property containing a page's displayname. Should only
- *     be given if not using format=ul.
  *
  * Example invokation:
  * @code
  * {{#hierarchySubtree:|Main Page|Hierarchy Data}}
  * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
- * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|displaynameproperty=Name}}
+ * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
  * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|format=ul}}
  * @endcode
  *
@@ -283,18 +275,10 @@ function subhierarchy( $parser ) {
 		if ( isset( $optionalParams[HierarchyBuilder::FORMAT] ) ) {
 			$format = $optionalParams[HierarchyBuilder::FORMAT];
 		}
-		$displaynameproperty = '';
-		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY] ) ) {
-			$displaynameproperty = $optionalParams[HierarchyBuilder::DISPLAYNAMEPROPERTY];
-		}
 		$titleiconproperty = '';
 		if (isset( $optionalParams[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
 			$titleiconproperty = $optionalParams[HierarchyBuilder::TITLEICONPROPERTY];
 		}
-		/*$displaymode = '';
-		if ( isset( $optionalParams[HierarchyBuilder::DISPLAYMODE] ) ) {
-			$displaymode = $optionalParams[HierarchyBuilder::DISPLAYMODE];
-		}*/
 		$showroot = '';
 		if ( isset( $optionalParams[HierarchyBuilder::SHOWROOT] ) ) {
 			$showroot = $optionalParams[HierarchyBuilder::SHOWROOT];
@@ -338,11 +322,7 @@ function subhierarchy( $parser ) {
 			if ( $titleiconproperty != '' ) {
 				$titleiconproperty = "titleiconproperty=\"$titleiconproperty\"";
 			}
-			if ( $displaynameproperty == '' ) {
-					$output = "<hierarchy $collapsed $titleiconproperty>$output</hierarchy>";
-			} else {
-				$output = "<hierarchy $collapsed displaynameproperty=$displaynameproperty $titleiconproperty>$output</hierarchy>";
-			}
+			$output = "<hierarchy $collapsed $titleiconproperty>$output</hierarchy>";
 		}
 		// otherwise it's the bulleted format and we don't modify output.
 
@@ -660,15 +640,10 @@ function hierarchyBreadcrumb( $parser ) {
 		$currentPage = $params[1];
 		$hierarchyPage = $params[2];
 		$hierarchyProperty = $params[3];
-		if ( count( $params ) < 5 ) {
-			$displayNameProperty = null;
-		} else {
-			$displayNameProperty = $params[4];
-		}
 
 		$hierarchyBuilder = new HierarchyBuilder;
 		$output = $hierarchyBuilder->hierarchyBreadcrumb( $currentPage,
-			$hierarchyPage, $hierarchyProperty, $displayNameProperty );
+			$hierarchyPage, $hierarchyProperty );
 		$output = $parser->recursiveTagParse( $output );
 	}
 	$parser->disableCache();
@@ -678,8 +653,7 @@ function hierarchyBreadcrumb( $parser ) {
 
 function renderHierarchy( $input, $attributes, $parser, $frame ) {
 	$hierarchyBuilder = new HierarchyBuilder;
-	$output = $hierarchyBuilder->renderHierarchy( $input, $attributes, $parser,
-		$frame );
+	$output = $hierarchyBuilder->renderHierarchy( $input, $attributes, $parser, $frame );
 	$parser->disableCache();
 	return array( $parser->insertStripItem( $output, $parser->mStripState ),
 		'noparse' => false );

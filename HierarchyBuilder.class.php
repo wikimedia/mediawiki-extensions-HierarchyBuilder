@@ -38,7 +38,6 @@ class HierarchyBuilder {
 	const OUTROTEMPLATE = 'outrotemplate';
 	const LINK = 'link';
 	const FORMAT = 'format';
-	const DISPLAYNAMEPROPERTY = 'displaynameproperty';
 	const TITLEICONPROPERTY = 'titleiconproperty';
 	const DISPLAYMODE = 'displaymode';
 	const SHOWROOT = 'showroot';
@@ -258,14 +257,12 @@ class HierarchyBuilder {
 	 *  to which $currentPage belongs.
 	 * @param string $hierarchyProperty: Name of the property on $hierarchyPage
 	 *  that actually stores the wikitext formatted hierarchy.
-	 * @param string $displayNameProperty: Value of the DislayName property
-	 *  (eg: "Description")
 	 *
 	 * @return string: Formatted wikitext that will format and display the
 	 *  breadcrumb information on the page.
 	 */
 	public function hierarchyBreadcrumb( $currentPage, $hierarchyPage,
-		$hierarchyProperty, $displayNameProperty ) {
+		$hierarchyProperty ) {
 
 		$hierarchy = self::getPropertyFromPage( $hierarchyPage, $hierarchyProperty );
 		$hierarchyRows = preg_split( '/\n/', $hierarchy );
@@ -295,7 +292,7 @@ class HierarchyBuilder {
 				// Note that if there is no hierarchical parent, then the parent will be empty.
 				$parent = self::getParent( $hierarchyRows, $row, $i );
 
-				return self::breadcrumb( $previous, $parent, $next, $displayNameProperty );
+				return self::breadcrumb( $previous, $parent, $next );
 			}
 		}
 
@@ -421,12 +418,10 @@ class HierarchyBuilder {
 	 * @param string $parent: The name of the hierarchical parent page in the
 	 *  hierarchy.
 	 * @param string $next: The name of the next page in the hierarchy.
-	 * @param string $displayNameProperty: The name of the property that stores
-	 *  the display name for a page when using context free page naming.
 	 *
 	 * @return string: Formatted wikitext which renders breadcrumbs on a page.
 	 */
-	private function breadcrumb( $previous, $parent, $next, $displayNameProperty ) {
+	private function breadcrumb( $previous, $parent, $next ) {
 		$breadcrumb = "{| width='100%'" . PHP_EOL;
 		if ( $previous != null ) {
 			if ( $previous == $parent ) {
@@ -435,22 +430,19 @@ class HierarchyBuilder {
 				$arrow = "&larr;";
 			}
 			$breadcrumb .= "| width='33%' | " . $arrow . " [[" . $previous . "| " .
-				HierarchyBuilder::getPageDisplayName( $previous,
-				$displayNameProperty ) . "]]" . PHP_EOL;
+				HierarchyBuilder::getPageDisplayName( $previous ) . "]]" . PHP_EOL;
 		} else {
 			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
 		}
         if ( $parent != null  && $parent != $previous ) {
 			$breadcrumb .= "| align='center' width='33%' | &uarr; [[" . $parent .
-				"| " . HierarchyBuilder::getPageDisplayName( $parent,
-				$displayNameProperty ) . "]]" . PHP_EOL;
+				"| " . HierarchyBuilder::getPageDisplayName( $parent ) . "]]" . PHP_EOL;
 		} else {
 			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
 		}
 		if ( $next != null ) {
 			$breadcrumb .= "| align='right' width='33%' | [[" . $next . "|" .
-				HierarchyBuilder::getPageDisplayName( $next,
-				$displayNameProperty ) . "]] &rarr;" . PHP_EOL;
+				HierarchyBuilder::getPageDisplayName( $next ) . "]] &rarr;" . PHP_EOL;
 		} else {
 			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
 		}
@@ -470,8 +462,6 @@ class HierarchyBuilder {
 	 * @param array $attributes: List of optional attributes for customizing the
 	 *  display of the hierarchy. The optional attributes are:
 	 *   - collapsed - the hierarchy should initially be collapsed
-	 *   - displaynameproperty - content free page naming is enabled and display
-	 *     names should be used instead of page names when displaying the hierarchy.
 	 *   - numbered - rows of the hierarchy should be given section numbers.
 	 * @param $parser: Parser
 	 * @param $frame: Frame
@@ -489,13 +479,6 @@ class HierarchyBuilder {
 			}
 		} else	{
 			$collapsed = 'false';
-		}
-
-		if ( isset( $attributes['displaynameproperty'] ) ) {
-			$displayNameProperty =
-				htmlspecialchars( $attributes['displaynameproperty'] );
-		} else	{
-			$displayNameProperty = '';
 		}
 
 		if ( isset( $attributes['numbered'] ) ) {
@@ -524,22 +507,16 @@ class HierarchyBuilder {
 			true,
 			false )->getText();
 
-		//wikiLog("HierarchyBuilder.class","renderHierarchy", "input = " . print_r($input, true));
-
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$displayNameProperty, $titleiconproperty, $dummy,
-			function ( $pageName, $displayNameProperty, $titleiconproperty, $data ) {
+			$titleiconproperty, $dummy,
+			function ( $pageName, $titleiconproperty, $data ) {
 				$pageLinkArray = array();
 				$title = Title::newFromText( $pageName );
 				if ( $title ) {
 					$pageLinkArray['href'] = $title->getLinkURL();
 				}
-				if ( strlen( $displayNameProperty ) > 0 ) {
-					$displayName = HierarchyBuilder::getPageDisplayName( $pageName,
-						$displayNameProperty );
-				} else {
-					$displayName = $pageName;
-				}
+
+				$displayName = HierarchyBuilder::getPageDisplayName( $pageName );
 
 				$titleiconArray = array();
 				$pagetitleicons = '';
@@ -555,8 +532,6 @@ class HierarchyBuilder {
 
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} );
-
-		//wikiLog("HierarchyBuilder.class","renderHierarchy", "hierarchy = " . print_r($hierarchy, true));
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
 
@@ -588,14 +563,6 @@ END;
 			$collapsed = 'false';
 		}
 
-		$displayNameProperty = '';
-		if ( isset( $attributes['displaynameproperty'] ) ) {
-			$displayNameProperty =
-				htmlspecialchars( $attributes['displaynameproperty'] );
-		} else	{
-			$displayNameProperty = '';
-		}
-
 		if ( isset( $attributes['numbered'] ) ) {
 			$numbered = htmlspecialchars( $attributes['numbered'] );
 			if ( $numbered === 'numbered' ) {
@@ -609,20 +576,15 @@ END;
 			$selectedPages =
 				json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
 
-			if ( $displayNameProperty == '' ){
-				$selectedPages =
-					json_encode( explode( ',', urldecode( $attributes['selected'] ) ) );
-			} else {
-				$selectedPages =
+			$selectedPages =
 					json_encode(
 						array_map(
-							function ($pageName) use ( $displayNameProperty) {
-								return HierarchyBuilder::getPageDisplayName( $pageName,	$displayNameProperty );
+							function ($pageName){
+								return HierarchyBuilder::getPageDisplayName( $pageName );
 							},
 							explode( ',', urldecode( $attributes['selected'] ) )		
 						)
 					);
-			}
 		} else	{
 			$selectedPages = '';
 		}
@@ -638,19 +600,16 @@ END;
 			false )->getText();
 
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$displayNameProperty, '',  $dummy,
-			function ( $pageName, $displayNameProperty, $data ) {
-				$pageLinkArray = array();
-				$title = Title::newFromText( $pageName );
-				if ( $title ) {
-					$pageLinkArray['href'] = $title->getLinkURL();
-				}
-				if ( strlen( $displayNameProperty ) > 0 ) {
-					$pageName = HierarchyBuilder::getPageDisplayName( $pageName,
-						$displayNameProperty );
-				}
-				return Html::element( 'a', $pageLinkArray, $pageName );
-			} );
+		'',  $dummy,
+		function ( $pageName, $data ) {
+			$pageLinkArray = array();
+			$title = Title::newFromText( $pageName );
+			if ( $title ) {
+				$pageLinkArray['href'] = $title->getLinkURL();
+			}
+			$pageName = HierarchyBuilder::getPageDisplayName( $pageName );
+			return Html::element( 'a', $pageLinkArray, $pageName );
+		} );
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.renderSelected' );
 
@@ -695,14 +654,12 @@ END;
 	 * Parse a hierarchy into html.
 	 *
 	 * @param string $input: WikiText hierarchy.
-	 * @param string $displayNameProperty: Property containing page display names
-	 *  when content free page naming is enabled.
 	 * @param string $data: Dummy variable.
 	 * @param function $callback: Function for processing links.
 	 *
 	 * @return string: Updated HTML formatted hierarchy with functional links.
 	 */
-	public static function parseHierarchy( $input, $displayNameProperty, $titleIconProperty, &$data,
+	public static function parseHierarchy( $input, $titleIconProperty, &$data,
 		$callback ) {
 		$hierarchy = htmlspecialchars_decode( $input );
 		$newlines = array( "\n", "\r" );
@@ -711,7 +668,7 @@ END;
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[1] as $pageName ) {
-				$link = $callback( trim( $pageName ), $displayNameProperty, $titleIconProperty, $data );
+				$link = $callback( trim( $pageName ), $titleIconProperty, $data );
 				$hierarchy = str_replace( "<a>$pageName</a>", $link, $hierarchy );
 			}
 		}
@@ -767,20 +724,35 @@ END;
 	 * content free page names.
 	 *
 	 * @param string $page: Name of the page.
-	 * @param string $displayNameProperty: Name of the property that stores
-	 *  display names for pages when content free page naming is active.
 	 *
 	 * @return string: The display name of the specified page.
 	 */
-	public static function getPageDisplayName( $page, $displayNameProperty ) {
-		if ( strlen( $displayNameProperty ) == 0 ) {
-			return $page;
+	public static function getPageDisplayName( $page ) {
+		$displayname = $page;
+
+		$title = Title::newFromText( $page );
+		if ($title) {
+	        $id = $title->getArticleID();
+
+	        $dbr = wfGetDB( DB_SLAVE );
+	        $result = $dbr->select(
+	                'page_props',
+	                array( 'pp_value' ),
+	                array(
+	                        'pp_page' => $id,
+	                        'pp_propname' => 'displaytitle'
+	                ),
+	                __METHOD__
+	        );
+
+	        if ( $result->numRows() > 0 ) {
+	                $row = $result->fetchRow();
+	                $displayname = $row['pp_value'];
+	        }
 		}
-		$output = self::getPropertyFromPage( $page, $displayNameProperty );
-		if ( strlen( $output ) > 0 ) {
-			return $output;
-		}
-		return $page;
+
+		// note that if anything fails in the pipeline we return the pagename
+		return $displayname;
 	}
 
 	/**
@@ -808,18 +780,16 @@ END;
 	 * the link syntax so that the displayName will be shown instead.
 	 *
 	 * @param string $hierarchy: A wikitext formatted hierarchy.
-	 * @param string $displayNameProperty: The name of the property containing
-	 *  the page's display name.
 	 *
 	 * @return string: The wikitext formatted hierarchy after the links have
 	 *  been updated to reflect the displayName instead of the page name.
 	 *
 	 * @example [[pageName]] -> [[pageName | displayName]]
 	 */
-	public static function updateHierarchyWithDisplayNames( $hierarchy, $displayNameProperty ) {
+	public static function updateHierarchyWithDisplayNames( $hierarchy ) {
 		$hierarchyPageNames = self::collectPageNamesFromHierarchy( $hierarchy );
 		foreach ( $hierarchyPageNames as $pageName ) {
-			$displayName = self::getPageDisplayName( $pageName, $displayNameProperty );
+			$displayName = self::getPageDisplayName( $pageName );
 			$pageNameLink = '[[' . $pageName . ']]';
 			$displayNameLink = '[[' . $pageName . ' | ' . $displayName . ']]';
 			$hierarchy = str_replace( $pageNameLink, $displayNameLink, $hierarchy );

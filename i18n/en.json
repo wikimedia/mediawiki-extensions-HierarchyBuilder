@@ -10,7 +10,6 @@
 	"hierarchybuilder-unusedpages": "Unused pages",
 	"hierarchybuilder-category-desc": "This is the category to which pages in the hierarchy must belong.",
 	"hierarchybuilder-missing-category": "The category argument is missing.",
-	"hierarchybuilder-displaynameproperty-desc": "This is the optional name of a property that contains the value to be displayed instead of the page name.",
 	"hierarchybuilder-pagename-desc": "This is the name of the page containing the hierarchy.",
 	"hierarchybuilder-propertyname-desc": "This is the name of the property containing the hierarchy.",
 	"hierarchybuilder-collapsed-desc": "If this parameter is provided, the hierarchy should be rendered collapsed when it is first displayed.",
