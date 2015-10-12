@@ -12,7 +12,6 @@
 	"hierarchybuilder-unusedpages": "Ongebruikte pagina's",
 	"hierarchybuilder-category-desc": "Dit is de categorie waarin de pagina ' s in de hiërarchie behoren.",
 	"hierarchybuilder-missing-category": "De categorie argument ontbreekt",
-	"hierarchybuilder-displaynameproperty-desc": "Dit is de optionele naam van een eigenschap die de waarde bevat in plaats van de pagina naam moet worden weergegeven.",
 	"hierarchybuilder-pagename-desc": "Dit is de naam van de pagina met de hiërarchie .",
 	"hierarchybuilder-propertyname-desc": "Dit is de naam van de eigenschap die de hiërarchie bevat.",
 	"hierarchybuilder-collapsed-desc": "Als deze parameter is beschikbaar, de hiërarchie moet worden weergegeven stortte toen het voor het eerst wordt weergegeven.",
