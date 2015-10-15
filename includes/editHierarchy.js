@@ -81,6 +81,9 @@
 				var hierarchy = params.hierarchy;
 				var unusedpages = params.unusedpages;
 
+				console.log("[editHierarchy.js][init] hierarchy = " + hierarchy);
+				console.log("[editHierarchy.js][init] pages = " + params.pages);
+
 				var jqDivId = params.divId;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";
@@ -88,7 +91,7 @@
 				var innerframeattr = "class='hierarchy_inner' width='50%;'";
 				var html = "<div class='hierarchy_outer' dir='ltr'>";
 
-				if ( (params.hierarchy.length < 1) && (params.pages.length < 1) ) {
+				if ( ($(params.hierarchy).children().children("ul").length < 1) && ($(params.pages).children().children("ul").length < 1) ) {
 					html += "<p>" + params.errormessage + "</p>";
 				} else {
 					if (params.hideinfo == "false") {

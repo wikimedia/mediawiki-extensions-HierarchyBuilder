@@ -1,0 +1,73 @@
+{
+	"name": "HierarchyBuilder",
+	"version": "3.0.0",
+	"author": [
+		"[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]",
+		"[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:HierarchyBuilder",
+	"descriptionmsg": "hierarchybuilder-desc",
+	"type": "parserhook",
+	"MessagesDirs": {
+		"HierarchyBuilder": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"HierarchyBuilder": "HierarchyBuilder.i18n.php",
+		"HierarchyBuilderMagic": "HierarchyBuilder.i18n.magic.php"
+	},
+	"AutoloadClasses": {
+		"HierarchyBuilder": "HierarchyBuilder_body.php",
+		"HierarchyBuilderHooks": "HierarchyBuilder.hooks.php",
+		"HierarchyFormInput": "/includes/HierarchyFormInput.php",
+		"HierarchySelectFormInput": "/includes/HierarchySelectFormInput.php",
+		"HierarchyTree": "/includes/HierarchyTree.php",
+		"TreeNode": "/includes/TreeNode.php"
+	},
+	"callback": "HierarchyBuilderHooks::onRegistration",
+	"ResourceModules": {
+		"ext.HierarchyBuilder.jstree": {
+			"styles": "themes/apple/style.css",
+			"scripts": "/includes/jquery.jstree.js"
+		},
+		"ext.HierarchyBuilder.render": {
+			"scripts": "/includes/renderHierarchy.js",
+			"styles": "/includes/renderHierarchy.css",
+			"dependencies": [
+				"ext.HierarchyBuilder.jstree"
+			]
+		},
+		"ext.HierarchyBuilder.renderSelected": {
+			"scripts": "/includes/renderHierarchySelected.js",
+			"dependencies": [
+				"ext.HierarchyBuilder.jstree"
+			]
+		},
+		"ext.HierarchyBuilder.edit": {
+			"scripts": "/includes/editHierarchy.js",
+			"styles": "/includes/editHierarchy.css",
+			"dependencies": [
+				"ext.HierarchyBuilder.jstree",
+				"ext.semanticforms.main"
+			]
+		},
+		"ext.HierarchyBuilder.select": {
+			"scripts": "/includes/selectFromHierarchy.js",
+			"styles": "/includes/selectFromHierarchy.css",
+			"dependencies": [
+				"ext.HierarchyBuilder.jstree",
+				"ext.semanticforms.main"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "HierarchyBuilder"
+	},
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"HierarchyBuilderHooks::efHierarchyBuilderSetup"
+		]
+	}
+}
