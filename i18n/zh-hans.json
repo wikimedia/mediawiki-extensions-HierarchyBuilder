@@ -12,7 +12,6 @@
 	"hierarchybuilder-unusedpages": "未使用页面",
 	"hierarchybuilder-category-desc": "这是必须归入层级的页面的分类。",
 	"hierarchybuilder-missing-category": "缺少分类参数。",
-	"hierarchybuilder-displaynameproperty-desc": "这是包含值的属性的可选名称，用以替代页面名称显示。",
 	"hierarchybuilder-pagename-desc": "这是包含层级的页面名称。",
 	"hierarchybuilder-propertyname-desc": "这是包含层级的属性名称。",
 	"hierarchybuilder-collapsed-desc": "如果提供此参数，层级应该会在它第一次显示时折叠渲染。",

@@ -16,7 +16,6 @@
 	"hierarchybuilder-unusedpages": "Pages inutilisées",
 	"hierarchybuilder-category-desc": "C’est la catégorie à laquelle les pages dans la hiérarchie doivent appartenir.",
 	"hierarchybuilder-missing-category": "L'argument concernant la catégorie est manquant.",
-	"hierarchybuilder-displaynameproperty-desc": "C’est le nom facultatif d’une propriété qui contient la valeur à afficher au lieu du nom de la page.",
 	"hierarchybuilder-pagename-desc": "C’est le nom de la page contenant la hiérarchie.",
 	"hierarchybuilder-propertyname-desc": "C’est le nom de la propriété contenant la hiérarchie.",
 	"hierarchybuilder-collapsed-desc": "Si ce paramètre est fourni, la hiérarchie doit être affichée repliée au début.",
