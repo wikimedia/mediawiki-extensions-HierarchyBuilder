@@ -44,33 +44,165 @@ class HierarchyBuilder {
 	const COLLAPSED = 'collapsed';
 
 	/**
-	 * This function gives the section number for a target page within a
-	 * specific hierarchy on a particular page.
+	 * This parser function will give the section number of a page in a hierarchy.
 	 *
-	 * Section numbers are not stored anywhere. The section number must be
-	 * dynamically computed for each row whenever it is needed. As a result, we
-	 * must retrieve the hierarchy that contains the page who's section number
-	 * is being computed.
+	 * The three required arguments are (in order):
+	 *   - Full page name
+	 *   - Full page name of the page containing the hierarchy
+	 *   - Property name of the property containing the hierarchy data
 	 *
-	 * @param string $targetPageName: name of the target page for which you want
-	 *  the auto-number in the given hierarchyPage returned.
-	 * @param string $hierarchyPageName: name of the page containing the hierarchy
-	 *  from which to retrieve numberings.
-	 * @param string $hierarchyPropertyName: name of the property on the hierarchy
-	 *  page which contains the hierarchy data. (ex: Hierarchy Data).
+	 * Example invokation:
+	 * @code
+	 * {{#hierarchySectionNumber:{{FULLPAGENAME}}|Table of Contents|Hierarchy Data}}
+	 * @endcode
 	 *
-	 * @return string: The section number for the target page or the empty string
-	 *  if the target page is not found within the hierarchy.
+	 * @param $parser: Parser
+	 *
+	 * @return string: The section number of the specified page name within the
+	 *  specified hierarchy.
 	 */
-	public static function getPageSectionNumber(
-		$targetPageName,
-		$hierarchyPageName,
-		$hierarchyPropertyName
-	) {
-		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
-		$pageSectionNumber = HierarchyBuilder::getSectionNumberFromHierarchy( $hierarchy,
-			$targetPageName );
-		return $pageSectionNumber;
+	public static function hierarchySectionNumber( $parser ) {
+		$params = func_get_args();
+		if ( count( $params ) != 4 ) {
+			$output = "";
+		} else {
+			$pageName = $params[1];
+			$hierarchyPageName = $params[2];
+			$hierarchyPropertyName = $params[3];
+			$output = HierarchyBuilder::getSectionNumberFromHierarchy(
+				$pageName,
+				$hierarchyPageName,
+				$hierarchyPropertyName
+			);
+		}
+		return $parser->insertStripItem( $output, $parser->mStripState );
+	}
+
+
+
+	/**
+	 * This parser function will return the immediate parent of a given page within
+	 * a hierarchy on a page.
+	 *
+	 * 3 unnamed mandatory args:
+	 *  - pagename
+	 *  - hierarchy page
+	 *  - hierarchy property
+	 *
+	 * 5 named optional args:
+	 *  - sep = [, | ; | ... ]
+	 *  - template = any template taking a single param
+	 *  - introtemplate = any template with no params
+	 *  - outrotemplate = any tempalte with no params
+	 *  - link = [none]
+	 *
+	 * Example invokations:
+	 * @code
+	 * {{#hierarchyChildren:{{FULLPAGENAME}}|hierarchy page|hierarchy property}}
+	 * {{#hierarchyChildren:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,}}
+	 * {{#hierarchyChildren:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|link=none}}
+	 * {{#hierarchyChildren:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|link=none}}
+	 * {{#hierarchyChildren:{{FULLPAGENAME}}|hierarchy page|hierarchy property|sep=,|template=X|introtemplate=Y|outrotemplate=Z|link=none}}
+	 * @endcode
+	 *
+	 * @param $parser: Parser
+	 *
+	 * @return string: The list of children of the specified page within the specified
+	 *  hierarchy. The list is returned as wikitext for formatted display according to
+	 *  the various separator, template, and link parameters.
+	 */
+	public static function hierarchyChildren( $parser ) {
+		$params = func_get_args();
+		if ( count( $params ) < 4 ) {
+			$output = '';
+		} else {
+			// mandatory arguments
+			$pageName = $params[1];
+			$hierarchyPageName = $params[2];
+			$hierarchyPropertyName = $params[3];
+
+			// look for all the optional args in any order. We really don't care if
+			// the right combination of optional parameters appears at this point.
+			// The logic for handling different parameter combinations will happen
+			// after pulling children when we attempt to return results.
+			$optionalParams = array_slice( $params, 4 );
+			$optionalParams = self::parseParams( $optionalParams );
+			// look for the template parameter
+			if ( isset( $optionalParams[HierarchyBuilder::TEMPLATE] ) ) {
+				$template = $optionalParams[HierarchyBuilder::TEMPLATE];
+			} else {
+				$template = '';
+			}
+			// look for the introtemplate parameter
+			if ( isset( $optionalParams[HierarchyBuilder::INTROTEMPLATE] ) ) {
+				$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
+			} else {
+				$introTemplate = '';
+			}
+			// look for the outrotemplate parameter
+			if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+				$outroTemplate = $optionalParams[HierarchyBuilder::OUTROTEMPLATE];
+			} else {
+				$outroTemplate = '';
+			}
+			// look for the link parameter
+			if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
+				$link = $optionalParams[HierarchyBuilder::LINK];
+			} else {
+				$link = '';
+			}
+			// look for the delimiter parameter
+			if ( isset( $optionalParams[HierarchyBuilder::SEPARATOR] ) ) {
+				$delimiter = $optionalParams[HierarchyBuilder::SEPARATOR];
+			} else {
+				if ( $template != '' ) {
+					$delimiter = '';
+				} else {
+					$delimiter = ',';
+				}
+			}
+
+			// find the page children
+			$children = HierarchyBuilder::getPageChildren( $pageName, $hierarchyPageName,
+				$hierarchyPropertyName );
+
+			// format the output according to the optional params
+			$output = '';
+			if ( count( $children ) > 0 ) {
+				if ( $template != '' ) {
+					$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
+					$outro = $outroTemplate != '' ? "\n{{{$outroTemplate}}}" : '';
+					$templateChildrenString = implode(
+						array_map(
+							function( $child ) use ( $template, $link ) {
+								if ( $link == 'none' ) {
+									return "{{" . $template . "|$child}}";
+								} else {
+									return "{{" . $template . "|[[$child]]}}";
+								}
+							} ,
+							$children
+						),
+						"$delimiter\n"
+					);
+					$output = $intro . $templateChildrenString . $outro;
+				} else {
+					$childrenString = implode(
+						array_map(
+							function( $child ) use ( $link ) {
+								return $link == 'none' ? $child : "[[$child]]";
+							} ,
+							$children
+						),
+						$delimiter
+					);
+
+					$output = $childrenString;
+				}
+			}
+			$output = $parser->recursiveTagParse( $output );
+		}
+		return $parser->insertStripItem( $output, $parser->mStripState );
 	}
 
 	/**
@@ -102,7 +234,7 @@ class HierarchyBuilder {
 	 * @return array: A list strings consisting of the hierarchical children of
 	 *  the target page within the hierarchy.
 	 */
-	public static function getPageChildren( $targetPageName, $hierarchyPageName,
+	private static function getPageChildren( $targetPageName, $hierarchyPageName,
 		$hierarchyPropertyName
 	) {
 		// handle the strange empty target case first
@@ -189,6 +321,121 @@ class HierarchyBuilder {
 		return $children;
 	}
 
+		/**
+	 * This parser function will return a list of the immediate children of a given
+	 * page within a hierarchy on a page. The list of chilren will be delimited by
+	 * a specified character or the ',' character by default if no delimiter is given.
+	 *
+	 * 3 unnamed mandatory args:
+	 *  - pagename
+	 *  - hierarchy page
+	 *  - hierarchy property
+	 *
+	 * 1 named optional arg:
+	 *  - link = [none]
+	 *
+	 * Example invokations:
+	 * @code
+	 * {{#hierarchyParent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property}}
+	 * {{#hierarchyParent:{{FULLPAGENAME}}|hierarchy page name|hierarchy property|link=none}}
+	 * @endcode
+	 *
+	 * @param $parser Parser
+	 *
+	 * @return string: The parent of the specified page within the specified hierarchy
+	 *  as wikitext for formatted display.
+	 */
+	public static function hierarchyParent( $parser ) {
+		$params = func_get_args();
+		if ( count( $params ) < 4 ) {
+			$output = "";
+		} else {
+			// mandatory args
+			$pageName = $params[1];
+			$hierarchyPageName = $params[2];
+			$hierarchyPropertyName = $params[3];
+			// optional args (just link=none)
+			$optionalParams = array_slice( $params, 4 );
+			$optionalParams = HierarchyBuilder::parseParams( $optionalParams );
+			// look for the template parameter
+			if ( isset( $optionalParams[HierarchyBuilder::TEMPLATE] ) ) {
+				$template = $optionalParams[HierarchyBuilder::TEMPLATE];
+			} else {
+				$template = '';
+			}
+			// look for the introtemplate parameter
+			if ( isset( $optionalParams[HierarchyBuilder::INTROTEMPLATE] ) ) {
+				$introTemplate = $optionalParams[HierarchyBuilder::INTROTEMPLATE];
+			} else {
+				$introTemplate = '';
+			}
+			// look for the outrotemplate parameter
+			if ( isset( $optionalParams[HierarchyBuilder::OUTROTEMPLATE] ) ) {
+				$outroTemplate = $optionalParams[HierarchyBuilder::OUTROTEMPLATE];
+			} else {
+				$outroTemplate = '';
+			}
+			// look for the link parameter
+			if ( isset( $optionalParams[HierarchyBuilder::LINK] ) ) {
+				$link = $optionalParams[HierarchyBuilder::LINK];
+			} else {
+				$link = '';
+			}
+			// look for the delimiter parameter
+			if ( isset( $optionalParams[HierarchyBuilder::SEPARATOR] ) ) {
+				$delimiter = $optionalParams[HierarchyBuilder::SEPARATOR];
+			} else {
+				if ( $template != '' ) {
+					$delimiter = '';
+				} else {
+					$delimiter = ',';
+				}
+			}
+
+			// find the parents
+			$parents = HierarchyBuilder::getPageParent( $pageName, $hierarchyPageName,
+				$hierarchyPropertyName );
+
+			// format the parents for return according to the optional arg
+			// this code is the same as below for children
+			$output = '';
+			if ( count( $parents ) > 0 ) {
+				if ( $template != '' ) {
+					$intro = $introTemplate != '' ? "{{{$introTemplate}}}\n" : '';
+					$outro = $outroTemplate != '' ? "\n{{{$outroTemplate}}}" : '';
+					$templateParentString = implode(
+						array_map(
+							function( $parent ) use ( $template, $link ) {
+								if ( $link == 'none' ) {
+									return "{{" . $template . "|$parent}}";
+								} else {
+									return "{{" . $template . "|[[$parent]]}}";
+								}
+							} ,
+							$parents
+						),
+						"$delimiter\n"
+					);
+					$output = $intro . $templateParentString . $outro;
+				} else {
+					$parentString = implode(
+						array_map(
+							function( $parent ) use ( $link ) {
+								return $link == 'none' ? $parent : "[[$parent]]";
+							} ,
+							$parents
+						),
+						$delimiter
+					);
+
+					$output = $parentString;
+				}
+			}
+			$output = $parser->recursiveTagParse( $output );
+		}
+		return $parser->insertStripItem( $output, $parser->mStripState );
+	}
+
 	/**
 	 * Returns the hierarchical parent of a page within a hierarchy.
 	 *
@@ -210,7 +457,7 @@ class HierarchyBuilder {
 	 *  the hierarchy.
 	 */
 
-	public static function getPageParent( $targetPageName, $hierarchyPageName,
+	private static function getPageParent( $targetPageName, $hierarchyPageName,
 		$hierarchyPropertyName
 	) {
 		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
@@ -241,6 +488,141 @@ class HierarchyBuilder {
 	}
 
 	/**
+	 * This parser function will return only specific selected rows of a hierarchy
+	 * in addition to any necessary contextual rows.
+	 *
+	 * The returned hierarchy is displayd similarly to the HierarchySelectFormInput,
+	 * with each row preceeded by a checkbox. However, the checkboxes will be inactive.
+	 *
+	 * For a given set of selected rows, only those rows will be provided from the
+	 * hierarchy in addition to the minimal necessary contextual rows needed to display
+	 * the hierarchical relationships. For example, if a single selected row is given,
+	 * but that row is a leaf node which is 5 levels deep within the hierarchy, then
+	 * that row will be given along with each of its ancestors. This is conidered the
+	 * "pruned" behavior.
+	 *
+	 * The "collapsed" behavior will not remove any branches of the hierarchy, even
+	 * when those branches do not contain any of the specified selected rows. Instead,
+	 * these unnecessary branches will be collapsed initially, allowing only the
+	 * selected rows and their siblings to be shown.
+	 *
+	 * @param $parser: Parser
+	 * @return I don't know yet.
+	 *
+	 * Example invokation:
+	 * @code
+	 * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>}}
+	 * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|pruned}}
+	 * {{#hierarchySelected:<list of page names>|<hierarchy page name>|<hierarchy property>|collapsed}}
+	 * @endcode
+	 */
+	public static function hierarchySelected( $parser ) {
+		$params = func_get_args();
+		if ( count( $params ) < 4) {
+			$output = '';
+		} else {
+			$selectedPages = $params[1];
+			$hierarchyPageName = $params[2];
+			$hierarchyPropertyName = $params[3];
+			// if "pruned" is given, then set the displaymode to pruned. otherwise, "collapsed"
+			if ( isset( $params[4] ) && $params[4] == 'collapsed' ) {
+				$displayMode = 'collapsed';
+			} else {
+				$displayMode = 'pruned';
+			}
+
+			$wikitextHierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
+			// this is where we ask HierarchyBuilder class to actually do the work for us.
+			$hierarchyTree = HierarchyTree::fromWikitext( $wikitextHierarchy );
+
+			$normalizedSelectedPages =
+				array_map(
+					function( $page ) {
+						$pagename = HierarchyBuilder::getPageNameFromHierarchyRow( $page );
+						if ( $pagename == '' ) {
+							$pagename = trim( $page );
+						}
+						return trim( $pagename );
+					},
+					explode( ',', $selectedPages )
+				);
+		
+			$mst = $hierarchyTree->getMST( $normalizedSelectedPages );
+
+			// output formatting
+			$flatNormalizedSelectedPages =
+				array_reduce( $normalizedSelectedPages,
+						function( $carry, $item ) {
+							if ( $carry == '' ) {
+								$carry = $item;
+							} else {
+								$carry .= ',' . $item;
+							}
+							return $carry;
+						}
+					);
+
+			$selected = htmlspecialchars( str_replace( " ", "%20", $flatNormalizedSelectedPages	) );
+
+			$output = '';
+			if ( $displayMode == 'collapsed') {
+				$output = "<hierarchySelected collapsed selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			} else {
+				$output = "<hierarchySelected selected=$selected>" . (string)$mst . '</hierarchySelected>';
+			}
+
+			$output = $parser->recursiveTagParse( $output );
+
+		}
+		return $parser->insertStripItem( $output, $parser->mStripState );
+	}
+
+	/**
+	 * This parser function displays a breadcrumb for a page within a hierarchy.
+	 *
+	 * The breadcrumb display consists of three pages:
+	 *  - previous page in the hierarchy
+	 *  - next page in the hierarchy
+	 *  - hierarchical parent page in the hierarchy.
+	 *
+	 * There are 3 required parameters for this parser function:
+	 *  - pagename - that page who's breadcrumb you want to display.
+	 *  - hierarchy page - the page that has the hierarchy on it.
+	 *  - hierarchy property - the property containing the hierarchy data on the
+	 *    hierarchy page.
+	 *
+	 * Example Usage:
+	 * @code
+	 * {{#hierarchyBreadcrumb:{{FULLPAGENAME}}|Table of Contents|Hierarchy Data}}
+	 * @endcode
+	 *
+	 * @param $parser Parser
+	 *
+	 * @return string: Wikitext that displays the breadcrumb on the page.
+	 */
+	public static function hierarchyBreadcrumb( $parser ) {
+		$params = func_get_args();
+
+
+		if ( count( $params ) < 4 ) {
+			$output = "";
+		} else {
+			// $parser is always $params[0]
+			$currentPage = $params[1];
+			$hierarchyPage = $params[2];
+			$hierarchyProperty = $params[3];
+
+			$output = self::constructBreadcrumb( $currentPage,
+				$hierarchyPage, $hierarchyProperty );
+			$output = $parser->recursiveTagParse( $output );
+		}
+
+		$parser->disableCache();
+		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+			'noparse' => false );
+	}
+
+	/**
 	 * Compute and return the breadcrumb for a given page within a hierarchy.
 	 *
 	 * This function will compute and return the breadcrumb information for a
@@ -261,7 +643,7 @@ class HierarchyBuilder {
 	 * @return string: Formatted wikitext that will format and display the
 	 *  breadcrumb information on the page.
 	 */
-	public function hierarchyBreadcrumb( $currentPage, $hierarchyPage,
+	private static function constructBreadcrumb( $currentPage, $hierarchyPage,
 		$hierarchyProperty ) {
 
 		$hierarchy = self::getPropertyFromPage( $hierarchyPage, $hierarchyProperty );
@@ -292,11 +674,54 @@ class HierarchyBuilder {
 				// Note that if there is no hierarchical parent, then the parent will be empty.
 				$parent = self::getParent( $hierarchyRows, $row, $i );
 
-				return self::breadcrumb( $previous, $parent, $next );
+				return self::formatBreadcrumb( $previous, $parent, $next );
 			}
 		}
 
 		return '';
+	}
+
+	/**
+	 * Return the wikitext formatted breadcrumb using the given information.
+	 *
+	 * This function gives formatted wikitext for rendering a breadcrumb trail
+	 * on a wikipage including the previous page, the parent page, and the next
+	 * page within a hierarchy.
+	 *
+	 * @param string $previous: The name of the previous page in the hierarchy.
+	 * @param string $parent: The name of the hierarchical parent page in the
+	 *  hierarchy.
+	 * @param string $next: The name of the next page in the hierarchy.
+	 *
+	 * @return string: Formatted wikitext which renders breadcrumbs on a page.
+	 */
+	private function formatBreadcrumb( $previous, $parent, $next ) {
+		$breadcrumb = "{| width='100%'" . PHP_EOL;
+		if ( $previous != null ) {
+			if ( $previous == $parent ) {
+	            $arrow = "&uarr;";
+			} else {
+				$arrow = "&larr;";
+			}
+			$breadcrumb .= "| width='33%' | " . $arrow . " [[" . $previous . "| " .
+				HierarchyBuilder::getPageDisplayName( $previous ) . "]]" . PHP_EOL;
+		} else {
+			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
+		}
+        if ( $parent != null  && $parent != $previous ) {
+			$breadcrumb .= "| align='center' width='33%' | &uarr; [[" . $parent .
+				"| " . HierarchyBuilder::getPageDisplayName( $parent ) . "]]" . PHP_EOL;
+		} else {
+			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
+		}
+		if ( $next != null ) {
+			$breadcrumb .= "| align='right' width='33%' | [[" . $next . "|" .
+				HierarchyBuilder::getPageDisplayName( $next ) . "]] &rarr;" . PHP_EOL;
+		} else {
+			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
+		}
+		$breadcrumb .= "|}" . PHP_EOL;
+		return $breadcrumb;
 	}
 
 	/**
@@ -332,7 +757,7 @@ class HierarchyBuilder {
 			$parentRow = $hierarchyRows[$parentIdx];
 			$parentDepth = self::getDepthOfHierarchyRow( $parentRow );
 
-			if ( $parentDepth == $currentDepth -1 ) {
+			if ( $parentDepth == $currentDepth - 1 ) {
 				$parent = self::getPageNameFromHierarchyRow( $parentRow );
 				break;
 			}
@@ -369,7 +794,7 @@ class HierarchyBuilder {
 	 *
 	 * @return number: The depth of $hierarchyRow.
 	 */
-	public static function getDepthOfHierarchyRow( $hierarchyRow ) {
+	private static function getDepthOfHierarchyRow( $hierarchyRow ) {
 		$numMatches = preg_match_all( self::DEPTHPATTERN, $hierarchyRow, $matches );
 		$depth = ( $numMatches > 0 ? strlen( $matches[1][0] ) : 0 );
 		return $depth;
@@ -408,49 +833,6 @@ class HierarchyBuilder {
 	}
 
 	/**
-	 * Return the wikitext formatted breadcrumb using the given information.
-	 *
-	 * This function gives formatted wikitext for rendering a breadcrumb trail
-	 * on a wikipage including the previous page, the parent page, and the next
-	 * page within a hierarchy.
-	 *
-	 * @param string $previous: The name of the previous page in the hierarchy.
-	 * @param string $parent: The name of the hierarchical parent page in the
-	 *  hierarchy.
-	 * @param string $next: The name of the next page in the hierarchy.
-	 *
-	 * @return string: Formatted wikitext which renders breadcrumbs on a page.
-	 */
-	private function breadcrumb( $previous, $parent, $next ) {
-		$breadcrumb = "{| width='100%'" . PHP_EOL;
-		if ( $previous != null ) {
-			if ( $previous == $parent ) {
-	            $arrow = "&uarr;";
-			} else {
-				$arrow = "&larr;";
-			}
-			$breadcrumb .= "| width='33%' | " . $arrow . " [[" . $previous . "| " .
-				HierarchyBuilder::getPageDisplayName( $previous ) . "]]" . PHP_EOL;
-		} else {
-			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
-		}
-        if ( $parent != null  && $parent != $previous ) {
-			$breadcrumb .= "| align='center' width='33%' | &uarr; [[" . $parent .
-				"| " . HierarchyBuilder::getPageDisplayName( $parent ) . "]]" . PHP_EOL;
-		} else {
-			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
-		}
-		if ( $next != null ) {
-			$breadcrumb .= "| align='right' width='33%' | [[" . $next . "|" .
-				HierarchyBuilder::getPageDisplayName( $next ) . "]] &rarr;" . PHP_EOL;
-		} else {
-			$breadcrumb .= "| width='33%' | &nbsp;" . PHP_EOL;
-		}
-		$breadcrumb .= "|}" . PHP_EOL;
-		return $breadcrumb;
-	}
-
-	/**
 	 * Renders a wikitext formatted hierarchy on a page.
 	 *
 	 * This function implements the hierarchy tag extension for rendering a
@@ -468,7 +850,7 @@ class HierarchyBuilder {
 	 *
 	 * @return string: Html div that will contain the rendered hierarchy.
 	 */
-	public function renderHierarchy( $input, $attributes, $parser, $frame ) {
+	public static function renderHierarchy( $input, $attributes, $parser, $frame ) {
 		$hierarchyName = 'HierarchyDiv' . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
 
@@ -518,17 +900,7 @@ class HierarchyBuilder {
 
 				$displayName = HierarchyBuilder::getPageDisplayName( $pageName );
 
-				$titleiconArray = array();
-				$pagetitleicons = '';
-				if ( strlen( $titleiconproperty ) > 0 ) {
-					$pagetitleicons = HierarchyBuilder::getPageTitleIcons( $pageName,
-						$titleiconproperty );
-				}
-
-				$iconElement = '';
-				if ( $pagetitleicons !== '' ) {
-					$iconElement = HierarchyBuilder::getIconHTML($pagetitleicons);
-				}
+				$iconElement = self::getPageTitleIconsHtml( $pageName, $titleiconproperty );
 
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} );
@@ -547,7 +919,12 @@ END;
 		$script = Html::inlineScript( $script );
 		$wgOut->addScript( $script );
 
-		return Html::element( 'div', array( 'id' => $hierarchyName ) );
+		//return Html::element( 'div', array( 'id' => $hierarchyName ) );
+
+		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
+		$parser->disableCache();
+		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+			'noparse' => false );
 	}
 
 	public function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
@@ -625,7 +1002,11 @@ END;
 		$script = Html::inlineScript( $script );
 		$wgOut->addScript( $script );
 
-		return Html::element( 'div', array( 'id' => $hierarchyName ) );
+		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
+
+		$parser->disableCache();
+		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+			'noparse' => false );
 	}
 
 	/**
@@ -714,8 +1095,7 @@ END;
 		} catch (Exception $e) {
 			wfLogWarning("[HierarchyBuilder.class.php][getPropertyFromPage] Something broke. Returning an empty string.");
 			return '';
-		}
-		
+		}		
 		
 	}
 
@@ -798,6 +1178,36 @@ END;
 	}
 
 	/**
+	 * This function gives the section number for a target page within a
+	 * specific hierarchy on a particular page.
+	 *
+	 * Section numbers are not stored anywhere. The section number must be
+	 * dynamically computed for each row whenever it is needed. As a result, we
+	 * must retrieve the hierarchy that contains the page who's section number
+	 * is being computed.
+	 *
+	 * @param string $targetPageName: name of the target page for which you want
+	 *  the auto-number in the given hierarchyPage returned.
+	 * @param string $hierarchyPageName: name of the page containing the hierarchy
+	 *  from which to retrieve numberings.
+	 * @param string $hierarchyPropertyName: name of the property on the hierarchy
+	 *  page which contains the hierarchy data. (ex: Hierarchy Data).
+	 *
+	 * @return string: The section number for the target page or the empty string
+	 *  if the target page is not found within the hierarchy.
+	 */
+	/*public static function getPageSectionNumber(
+		$targetPageName,
+		$hierarchyPageName,
+		$hierarchyPropertyName
+	) {
+		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
+		$pageSectionNumber = HierarchyBuilder::getSectionNumberFromHierarchy( $hierarchy,
+			$targetPageName );
+		return $pageSectionNumber;
+	}*/
+
+	/**
 	 * Returns the section number for a page within a wikitext formatted hierarchy.
 	 *
 	 * This function will search a hierarchy for a target page name and will
@@ -813,9 +1223,14 @@ END;
 	 *
 	 * @return string: The section numer of the target page within the hierarchy.
 	 */
-	public static function getSectionNumberFromHierarchy( $wikiTextHierarchy, $target ) {
+	private static function getSectionNumberFromHierarchy(
+		$targetPageName,
+		$hierarchyPageName,
+		$hierarchyPropertyName
+	) {
+		$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
 		$sectionNumber = self::getSectionNumberFromHierarchyHelper(
-			'[[hierarchy_root]]' . "\n" . $wikiTextHierarchy, '', '', $target );
+			'[[hierarchy_root]]' . "\n" . $hierarchy, '', '', $targetPageName );
 		return $sectionNumber;
 	}
 
@@ -840,17 +1255,20 @@ END;
 	 *  we cannot find the page within the hierarchy, then the empty string is
 	 *  returned instead.
 	 */
-	private static function getSectionNumberFromHierarchyHelper( $wikiTextHierarchy, $depth,
-		$sectionNumber, $target
+	private static function getSectionNumberFromHierarchyHelper( 
+		$wikiTextHierarchy,
+		$depth,
+		$sectionNumber,
+		$target
 	) {
-		$rootAndChildren = HierarchyBuilder::splitHierarchy( $wikiTextHierarchy, $depth );
+		$rootAndChildren = self::splitHierarchy( $wikiTextHierarchy, $depth );
 		// this is just the root row of this hierarchy (or subhierarchy)
 		$root = $rootAndChildren[0];
 		// this is a list of direct children hierarchies of the root. It might
 		// be an empty list though
 		$children = array_slice( $rootAndChildren, 1 );
 
-		$rootPageName = HierarchyBuilder::getPageNameFromHierarchyRow( $root, false );
+		$rootPageName = self::getPageNameFromHierarchyRow( $root, false );
 
 		// if we are staring at the target then return the current section number for the target
 		if ( $rootPageName == $target ) {
@@ -903,6 +1321,104 @@ END;
 	}
 
 	/**
+	 * This parser function will return the subhierarchy that is rooted at the specified
+	 * node within a hierarchy.
+	 *
+	 * The three required arguments are (in order):
+	 *   - The root node of the subhierarchy within the overall hierarchy. If this
+	 *     argument is empty, then the entire hierarchy is returned.
+	 *   - Full page name of the page containing the hierarchy
+	 *   - Property name of the property containing the hierarchy data
+	 *
+	 * The optional argument is:
+	 *   - Format to specify if the results should be returned as a bulleted list as
+	 *     opposed to the default striped format.
+	 *
+	 * Example invokation:
+	 * @code
+	 * {{#hierarchySubtree:|Main Page|Hierarchy Data}}
+	 * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
+	 * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data}}
+	 * {{#hierarchySubtree:Hierarchy Builder|Main Page|Hierarchy Data|format=ul}}
+	 * @endcode
+	 *
+	 * @param $parser: Parser
+	 *
+	 * @return string: The string containing the specified subhierarchy as though
+	 *  it were a standalone hierarchy.
+	 */
+	public static function hierarchySubtree( $parser ) {
+		$params = func_get_args();
+		if ( count( $params ) < 4 ) {
+			$output = '';
+		} else {
+			$rootNode = $params[1];
+			$hierarchyPageName = $params[2];
+			$hierarchyPropertyName = $params[3];
+
+			$optionalParams = array_slice( $params, 4 );
+			$optionalParams = HierarchyBuilder::parseParams( $optionalParams );
+			$format = '';
+			if ( isset( $optionalParams[HierarchyBuilder::FORMAT] ) ) {
+				$format = $optionalParams[HierarchyBuilder::FORMAT];
+			}
+			$titleiconproperty = '';
+			if (isset( $optionalParams[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
+				$titleiconproperty = $optionalParams[HierarchyBuilder::TITLEICONPROPERTY];
+			}
+			$showroot = '';
+			if ( isset( $optionalParams[HierarchyBuilder::SHOWROOT] ) ) {
+				$showroot = $optionalParams[HierarchyBuilder::SHOWROOT];
+			}
+			if ( $rootNode == '' ) {
+				$showroot = 'showroot';
+			}
+			$collapsed = '';
+			if ( isset( $optionalParams[HierarchyBuilder::COLLAPSED] ) ) {
+				$collapsed = $optionalParams[HierarchyBuilder::COLLAPSED];
+			}
+
+			$output = HierarchyBuilder::getSubhierarchy(
+				$rootNode,
+				$hierarchyPageName,
+				$hierarchyPropertyName
+			);
+
+			// this is where we have to handle the default mode which is not showroot and not collapsed
+			if ( $showroot == '' ) {
+				// fix $output so only the children are given
+				$hierarchyrows = preg_split( '/\n/', $output );
+				$root = $hierarchyrows[0];
+				$children = array_slice( $hierarchyrows, 1 );
+
+				$depth = HierarchyBuilder::getDepthOfHierarchyRow( $root );
+				$output = array_reduce( $children,
+						function( $carry, $item ) use ( $depth ) {
+							if ( $carry != '' ) {
+								$carry .= "\n" . substr( $item, strlen( $depth ) );
+							} else {
+								$carry = substr( $item, strlen( $depth ) );
+							}
+							return $carry;
+						}
+					);
+			}
+
+			// this is the default output display format
+			if ( $format != 'ul' ) {
+				if ( $titleiconproperty != '' ) {
+					$titleiconproperty = "titleiconproperty=\"$titleiconproperty\"";
+				}
+				$output = "<hierarchy $collapsed $titleiconproperty>$output</hierarchy>";
+			}
+			// otherwise it's the bulleted format and we don't modify output.
+
+			$output = $parser->recursiveTagParse( PHP_EOL . $output );
+		}
+		return $parser->insertStripItem( $output, $parser->mStripState );
+	}
+
+	/**
 	 * This function returns the subhierarchy defined by its root node within
 	 * a specific hierarchy on a given page.
 	 *
@@ -921,13 +1437,17 @@ END;
 	 *  subhierarchy within the overall hierarchy who's root is $root. Otherwise,
 	 *  if no such subhierarchy exists, the empty string is returned instead.
 	 */
-	public static function getSubhierarchy( $root, $pagename, $propertyname ) {
+	private static function getSubhierarchy( $root, $pagename, $propertyname ) {
 		$hierarchy = self::getPropertyFromPage( $pagename, $propertyname );
 
 		if ( $root == '' ) {
 			return $hierarchy;
 		} else {
-			return HierarchyBuilder::getSubhierarchyHelper( $root, "[[Hierarchy_Root]]\n" . $hierarchy, '' );
+			return HierarchyBuilder::getSubhierarchyHelper( 
+				$root,
+				"[[Hierarchy_Root]]\n" . $hierarchy,
+				''
+			);
 		}
 	}
 
@@ -985,13 +1505,6 @@ END;
 		return '';
 	}
 
-	public static function parseHierarchyToTree( $hierarchyPageName, $hierarchyPropertyName ) {
-		$hierarchy = HierarchyBuilder::getPropertyFromPage( $hierarchyPageName, $hierarchyPropertyName );
-		$hierarchy = "[[Hierarchy_Root]]\n" . $hierarchy;
-
-		HierarchyTree::parseHierarchyToTree( $hierarchy );
-	}
-
 	/**
 	 * This function constructs the img html elements to display each of the
 	 * given titleicons.
@@ -1000,7 +1513,7 @@ END;
 	 *
 	 * @return string: The html for rendering all of the titleicons.
 	 */
-	public static function getIconHTML( $icons ) {
+	private static function getIconsHTML( $icons ) {
 		$iconhtmls = array();
 		foreach ( $icons as $iconinfo ) {
 
@@ -1084,4 +1597,57 @@ END;
 
 		return $icons;
 	}
+
+	/**
+	 * This function gives the titleicons in formatted displayable HTML for
+	 * the specified page when using titleicons.
+	 *
+	 * @param string $page: Name of the page.
+	 * @param string $titleIconProperty: Name of the property that stores
+	 *  titleicon urls for pages when titleicons are active.
+	 *
+	 * @return array: The pagename, titleiconname pairs for the specified page.
+	 */
+	public static function getPageTitleIconsHtml( $page, $titleIconProperty) {
+		$icons = self::getPageTitleIcons( $page, $titleIconProperty );
+		return count($icons) > 0 ? self::getIconsHtml( $icons ) : '';
+	}
+
+	/**
+	 * Helper function for parsing a list of named parser function parameters.
+	 *
+	 * @param array $params: A list of named parameters (e.g. "array('sep=|', 'link=none'))
+	 *
+	 * @return array: Associative array of named parameters.
+	 */
+	private static function parseParams( $params ) {
+		$paramsArray = array();
+		foreach ( $params as $param ) {
+			$paramsArray += self::parseParam( $param );
+		}
+		return $paramsArray;
+	}
+
+	/**
+	 * Helper function for parsing a single named parser function parameter.
+	 *
+	 * @param string $param: A single named parameter (e.g. 'link=none')
+	 *
+	 * @param array: A single element associative array containing the named parameter.
+	 */
+	private static function parseParam( $param ) {
+		$paramArray = array();
+		$ret = preg_split( '/=/', $param, 2 );
+		if ( count( $ret ) > 1 ) {
+			$paramArray[$ret[0]] = $ret[1];
+		} else {
+			$paramArray[$ret[0]] = $ret[0];
+		}
+		return $paramArray;
+	}
+
+	public static function hbLog($className, $methodName, $message) {
+		wfErrorLog( "[".date("c")."]" . "[".$className."][".$methodName."] " . $message . "\n", '/home/kji/hierarchyBuilder.log' );
+	}
+
 }

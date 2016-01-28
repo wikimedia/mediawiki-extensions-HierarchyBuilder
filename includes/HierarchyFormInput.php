@@ -89,23 +89,25 @@ class HierarchyFormInput extends SFFormInput {
 
 		$unusedpagesmessage = wfMessage( 'hierarchybuilder-unusedpages' )->text();
 		$unusedpages = "<ul>" .
-			"<li class='hierarchy_root'><a>$unusedpagesmessage</a>" .
-			"<ul>";
-		foreach ( $pages as $key => $value ) {
-			$name = $value;
-			$namehtml = "<a>$name<span style=display:none>$key</span></a>";
-			
-			if ($titleiconProperty != '') {
-				$pagetitleicons = HierarchyBuilder::getPageTitleIcons( $key, $titleiconProperty );
-				$pagetitleiconshtml = HierarchyBuilder::getIconHTML( $pagetitleicons );
-			} else {
-				$pagetitleiconshtml = '';
-			}
+			"<li class='hierarchy_root'><a>$unusedpagesmessage</a>";
+		if ( count($pages) > 0 ) {
+			$unusedpages .=	"<ul>";
+			foreach ( $pages as $key => $value ) {
+				$name = $value;
+				$namehtml = "<a>$name<span style=display:none>$key</span></a>";
+				
+				if ($titleiconProperty != '') {
+					$pagetitleiconshtml = HierarchyBuilder::getPageTitleIconsHtml( $key, $titleiconProperty );
+				} else {
+					$pagetitleiconshtml = '';
+				}
 
-			$pagerowhtml = "<li>" . $pagetitleiconshtml . $namehtml . "</li>";
-			$unusedpages .= $pagerowhtml;
+				$pagerowhtml = "<li>" . $pagetitleiconshtml . $namehtml . "</li>";
+				$unusedpages .= $pagerowhtml;
+			}
+			$unusedpages .= "</ul>";
 		}
-		$unusedpages .= "</ul></li></ul>";
+		$unusedpages .= "</li></ul>";
 
 		$hierarchy = $this->wikitext2Html($this->mCurrentValue, $titleiconProperty);
 
@@ -115,7 +117,6 @@ class HierarchyFormInput extends SFFormInput {
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
-			//'pages' => $pages,
 			'pages' => $unusedpages,
 			'isDisabled' => $this->mIsDisabled,
 			'hideinfo' => $hideinfoProperty,
@@ -152,6 +153,7 @@ class HierarchyFormInput extends SFFormInput {
 		$nummatches = preg_match_all( $childdepthpattern, $subhierarchy, $matches );
 		$childrows = $nummatches > 0 ? $matches[0] : array();
 		$childsubhierarchies = array_slice( preg_split( $childdepthpattern, $subhierarchy ), 1 ); // chop off element 0 which is the root
+		$numchildren = count($childrows);
 		
 		//extract the root pagename 
 		$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches );
@@ -161,8 +163,7 @@ class HierarchyFormInput extends SFFormInput {
 		} else {
 
 			if ($titleiconproperty != '') {
-				$roottitleicons = HierarchyBuilder::getPageTitleIcons( $rootpagename, $titleiconproperty );
-				$roottitleiconshtml = HierarchyBuilder::getIconHTML( $roottitleicons );
+				$roottitleiconshtml = HierarchyBuilder::getPageTitleIconsHtml( $rootpagename, $titleiconproperty );
 			} else {
 				$roottitleiconshtml = '';
 			}
@@ -173,9 +174,9 @@ class HierarchyFormInput extends SFFormInput {
 		
 		$html = $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
 		$html .= $rootHtml;
-		if ( count($childrows) > 0 ) {
+		if ( $numchildren > 0 ) {
 			$html .= '<ul>';
-			for ( $i = 0; $i < count($childrows); $i++ ) {
+			for ( $i = 0; $i < $numchildren; $i++ ) {
 				$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
 				$html .= $this->wikitext2HtmlHelper($childhierarchy, $depth+1, $titleiconproperty);
 			}
