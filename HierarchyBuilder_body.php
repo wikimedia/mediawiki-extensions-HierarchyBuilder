@@ -1019,7 +1019,7 @@ END;
 	 * @return string: Wikitext formatted hierarchy where with all the link
 	 *  placeholders removed and replaced by html anchors.
 	 */
-	private function anchorLinkHolders( $hierarchy ) {
+	private static function anchorLinkHolders( $hierarchy ) {
 		$pattern = '#<!--LINK \d+:\d+-->#';
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
@@ -1132,7 +1132,7 @@ END;
 		}
 
 		// note that if anything fails in the pipeline we return the pagename
-		return $displayname;
+		return htmlspecialchars_decode($displayname);
 	}
 
 	/**

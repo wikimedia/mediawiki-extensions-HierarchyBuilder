@@ -77,7 +77,7 @@
 				if ( params.hierarchy.length < 1 ) {
 					return;
 				}
-
+				
 				var twostate = params.threestate ? false : true;
 
 				var legacyMode = params.legacyMode;
@@ -159,8 +159,8 @@
 					.bind( "loaded.jstree", function( event, data ) {
 						obj.initializeTree( jqDivId, params.isDisabled,
 							selectedComponents, true, inputId, params.collapsed, legacyMode, params.threestate );
-						$( jqDivId )
-							.jstree( "open_all" );
+						/*$( jqDivId )
+							.jstree( "open_all" );*/
 					} );
 
 				$( jqDivId )
