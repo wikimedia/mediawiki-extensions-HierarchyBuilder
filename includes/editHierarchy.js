@@ -123,7 +123,7 @@
 				}
 				if ( params.hideinfo == "true" ) {
 					var button = $("#showinfo")[0];
-					button.onclick = function() { 
+					button.onclick = function() {
 						if ($("#info").css("display") == "none") {
 							$("#info").slideDown();
 						} else {

@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
 ( function( $ ) {
 	/**
 	 * Gobal function to display a hierarchy.
@@ -75,7 +74,6 @@
 						selectedComponents[i] = selectedComponents[i].replace("%20", " ");
 					}
 				}
-			
 
 				var obj = this;
 
@@ -87,7 +85,7 @@
 					.css( "list-style-image", "none" );
 				$( jqDivId )
 					.bind( "loaded.jstree", function( event, data ) {
-						obj.initializeTree( jqDivId, selectedComponents, true, collapsed );        				
+						obj.initializeTree( jqDivId, selectedComponents, true, collapsed );
 					} );
 				$( jqDivId )
 					.bind( "refresh.jstree", function( event, data ) {

@@ -45,22 +45,31 @@ class HierarchySelectFormInput extends SFFormInput {
 	protected function setupJsInitAttribs() {
 		global $HierarchyBuilder_LegacyMode;
 
-		if ( array_key_exists( 'pagename', $this->mOtherArgs ) ) {
-			$this->mPageName = $this->mOtherArgs['pagename'];
+		if ( array_key_exists( HierarchyBuilder::PAGENAME, $this->mOtherArgs ) ) {
+			$this->mPageName = $this->mOtherArgs[HierarchyBuilder::PAGENAME];
 		} else {
 			$this->mPageName = null;
 			return;
 		}
 
-		if ( array_key_exists( 'propertyname', $this->mOtherArgs ) ) {
-			$this->mPropertyName = $this->mOtherArgs['propertyname'];
+		if ( array_key_exists( HierarchyBuilder::PROPERTYNAME, $this->mOtherArgs ) ) {
+			$this->mPropertyName = $this->mOtherArgs[HierarchyBuilder::PROPERTYNAME];
 		} else {
 			$this->mPropertyName = null;
 			return;
 		}
 
-		if ( array_key_exists( 'collapsed', $this->mOtherArgs ) ) {
-			$this->mCollapsed = $this->mOtherArgs['collapsed'];
+		if ( array_key_exists( HierarchyBuilder::TITLEICONPROPERTY, $this->mOtherArgs ) ) {
+			$this->titleiconProperty = $this->mOtherArgs[HierarchyBuilder::TITLEICONPROPERTY];
+		} else {
+			$this->titleiconProperty = null;
+		}
+
+		if ( array_key_exists( HierarchyBuilder::COLLAPSED, $this->mOtherArgs ) ) {
+			$this->mCollapsed = $this->mOtherArgs[HierarchyBuilder::COLLAPSED];
+			if ( $this->mCollapsed ) {
+				$this->mCollapsed = 'true';
+			}
 			if ( $this->mCollapsed !== 'true' && $this->mCollapsed !== 'false' ) {
 				$this->mCollapsed = null;
 				return;
@@ -69,8 +78,8 @@ class HierarchySelectFormInput extends SFFormInput {
 			$this->mCollapsed = 'false';
 		}
 
-		if ( array_key_exists( 'threestate', $this->mOtherArgs ) ) {
-			$this->mThreestate = $this->mOtherArgs['threestate'];
+		if ( array_key_exists( HierarchyBuilder::THREESTATE, $this->mOtherArgs ) ) {
+			$this->mThreestate = $this->mOtherArgs[HierarchyBuilder::THREESTATE];
 			if ( $this->mThreestate ) {
 				$this->mThreestate = 'true';
 			}
@@ -82,21 +91,26 @@ class HierarchySelectFormInput extends SFFormInput {
 			$this->mThreestate = 'false';
 		}
 
-		if ( array_key_exists( 'width', $this->mOtherArgs ) ) {
-			$this->mWidth = $this->mOtherArgs['width'];
+		if ( array_key_exists( HierarchyBuilder::WIDTH, $this->mOtherArgs ) ) {
+			$this->mWidth = $this->mOtherArgs[HierarchyBuilder::WIDTH];
 		} else {
 			$this->mWidth = '';
 		}
 
-		if ( array_key_exists( 'height', $this->mOtherArgs ) ) {
-			$this->mHeight = $this->mOtherArgs['height'];
+		if ( array_key_exists( HierarchyBuilder::HEIGHT, $this->mOtherArgs ) ) {
+			$this->mHeight = $this->mOtherArgs[HierarchyBuilder::HEIGHT];
 		} else {
 			$this->mHeight = '';
 		}
 
-		$hierarchy = HierarchyBuilder::getPropertyFromPage( $this->mPageName,
-			$this->mPropertyName );
-		$hierarchy = HierarchyBuilder::updateHierarchyWithDisplayNames( $hierarchy );
+		$hierarchy = HierarchyBuilder::getPropertyFromPage(
+			$this->mPageName,
+			$this->mPropertyName
+		);
+		$hierarchy = HierarchyBuilder::parseWikitext2Html(
+			$hierarchy,
+			$this->titleiconProperty
+		);
 
 		$selectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
 
@@ -134,11 +148,6 @@ class HierarchySelectFormInput extends SFFormInput {
 				wfMessage( 'hierarchybuilder-missing-property-name' )->text() );
 		}
 
-		if ( $this->mCollapsed == null ) {
-			return Html::element( 'b', array(),
-				wfMessage( 'hierarchybuilder-invalid-collapsed' )->text() );
-		}
-
 		return Html::element( 'input', array(
 			'type' => 'hidden',
 			'id' => $this->mInputId,
@@ -149,23 +158,17 @@ class HierarchySelectFormInput extends SFFormInput {
 
 	public static function getParameters() {
 		$params = parent::getParameters();
-		$params['pagename'] = array(
-			'name' => 'pagename',
+		$params[HierarchyBuilder::PAGENAME] = array(
+			'name' => HierarchyBuilder::PAGENAME,
 			'type' => 'string',
 			'description' =>
 				wfMessage( 'hierarchybuilder-pagename-desc' )->text()
 		);
-		$params['propertyname'] = array(
-			'name' => 'propertyname',
+		$params[HierarchyBuilder::PROPERTYNAME] = array(
+			'name' => HierarchyBuilder::PROPERTYNAME,
 			'type' => 'string',
 			'description' =>
 				wfMessage( 'hierarchybuilder-propertyname-desc' )->text()
-		);
-		$params['collapsed'] = array(
-			'name' => 'collapsed',
-			'type' => 'string',
-			'description' =>
-				wfMessage( 'hierarchybuilder-collapsed-desc' )->text()
 		);
 	}
 

@@ -24,22 +24,28 @@
     font-style: italic;
     color: green;
 }
-                
+
 li > a.unselectedHierarchyRow {
 	font-style: normal;
     color: black;
 }*/
 
 li.jstree-checked > a {
-    font-style: italic;
-    color: green;
+	font-style: italic;
+	color: green;
 }
-                
+
 li.jstree-undetermined li.jstree-unchecked > a {
 	font-style: normal;
-    color: black;
+	color: black;
 }
 
 .scrollableHierarchy {
 	overflow: scroll;
+}
+
+.hierarchy_row_titleicon {
+	max-height:15px;
+	max-width:15px;
+	padding-right:5px;
 }

@@ -29,8 +29,9 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	$wgExtensionMessagesFiles['HierarchyBuilder'] = __DIR__ . '/HierarchyBuilder.i18n.php';
 	$wgExtensionMessagesFiles['HierarchyBuilderMagic'] = __DIR__ . '/HierarchyBuilder.i18n.magic.php';
 	wfWarn(
-		'Deprecated PHP entry point used for HierarchyBuilder extension. Please use wfLoadExtension instead, ' .
-		'see https://www.mediawiki.org/wiki/Extension_registration for more details.'
+		'Deprecated PHP entry point used for HierarchyBuilder extension. ' .
+		'Please use wfLoadExtension instead, see ' .
+		'https://www.mediawiki.org/wiki/Extension_registration for more details.'
 	);
 	return;
 }
@@ -55,7 +56,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 		' Semantic Forms 2.5.2 or above.' );
 }
 
-define( 'HB_VERSION', '3.0.1' );
+define( 'HB_VERSION', '3.1.0' );
 
 # credits
 $wgExtensionCredits['parserhook'][] = array (

@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Copyright (c) 2014 The MITRE Corporation
  *
@@ -140,7 +140,13 @@ class HierarchyTree {
 		}
 
 		// if children are in $rows or self is in rows then return the copy
-		if ( $clone->getChildren() != null || in_array( HierarchyBuilder::getPageNameFromHierarchyRow( $node->getValue() ), $rows ) ) {
+		if (
+			$clone->getChildren() != null ||
+			in_array(
+				HierarchyBuilder::getPageNameFromHierarchyRow( $node->getValue() ),
+				$rows
+			)
+		) {
 			return $clone;
 		} else { // otherwise this whole branch gets cut
 			return null;

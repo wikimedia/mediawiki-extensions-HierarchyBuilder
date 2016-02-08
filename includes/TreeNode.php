@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Copyright (c) 2014 The MITRE Corporation
  *
@@ -23,39 +23,39 @@
  */
 
 class TreeNode {
- 	protected $value = null; // this is the actuall row value like "***[[Hierarchy Builder]]"
- 	protected $parent = null; // this is a pointer to the parent node within the tree
- 	protected $children = null; // an array of pointers to children
+	protected $value = null; // this is the actuall row value like "***[[Hierarchy Builder]]"
+	protected $parent = null; // this is a pointer to the parent node within the tree
+	protected $children = null; // an array of pointers to children
 
- 	function __construct( $text ) {
-       $this->value = $text;
+	function __construct( $text ) {
+		$this->value = $text;
 	}
 
- 	public function getValue() {
- 		return $this->value;
- 	}
+	public function getValue() {
+		return $this->value;
+	}
 
- 	public function getParent() {
- 		return $this->parent;
- 	}
+	public function getParent() {
+		return $this->parent;
+	}
 
- 	public function getChildren() {
- 		return $this->children;
- 	}
+	public function getChildren() {
+		return $this->children;
+	}
 
- 	public function setValue( $text ) {
- 		$this->value = $text;
- 	}
+	public function setValue( $text ) {
+		$this->value = $text;
+	}
 
- 	public function setParent( TreeNode $node ) {
- 		$this->parent = $node;
- 	}
+	public function setParent( TreeNode $node ) {
+		$this->parent = $node;
+	}
 
- 	public function addChild( TreeNode $node ) {
- 		if ( $this->children == null ) {
- 			$this->children = array( $node );
- 		} else {
- 			array_push( $this->children, $node );	
- 		}
- 	}
+	public function addChild( TreeNode $node ) {
+		if ( $this->children == null ) {
+			$this->children = array( $node );
+		} else {
+			array_push( $this->children, $node );
+		}
+	}
 }

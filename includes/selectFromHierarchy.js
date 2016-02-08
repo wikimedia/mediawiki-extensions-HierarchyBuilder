@@ -106,7 +106,8 @@
 
 				var hierarchy = params.hierarchy;
 				var html = hierarchy;
-				html = this.parseWikiTextToHtml( html );
+				//html = this.parseWikiTextToHtml( html );
+				console.log("[selectFromHierarchy.js][init] html = " + html);
 
 				var jqDivId = "#" + params.divId;
 				$( jqDivId )
@@ -190,7 +191,6 @@
 						},
 						"plugins": [ "themes", "html_data", "checkbox", "types" ]
 					} );
-
 
 				/*$html = $( jqDivId ).html();
 				$( jqDivId )

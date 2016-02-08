@@ -1,5 +1,5 @@
 <?php
- 
+
 class HierarchyBuilderHooks {
 
 	public static function onRegistration () {
@@ -30,7 +30,7 @@ class HierarchyBuilderHooks {
 	 * @return bool
 	 */
 	public static function efHierarchyBuilderSetup ( & $parser ) {
-		$parser->setFunctionHook( 'hierarchyBreadcrumb', 
+		$parser->setFunctionHook( 'hierarchyBreadcrumb',
 			'HierarchyBuilder::hierarchyBreadcrumb' );
 		$parser->setFunctionHook( 'hierarchySectionNumber', 'HierarchyBuilder::hierarchySectionNumber' );
 		$parser->setFunctionHook( 'hierarchyParent', 'HierarchyBuilder::hierarchyParent' );
