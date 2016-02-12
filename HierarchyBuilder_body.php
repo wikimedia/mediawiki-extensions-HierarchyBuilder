@@ -52,6 +52,7 @@ class HierarchyBuilder {
 	const CATEGORY = 'category';
 	const NUMBERED = 'numbered';
 	const SELECTED = 'selected';
+	const PROPERTYVALUE = 'propertyvalue';
 
 	/**
 	 * This parser function will give the section number of a page in a hierarchy.
@@ -712,7 +713,7 @@ class HierarchyBuilder {
 	 *
 	 * @return string: Formatted wikitext which renders breadcrumbs on a page.
 	 */
-	private function formatBreadcrumb( $previous, $parent, $next ) {
+	private static function formatBreadcrumb( $previous, $parent, $next ) {
 		$breadcrumb = "{| width='100%'" . PHP_EOL;
 		if ( $previous != null ) {
 			if ( $previous == $parent ) {

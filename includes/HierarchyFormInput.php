@@ -62,21 +62,17 @@ class HierarchyFormInput extends SFFormInput {
 			$this->mCategory = null;
 		}
 
-		$params = array();
-		$params[] = "[[Category:$this->mCategory]]";
-		$params[] = "link=none";
-		$params[] = "limit=1000";
+		if ( array_key_exists( HierarchyBuilder::PROPERTYVALUE, $this->mOtherArgs ) ) {
+			$propertyValue = $this->mOtherArgs[HierarchyBuilder::PROPERTYVALUE];
+		} else {
+			$propertyValue = null;
+		}
 
-		$output = SMWQueryProcessor::getResultFromFunctionParams( $params,
-			SMW_OUTPUT_WIKI ); // this can wait for a another approach
-// use the category object to get list of titles in category from which you can get names
-
-		$pageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
+		$pageArray = self::getUnusedPages($this->mCategory, $propertyValue);
 
 		$pages = array();
 		foreach ( $pageArray as $key => $value ) {
-			$pages[$value] =
-				HierarchyBuilder::getPageDisplayName( $value );
+			$pages[$value] = HierarchyBuilder::getPageDisplayName( $value );
 		}
 
 		// This loop will removed pages from the unselected pages list if we can
@@ -136,16 +132,68 @@ class HierarchyFormInput extends SFFormInput {
 	}
 
 	/**
+	 * Find and return all of the pages that we wish to have available for use
+	 * when creating/updating a hierarchy using the edit form.
+	 *
+	 * Pages are collected based on the provided category and property/value.
+	 * Only those pages that satisfy BOTH parameters will be returned. 
+	 * Specifically, if only one of category and property/value is provided,
+	 * then all pages that satisfy the one provided argument will be returned.
+	 * However, if both a category and a property/value are provided, then only
+	 * those pages that belong to the specified category and have the property
+	 * set with the correct value will be returned.
+	 *
+	 * @param string $category: The name of the category from which pages will
+	 *  be drawn.
+	 * @param string $propertyValue: The propertyname::value that pages must
+	 *  contain to be returned. (eg: Display Name::A Cool Name)
+	 *
+	 * @return array: List of qualified pages that should be available when
+	 *  editing the hierarchy.
+	 */
+	private function getUnusedPages($category, $propertyValue) {
+		$categoryPageArray = array();
+		if ($category != null) {
+			$params = array();
+			$params[] = "[[Category:$this->mCategory]]";
+			$params[] = "link=none";
+			$params[] = "limit=1000";
+			$output = SMWQueryProcessor::getResultFromFunctionParams( $params,
+				SMW_OUTPUT_WIKI );
+			$categoryPageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
+		}
+		
+		$propertyValuePageArray = array();
+		if ($propertyValue != null) {
+			$params = array();
+			$params[] = "[[$propertyValue]]";
+			$params[] = "link=none";
+			$params[] = "limit=1000";
+			$output = SMWQueryProcessor::getResultFromFunctionParams( $params,
+				SMW_OUTPUT_WIKI );
+			$propertyValuePageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
+		}
+
+		if ($category != null && $propertyValue != null) {
+			$pageArray = array_intersect($categoryPageArray, $propertyValuePageArray);
+		} else {
+			$pageArray = array_merge($categoryPageArray, $propertyValuePageArray);
+		}
+
+		return $pageArray;
+	}
+
+	/**
 	 * Get error messages for display.
 	 *
 	 * @return HTML::element: HTML formatted message for display.
 	 */
 	public function getHtmlText() {
 
-		if ( $this->mCategory == null ) {
+		/*if ( $this->mCategory == null ) {
 			return Html::element( 'b', array(),
 				wfMessage( 'hierarchybuilder-missing-category' )->text() );
-		}
+		}*/
 
 		return Html::element( 'input', array(
 			'type' => 'hidden',
