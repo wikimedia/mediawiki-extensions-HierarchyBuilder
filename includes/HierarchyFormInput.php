@@ -157,7 +157,7 @@ class HierarchyFormInput extends SFFormInput {
 			$params = array();
 			$params[] = "[[Category:$this->mCategory]]";
 			$params[] = "link=none";
-			$params[] = "limit=1000";
+			$params[] = "limit=2000";
 			$output = SMWQueryProcessor::getResultFromFunctionParams( $params,
 				SMW_OUTPUT_WIKI );
 			$categoryPageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
@@ -168,7 +168,7 @@ class HierarchyFormInput extends SFFormInput {
 			$params = array();
 			$params[] = "[[$propertyValue]]";
 			$params[] = "link=none";
-			$params[] = "limit=1000";
+			$params[] = "limit=2000";
 			$output = SMWQueryProcessor::getResultFromFunctionParams( $params,
 				SMW_OUTPUT_WIKI );
 			$propertyValuePageArray = $output === "" ? array() : array_map( 'trim', explode( ',', $output ) );
