@@ -69,5 +69,6 @@
 		"ParserFirstCallInit": [
 			"HierarchyBuilderHooks::efHierarchyBuilderSetup"
 		]
-	}
+	},
+	"manifest_version": 1
 }
