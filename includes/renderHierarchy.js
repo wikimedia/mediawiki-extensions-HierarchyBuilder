@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
 ( function( $ ) {
 	/**
 	 * Gobal function to display a hierarchy.
@@ -168,3 +167,14 @@
 		.render( divId, hierarchy, collapsed, numbered );
 	};
 }( jQuery ) );
+
+$( function() {
+	if ( mw.config.exists( 'HierarchyBuilderRender' ) ) {
+		var hierarchies = mw.config.get( 'HierarchyBuilderRender' );
+		for ( index in hierarchies ) {
+			var hierarchy = hierarchies[index];
+			renderHierarchy( hierarchy.div, hierarchy.hierarchy,
+				hierarchy.collapsed, hierarchy.numbered );
+		}
+	}
+});

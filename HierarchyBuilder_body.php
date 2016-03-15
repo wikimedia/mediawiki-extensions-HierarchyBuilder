@@ -852,6 +852,8 @@ class HierarchyBuilder {
 		return $rowsOfDepth;
 	}
 
+	private static $renderHierarchies = array();
+
 	/**
 	 * Renders a wikitext formatted hierarchy on a page.
 	 *
@@ -875,21 +877,15 @@ class HierarchyBuilder {
 		self::$m_hierarchy_num++;
 
 		if ( isset( $attributes[HierarchyBuilder::COLLAPSED] ) ) {
-			$collapsed = htmlspecialchars( $attributes[HierarchyBuilder::COLLAPSED] );
-			if ( $collapsed === 'collapsed' ) {
-				$collapsed = 'true';
-			}
+			$collapsed = true;
 		} else	{
-			$collapsed = 'false';
+			$collapsed = false;
 		}
 
 		if ( isset( $attributes[HierarchyBuilder::NUMBERED] ) ) {
-			$numbered = htmlspecialchars( $attributes[HierarchyBuilder::NUMBERED] );
-			if ( $numbered === 'numbered' ) {
-				$numbered = 'true';
-			}
+			$numbered = true;
 		} else {
-			$numbered = 'false';
+			$numbered = false;
 		}
 
 		if ( isset( $attributes[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
@@ -910,8 +906,8 @@ class HierarchyBuilder {
 			false )->getText();
 
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-			$titleiconproperty, $dummy,
-			function ( $pageName, $titleiconproperty, $data ) {
+			$titleiconproperty,
+			function ( $pageName, $titleiconproperty ) {
 				$pageLinkArray = array();
 				$title = Title::newFromText( $pageName );
 				if ( $title ) {
@@ -927,19 +923,13 @@ class HierarchyBuilder {
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
 
-		$hierarchy = strtr( $hierarchy, array( '"' => "'" ) );
-
-		$script = <<<END
-mw.loader.using(['ext.HierarchyBuilder.render'], function () {
-	renderHierarchy("$hierarchyName", "$hierarchy", $collapsed, $numbered);
-});
-END;
-
-		global $wgOut;
-		$script = Html::inlineScript( $script );
-		$wgOut->addScript( $script );
-
-		//return Html::element( 'div', array( 'id' => $hierarchyName ) );
+		self::$renderHierarchies[] = array(
+			'div' => $hierarchyName,
+			'hierarchy' => $hierarchy,
+			'collapsed' => $collapsed,
+			'numbered' => $numbered
+		);
+		$parser->getOutput()->addJsConfigVars( 'HierarchyBuilderRender', self::$renderHierarchies );
 
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
 		$parser->disableCache();
@@ -947,40 +937,32 @@ END;
 			'noparse' => false );
 	}
 
+	private static $renderHierarchiesSelected = array();
+
 	public function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
 		$hierarchyName = 'HierarchyDiv' . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
 
 		if ( isset( $attributes[HierarchyBuilder::COLLAPSED] ) ) {
-			$collapsed = htmlspecialchars( $attributes[HierarchyBuilder::COLLAPSED] );
-			if ( $collapsed === 'collapsed' ) {
-				$collapsed = 'true';
-			}
+			$collapsed = true;
 		} else	{
-			$collapsed = 'false';
+			$collapsed = false;
 		}
 
 		if ( isset( $attributes[HierarchyBuilder::NUMBERED] ) ) {
-			$numbered = htmlspecialchars( $attributes[HierarchyBuilder::NUMBERED] );
-			if ( $numbered === 'numbered' ) {
-				$numbered = 'true';
-			}
+			$numbered = true;
 		} else {
-			$numbered = 'false';
+			$numbered = false;
 		}
 
 		if ( isset( $attributes[HierarchyBuilder::SELECTED] ) ) {
-			$selectedPages =
-				json_encode( explode( ',', urldecode( $attributes[HierarchyBuilder::SELECTED] ) ) );
 
 			$selectedPages =
-				json_encode(
-					array_map(
-						function ($pageName){
-							return HierarchyBuilder::getPageDisplayName( $pageName );
-						},
-						explode( ',', urldecode( $attributes[HierarchyBuilder::SELECTED] ) )
-					)
+				array_map(
+					function ($pageName){
+						return HierarchyBuilder::getPageDisplayName( $pageName );
+					},
+					explode( ',', urldecode( $attributes[HierarchyBuilder::SELECTED] ) )
 				);
 		} else	{
 			$selectedPages = '';
@@ -996,31 +978,28 @@ END;
 			true,
 			false )->getText();
 
-		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
-		'',  $dummy,
-		function ( $pageName, $data ) {
-			$pageLinkArray = array();
-			$title = Title::newFromText( $pageName );
-			if ( $title ) {
-				$pageLinkArray['href'] = $title->getLinkURL();
-			}
-			$pageName = HierarchyBuilder::getPageDisplayName( $pageName );
-			return Html::element( 'a', $pageLinkArray, $pageName );
-		} );
+		$hierarchy = HierarchyBuilder::parseHierarchy( $input, '',
+			function ( $pageName ) {
+				$pageLinkArray = array();
+				$title = Title::newFromText( $pageName );
+				if ( $title ) {
+					$pageLinkArray['href'] = $title->getLinkURL();
+				}
+				$pageName = HierarchyBuilder::getPageDisplayName( $pageName );
+				return Html::element( 'a', $pageLinkArray, $pageName );
+			} 
+		);
 
 		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.renderSelected' );
 
-		$hierarchy = strtr( $hierarchy, array( '"' => "'" ) );
-
-		$script = <<<END
-mw.loader.using(['ext.HierarchyBuilder.renderSelected'], function () {
-	renderHierarchySelected("$hierarchyName", "$hierarchy", $collapsed, $numbered, $selectedPages);
-});
-END;
-
-		global $wgOut;
-		$script = Html::inlineScript( $script );
-		$wgOut->addScript( $script );
+		self::$renderHierarchiesSelected[] = array(
+			'div' => $hierarchyName,
+			'hierarchy' => $hierarchy,
+			'collapsed' => $collapsed,
+			'numbered' => $numbered,
+			'selectedPages' => $selectedPages
+		);
+		$parser->getOutput()->addJsConfigVars( 'HierarchyBuilderRenderSelected', self::$renderHierarchiesSelected );
 
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
 
@@ -1060,7 +1039,7 @@ END;
 	 *
 	 * @return string: Updated HTML formatted hierarchy with functional links.
 	 */
-	public static function parseHierarchy( $input, $titleIconProperty, &$data,
+	public static function parseHierarchy( $input, $titleIconProperty,
 		$callback ) {
 		$hierarchy = htmlspecialchars_decode( $input );
 		$newlines = array( "\n", "\r" );
@@ -1069,7 +1048,7 @@ END;
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[1] as $pageName ) {
-				$link = $callback( trim( $pageName ), $titleIconProperty, $data );
+				$link = $callback( trim( $pageName ), $titleIconProperty );
 				$hierarchy = str_replace( "<a>$pageName</a>", $link, $hierarchy );
 			}
 		}
@@ -1088,6 +1067,9 @@ END;
 	 *  or the empty string if the property does not exist.
 	 */
 	public static function getPropertyFromPage( $page, $property, $firstonly = true ) {
+		if ($page == '' || $property == '') {
+			return '';
+		}
 		try {
 			$store = smwfGetStore();
 			$title = Title::newFromText( $page );
@@ -1735,6 +1717,9 @@ END;
 	 * @return array: The pagename, titleiconname pairs for the specified page.
 	 */
 	public static function getPageTitleIconsHtml( $page, $titleIconProperty) {
+		if ($page == '' || $titleIconProperty == '') {
+			return '';
+		}
 		$icons = self::getPageTitleIcons( $page, $titleIconProperty );
 		return count($icons) > 0 ? self::getIconsHtml( $icons ) : '';
 	}

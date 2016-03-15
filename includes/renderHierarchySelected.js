@@ -251,3 +251,16 @@
 		.render( divId, hierarchy, collapsed, numbered, selectedComponents );
 	};
 }( jQuery ) );
+
+
+$( function() {
+	if ( mw.config.exists( 'HierarchyBuilderRenderSelected' ) ) {
+		var hierarchies = mw.config.get( 'HierarchyBuilderRenderSelected' );
+		for ( index in hierarchies ) {
+			var hierarchy = hierarchies[index];
+			renderHierarchySelected( hierarchy.div, hierarchy.hierarchy,
+				hierarchy.collapsed, hierarchy.numbered,
+				hierarchy.selectedPages );
+		}
+	}
+});
