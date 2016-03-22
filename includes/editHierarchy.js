@@ -81,9 +81,6 @@
 				var hierarchy = params.hierarchy;
 				var unusedpages = params.unusedpages;
 
-				console.log("[editHierarchy.js][init] hierarchy = " + hierarchy);
-				console.log("[editHierarchy.js][init] pages = " + params.pages);
-
 				var jqDivId = params.divId;
 				var hierarchyDivId = jqDivId + "_hierarchy";
 				var pageListDivId = jqDivId + "_pagelist";

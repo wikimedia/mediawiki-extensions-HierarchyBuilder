@@ -1034,7 +1034,6 @@ class HierarchyBuilder {
 	 * Parse a hierarchy into html.
 	 *
 	 * @param string $input: WikiText hierarchy.
-	 * @param string $data: Dummy variable.
 	 * @param function $callback: Function for processing links.
 	 *
 	 * @return string: Updated HTML formatted hierarchy with functional links.

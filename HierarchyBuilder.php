@@ -56,7 +56,7 @@ if ( version_compare( SF_VERSION, '2.5.2', 'lt' ) ) {
 		' Semantic Forms 2.5.2 or above.' );
 }
 
-define( 'HB_VERSION', '3.2.2' );
+define( 'HB_VERSION', '4.0.0' );
 
 # credits
 $wgExtensionCredits['parserhook'][] = array (
