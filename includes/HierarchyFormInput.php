@@ -214,8 +214,9 @@ class HierarchyFormInput extends SFFormInput {
 	}
 
 	public function getResourceModuleNames() {
-		return array(
-			'ext.HierarchyBuilder.edit'
-		);
-	}
+        return array(
+            'ext.HierarchyBuilder.edit',
+            'ext.HierarchyBuilder.jstree'
+        );
+	} 
 }

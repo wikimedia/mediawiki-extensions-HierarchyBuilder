@@ -939,7 +939,7 @@ class HierarchyBuilder {
 
 	private static $renderHierarchiesSelected = array();
 
-	public function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
+	public static function renderHierarchySelected( $input, $attributes, $parser, $frame ) {
 		$hierarchyName = 'HierarchyDiv' . self::$m_hierarchy_num;
 		self::$m_hierarchy_num++;
 
