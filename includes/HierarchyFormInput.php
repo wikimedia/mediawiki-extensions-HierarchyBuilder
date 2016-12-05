@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class HierarchyFormInput extends SFFormInput {
+class HierarchyFormInput extends PFFormInput {
 
 	public function __construct( $inputNumber, $curValue, $inputName,
 		$disabled, $otherArgs ) {
@@ -107,9 +107,9 @@ class HierarchyFormInput extends SFFormInput {
 
 		$hierarchy =HierarchyBuilder::parseWikitext2Html($this->mCurrentValue, $titleiconProperty);
 
-		global $sfgFieldNum;
-		$this->mDivId = "hierarchy_$sfgFieldNum";
-		$this->mInputId = "input_$sfgFieldNum";
+		global $wgPageFormsFieldNum;
+		$this->mDivId = "hierarchy_$wgPageFormsFieldNum";
+		$this->mInputId = "input_$wgPageFormsFieldNum";
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,

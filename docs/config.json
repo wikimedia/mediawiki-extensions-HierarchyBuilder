@@ -5,8 +5,8 @@
     "--footer": "Documentation for HierarchyBuilder. Generated on {DATE} by {JSDUCK} {VERSION}.",
     "--output": "../docs/js",
     "--": [
-        "../editHierarchy.js",
-        "../renderHierarchy.js",
-        "../selectFromHierarchy.js"
+        "../resources/editHierarchy.js",
+        "../resources/renderHierarchy.js",
+        "../resources/selectFromHierarchy.js"
     ]
 }

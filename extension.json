@@ -1,6 +1,6 @@
 {
 	"name": "HierarchyBuilder",
-	"version": "4.0.1",
+	"version": "5.0",
 	"author": [
 		"[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]",
 		"[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]"
@@ -18,43 +18,42 @@
 		"HierarchyBuilderMagic": "HierarchyBuilder.i18n.magic.php"
 	},
 	"AutoloadClasses": {
-		"HierarchyBuilder": "HierarchyBuilder_body.php",
-		"HierarchyBuilderHooks": "HierarchyBuilder.hooks.php",
+		"HierarchyBuilder": "HierarchyBuilder.php",
+		"HierarchyBuilderHooks": "HierarchyBuilderHooks.php",
 		"HierarchyFormInput": "/includes/HierarchyFormInput.php",
 		"HierarchySelectFormInput": "/includes/HierarchySelectFormInput.php",
 		"HierarchyTree": "/includes/HierarchyTree.php",
 		"TreeNode": "/includes/TreeNode.php"
 	},
-	"callback": "HierarchyBuilderHooks::onRegistration",
 	"ResourceModules": {
 		"ext.HierarchyBuilder.jstree": {
 			"styles": "themes/apple/style.css",
-			"scripts": "/includes/jquery.jstree.js"
+			"scripts": "/resources/jquery.jstree.js"
 		},
 		"ext.HierarchyBuilder.render": {
-			"scripts": "/includes/renderHierarchy.js",
-			"styles": "/includes/renderHierarchy.css",
+			"scripts": "/resources/renderHierarchy.js",
+			"styles": "/resources/renderHierarchy.css",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree"
 			]
 		},
 		"ext.HierarchyBuilder.renderSelected": {
-			"scripts": "/includes/renderHierarchySelected.js",
+			"scripts": "/resources/renderHierarchySelected.js",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree"
 			]
 		},
 		"ext.HierarchyBuilder.edit": {
-			"scripts": "/includes/editHierarchy.js",
-			"styles": "/includes/editHierarchy.css",
+			"scripts": "/resources/editHierarchy.js",
+			"styles": "/resources/editHierarchy.css",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree",
 				"ext.semanticforms.main"
 			]
 		},
 		"ext.HierarchyBuilder.select": {
-			"scripts": "/includes/selectFromHierarchy.js",
-			"styles": "/includes/selectFromHierarchy.css",
+			"scripts": "/resources/selectFromHierarchy.js",
+			"styles": "/resources/selectFromHierarchy.css",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree",
 				"ext.semanticforms.main"

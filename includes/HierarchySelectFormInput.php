@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-class HierarchySelectFormInput extends SFFormInput {
+class HierarchySelectFormInput extends PFFormInput {
 
 	public function __construct( $inputNumber, $curValue, $inputName,
 		$disabled, $otherArgs ) {
@@ -114,9 +114,9 @@ class HierarchySelectFormInput extends SFFormInput {
 
 		$selectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
 
-		global $sfgFieldNum;
-		$this->mDivId = "hierarchy_$sfgFieldNum";
-		$this->mInputId = "input_$sfgFieldNum";
+		global $wgPageFormsFieldNum;
+		$this->mDivId = "hierarchy_$wgPageFormsFieldNum";
+		$this->mInputId = "input_$wgPageFormsFieldNum";
 		$jsattribs = array(
 			'divId' => $this->mDivId,
 			'hierarchy' => $hierarchy,
