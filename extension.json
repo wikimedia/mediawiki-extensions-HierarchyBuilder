@@ -1,6 +1,6 @@
 {
 	"name": "HierarchyBuilder",
-	"version": "5.0",
+	"version":"5.1",
 	"author": [
 		"[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]",
 		"[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]"
@@ -47,7 +47,7 @@
 			"styles": "/resources/editHierarchy.css",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree",
-				"ext.semanticforms.main"
+				"ext.pageforms.main"
 			]
 		},
 		"ext.HierarchyBuilder.select": {
@@ -55,7 +55,7 @@
 			"styles": "/resources/selectFromHierarchy.css",
 			"dependencies": [
 				"ext.HierarchyBuilder.jstree",
-				"ext.semanticforms.main"
+				"ext.pageforms.main"
 			]
 		}
 	},
