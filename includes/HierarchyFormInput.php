@@ -105,14 +105,16 @@ class HierarchyFormInput extends PFFormInput {
 		}
 		$unusedpages .= "</li></ul>";
 
-		$hierarchy =HierarchyBuilder::parseWikitext2Html($this->mCurrentValue, $titleiconProperty);
+		$hierarchyrootmessage = wfMessage ('hierarchybuilder-hierarchyroot' )->text();
+		$rootedWikitextHierarchy = "[[$hierarchyrootmessage]]\n" . $this->mCurrentValue;
+		$rootedHtmlHierarchy = HierarchyBuilder::parseWikitext2Html( $rootedWikitextHierarchy, $titleiconProperty );
 
 		global $wgPageFormsFieldNum;
 		$this->mDivId = "hierarchy_$wgPageFormsFieldNum";
 		$this->mInputId = "input_$wgPageFormsFieldNum";
 		$jsattribs = array(
 			'divId' => $this->mDivId,
-			'hierarchy' => $hierarchy,
+			'hierarchy' => $rootedHtmlHierarchy,
 			'pages' => $unusedpages,
 			'isDisabled' => $this->mIsDisabled,
 			'hideinfo' => $hideinfoProperty,

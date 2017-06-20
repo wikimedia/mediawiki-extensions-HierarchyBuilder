@@ -54,6 +54,7 @@ class HierarchyBuilder {
 	const SELECTED = 'selected';
 	const PROPERTYVALUE = 'propertyvalue';
 	const HIERARCHYARGTYPE = 'hierarchyargtype';
+	const HIERARCHY = 'hierarchy';
 
 	// constants for arg values
 	const HIERARCHYARGTYPE_PROPERTY = 'propertyname';
@@ -102,6 +103,15 @@ class HierarchyBuilder {
 				$pageName = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($pageName, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -175,6 +185,15 @@ class HierarchyBuilder {
 				$pageName = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($pageName, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -430,6 +449,15 @@ class HierarchyBuilder {
 				$pageName = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($pageName, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -635,6 +663,15 @@ class HierarchyBuilder {
 				$selectedPages = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($selectedPages, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -653,6 +690,12 @@ class HierarchyBuilder {
 				$displayMode = $paramArray[HierarchyBuilder::COLLAPSED];
 			} else {
 				$displayMode = 'pruned';
+			}
+			if ( isset( $paramArray[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
+				$titleiconproperty =
+					htmlspecialchars( $paramArray[HierarchyBuilder::TITLEICONPROPERTY] );
+			} else	{
+				$titleiconproperty = '';
 			}
 
 			// this is where we ask HierarchyBuilder class to actually do the work for us.
@@ -688,14 +731,17 @@ class HierarchyBuilder {
 			$selected = htmlspecialchars( str_replace( " ", "%20", $flatNormalizedSelectedPages	) );
 
 			$output = '';
+			if ( $titleiconproperty != '' ) {
+					$titleiconproperty = "titleiconproperty=\"$titleiconproperty\"";
+				}
 			if ( $displayMode == 'collapsed') {
 				$output =
-					"<hierarchySelected collapsed selected=$selected>" .
+					"<hierarchySelected collapsed selected=$selected $titleiconproperty>" .
 					(string)$mst .
 					'</hierarchySelected>';
 			} else {
 				$output =
-					"<hierarchySelected selected=$selected>" .
+					"<hierarchySelected selected=$selected $titleiconproperty>" .
 					(string)$mst .
 					'</hierarchySelected>';
 			}
@@ -754,6 +800,15 @@ class HierarchyBuilder {
 				$currentPage = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($currentPage, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -1094,6 +1149,13 @@ class HierarchyBuilder {
 			$numbered = false;
 		}
 
+		if ( isset( $attributes[HierarchyBuilder::TITLEICONPROPERTY] ) ) {
+			$titleiconproperty =
+				htmlspecialchars( $attributes[HierarchyBuilder::TITLEICONPROPERTY] );
+		} else	{
+			$titleiconproperty = '';
+		}
+
 		if ( isset( $attributes[HierarchyBuilder::SELECTED] ) ) {
 
 			$selectedPages =
@@ -1117,15 +1179,20 @@ class HierarchyBuilder {
 			true,
 			false )->getText();
 
-		$hierarchy = HierarchyBuilder::parseHierarchy( $input, '',
-			function ( $pageName ) {
+		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
+			$titleiconproperty,
+			function ( $pageName, $titleiconproperty ) {
 				$pageLinkArray = array();
 				$title = Title::newFromText( $pageName );
 				if ( $title ) {
 					$pageLinkArray['href'] = $title->getLinkURL();
 				}
-				$pageName = HierarchyBuilder::getPageDisplayName( $pageName );
-				return Html::element( 'a', $pageLinkArray, $pageName );
+
+				$displayName = HierarchyBuilder::getPageDisplayName( $pageName );
+
+				$iconElement = self::getPageTitleIconsHtml( $pageName, $titleiconproperty );
+
+				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} 
 		);
 
@@ -1212,7 +1279,7 @@ class HierarchyBuilder {
 		$property, 
 		$firstonly = true
 	) {
-		if ($page == '' || $property == '') {
+		if ($page == '' || $property == '' || $property == null) {
 			return '';
 		}
 		try {
@@ -1498,6 +1565,15 @@ class HierarchyBuilder {
 				$rootNode = $params[1];
 				$hierarchyPageName = $params[2];
 				$hierarchyProperty = $params[3];
+
+				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
+				if (strpos($rootNode, '=') !== false || 
+					strpos($hierarchyPageName, '=') !== false ||
+					strpos($hierarchyProperty, '=') !== false) 
+				{
+					$output = '';
+				}
+
 				// go ahead and extract the actual wikitext hierarchyProperty based on the hierarchypagename and hierarchyproperty
 				$hierarchy = self::getPropertyFromPage( $hierarchyPageName, $hierarchyProperty );
 			} else {
@@ -1685,6 +1761,10 @@ class HierarchyBuilder {
 	 * This parser is utilized by the both the HierarchyFormInput for formedits
 	 * and the HierarchySelectFormInput for "select from hierarchy".
 	 *
+	 * Note: as of version 5.2.0 the returned HTML hierarchy is not guaranteed
+	 * to be rooted with hierarchybuilder-hierarchyroot. Instead, the returned
+	 * HTML hierarchy will be exactly refelctive of the supplied wikitext.
+	 *
 	 * @param string $hierarchy: The wikitext formatted hieararchy to be parsed.
 	 * @param string $titleiconpropery: (Optional) The name of the property 
 	 *  containing the titleicons to be displayed for pages in the hierarchy.
@@ -1696,10 +1776,13 @@ class HierarchyBuilder {
 		$hierarchy,
 		$titleiconproperty = ''
 	) {
-		$rootedhierarchy = "[[".wfMessage( 'hierarchybuilder-hierarchyroot' )->text()."]]\n" . $hierarchy;
+		if ( $titleiconproperty == null ) {
+			$titleiconproperty = '';
+		}
+
 		return
 			"<ul>" .
-			HierarchyBuilder::parseWikitext2HtmlHelper($rootedhierarchy, 0, $titleiconproperty) .
+			HierarchyBuilder::parseWikitext2HtmlHelper($hierarchy, 0, $titleiconproperty) .
 			"</ul>";
 	}
 
@@ -1720,54 +1803,75 @@ class HierarchyBuilder {
 		$depth,
 		$titleiconproperty
 	) {
+		/* Check if we can find any rows with the specified depth which will
+		 * serve as our "roots" for this subhierarchy. We say "roots" because
+		 * if we're at depth 1 in a hierarchy_root-less hierarcy then we could
+		 * be looking at a multi-root hierarchy and find a bunch of root level
+		 * nodes. But in every other case we're actually only going to have 1
+		 * root.
+		 * Generally, if we don't find anything at this depth, we are done, as
+		 * this would be the base case. However, if we find nothing and we are
+		 * at depth 0 we should increment depth to 1 and try again because this
+		 * could be a case where we are given a hierarchy that has no special
+		 * hierarchy_root node but is otherwise a well-formed hierarchy to be
+		 * parsed into HTML.
+		 */
 		$depthpattern = '/^' . '\*'.'{'.$depth.'}' . '([^\*]+)' . '/m';
 		$nummatches = preg_match_all( $depthpattern, $subhierarchy, $matches );
 		if ($nummatches < 1) {
-			return '';
-		}
-		$rootrow = $matches[1][0];
-
-		$childdepth = $depth + 1;
-		$childdepthpattern = '/^' . '\*'.'{'.$childdepth.'}' . '([^\*]+)' . '/m';
-		$nummatches = preg_match_all( $childdepthpattern, $subhierarchy, $matches );
-		$childrows = $nummatches > 0 ? $matches[0] : array();
-		$childsubhierarchies = array_slice(
-			preg_split( $childdepthpattern, $subhierarchy ), 1
-		); // chop off element 0 which is the root
-		$numchildren = count($childrows);
-
-		//extract the root pagename
-		$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches );
-		$rootpagename = $matches[1][0]; // this is just the pagename excluding the [[]] formatting
-		if ($depth == 0) {
-			$rootHtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>";
-		} else {
-
-			if ($titleiconproperty != '') {
-				$roottitleiconshtml = HierarchyBuilder::getPageTitleIconsHtml(
-					$rootpagename, $titleiconproperty
+			if ( $depth == 0 ) { // maybe we just don't have a hierarchy_root node and should try again at depth 1
+				return HierarchyBuilder::parseWikitext2HtmlHelper( 
+					$subhierarchy, $depth+1, $titleiconproperty
 				);
+			} else { // this denotes the base case for our recursion
+				return '';
+			}
+		}
+
+		$html = '';
+		foreach ( $matches[0] as $rootrow ) {
+			$childdepth = $depth + 1;
+			$childdepthpattern = '/^' . '\*'.'{'.$childdepth.'}' . '([^\*]+)' . '/m';
+			$nummatches = preg_match_all( $childdepthpattern, $subhierarchy, $matches );
+			$childrows = $nummatches > 0 ? $matches[0] : array();
+			$childsubhierarchies = array_slice(
+				preg_split( $childdepthpattern, $subhierarchy ), 1
+			); // chop off element 0 which is the root
+			$numchildren = count($childrows);
+
+			//extract the root pagename
+			$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches );
+			$rootpagename = $matches[1][0]; // this is just the pagename excluding the [[]] formatting
+			if ($depth == 0) {
+				$rootHtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>";
 			} else {
-				$roottitleiconshtml = '';
-			}
-			$rootdisplayname = HierarchyBuilder::getPageDisplayName($rootpagename);
-			$roottexthtml = "$rootdisplayname<span style=display:none>$rootpagename</span>";
-			$rootHtml = "<a>" . $roottitleiconshtml . $roottexthtml . "</a>";
-		}
 
-		$html = $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
-		$html .= $rootHtml;
-		if ( $numchildren > 0 ) {
-			$html .= '<ul>';
-			for ( $i = 0; $i < $numchildren; $i++ ) {
-				$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
-				$html .= HierarchyBuilder::parseWikitext2HtmlHelper(
-					$childhierarchy, $depth+1, $titleiconproperty
-				);
+				if ($titleiconproperty != '') {
+					$roottitleiconshtml = HierarchyBuilder::getPageTitleIconsHtml(
+						$rootpagename, $titleiconproperty
+					);
+				} else {
+					$roottitleiconshtml = '';
+				}
+				$rootdisplayname = HierarchyBuilder::getPageDisplayName($rootpagename);
+				$roottexthtml = "$rootdisplayname<span style=display:none>$rootpagename</span>";
+				$rootHtml = "<a>" . $roottitleiconshtml . $roottexthtml . "</a>";
 			}
-			$html .= '</ul>';
+
+			$html .= $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
+			$html .= $rootHtml;
+			if ( $numchildren > 0 ) {
+				$html .= '<ul>';
+				for ( $i = 0; $i < $numchildren; $i++ ) {
+					$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
+					$html .= HierarchyBuilder::parseWikitext2HtmlHelper(
+						$childhierarchy, $depth+1, $titleiconproperty
+					);
+				}
+				$html .= '</ul>';
+			}
+			$html .= '</li>';
 		}
-		$html .= '</li>';
 
 		return $html;
 	}

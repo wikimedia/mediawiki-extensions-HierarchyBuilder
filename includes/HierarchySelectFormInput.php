@@ -43,7 +43,18 @@ class HierarchySelectFormInput extends PFFormInput {
 	 * @return string: JSON encoded parameters for select from hierarchy JS code.
 	 */
 	protected function setupJsInitAttribs() {
-		//global $HierarchyBuilder_LegacyMode;
+		// global $HierarchyBuilder_LegacyMode;
+
+		/*
+		 * Argument parsing
+		 */
+
+		if ( array_key_exists( HierarchyBuilder::HIERARCHY, $this->mOtherArgs ) ) {
+			$this->mHierarchy = $this->mOtherArgs[HierarchyBuilder::HIERARCHY];
+		} else {
+			// default is null instead of '' to distinguish not given vs empty
+			$this->mHierarchy = null;
+		}
 
 		if ( array_key_exists( HierarchyBuilder::PAGENAME, $this->mOtherArgs ) ) {
 			$this->mPageName = $this->mOtherArgs[HierarchyBuilder::PAGENAME];
@@ -53,16 +64,16 @@ class HierarchySelectFormInput extends PFFormInput {
 		}
 
 		if ( array_key_exists( HierarchyBuilder::PROPERTYNAME, $this->mOtherArgs ) ) {
-			$this->mPropertyName = $this->mOtherArgs[HierarchyBuilder::PROPERTYNAME];
+			$this->mHierarchyProperty = $this->mOtherArgs[HierarchyBuilder::PROPERTYNAME];
 		} else {
-			$this->mPropertyName = null;
+			$this->mHierarchyProperty = null;
 			return;
 		}
 
 		if ( array_key_exists( HierarchyBuilder::TITLEICONPROPERTY, $this->mOtherArgs ) ) {
-			$this->titleiconProperty = $this->mOtherArgs[HierarchyBuilder::TITLEICONPROPERTY];
+			$this->mTitleiconProperty = $this->mOtherArgs[HierarchyBuilder::TITLEICONPROPERTY];
 		} else {
-			$this->titleiconProperty = null;
+			$this->mTitleiconProperty = null;
 		}
 
 		if ( array_key_exists( HierarchyBuilder::COLLAPSED, $this->mOtherArgs ) ) {
@@ -103,31 +114,44 @@ class HierarchySelectFormInput extends PFFormInput {
 			$this->mHeight = '';
 		}
 
-		$hierarchy = HierarchyBuilder::getPropertyFromPage(
-			$this->mPageName,
-			$this->mPropertyName
-		);
-		$hierarchy = HierarchyBuilder::parseWikitext2Html(
-			$hierarchy,
-			$this->titleiconProperty
+		/*
+		 * Execute the logic
+		 */
+
+		// IFF a wikitext hierarchy was NOT provided as input, then we use pagename and hierarchyproperty
+		if ( $this->mHierarchy == null ) {
+			if ( $this->mPageName == '' || $this->mHierarchyProperty == '' ) {
+				// TODO: log an error of some sort
+				return;
+			}
+			$this->mHierarchy = HierarchyBuilder::getPropertyFromPage(
+				$this->mPageName,
+				$this->mHierarchyProperty
+			);
+		}
+
+		// regardless of how we got this wikitext hierarchy, convert it to HTML
+		$this->mHierarchy = HierarchyBuilder::parseWikitext2Html(
+			$this->mHierarchy,
+			$this->mTitleiconProperty
 		);
 
-		$selectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
+		$this->mSelectedItems = array_map( 'trim', explode( ',', $this->mCurrentValue ) );
 
 		global $wgPageFormsFieldNum;
 		$this->mDivId = "hierarchy_$wgPageFormsFieldNum";
 		$this->mInputId = "input_$wgPageFormsFieldNum";
 		$jsattribs = array(
 			'divId' => $this->mDivId,
-			'hierarchy' => $hierarchy,
-			'selectedItems' => $selectedItems,
+			'hierarchy' => $this->mHierarchy,
+			'selectedItems' => $this->mSelectedItems,
 			'isDisabled' => $this->mIsDisabled,
 			'isMandatory' => array_key_exists( 'mandatory', $this->mOtherArgs ),
 			'collapsed' => $this->mCollapsed == 'true' ? true : false,
 			'threestate' => $this->mThreestate == 'true' ? true : false,
 			'width' => $this->mWidth,
-			'height' => $this->mHeight//,
-			//'legacyMode' => $HierarchyBuilder_LegacyMode
+			'height' => $this->mHeight// ,
+			// 'legacyMode' => $HierarchyBuilder_LegacyMode
 		);
 
 		return json_encode( $jsattribs );
@@ -138,14 +162,16 @@ class HierarchySelectFormInput extends PFFormInput {
 	 */
 	public function getHtmlText() {
 
-		if ( $this->mPageName == null ) {
-			return Html::element( 'b', array(),
-				wfMessage( 'hierarchybuilder-missing-page-name' )->text() );
-		}
+		if ( $this->mHierarchy == null ) {
+			if ( $this->mPageName == null ) {
+				return Html::element( 'b', array(),
+					wfMessage( 'hierarchybuilder-missing-page-name' )->text() );
+			}
 
-		if ( $this->mPropertyName == null ) {
-			return Html::element( 'b', array(),
-				wfMessage( 'hierarchybuilder-missing-property-name' )->text() );
+			if ( $this->mHierarchy == null ) {
+				return Html::element( 'b', array(),
+					wfMessage( 'hierarchybuilder-missing-property-name' )->text() );
+			}
 		}
 
 		return Html::element( 'input', array(
@@ -158,6 +184,12 @@ class HierarchySelectFormInput extends PFFormInput {
 
 	public static function getParameters() {
 		$params = parent::getParameters();
+		$params[HierarchyBuilder::HIERARCHY] = array(
+			'name' => HierarchyBuilder::HIERARCHY,
+			'type' => 'string',
+			'description' =>
+				wfMessage( 'hierarchybuilder-hierarchy-desc' )->text()
+		);
 		$params[HierarchyBuilder::PAGENAME] = array(
 			'name' => HierarchyBuilder::PAGENAME,
 			'type' => 'string',
