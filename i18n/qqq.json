@@ -15,6 +15,7 @@
 	"hierarchybuilder-unusedpages": "Text to be displayed as root node of unused page hierarchy (edit form)",
 	"hierarchybuilder-category-desc": "Page Forms category parameter description (edit form)",
 	"hierarchybuilder-missing-category": "Page Forms missing category warning (edit form)",
+	"hierarchybuilder-hierarchy-desc": "Page Forms hierarchy parameter description (select form)",
 	"hierarchybuilder-pagename-desc": "Page Forms pagename parameter description (select form)",
 	"hierarchybuilder-propertyname-desc": "Page Forms propertyname parameter description (select form)",
 	"hierarchybuilder-collapsed-desc": "Page Forms collapsed parameter description (select form)",

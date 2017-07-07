@@ -12,6 +12,7 @@
 	"hierarchybuilder-unusedpages": "Неискористени страници",
 	"hierarchybuilder-category-desc": "Ова е категоријата на која мора да припаѓаат страниците во хиерархијата.",
 	"hierarchybuilder-missing-category": "Недостасува аргументот на категријата.",
+	"hierarchybuilder-hierarchy-desc": "Ова е хиерархија форматирана во викитекст.",
 	"hierarchybuilder-pagename-desc": "Ова е името на страницата што ја содржи хиерархијата.",
 	"hierarchybuilder-propertyname-desc": "Ова е називот на својството што ја содржи хиерархијата.",
 	"hierarchybuilder-collapsed-desc": "Ако се зададе овој параметар, хиерархијат треба да се прикажа склопена при нејзиното првично прикажување.",
