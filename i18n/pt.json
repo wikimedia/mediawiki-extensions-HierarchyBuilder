@@ -14,6 +14,7 @@
 	"hierarchybuilder-unusedpages": "Páginas não utilizadas",
 	"hierarchybuilder-category-desc": "Esta é a categoria à qual as páginas da hierarquia têm de pertencer.",
 	"hierarchybuilder-missing-category": "Falta o argumento da categoria.",
+	"hierarchybuilder-hierarchy-desc": "Esta é uma hierarquia formatada em texto wiki.",
 	"hierarchybuilder-pagename-desc": "Este é o nome da página que contém a hierarquia.",
 	"hierarchybuilder-propertyname-desc": "Este é o nome da propriedade que contém a hierarquia.",
 	"hierarchybuilder-collapsed-desc": "Se este argumento for fornecido, a hierarquia deve estar recolhida na primeira vez em que for apresentada.",
