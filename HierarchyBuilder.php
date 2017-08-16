@@ -1781,9 +1781,7 @@ class HierarchyBuilder {
 		}
 
 		return
-			"<ul>" .
-			HierarchyBuilder::parseWikitext2HtmlHelper($hierarchy, 0, $titleiconproperty) .
-			"</ul>";
+			HierarchyBuilder::parseWikitext2HtmlHelper($hierarchy, 0, $titleiconproperty);
 	}
 
 	/**
@@ -1817,35 +1815,39 @@ class HierarchyBuilder {
 		 * parsed into HTML.
 		 */
 		$depthpattern = '/^' . '\*'.'{'.$depth.'}' . '([^\*]+)' . '/m';
-		$nummatches = preg_match_all( $depthpattern, $subhierarchy, $matches );
-		if ($nummatches < 1) {
+		$numRoots = preg_match_all( $depthpattern, $subhierarchy, $matches );
+		if ($numRoots < 1) {
 			if ( $depth == 0 ) { // maybe we just don't have a hierarchy_root node and should try again at depth 1
 				return HierarchyBuilder::parseWikitext2HtmlHelper( 
 					$subhierarchy, $depth+1, $titleiconproperty
 				);
-			} else { // this denotes the base case for our recursion
+			} else { // this denotes one base case for our recursion
 				return '';
 			}
 		}
+		$rootrows = $matches[1];
 
-		$html = '';
-		foreach ( $matches[0] as $rootrow ) {
-			$childdepth = $depth + 1;
-			$childdepthpattern = '/^' . '\*'.'{'.$childdepth.'}' . '([^\*]+)' . '/m';
-			$nummatches = preg_match_all( $childdepthpattern, $subhierarchy, $matches );
-			$childrows = $nummatches > 0 ? $matches[0] : array();
-			$childsubhierarchies = array_slice(
-				preg_split( $childdepthpattern, $subhierarchy ), 1
-			); // chop off element 0 which is the root
-			$numchildren = count($childrows);
+		// Define the child forests (each index is the child forest for a single root at the corresponding index in $rootrows)
+		$childforests = array_slice(
+			preg_split( $depthpattern, $subhierarchy ), 1
+		); // chop off element 0 which is the root
 
-			//extract the root pagename
-			$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches );
-			$rootpagename = $matches[1][0]; // this is just the pagename excluding the [[]] formatting
+		// For each root, do shit (by this point we know there are roots)
+		$html = "<ul>";
+		for ( $i = 0; $i < $numRoots; $i++ ) { // yes we DO need to loop this way because we have to access corresponding indicies of both $rootrows and $childforests
+			// grab the root available at index $i
+			$rootrow = $rootrows[$i];
+			$numMatches = preg_match_all( HierarchyBuilder::PAGENAMEPATTERN, $rootrow, $matches ); 	//extract the root pagename
+			if ( $numMatches > 0 ) {
+				$rootpagename = $matches[1][0]; // this is just the pagename excluding the [[]] formatting
+			} else {
+				$rootpagename = $rootrow; // if we can't find a link pattern just assume the whole row is the page name31
+			}
+
+			// build the root html list element
 			if ($depth == 0) {
 				$rootHtml = "<a>$rootpagename<span style=display:none>$rootpagename</span></a>";
 			} else {
-
 				if ($titleiconproperty != '') {
 					$roottitleiconshtml = HierarchyBuilder::getPageTitleIconsHtml(
 						$rootpagename, $titleiconproperty
@@ -1858,20 +1860,20 @@ class HierarchyBuilder {
 				$rootHtml = "<a>" . $roottitleiconshtml . $roottexthtml . "</a>";
 			}
 
+			// update $html to contain the root html list element (but we don't close that list element yet because we may need to nest the html for a child forest)
 			$html .= $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
-			$html .= $rootHtml;
-			if ( $numchildren > 0 ) {
-				$html .= '<ul>';
-				for ( $i = 0; $i < $numchildren; $i++ ) {
-					$childhierarchy = $childrows[$i] . "\n" . $childsubhierarchies[$i];
-					$html .= HierarchyBuilder::parseWikitext2HtmlHelper(
-						$childhierarchy, $depth+1, $titleiconproperty
-					);
-				}
-				$html .= '</ul>';
+			$html .= $rootHtml;	
+
+			// Recurse on this root's' child forest if it exists and update $html with the results
+			$childforest = $childforests[$i];
+			if ( strlen($childforest) > 0 ) { // if this test case fails then that denotes the second base case (Sort of. I'm stretching the definition of base case)
+				$html .= HierarchyBuilder::parseWikitext2HtmlHelper($childforest, $depth+1, $titleiconproperty);
 			}
-			$html .= '</li>';
+
+			// update $html to close this root's list element
+			$html .= "</li>";
 		}
+		$html .= "</ul>";
 
 		return $html;
 	}
