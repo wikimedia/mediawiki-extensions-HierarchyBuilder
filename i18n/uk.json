@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Ата"
+			"Ата",
+			"Piramidion"
 		]
 	},
 	"hierarchybuilder-desc": "Виводить і дозволяє редагування та вибірку з ієрархій сторінок",
@@ -12,6 +13,7 @@
 	"hierarchybuilder-unusedpages": "Невикористані сторінки",
 	"hierarchybuilder-category-desc": "Це категорія, до якої повинні належати сторінки в ієрархії.",
 	"hierarchybuilder-missing-category": "Аргумент категорії відсутній.",
+	"hierarchybuilder-hierarchy-desc": "Це — ієрархія, відформатована як вікірозмітка.",
 	"hierarchybuilder-pagename-desc": "Це назва сторінки, яка містить ієрархію.",
 	"hierarchybuilder-propertyname-desc": "Це назва властивості, що містить ієрархію.",
 	"hierarchybuilder-collapsed-desc": "Якщо цей параметр вказано, ієрархія при першому показі має бути виведена згорнутою.",
