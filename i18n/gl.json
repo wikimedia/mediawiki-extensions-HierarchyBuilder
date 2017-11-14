@@ -13,6 +13,7 @@
 	"hierarchybuilder-unusedpages": "Páxinas sen uso",
 	"hierarchybuilder-category-desc": "Esta é a categoría na que deben estar as páxinas da xerarquía.",
 	"hierarchybuilder-missing-category": "Falta o argumento da categoría.",
+	"hierarchybuilder-hierarchy-desc": "Esta é unha xerarquía formateada en texto wiki.",
 	"hierarchybuilder-pagename-desc": "Este é o nome da páxina que contén a xerarquía.",
 	"hierarchybuilder-propertyname-desc": "Ese é o nome da propiedade que contén a xerarquía.",
 	"hierarchybuilder-collapsed-desc": "Se se proporciona este parámetro, a xerarquía será procesada de forma pregada cando se visualice a primeira vez.",
