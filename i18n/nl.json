@@ -2,20 +2,23 @@
 	"@metadata": {
 		"authors": [
 			"Sjoerddebruin",
-			"Esketti"
+			"Esketti",
+			"Mar(c)"
 		]
 	},
-	"hierarchybuilder-desc": "Renders en kunt u deze bewerken en selectie van pagina hiërarchieën",
+	"hierarchybuilder-desc": "Produceert paginahiërarchieën, en maakt het bewerken ervan en selecteren eruit mogelijk.",
 	"hierarchybuilder-reveal-editmessage": "Hoe gebruik ik dit?",
-	"hierarchybuilder-editmessage": "De Hiërarchie Root lijst bevat de hiërarchie die worden bewaard wanneer u opslaan. De Ongebruikte Pagina 's lijst bevat pagina' s in categorie $1 die op dat moment niet in de hiërarchie. U kunt de volgorde van de Hiërarchie Root-lijst door het slepen van rijen omhoog en omlaag net als bij het veranderen van hun inspringen. U kunt pagina 's toevoegen van de Ongebruikte Pagina' s lijst van de hiërarchie door te slepen en neer te zetten waar u ze wilt in de Hiërarchie Root-lijst. U kan verwijderen pagina 's van de hiërarchie door ze te slepen vanuit de Hiërarchie Root-lijst en vallen ze overal in de Ongebruikte Pagina' s lijst.",
-	"hierarchybuilder-hierarchyroot": "Hiërarchieroots:",
+	"hierarchybuilder-editmessage": "De hiërarchiebasis-lijst bevat de hiërarchie die wordt bewaard wanneer u opslaat. De lijst van ongebruikte pagina's bevat pagina's in categorie $1 die zich momenteel niet in de hiërarchie bevinden. U kunt de hiërarchiebasis-lijst herrangschikken door rijen omhoog en omlaag te slepen en door hun inspringing te wijzigen. U kunt pagina's uit de lijst van ongebruikte pagina's aan de hiërarchie toevoegen door ze naar de gewenste plek in de hiërarchiebasis-lijst te slepen. U kunt pagina's uit de hiërarchie verwijderen door ze uit de hiërarchiebasis-lijst te slepen en ze ergens in de lijst van ongebruikte pagina's los te laten.",
+	"hierarchybuilder-edit-error-message": "Deze hiërarchie kan niet worden bewerkt, omdat zowel de hiërarchiegegevens, als de categorie waarvanuit ongebruikte pagina's genomen moeten worden, leeg zijn. Zorg ervoor dat ten minste één van deze gegevensbronnen gevuld is.",
+	"hierarchybuilder-hierarchyroot": "Hiërarchiebasis",
 	"hierarchybuilder-unusedpages": "Ongebruikte pagina's",
-	"hierarchybuilder-category-desc": "Dit is de categorie waarin de pagina ' s in de hiërarchie behoren.",
-	"hierarchybuilder-missing-category": "De categorie argument ontbreekt",
-	"hierarchybuilder-pagename-desc": "Dit is de naam van de pagina met de hiërarchie .",
+	"hierarchybuilder-category-desc": "Dit is de categorie waartoe pagina's in de hiërarchie moeten behoren.",
+	"hierarchybuilder-missing-category": "Het argument 'categorie' ontbreekt.",
+	"hierarchybuilder-hierarchy-desc": "Dit is een wikitext-opgemaakte hiërarchie.",
+	"hierarchybuilder-pagename-desc": "Dit is de naam van de pagina die de hiërarchie bevat.",
 	"hierarchybuilder-propertyname-desc": "Dit is de naam van de eigenschap die de hiërarchie bevat.",
-	"hierarchybuilder-collapsed-desc": "Als deze parameter is beschikbaar, de hiërarchie moet worden weergegeven stortte toen het voor het eerst wordt weergegeven.",
-	"hierarchybuilder-missing-page-name": "De naam van de pagina argument ontbreekt.",
-	"hierarchybuilder-missing-property-name": "De naam van de eigenschap argument ontbreekt.",
-	"hierarchybuilder-invalid-collapsed": "De waarde van de ingestorte argument is ongeldig."
+	"hierarchybuilder-collapsed-desc": "Als deze parameter is opgegeven, moet de hiërarchie ingeklapt worden geproduceerd wanneer deze voor het eerst wordt weergegeven.",
+	"hierarchybuilder-missing-page-name": "Het argument 'paginanaam' ontbreekt.",
+	"hierarchybuilder-missing-property-name": "Het argument 'eigenschapsnaam' ontbreekt.",
+	"hierarchybuilder-invalid-collapsed": "De waarde van het argument 'ingeklapt' is ongeldig."
 }
