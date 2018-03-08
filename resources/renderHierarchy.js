@@ -73,6 +73,8 @@
 				$( jqDivId )
 					.html( hierarchy )
 					.attr('dir', 'ltr');
+				$( jqDivId + " > div > ul" )
+					.unwrap();
 				$( jqDivId + " * li" )
 					.css( "list-style-image", "none" );
 				$( jqDivId )
