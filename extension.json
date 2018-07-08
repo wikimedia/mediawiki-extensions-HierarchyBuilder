@@ -7,6 +7,7 @@
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:HierarchyBuilder",
 	"descriptionmsg": "hierarchybuilder-desc",
+	"license-name": "MIT",
 	"type": "parserhook",
 	"MessagesDirs": {
 		"HierarchyBuilder": [
