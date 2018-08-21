@@ -40,7 +40,7 @@ class HierarchyFormInput extends PFFormInput {
 	 * Retrieves all the necessary information for the initialization of the 
 	 * javascript Edit Hierarchy user interface.
 	 *
-	 * @return array: JSON encoded parameters for calling editHierarchy JS code.
+	 * @return string JSON encoded parameters for calling editHierarchy JS code.
 	 */
 	protected function setupJsInitAttribs() {
 
@@ -150,7 +150,7 @@ class HierarchyFormInput extends PFFormInput {
 	 * @param string $propertyValue: The propertyname::value that pages must
 	 *  contain to be returned. (eg: Display Name::A Cool Name)
 	 *
-	 * @return array: List of qualified pages that should be available when
+	 * @return string[] List of qualified pages that should be available when
 	 *  editing the hierarchy.
 	 */
 	private function getUnusedPages($category, $propertyValue) {
@@ -188,7 +188,7 @@ class HierarchyFormInput extends PFFormInput {
 	/**
 	 * Get error messages for display.
 	 *
-	 * @return HTML::element: HTML formatted message for display.
+	 * @return string HTML formatted message for display.
 	 */
 	public function getHtmlText() {
 

@@ -631,7 +631,7 @@ class HierarchyBuilder {
 	 *  - hierarchyargtype = ['propertyname' | 'wikitext']
 	 *
 	 * @param $parser: Parser
-	 * @return Now I know but I forgot.
+	 * @return string
 	 *
 	 * Example invokation:
 	 * @code
