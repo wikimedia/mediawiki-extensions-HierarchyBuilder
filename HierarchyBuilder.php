@@ -1225,7 +1225,7 @@ class HierarchyBuilder {
 	 *  placeholders removed and replaced by html anchors.
 	 */
 	private static function anchorLinkHolders( $hierarchy ) {
-		$pattern = '#<!--LINK \d+:\d+-->#';
+		$pattern = '#<!--LINK\'" \d+:\d+-->#';
 		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
 		if ( $numMatches !== false ) {
 			foreach ( $matches[0] as $link ) {
