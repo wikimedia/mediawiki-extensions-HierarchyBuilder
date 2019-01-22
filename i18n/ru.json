@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Okras",
-			"Evs"
+			"Evs",
+			"Movses"
 		]
 	},
 	"hierarchybuilder-desc": "Отображает и позволяет редактировать и выбирать из иерархий страниц",
