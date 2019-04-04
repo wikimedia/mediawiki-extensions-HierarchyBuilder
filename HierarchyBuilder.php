@@ -1292,7 +1292,8 @@ class HierarchyBuilder {
 
 			$strings = array();
 			foreach ( $values as $value ) {
-				if ( $value->getDIType() == SMWDataItem::TYPE_STRING ||
+				if ( ( defined( 'SMWDataItem::TYPE_STRING' ) &&
+					$value->getDIType() == SMWDataItem::TYPE_STRING ) ||
 					$value->getDIType() == SMWDataItem::TYPE_BLOB ) {
 					if ($firstonly){
 						return trim( $value->getString() );
