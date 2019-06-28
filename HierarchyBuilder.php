@@ -1332,7 +1332,7 @@ class HierarchyBuilder {
 		if ($title) {
 			$id = $title->getArticleID();
 
-			$dbr = wfGetDB( DB_SLAVE );
+			$dbr = wfGetDB( DB_REPLICA );
 			$result = $dbr->select(
 				'page_props',
 				array( 'pp_value' ),

@@ -9,6 +9,12 @@
 	"descriptionmsg": "hierarchybuilder-desc",
 	"license-name": "MIT",
 	"type": "parserhook",
+	"requires": {
+		"extensions": {
+			"SemanticMediaWiki": ">=1.7",
+			"Page Forms": ">=3.7.0"
+		}
+	},
 	"MessagesDirs": {
 		"HierarchyBuilder": [
 			"i18n"
