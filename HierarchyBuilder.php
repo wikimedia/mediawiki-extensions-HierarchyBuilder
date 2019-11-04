@@ -83,7 +83,7 @@ class HierarchyBuilder {
 	 *  specified hierarchy.
 	 */
 	public static function hierarchySectionNumber( $parser ) {
-		$parser->disableCache();
+		$parser->getOutput()->updateCacheExpiry( 0 );
 		$params = func_get_args();
 		if ( count( $params ) < 3 ) {
 			$output = "";
@@ -822,7 +822,7 @@ class HierarchyBuilder {
 			$output = $parser->recursiveTagParse( $output );
 		}
 
-		$parser->disableCache();
+		$parser->getOutput()->updateCacheExpiry( 0 );
 		return array( $parser->insertStripItem( $output, $parser->mStripState ),
 			'noparse' => false );
 	}
@@ -1118,7 +1118,7 @@ class HierarchyBuilder {
 		$parser->getOutput()->addJsConfigVars( 'HierarchyBuilderRender', self::$renderHierarchies );
 
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
-		$parser->disableCache();
+		$parser->getOutput()->updateCacheExpiry( 0 );
 		return array( $parser->insertStripItem( $output, $parser->mStripState ),
 			'noparse' => false );
 	}
@@ -1209,7 +1209,7 @@ class HierarchyBuilder {
 
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
 
-		$parser->disableCache();
+		$parser->getOutput()->updateCacheExpiry( 0 );
 		return array( $parser->insertStripItem( $output, $parser->mStripState ),
 			'noparse' => false );
 	}
