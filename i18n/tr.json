@@ -12,7 +12,7 @@
 	"hierarchybuilder-unusedpages": "Kullanılmayan sayfalar",
 	"hierarchybuilder-category-desc": "Bu, hiyerarşideki sayfaların ait olması gereken kategoridir.",
 	"hierarchybuilder-missing-category": "Kategori bağımsız değişkeni eksik.",
-	"hierarchybuilder-hierarchy-desc": "Bu wiki metin formatlı bir hiyerarşidir.",
+	"hierarchybuilder-hierarchy-desc": "Bu vikimetin formatlı bir hiyerarşidir.",
 	"hierarchybuilder-pagename-desc": "Bu, hiyerarşiyi içeren sayfanın adıdır.",
 	"hierarchybuilder-propertyname-desc": "Bu, hiyerarşiyi içeren özelliğin adıdır.",
 	"hierarchybuilder-collapsed-desc": "Bu parametre sağlanırsa, hiyerarşi ilk görüntülendiğinde daraltılmalıdır.",
