@@ -73,9 +73,7 @@
 		"remoteExtPath": "HierarchyBuilder"
 	},
 	"Hooks": {
-		"ParserFirstCallInit": [
-			"HierarchyBuilderHooks::efHierarchyBuilderSetup"
-		]
+		"ParserFirstCallInit": "HierarchyBuilderHooks::efHierarchyBuilderSetup"
 	},
 	"manifest_version": 1
 }
