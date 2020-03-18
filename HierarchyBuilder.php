@@ -1908,7 +1908,8 @@ class HierarchyBuilder {
 				// this is where we might specify default height and width
 				$handlerParams = array();
 
-				$iconhtmls[] = Linker::makeImageLink( $GLOBALS['wgParser'],
+				$parser = \MediaWiki\MediaWikiServices::getInstance()->getParser();
+				$iconhtmls[] = Linker::makeImageLink( $parser,
 					$filetitle, $imagefile, $frameParams, $handlerParams );
 			}
 

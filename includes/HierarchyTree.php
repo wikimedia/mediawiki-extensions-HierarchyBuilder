@@ -74,7 +74,10 @@ class HierarchyTree {
 			if ( $node != $this->root) {
 				$returnValue .= $node->getValue() . "\n";
 			}
-			if ( count( $node->getChildren() ) ) {
+			if (
+				$node->getChildren() != null &&
+				count( $node->getChildren() ) > 0
+			) {
 				foreach ( $node->getChildren() as $child ) {
 					$returnValue .= $this->serialize($child);
 				}
@@ -130,7 +133,10 @@ class HierarchyTree {
 		$clone = new TreeNode( $node->getValue() );
 
 		// if any of the children are found in $rows then add them to the copy
-		if ( count( $node->getChildren()) > 0 ) {
+		if (
+			$node->getChildren() != null &&
+			count( $node->getChildren() ) > 0
+		) {
 			foreach ( $node->getChildren() as $child ) {
 				$subtree = $this->getMSTHelper( $child, $rows );
 				if ( $subtree != null ) {
