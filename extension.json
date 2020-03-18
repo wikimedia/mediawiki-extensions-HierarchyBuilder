@@ -1,6 +1,6 @@
 {
 	"name": "HierarchyBuilder",
-	"version":"6.0.1",
+	"version":"7.0.0",
 	"author": [
 		"[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]",
 		"[https://www.mediawiki.org/wiki/User:Kevin.ji Kevin Ji]"
@@ -10,9 +10,9 @@
 	"license-name": "MIT",
 	"type": "parserhook",
 	"requires": {
-		"MediaWiki": ">= 1.16.3",
+		"MediaWiki": ">= 1.31",
 		"extensions": {
-			"SemanticMediaWiki": ">=1.7",
+			"SemanticMediaWiki": ">=3.1.0",
 			"PageForms": ">=3.7.0"
 		}
 	},
