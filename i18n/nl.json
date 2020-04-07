@@ -1,9 +1,9 @@
 {
 	"@metadata": {
 		"authors": [
-			"Sjoerddebruin",
 			"Esketti",
-			"Mar(c)"
+			"Mar(c)",
+			"Sjoerddebruin"
 		]
 	},
 	"hierarchybuilder-desc": "Produceert paginahiërarchieën, en maakt het bewerken ervan en selecteren eruit mogelijk.",

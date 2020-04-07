@@ -2,10 +2,10 @@
 	"@metadata": {
 		"authors": [
 			"0x010C",
-			"Lucky",
-			"Wladek92",
 			"Gomoko",
-			"TomT0m"
+			"Lucky",
+			"TomT0m",
+			"Wladek92"
 		]
 	},
 	"hierarchybuilder-desc": "Affiche et permet la modification et la sélection à partir des hiérarchies de page",
