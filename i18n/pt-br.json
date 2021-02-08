@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Eduardo Addad de Oliveira"
+			"Eduardo Addad de Oliveira",
+			"Eduardoaddad"
 		]
 	},
 	"hierarchybuilder-desc": "Apresenta hierarquias de páginas, e permite a edição dessas hierarquias e a seleção a partir delas",
