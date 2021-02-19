@@ -128,8 +128,8 @@ class HierarchyBuilder {
 				$hierarchy
 			);
 		}
-		return $parser->insertStripItem( $output, $parser->mStripState );
-		//return $parser->insertStripItem( "2.0", $parser->mStripState );
+		return $parser->insertStripItem( $output );
+		//return $parser->insertStripItem( "2.0" );
 	}
 
 
@@ -283,7 +283,7 @@ class HierarchyBuilder {
 			}
 			$output = $parser->recursiveTagParse( $output );
 		}
-		return $parser->insertStripItem( $output, $parser->mStripState );
+		return $parser->insertStripItem( $output );
 	}
 
 	/**
@@ -548,7 +548,7 @@ class HierarchyBuilder {
 			}
 			$output = $parser->recursiveTagParse( $output );
 		}
-		return $parser->insertStripItem( $output, $parser->mStripState );
+		return $parser->insertStripItem( $output );
 	}
 
 	/**
@@ -751,7 +751,7 @@ class HierarchyBuilder {
 			$output = $parser->recursiveTagParse( $output );
 
 		}
-		return $parser->insertStripItem( $output, $parser->mStripState );
+		return $parser->insertStripItem( $output );
 	}
 
 	/**
@@ -825,7 +825,7 @@ class HierarchyBuilder {
 		}
 
 		$parser->getOutput()->updateCacheExpiry( 0 );
-		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+		return array( $parser->insertStripItem( $output ),
 			'noparse' => false );
 	}
 
@@ -1121,7 +1121,7 @@ class HierarchyBuilder {
 
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
 		$parser->getOutput()->updateCacheExpiry( 0 );
-		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+		return array( $parser->insertStripItem( $output ),
 			'noparse' => false );
 	}
 
@@ -1212,7 +1212,7 @@ class HierarchyBuilder {
 		$output = Html::element( 'div', array( 'id' => $hierarchyName ) );
 
 		$parser->getOutput()->updateCacheExpiry( 0 );
-		return array( $parser->insertStripItem( $output, $parser->mStripState ),
+		return array( $parser->insertStripItem( $output ),
 			'noparse' => false );
 	}
 
@@ -1650,7 +1650,7 @@ class HierarchyBuilder {
 
 			$output = $parser->recursiveTagParse( PHP_EOL . $output );
 		}
-		return $parser->insertStripItem( $output, $parser->mStripState );
+		return $parser->insertStripItem( $output );
 	}
 
 	/**
