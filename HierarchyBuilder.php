@@ -1084,19 +1084,16 @@ class HierarchyBuilder {
 		}
 
 		// this looks like it gets the property but it eats all the links.
-		$input = $parser->recursiveTagParse( $input, $frame );
-		$input = self::anchorLinkHolders( $input );
-		$input = $parser->replaceLinkHoldersText( $input );
 		$input = $parser->parse( $input,
 			$parser->getTitle(),
 			$parser->Options(),
 			true,
 			false )->getText();
-
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
 			$titleiconproperty,
 			function ( $pageName, $titleiconproperty ) {
 				$pageLinkArray = array();
+                $pageLinkArray['title'] = $pageName;
 				$title = Title::newFromText( $pageName );
 				if ( $title ) {
 					$pageLinkArray['href'] = $title->getLinkURL();
@@ -1174,7 +1171,6 @@ class HierarchyBuilder {
 		// this looks like it gets the property but it eats all the links.
 		$input = $parser->recursiveTagParse( $input, $frame );
 		$input = self::anchorLinkHolders( $input );
-		$input = $parser->replaceLinkHoldersText( $input );
 		$input = $parser->parse( $input,
 			$parser->getTitle(),
 			$parser->Options(),
@@ -1254,12 +1250,12 @@ class HierarchyBuilder {
 		$hierarchy = htmlspecialchars_decode( $input );
 		$newlines = array( "\n", "\r" );
 		$hierarchy = str_replace( $newlines, '', $hierarchy );
-		$pattern = '/<a>([^<]*)<\/a>/i';
-		$numMatches = preg_match_all( $pattern, $hierarchy, $matches );
+		$pattern = '/<a[^>]*title="((\\\\"|[^"])*)"[^>]*>[^<]*<\/a>/i';
+		$numMatches = preg_match_all( $pattern, $hierarchy, $matches, PREG_SET_ORDER );
 		if ( $numMatches !== false ) {
-			foreach ( $matches[1] as $pageName ) {
-				$link = $callback( trim( $pageName ), $titleIconProperty );
-				$hierarchy = str_replace( "<a>$pageName</a>", $link, $hierarchy );
+			foreach ( $matches as $match ) {
+				$link = $callback( trim( $match[1] ), $titleIconProperty );
+				$hierarchy = str_replace( $match[0], $link, $hierarchy );
 			}
 		}
 		return $hierarchy;
@@ -1291,7 +1287,6 @@ class HierarchyBuilder {
 			$data = $store->getSemanticData( $subject );
 			$property = SMWDIProperty::newFromUserLabel( $property );
 			$values = $data->getPropertyValues( $property );
-
 			$strings = array();
 			foreach ( $values as $value ) {
 				if ( ( defined( 'SMWDataItem::TYPE_STRING' ) &&
@@ -1954,7 +1949,6 @@ class HierarchyBuilder {
 
 		$icons = array();
 		if ( $discoveredIcons ) {
-
 			foreach ( $discoveredIcons as $icon ) {
 
 				$found = false;
