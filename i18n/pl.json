@@ -2,10 +2,23 @@
 	"@metadata": {
 		"authors": [
 			"Chrumps",
-			"InternerowyGołąb"
+			"InternerowyGołąb",
+			"SemanticPioneer"
 		]
 	},
+	"hierarchybuilder-desc": "Renderuje, umożliwia edycję i wybór z hierarchii stron",
 	"hierarchybuilder-reveal-editmessage": "Jak tego używać?",
-	"hierarchybuilder-unusedpages": "Nieużywane strony",
-	"hierarchybuilder-hierarchy-desc": "To jest wikitekst sformatowany hierarchicznie."
+	"hierarchybuilder-editmessage": "Lista Korzeń Hierarchii zawiera hierarchię, która zostanie zachowana podczas zapisywania. Lista Nieużywane Strony zawiera strony z kategorii $1, które obecnie nie znajdują się w hierarchii. Możesz zmienić kolejność listy Korzeń Hierarchii, przeciągając wiersze w górę i w dół, a także zmieniając ich wcięcia. Możesz dodać strony z listy Nieużywane Strony do hierarchii, przeciągając je i upuszczając w wybranym miejscu na liście Korzeń Hierarchii. Możesz usunąć strony z hierarchii, przeciągając je z listy Korzeń Hierarchii i upuszczając je w dowolnym miejscu na liście Nieużywane Strony.",
+	"hierarchybuilder-edit-error-message": "Tej hierarchii nie można edytować, ponieważ zarówno dane hierarchii, jak i kategoria, z której mają być narysowane nieużywane strony, są puste. Upewnij się, że co najmniej jedno z tych źródeł danych jest wypełnione.",
+	"hierarchybuilder-hierarchyroot": "Korzeń Hierarchii",
+	"hierarchybuilder-unusedpages": "Nieużywane Strony",
+	"hierarchybuilder-category-desc": "Jest to kategoria, do której muszą należeć strony w hierarchii.",
+	"hierarchybuilder-missing-category": "Brak argumentu kategorii.",
+	"hierarchybuilder-hierarchy-desc": "To jest wikitekst sformatowany hierarchicznie.",
+	"hierarchybuilder-pagename-desc": "To jest nazwa strony zawierającej hierarchię.",
+	"hierarchybuilder-propertyname-desc": "To jest nazwa właściwości zawierającej hierarchię.",
+	"hierarchybuilder-collapsed-desc": "Jeśli podano ten parametr, hierarchia powinna być renderowana jako zwinięta, gdy jest wyświetlana po raz pierwszy.",
+	"hierarchybuilder-missing-page-name": "Brak argumentu nazwy strony.",
+	"hierarchybuilder-missing-property-name": "Brak argumentu nazwy właściwości.",
+	"hierarchybuilder-invalid-collapsed": "Wartość argumentu \"zwinięta\" jest nieprawidłowa."
 }
