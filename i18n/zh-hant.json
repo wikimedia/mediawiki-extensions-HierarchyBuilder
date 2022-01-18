@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Kly"
+			"Kly",
+			"Tranve"
 		]
 	},
 	"hierarchybuilder-desc": "呈現並允許編輯來自頁面層次的區段",
@@ -12,7 +13,7 @@
 	"hierarchybuilder-unusedpages": "未使用的頁面",
 	"hierarchybuilder-category-desc": "此為在層次裡頭頁面應所屬的分類。",
 	"hierarchybuilder-missing-category": "缺少分類參數。",
-	"hierarchybuilder-hierarchy-desc": "此為 wiki 文字格式的層次。",
+	"hierarchybuilder-hierarchy-desc": "此為 wikitext 格式的層次。",
 	"hierarchybuilder-pagename-desc": "這是包含層次的頁面名稱。",
 	"hierarchybuilder-propertyname-desc": "這是包含層次的屬性名稱。",
 	"hierarchybuilder-collapsed-desc": "若提供此參數，當首次顯示時層次應以摺疊模樣呈現。",
