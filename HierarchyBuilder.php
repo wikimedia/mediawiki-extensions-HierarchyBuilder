@@ -1106,7 +1106,7 @@ class HierarchyBuilder {
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
 			} );
 
-		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.render' );
+		$parser->getOutput()->addModules( [ 'ext.HierarchyBuilder.render' ] );
 
 		self::$renderHierarchies[] = array(
 			'div' => $hierarchyName,
@@ -1194,7 +1194,7 @@ class HierarchyBuilder {
 			} 
 		);
 
-		$parser->getOutput()->addModules( 'ext.HierarchyBuilder.renderSelected' );
+		$parser->getOutput()->addModules( [ 'ext.HierarchyBuilder.renderSelected' ] );
 
 		self::$renderHierarchiesSelected[] = array(
 			'div' => $hierarchyName,
