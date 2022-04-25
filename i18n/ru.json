@@ -3,7 +3,8 @@
 		"authors": [
 			"Evs",
 			"Movses",
-			"Okras"
+			"Okras",
+			"Kaganer"
 		]
 	},
 	"hierarchybuilder-desc": "Отображает и позволяет редактировать и выбирать из иерархий страниц",
@@ -14,7 +15,7 @@
 	"hierarchybuilder-unusedpages": "Неиспользуемые страницы",
 	"hierarchybuilder-category-desc": "Это категория, к которой должны принадлежать страницы в иерархии.",
 	"hierarchybuilder-missing-category": "Отсутствует аргумент, определяющий категорию.",
-	"hierarchybuilder-hierarchy-desc": "Это иерархия в формате викитекста.",
+	"hierarchybuilder-hierarchy-desc": "Это иерархия в формате вики-текста.",
 	"hierarchybuilder-pagename-desc": "Это имя страницы, содержащей иерархию.",
 	"hierarchybuilder-propertyname-desc": "Это имя свойства, содержащего иерархию.",
 	"hierarchybuilder-collapsed-desc": "Если этот параметр задан, иерархия должна отображаться свёрнутой при первом отображении.",
