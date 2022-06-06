@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"hierarchybuilder-desc": "Produce hierarchias de paginas e permitte modificar e seliger inter illos",
+	"hierarchybuilder-reveal-editmessage": "Como usar isto?",
+	"hierarchybuilder-editmessage": "Le lista Radice de Hierarchia contine le hierarchia que essera conservate quando tu salveguarda. Le lista de paginas non usate contine le paginas in le categoria $1 que non es actualmente in le hierarchia. Tu pote rearrangiar le lista Radice de Hierarchia trahente lineas in alto e a basso e cambiante lor indentation. Tu pote adder paginas del lista de paginas non usate al hierarchia trahente e deponente los ubi tu los vole positionar in le lista Radice de Hierarchia. Tu pote remover paginas del hierarchia trahente los del lista Radice de Hierarchia e deponente los in qualcunque loco in le lista de paginas non usate.",
+	"hierarchybuilder-edit-error-message": "Iste hierarchia non pote esser modificate perque tanto le datos del hierarchia como le categoria del qual retirar paginas non usate es vacue. Assecura te que al minus un de iste fontes de datos es reimplite.",
+	"hierarchybuilder-hierarchyroot": "Radice de hierarchia",
+	"hierarchybuilder-unusedpages": "Paginas non usate",
+	"hierarchybuilder-category-desc": "Iste es le categoria al qual le paginas in le hierarchia debe pertiner.",
+	"hierarchybuilder-missing-category": "Le argumento de categoria manca.",
+	"hierarchybuilder-hierarchy-desc": "Iste es un hierarchia in formato wikitexto.",
+	"hierarchybuilder-pagename-desc": "Iste es le nomine del pagina que contine le hierarchia.",
+	"hierarchybuilder-propertyname-desc": "Iste es le nomine de proprietate que contine le hierarchia.",
+	"hierarchybuilder-collapsed-desc": "Si iste parametro es fornite, le hierarchia debe apparer in forma plicate quando illo se monstra pro le prime vice.",
+	"hierarchybuilder-missing-page-name": "Le argumento de nomine de pagina manca.",
+	"hierarchybuilder-missing-property-name": "Le argumento de nomine de proprietate manca.",
+	"hierarchybuilder-invalid-collapsed": "Le valor del argumento 'collapsed' non es correcte."
+}
