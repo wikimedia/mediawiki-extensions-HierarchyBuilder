@@ -4,5 +4,8 @@
 			"Eleassar"
 		]
 	},
-	"hierarchybuilder-hierarchy-desc": "To je hierarhično oblikovano vikibesedilo."
+	"hierarchybuilder-missing-category": "Manjka argument kategorije.",
+	"hierarchybuilder-hierarchy-desc": "To je hierarhično oblikovano vikibesedilo.",
+	"hierarchybuilder-missing-page-name": "Manjka argument imena strani.",
+	"hierarchybuilder-missing-property-name": "Manjka argument imena lastnosti."
 }
