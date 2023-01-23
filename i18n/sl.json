@@ -4,8 +4,19 @@
 			"Eleassar"
 		]
 	},
+	"hierarchybuilder-desc": "Upodablja in omogoča urejanje in izbiranje hierarhij strani",
+	"hierarchybuilder-reveal-editmessage": "Kako naj to uporabim?",
+	"hierarchybuilder-editmessage": "Korenski seznam hierarhije vsebuje hierarhijo, ki se bo ohranila ob shranitvi. Seznam neuporabljenih strani vsebuje strani v kategoriji $1, ki trenutno niso v hierarhiji. Korenski seznam hierarhije lahko preuredite tako, da povlečete vrstice gor ali dol ter spremenite njihov zamik. Strani s seznama Neuporabljene strani lahko dodate v hierarhijo tako, da jih povlečete in spustite na korenski seznam hierarhije, kjer želite. Strani lahko odstranite iz hierarhije tako, da jih povlečete s korenskega seznama hierarhije in jih spustite kamor koli na seznam neuporabljenih strani.",
+	"hierarchybuilder-edit-error-message": "Te hierarhije ni mogoče urejati, ker so hierarhični podatki in kategorija, iz katere želite črpati neuporabljene strani, prazni. Prepričajte se, da je vsaj eden od teh podatkovnih virov izpolnjen.",
+	"hierarchybuilder-hierarchyroot": "Koren hierarhije",
+	"hierarchybuilder-unusedpages": "Neuporabljene strani",
+	"hierarchybuilder-category-desc": "To je kategorija, ki ji morajo pripadati strani v hierarhiji.",
 	"hierarchybuilder-missing-category": "Manjka argument kategorije.",
 	"hierarchybuilder-hierarchy-desc": "To je hierarhično oblikovano vikibesedilo.",
+	"hierarchybuilder-pagename-desc": "To je ime strani, ki vsebuje hierarhijo.",
+	"hierarchybuilder-propertyname-desc": "To je ime lastnosti, ki vsebuje hierarhijo.",
+	"hierarchybuilder-collapsed-desc": "Če je ta parameter predložen, bo hierarhija ob prvem prikazu upodobljena strnjena.",
 	"hierarchybuilder-missing-page-name": "Manjka argument imena strani.",
-	"hierarchybuilder-missing-property-name": "Manjka argument imena lastnosti."
+	"hierarchybuilder-missing-property-name": "Manjka argument imena lastnosti.",
+	"hierarchybuilder-invalid-collapsed": "Vrednost argumenta <code>collapsed</code> ni veljavna."
 }
