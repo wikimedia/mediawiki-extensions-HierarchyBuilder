@@ -15,7 +15,7 @@
 	"hierarchybuilder-hierarchy-desc": "Iste es un hierarchia in formato wikitexto.",
 	"hierarchybuilder-pagename-desc": "Iste es le nomine del pagina que contine le hierarchia.",
 	"hierarchybuilder-propertyname-desc": "Iste es le nomine de proprietate que contine le hierarchia.",
-	"hierarchybuilder-collapsed-desc": "Si iste parametro es fornite, le hierarchia debe apparer in forma plicate quando illo se monstra pro le prime vice.",
+	"hierarchybuilder-collapsed-desc": "Si iste parametro es fornite, le hierarchia debe apparer in forma contrahite quando illo se monstra pro le prime vice.",
 	"hierarchybuilder-missing-page-name": "Le argumento de nomine de pagina manca.",
 	"hierarchybuilder-missing-property-name": "Le argumento de nomine de proprietate manca.",
 	"hierarchybuilder-invalid-collapsed": "Le valor del argumento 'collapsed' non es correcte."
