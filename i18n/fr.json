@@ -6,7 +6,8 @@
 			"Lucky",
 			"TomT0m",
 			"Wladek92",
-			"Verdy p"
+			"Verdy p",
+			"Pols12"
 		]
 	},
 	"hierarchybuilder-desc": "Affiche et permet la modification et la sélection à partir des hiérarchies de pages",
@@ -17,7 +18,7 @@
 	"hierarchybuilder-unusedpages": "Pages inutilisées",
 	"hierarchybuilder-category-desc": "C’est la catégorie à laquelle les pages dans la hiérarchie doivent appartenir.",
 	"hierarchybuilder-missing-category": "L’argument du nom de catégorie est manquant.",
-	"hierarchybuilder-hierarchy-desc": "Ceci est un texte wiki formaté hiérarchiquement.",
+	"hierarchybuilder-hierarchy-desc": "Ceci est une hiérarchie au format wikicode.",
 	"hierarchybuilder-pagename-desc": "C’est le nom de la page contenant la hiérarchie.",
 	"hierarchybuilder-propertyname-desc": "C’est le nom de la propriété contenant la hiérarchie.",
 	"hierarchybuilder-collapsed-desc": "Si ce paramètre est fourni, la hiérarchie doit être réduite lorsqu’elle est affichée la première fois.",
