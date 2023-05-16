@@ -4,5 +4,19 @@
 			"Amire80"
 		]
 	},
-	"hierarchybuilder-unusedpages": "דפים שאינם בשימוש"
+	"hierarchybuilder-desc": "תיצוג ואפשרות לערוך ולבחור מתרשם מדרג דפים",
+	"hierarchybuilder-reveal-editmessage": "איך להשתמש בזה?",
+	"hierarchybuilder-editmessage": "רשימת שורש המדרג מכילה את המדרג שתישמר בעת השמירה. רשימת הדפים שאינם בשימוש מכילה דפים בקטגוריה $1 שאינם נמצאים כעת במדרג. באפשרותך לארגן מחדש את רשימת שורשי המדרג על־ידי גרירת שורות למעלה ולמטה וכן באמצעות שינוי ההזחה שלהן. אפשר להוסיף דפים מרשימת הדפים שאינם בשימוש למדרג על־ידי גרירה ושחרור שלהם במקום הרצוי לך ברשימת שורש המדרג. אפשר להסיר דפים ממדרג על־ידי גרירתם מרשימת שורש המדרג ושחרורם בכל מקום ברשימת הדפים שאינם בשימוש.",
+	"hierarchybuilder-edit-error-message": "לא ניתן לערוך את המדרג הה מכיוון שגם נתוני המדרג וגם הקטגוריה שדפים שאינם בשימוש נשאבים ממנו ריקים. נא לוודא שלפחות אחד ממקורות הנתונים הללו מאוכלס.",
+	"hierarchybuilder-hierarchyroot": "שורש המדרג",
+	"hierarchybuilder-unusedpages": "דפים שאינם בשימוש",
+	"hierarchybuilder-category-desc": "זוהי הקטגוריה שדפים במדרג חייבים להשתייך אליה.",
+	"hierarchybuilder-missing-category": "ארגומנט הקטגוריה חסר.",
+	"hierarchybuilder-hierarchy-desc": "זהו מדרג בתסדיר קוד ויקי.",
+	"hierarchybuilder-pagename-desc": "זהו שם הדף המכיל את המדרג.",
+	"hierarchybuilder-propertyname-desc": "זהו שם המאפיין שמכיל את המדרג.",
+	"hierarchybuilder-collapsed-desc": "אם הפרמטר הזה מסופק, המדרג אמור להיות מוצג מכווץ כאשר הוא מוצג לראשונה.",
+	"hierarchybuilder-missing-page-name": "ארגומנט שם הדף חסר.",
+	"hierarchybuilder-missing-property-name": "ארגומנט שם המאפיין חסר.",
+	"hierarchybuilder-invalid-collapsed": "הערך של הארגומנט המכווץ אינו תקין."
 }
