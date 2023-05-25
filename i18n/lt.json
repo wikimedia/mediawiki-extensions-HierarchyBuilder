@@ -1,8 +1,17 @@
 {
 	"@metadata": {
 		"authors": [
-			"Zygimantus"
+			"Zygimantus",
+			"Nokeoo"
 		]
 	},
-	"hierarchybuilder-reveal-editmessage": "Kaip aš galiu tai naudoti?"
+	"hierarchybuilder-reveal-editmessage": "Kaip aš galiu tai naudoti?",
+	"hierarchybuilder-unusedpages": "Nenaudojami puslapiai",
+	"hierarchybuilder-category-desc": "Tai kategorija, kuriai turi priklausyti puslapiai hierarchijoje.",
+	"hierarchybuilder-missing-category": "Trūksta kategorijos argumento.",
+	"hierarchybuilder-hierarchy-desc": "Tai vikiteksto suformatuota hierarchija.",
+	"hierarchybuilder-pagename-desc": "Tai puslapio, kuriame yra hierarchija, pavadinimas.",
+	"hierarchybuilder-collapsed-desc": "Jei šis parametras pateikiamas, pirmą kartą parodant hierarchiją, ji turėtų būti sutraukta.",
+	"hierarchybuilder-missing-page-name": "Trūksta puslapio pavadinimo argumento.",
+	"hierarchybuilder-invalid-collapsed": "Sutraukto argumento reikšmė neteisinga."
 }
