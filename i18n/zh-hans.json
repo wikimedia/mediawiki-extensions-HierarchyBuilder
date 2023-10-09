@@ -7,19 +7,19 @@
 			"Tranve"
 		]
 	},
-	"hierarchybuilder-desc": "渲染并允许编辑选择页面层级",
-	"hierarchybuilder-reveal-editmessage": "我如何使用此工具？",
-	"hierarchybuilder-editmessage": "层级根列表包含保存时将保留的层级。未使用的页面列表包含分类$1中目前没有作为层级的页面。您可以通过上下拖拽行重新排列层级根列表，并改变它们的缩进。您可以通过拖拽页面从未使用的页面列表加入至层级，如果您希望它们出现在层级根列表中的话。您也可以从层级根列表通过拖拽至未使用的页面列表的任意位置移除页面。",
-	"hierarchybuilder-edit-error-message": "此层级不能编辑，因为层级数据和用于收录未使用页面的分类都是空的。请确保这些数据来源之一被填充。",
-	"hierarchybuilder-hierarchyroot": "根层级",
+	"hierarchybuilder-desc": "渲染并允许编辑和选择页面层次结构",
+	"hierarchybuilder-reveal-editmessage": "如何使用？",
+	"hierarchybuilder-editmessage": "层次结构根列表含有保存时会保留的层次。未使用的页面列表含有分类$1内目前不在层次结构内的页面。您可以通过上下拖动行以及更改其缩进来重新排列层次结构根列表。您可以把未使用的页面列表内的页面拖放到层次结构根列表内需要的位置，从而把它添加到层次结构。您也可以把层次结构根列表内的页面拖放到未使用的页面列表内任意位置，从而把它从层次结构删除。",
+	"hierarchybuilder-edit-error-message": "此层次结构无法编辑，因为层次结构数据和提取未使用的页面的分类均为空。请确保填充至少一个这类数据来源。",
+	"hierarchybuilder-hierarchyroot": "层次结构根",
 	"hierarchybuilder-unusedpages": "未使用的页面",
-	"hierarchybuilder-category-desc": "这是必须归入层级的页面的分类。",
+	"hierarchybuilder-category-desc": "这是层次结构内页面必须属于的分类。",
 	"hierarchybuilder-missing-category": "缺少分类参数。",
-	"hierarchybuilder-hierarchy-desc": "这是wikitext格式化的层级。",
-	"hierarchybuilder-pagename-desc": "这是包含层级的页面名称。",
-	"hierarchybuilder-propertyname-desc": "这是包含层级的属性名称。",
-	"hierarchybuilder-collapsed-desc": "如果提供此参数，层级应该会在它第一次显示时折叠渲染。",
+	"hierarchybuilder-hierarchy-desc": "这是wikitext格式的层次结构。",
+	"hierarchybuilder-pagename-desc": "这是含有层次结构的页面的名称。",
+	"hierarchybuilder-propertyname-desc": "这是含有层次结构的属性的名称。",
+	"hierarchybuilder-collapsed-desc": "当提供此参数时，层次结构会在首次显示时渲染为折叠状态。",
 	"hierarchybuilder-missing-page-name": "缺少页面名称参数。",
 	"hierarchybuilder-missing-property-name": "缺少属性名称参数。",
-	"hierarchybuilder-invalid-collapsed": "收缩参数的值无效。"
+	"hierarchybuilder-invalid-collapsed": "折叠参数的值无效。"
 }
