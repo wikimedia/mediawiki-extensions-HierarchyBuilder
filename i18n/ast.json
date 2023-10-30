@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Xuacu"
+			"Xuacu",
+			"YoaR"
 		]
 	},
 	"hierarchybuilder-desc": "Representa y permite editar y seleccionar a partir de xerarquíes de páxines",
@@ -13,7 +14,7 @@
 	"hierarchybuilder-category-desc": "Esta ye la categoría a la que tienen de pertenecer les páxines de la xerarquía.",
 	"hierarchybuilder-missing-category": "Falta l'argumentu de categoría.",
 	"hierarchybuilder-hierarchy-desc": "Esta ye una xerarquía con formatu de testu wiki.",
-	"hierarchybuilder-pagename-desc": "Esti ye'l nome de la páxina que contien la xerarquía.",
+	"hierarchybuilder-pagename-desc": "Esti ye'l nome de la páxina que contién la xerarquía.",
 	"hierarchybuilder-propertyname-desc": "Esti ye'l nome de la propiedá que contien la xerarquía.",
 	"hierarchybuilder-collapsed-desc": "Si se da esti parámetru, la xerarquía tien de representase contrayida cuando s'amuese la primera vegada.",
 	"hierarchybuilder-missing-page-name": "Falta l'argumentu de nome de páxina.",
