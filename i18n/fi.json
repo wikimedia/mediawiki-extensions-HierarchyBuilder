@@ -1,8 +1,10 @@
 {
 	"@metadata": {
 		"authors": [
-			"Silvonen"
+			"Silvonen",
+			"Pyscowicz"
 		]
 	},
-	"hierarchybuilder-reveal-editmessage": "Miten tätä käytetään?"
+	"hierarchybuilder-reveal-editmessage": "Miten tätä käytetään?",
+	"hierarchybuilder-unusedpages": "Käyttämättömät sivut"
 }
