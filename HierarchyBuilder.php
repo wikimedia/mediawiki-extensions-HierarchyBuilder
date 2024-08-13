@@ -1886,12 +1886,7 @@ class HierarchyBuilder {
 	 */
 	private static function getIconsHTML( $icons ) {
 		$iconhtmls = array();
-		if ( method_exists( MediaWikiServices::class, 'getRepoGroup' ) ) {
-			// MediaWiki 1.34+
-			$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
-		} else {
-			$repoGroup = RepoGroup::singleton();
-		}
+		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
 		foreach ( $icons as $iconinfo ) {
 
 			$page = $iconinfo["page"];
