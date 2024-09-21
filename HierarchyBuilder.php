@@ -1329,7 +1329,7 @@ class HierarchyBuilder {
 		if ($title) {
 			$id = $title->getArticleID();
 
-			$dbr = wfGetDB( DB_REPLICA );
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 			$result = $dbr->select(
 				'page_props',
 				array( 'pp_value' ),
