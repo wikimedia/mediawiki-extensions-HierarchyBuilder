@@ -22,7 +22,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+use MediaWiki\Html\Html;
+use MediaWiki\Linker\Linker;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 
 class HierarchyBuilder {
 	static protected $m_hierarchy_num = 1;

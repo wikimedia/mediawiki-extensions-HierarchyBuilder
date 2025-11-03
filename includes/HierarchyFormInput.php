@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+use MediaWiki\Html\Html;
+
 class HierarchyFormInput extends PFFormInput {
 
 	public function __construct( $inputNumber, $curValue, $inputName,
