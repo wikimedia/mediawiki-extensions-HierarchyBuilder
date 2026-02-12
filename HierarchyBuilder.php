@@ -110,9 +110,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($pageName, '=') !== false || 
+				if (strpos($pageName, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -192,9 +192,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($pageName, '=') !== false || 
+				if (strpos($pageName, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -320,7 +320,7 @@ class HierarchyBuilder {
 	 * @return array: A list strings consisting of the hierarchical children of
 	 *  the target page within the hierarchy.
 	 */
-	private static function getPageChildren( 
+	private static function getPageChildren(
 		$targetPageName,
 		$hierarchy
 	) {
@@ -456,9 +456,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($pageName, '=') !== false || 
+				if (strpos($pageName, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -670,9 +670,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($selectedPages, '=') !== false || 
+				if (strpos($selectedPages, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -689,7 +689,7 @@ class HierarchyBuilder {
 			// the right combination of optional parameters appears at this point.
 			// The logic for handling different parameter combinations will happen
 			// after pulling children when we attempt to return results.
-		
+
 			// look for the collasped parameter
 			if ( isset( $paramArray[HierarchyBuilder::COLLAPSED] ) ) {
 				$displayMode = $paramArray[HierarchyBuilder::COLLAPSED];
@@ -807,9 +807,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($currentPage, '=') !== false || 
+				if (strpos($currentPage, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -1058,7 +1058,7 @@ class HierarchyBuilder {
 	 *
 	 * @return string: Html div that will contain the rendered hierarchy.
 	 */
-	public static function renderHierarchy( 
+	public static function renderHierarchy(
 		$input,
 		$attributes,
 		$parser,
@@ -1089,7 +1089,7 @@ class HierarchyBuilder {
 		// this looks like it gets the property but it eats all the links.
 		$input = $parser->parse( $input,
 			$parser->getTitle(),
-			$parser->Options(),
+			$parser->getOptions(),
 			true,
 			false )->getText();
 		$hierarchy = HierarchyBuilder::parseHierarchy( $input,
@@ -1176,7 +1176,7 @@ class HierarchyBuilder {
 		$input = self::anchorLinkHolders( $input );
 		$input = $parser->parse( $input,
 			$parser->getTitle(),
-			$parser->Options(),
+			$parser->getOptions(),
 			true,
 			false )->getText();
 
@@ -1194,7 +1194,7 @@ class HierarchyBuilder {
 				$iconElement = self::getPageTitleIconsHtml( $pageName, $titleiconproperty );
 
 				return $iconElement . Html::element( 'a', $pageLinkArray, $displayName );
-			} 
+			}
 		);
 
 		$parser->getOutput()->addModules( [ 'ext.HierarchyBuilder.renderSelected' ] );
@@ -1275,9 +1275,9 @@ class HierarchyBuilder {
 	 * @return string: The value of the specified property from the given page
 	 *  or the empty string if the property does not exist.
 	 */
-	public static function getPropertyFromPage( 
-		$page, 
-		$property, 
+	public static function getPropertyFromPage(
+		$page,
+		$property,
 		$firstonly = true
 	) {
 		if ($page == '' || $property == '' || $property == null) {
@@ -1518,7 +1518,7 @@ class HierarchyBuilder {
 	 *   - The root node of the subhierarchy within the overall hierarchy. If
 	 *     this argument is empty, then the entire hierarchy is returned.
 	 *   - Full page name of the page containing the hierarchy
-	 *   - hierarchy which is either a wikitext hierarchy or the name of the 
+	 *   - hierarchy which is either a wikitext hierarchy or the name of the
 	 *     property containing the hierarchy data.
 	 *
 	 * The optional arguments are:
@@ -1568,9 +1568,9 @@ class HierarchyBuilder {
 				$hierarchyProperty = $params[3];
 
 				// at this point, we might be here by mistake (e.g. the user mispelled the named hierarchyargtype parameter) so we need to verify that we actually got 3 positional args, otherwise we return nothing
-				if (strpos($rootNode, '=') !== false || 
+				if (strpos($rootNode, '=') !== false ||
 					strpos($hierarchyPageName, '=') !== false ||
-					strpos($hierarchyProperty, '=') !== false) 
+					strpos($hierarchyProperty, '=') !== false)
 				{
 					$output = '';
 				}
@@ -1670,7 +1670,7 @@ class HierarchyBuilder {
 	 * @param string $hierarchy: The name of the property that contains the
 	 *  hierarchy data.
 	 * @param string $hierarchyargtype: Indicator if $hierarchy is a wikitext
-	 *  hierarchy or a propertyname. Possible values or "propertyname" or 
+	 *  hierarchy or a propertyname. Possible values or "propertyname" or
 	 *  "wikitext".
 	 *
 	 * @return string: The depth corrected wikitext representation of the
@@ -1712,7 +1712,7 @@ class HierarchyBuilder {
 	 *  subhierarchy who's root is $root if such a subhierarchy exists within
 	 *  the hierarchy $wikitextHierarchy. Otherwise, the empty string is returned.
 	 */
-	private static function getSubhierarchyHelper( 
+	private static function getSubhierarchyHelper(
 		$root,
 		$wikitextHierarchy,
 		$depth
@@ -1753,7 +1753,7 @@ class HierarchyBuilder {
 
 	/**
 	 * Parse a standard wikitext formatted hierarchy into HTML.
-	 * 
+	 *
 	 * The wikitext hierarchy is assumed to be in the standard format without
 	 * specified displaynames. (eg: [[pagename]] not [[pagename|displayname]])
 	 * The parsing will correctly handle displaynames and titleicons (assuming
@@ -1767,7 +1767,7 @@ class HierarchyBuilder {
 	 * HTML hierarchy will be exactly refelctive of the supplied wikitext.
 	 *
 	 * @param string $hierarchy: The wikitext formatted hieararchy to be parsed.
-	 * @param string $titleiconpropery: (Optional) The name of the property 
+	 * @param string $titleiconpropery: (Optional) The name of the property
 	 *  containing the titleicons to be displayed for pages in the hierarchy.
 	 *
 	 * @return string: The HTML formatted hierarchy with both displaynames and
@@ -1819,7 +1819,7 @@ class HierarchyBuilder {
 		$numRoots = preg_match_all( $depthpattern, $subhierarchy, $matches );
 		if ($numRoots < 1) {
 			if ( $depth == 0 ) { // maybe we just don't have a hierarchy_root node and should try again at depth 1
-				return HierarchyBuilder::parseWikitext2HtmlHelper( 
+				return HierarchyBuilder::parseWikitext2HtmlHelper(
 					$subhierarchy, $depth+1, $titleiconproperty
 				);
 			} else { // this denotes one base case for our recursion
@@ -1863,7 +1863,7 @@ class HierarchyBuilder {
 
 			// update $html to contain the root html list element (but we don't close that list element yet because we may need to nest the html for a child forest)
 			$html .= $depth == 0 ? "<li class='hierarchy_root'>" : '<li>';
-			$html .= $rootHtml;	
+			$html .= $rootHtml;
 
 			// Recurse on this root's' child forest if it exists and update $html with the results
 			$childforest = $childforests[$i];
