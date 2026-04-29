@@ -2,11 +2,16 @@
 	"@metadata": {
 		"authors": [
 			"Revi",
+			"Tensama0415",
 			"Ykhwong"
 		]
 	},
 	"hierarchybuilder-desc": "문서 계층으로부터 문서를 선택 및 편집할 수 있게 합니다",
 	"hierarchybuilder-reveal-editmessage": "어떻게 쓰죠?",
 	"hierarchybuilder-unusedpages": "사용하지 않는 문서",
-	"hierarchybuilder-hierarchy-desc": "이것은 위키텍스트 형식의 계층입니다."
+	"hierarchybuilder-missing-category": "분류 인수가 누락되었습니다.",
+	"hierarchybuilder-hierarchy-desc": "이것은 위키텍스트 형식의 계층입니다.",
+	"hierarchybuilder-missing-page-name": "문서 이름 인수가 누락되었습니다.",
+	"hierarchybuilder-missing-property-name": "속성 이름 인수가 누락되었습니다.",
+	"hierarchybuilder-invalid-collapsed": "접힌 이름의 값이 잘못되었습니다."
 }
