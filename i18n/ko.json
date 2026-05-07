@@ -8,6 +8,7 @@
 	},
 	"hierarchybuilder-desc": "문서 계층으로부터 문서를 선택 및 편집할 수 있게 합니다",
 	"hierarchybuilder-reveal-editmessage": "어떻게 쓰죠?",
+	"hierarchybuilder-hierarchyroot": "계층 뿌리",
 	"hierarchybuilder-unusedpages": "사용하지 않는 문서",
 	"hierarchybuilder-missing-category": "분류 인수가 누락되었습니다.",
 	"hierarchybuilder-hierarchy-desc": "이것은 위키텍스트 형식의 계층입니다.",
