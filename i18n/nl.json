@@ -3,6 +3,7 @@
 		"authors": [
 			"Esketti",
 			"Mar(c)",
+			"Siebrand",
 			"Sjoerddebruin"
 		]
 	},
@@ -20,5 +21,5 @@
 	"hierarchybuilder-collapsed-desc": "Als deze parameter is opgegeven, moet de hiërarchie ingeklapt worden geproduceerd wanneer deze voor het eerst wordt weergegeven.",
 	"hierarchybuilder-missing-page-name": "Het argument 'paginanaam' ontbreekt.",
 	"hierarchybuilder-missing-property-name": "Het argument 'eigenschapsnaam' ontbreekt.",
-	"hierarchybuilder-invalid-collapsed": "De waarde van het argument 'ingeklapt' is ongeldig."
+	"hierarchybuilder-invalid-collapsed": "De waarde van het argument 'ingeklapt' is onjuist."
 }
