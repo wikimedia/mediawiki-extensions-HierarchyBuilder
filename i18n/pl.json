@@ -3,7 +3,8 @@
 		"authors": [
 			"Chrumps",
 			"InternerowyGołąb",
-			"SemanticPioneer"
+			"SemanticPioneer",
+			"PanWor"
 		]
 	},
 	"hierarchybuilder-desc": "Renderuje, umożliwia edycję i wybór z hierarchii stron",
@@ -14,7 +15,7 @@
 	"hierarchybuilder-unusedpages": "Nieużywane Strony",
 	"hierarchybuilder-category-desc": "Jest to kategoria, do której muszą należeć strony w hierarchii.",
 	"hierarchybuilder-missing-category": "Brak argumentu kategorii.",
-	"hierarchybuilder-hierarchy-desc": "To jest wikitekst sformatowany hierarchicznie.",
+	"hierarchybuilder-hierarchy-desc": "To jest wikikod sformatowany hierarchicznie.",
 	"hierarchybuilder-pagename-desc": "To jest nazwa strony zawierającej hierarchię.",
 	"hierarchybuilder-propertyname-desc": "To jest nazwa właściwości zawierającej hierarchię.",
 	"hierarchybuilder-collapsed-desc": "Jeśli podano ten parametr, hierarchia powinna być renderowana jako zwinięta, gdy jest wyświetlana po raz pierwszy.",
