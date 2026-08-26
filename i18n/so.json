@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"AhmedG612"
+		]
+	},
+	"hierarchybuilder-desc": "Wuxuu soo bandhigaa oo oggolaanayaa tafatirka iyo xulashada kala sarraynta bogagga",
+	"hierarchybuilder-reveal-editmessage": "Sideen u isticmaalaa tan?",
+	"hierarchybuilder-editmessage": "Liiska Xididka Kala-sarrayntu wuxuu ka kooban yahay kala-sarraynta la ilaalin doono markaad kaydiso. Liiska Bogagga Aan La Isticmaalin wuxuu ka kooban yahay bogagga ku jira qaybta $1 ee aan hadda ku jirin kala sarraynta. Waxaad dib u habayn kartaa Liiska Xididka Kala sarraynta adigoo safafka kor iyo hoos u jiidaya, sidoo kalena beddeli kara heerka hoos-u-dhaca. Waxaad bogag ka soo dari kartaa Liiska Bogagga Aan La Isticmaalin kala-sarraynta adigoo jiidaya oo dhigaya meesha aad rabto ee Liiska Xididka Kala-sarraynta. Waxaad bogag ka saari kartaa kala sarraynta adigoo ka jiidaya Liiska Xididka Kala-sarraynta kuna ridaya meel kasta oo ku jirta Liiska Bogagga Aan La Isticmaalin.",
+	"hierarchybuilder-edit-error-message": "Kala sarrayntan lama tafatiri karo sababtoo ah xogta kala-sarraynta iyo qaybta laga soo qaadanayo bogagga aan la isticmaalin labaduba waa madhan yihiin. Fadlan hubi in ugu yaraan mid ka mid ah ilahan xogta uu xog leeyahay.",
+	"hierarchybuilder-hierarchyroot": "Xididka kala sarraynta",
+	"hierarchybuilder-unusedpages": "Bogagga aan la isticmaalin",
+	"hierarchybuilder-category-desc": "Tani waa qaybta ay tahay inay ka tirsanaadaan bogagga ku jira kala sarraynta.",
+	"hierarchybuilder-missing-category": "Doodda qaybta ayaa maqan.",
+	"hierarchybuilder-hierarchy-desc": "Tani waa kala-sarrayn loo qaabeeyey Wikitext.",
+	"hierarchybuilder-pagename-desc": "Tani waa magaca bogga ay ku jirto kala sarrayntu.",
+	"hierarchybuilder-propertyname-desc": "Tani waa magaca hantida ay ku jirto kala sarrayntu.",
+	"hierarchybuilder-collapsed-desc": "Haddii cabbirkan la bixiyo, kala sarraynta waa in loo soo bandhigaa iyadoo isku laaban marka ugu horreysa ee la muujiyo.",
+	"hierarchybuilder-missing-page-name": "Doodda magaca bogga ayaa maqan.",
+	"hierarchybuilder-missing-property-name": "Doodda magaca hantida ayaa maqan.",
+	"hierarchybuilder-invalid-collapsed": "Qiimaha doodda isku laabashada ah waa mid aan sax ahayn."
+}
